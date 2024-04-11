@@ -32,10 +32,12 @@ public class DefinitionProcess implements Process {
 		this.process = process;
 	}
 
+	@Override
 	public Process copy( TransformationReason reason ) {
 		return new DefinitionProcess( process.copy( reason ) );
 	}
 
+	@Override
 	public void run()
 		throws FaultException, ExitingException {
 		if( process != null ) {
@@ -43,6 +45,7 @@ public class DefinitionProcess implements Process {
 		}
 	}
 
+	@Override
 	public boolean isKillable() {
 		if( process != null ) {
 			return process.isKillable();

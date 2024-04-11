@@ -32,10 +32,12 @@ public class NotExpression implements Expression {
 		this.expression = expression;
 	}
 
+	@Override
 	public Expression cloneExpression( TransformationReason reason ) {
 		return new NotExpression( expression.cloneExpression( reason ) );
 	}
 
+	@Override
 	public Value evaluate() {
 		return Value.create( !(expression.evaluate().boolValue()) );
 	}

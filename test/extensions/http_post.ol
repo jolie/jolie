@@ -29,6 +29,9 @@ Location: Location_HTTPServer
 Protocol: http {
 	.method = "post";
 	.format -> format;
+	.charset -> charset;
+	.addHeader.header[0] -> headerAccept;
+	.addHeader.header[1] -> headerCharset;
 	.compression -> compression;
 	.requestCompression -> requestCompression;
 	.keepAlive -> keepAlive
@@ -48,6 +51,14 @@ define checkResponse
 	}
 }
 
+define checkResponse_formData
+{
+	// form data does not support "void" attribute values, they will be converted to "" ones
+	if ( response.id != 123456789123456789L || response.firstName != "John" || response.lastName != "Döner" || response.age != 30 || response.size != 90.5 || response.male != true || response.unknown != "Hey" || response.unknown2 != "" ) {
+		throw( TestFailed, "Data <=> Querystring value mismatch" )
+	}
+}
+
 define checkResponse2
 {
 	if ( response2 != reqVal ) {
@@ -57,30 +68,86 @@ define checkResponse2
 
 define test
 {
+	// utf-8
+	charset = "utf-8";
+	headerCharset << "Accept-Charset" { .value = "utf-8" };
+	headerAccept << "Accept" { .value = "*/*" };
 	format = undefined; // default
 	echoPerson@Server( person )( response );
 	checkResponse;
+	headerAccept << "Accept" { .value = "application/x-www-form-urlencoded" };
 	format = "x-www-form-urlencoded"; // URL-encoded
 	echoPerson@Server( person )( response );
-	checkResponse;
+	checkResponse_formData;
+	headerAccept << "Accept" { .value = "text/xml" };
 	format = "xml"; // XML
 	echoPerson@Server( person )( response );
 	checkResponse;
+	headerAccept << "Accept" { .value = "application/json" };
 	format = "json"; // JSON
 	echoPerson@Server( person )( response );
 	checkResponse;
-	/* format = "text/x-gwt-rpc"; // GWT-RPC
-	echoPerson@Server( person )( response );
-	checkResponse; */ // Currently unsupported
+	headerAccept << "Accept" { .value = "text/html" };
 	format = "html"; // HTML
 	identity@Server( reqVal )( response2 );
 	checkResponse2;
+	headerAccept << "Accept" { .value = "text/plain" };
 	format = "raw"; // plain-text
 	identity@Server( reqVal )( response2 );
 	checkResponse2;
+	headerAccept << "Accept" { .value = "application/octet-stream" };
 	format = "binary"; // binary
 	identity@Server( reqVal )( response2 );
-	checkResponse2
+	checkResponse2;
+
+	// utf-16
+	charset = "utf-16";
+	headerCharset << "Accept-Charset" { .value = "utf-16" };
+	headerAccept << "Accept" { .value = "*/*" };
+	format = undefined; // default
+	echoPerson@Server( person )( response );
+	checkResponse;
+	headerAccept << "Accept" { .value = "application/x-www-form-urlencoded" };
+	format = "x-www-form-urlencoded"; // URL-encoded
+	echoPerson@Server( person )( response );
+	checkResponse_formData;
+	headerAccept << "Accept" { .value = "text/xml" };
+	format = "xml"; // XML
+	echoPerson@Server( person )( response );
+	checkResponse;
+	headerAccept << "Accept" { .value = "application/json" };
+	format = "json"; // JSON
+	echoPerson@Server( person )( response );
+	checkResponse;
+	headerAccept << "Accept" { .value = "text/html" };
+	format = "html"; // HTML
+	identity@Server( reqVal )( response2 );
+	checkResponse2;
+	headerAccept << "Accept" { .value = "text/plain" };
+	format = "raw"; // plain-text
+	identity@Server( reqVal )( response2 );
+	checkResponse2;
+	headerAccept << "Accept" { .value = "application/octet-stream" };
+	format = "binary"; // binary
+	identity@Server( reqVal )( response2 );
+	checkResponse2;
+
+	// no response checking here, it just needs to pass
+	charset = null;
+	headerCharset << "Accept-Charset" { .value = "*" };
+	headerAccept << "Accept" { .value = "*/*" };
+	format = "html"; // HTML
+	consume@Server( reqVal )( );
+	format = "raw"; // plain-text
+	consume@Server( reqVal )( );
+	format = "binary"; // binary
+	consume@Server( reqVal )( );
+	format = "html"; // HTML
+	consume2@Server( reqVal );
+	format = "raw"; // plain-text
+	consume2@Server( reqVal );
+	format = "binary"; // binary
+	consume2@Server( reqVal )
 }
 
 define doTest

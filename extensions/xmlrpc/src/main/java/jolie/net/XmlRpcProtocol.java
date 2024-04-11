@@ -42,8 +42,6 @@ import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
 import java.io.ByteArrayInputStream;
 import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Source;
 import javax.xml.transform.dom.DOMSource;
 import jolie.net.http.HttpMessage;
@@ -88,7 +86,6 @@ public class XmlRpcProtocol extends SequentialCommProtocol implements HttpUtils.
 	private String inputId = null;
 	final private Transformer transformer;
 	final private Interpreter interpreter;
-	final private DocumentBuilderFactory docBuilderFactory;
 	final private DocumentBuilder docBuilder;
 	final private URI uri;
 	private final boolean inInputPort;
@@ -109,6 +106,7 @@ public class XmlRpcProtocol extends SequentialCommProtocol implements HttpUtils.
 	 */
 	private static final String ARRAY_KEY = "array";
 
+	@Override
 	public String name() {
 		return "xmlrpc";
 	}
@@ -118,7 +116,6 @@ public class XmlRpcProtocol extends SequentialCommProtocol implements HttpUtils.
 		URI uri,
 		boolean inInputPort,
 		Transformer transformer,
-		DocumentBuilderFactory docBuilderFactory,
 		DocumentBuilder docBuilder,
 		Interpreter interpreter ) {
 		super( configurationPath );
@@ -126,7 +123,6 @@ public class XmlRpcProtocol extends SequentialCommProtocol implements HttpUtils.
 		this.transformer = transformer;
 		this.inInputPort = inInputPort;
 		this.interpreter = interpreter;
-		this.docBuilderFactory = docBuilderFactory;
 		this.docBuilder = docBuilder;
 
 		transformer.setOutputProperty( OutputKeys.ENCODING, "utf-8" );
@@ -303,6 +299,7 @@ public class XmlRpcProtocol extends SequentialCommProtocol implements HttpUtils.
 		}
 	}
 
+	@Override
 	public void send_internal( OutputStream ostream, CommMessage message, InputStream istream )
 		throws IOException {
 		Document doc = docBuilder.newDocument();
@@ -436,16 +433,18 @@ public class XmlRpcProtocol extends SequentialCommProtocol implements HttpUtils.
 		ostream.write( content.getBytes() );
 	}
 
+	@Override
 	public void send( OutputStream ostream, CommMessage message, InputStream istream )
 		throws IOException {
 		HttpUtils.send( ostream, message, istream, inInputPort, channel(), this );
 	}
 
+	@Override
 	public CommMessage recv_internal( InputStream istream, OutputStream ostream )
 		throws IOException {
 		HttpParser parser = new HttpParser( istream );
 		HttpMessage message = parser.parse();
-		String charset = HttpUtils.getCharset( null, message );
+		String charset = HttpUtils.getResponseCharset( message );
 		HttpUtils.recv_checkForChannelClosing( message, channel() );
 
 		CommMessage retVal = null;
@@ -453,9 +452,6 @@ public class XmlRpcProtocol extends SequentialCommProtocol implements HttpUtils.
 		Value value = Value.create();
 		Document doc = null;
 
-		if( message.isError() ) {
-			throw new IOException( "HTTP error: " + new String( message.content(), charset ) );
-		}
 		if( inInputPort && message.type() != HttpMessage.Type.POST ) {
 			throw new UnsupportedMethodException( "Only HTTP method POST allowed!", Method.POST );
 		}
@@ -468,10 +464,9 @@ public class XmlRpcProtocol extends SequentialCommProtocol implements HttpUtils.
 			}
 
 			try {
-				DocumentBuilder builder = docBuilderFactory.newDocumentBuilder();
 				InputSource src = new InputSource( new ByteArrayInputStream( message.content() ) );
 				src.setEncoding( charset );
-				doc = builder.parse( src );
+				doc = docBuilder.parse( src );
 				if( message.isResponse() ) {
 					// test if the message contains a fault
 					try {
@@ -493,7 +488,7 @@ public class XmlRpcProtocol extends SequentialCommProtocol implements HttpUtils.
 				} else {
 					documentToValue( value, doc );
 				}
-			} catch( ParserConfigurationException | SAXException pce ) {
+			} catch( SAXException pce ) {
 				throw new IOException( pce );
 			}
 
@@ -501,7 +496,7 @@ public class XmlRpcProtocol extends SequentialCommProtocol implements HttpUtils.
 				// fault = new FaultException( "InternalServerError", "" );
 				// TODO support resourcePath
 				retVal = new CommMessage( CommMessage.GENERIC_REQUEST_ID, inputId, "/", value, fault );
-			} else if( !message.isError() ) {
+			} else {
 				// TODO support resourcePath
 				String opname = doc.getDocumentElement().getFirstChild().getTextContent();
 				retVal = new CommMessage( CommMessage.GENERIC_REQUEST_ID, opname, "/", value, fault );
@@ -513,6 +508,7 @@ public class XmlRpcProtocol extends SequentialCommProtocol implements HttpUtils.
 		return retVal;
 	}
 
+	@Override
 	public CommMessage recv( InputStream istream, OutputStream ostream )
 		throws IOException {
 		return HttpUtils.recv( istream, ostream, inInputPort, channel(), this );

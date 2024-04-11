@@ -28,6 +28,7 @@ public class ModuleFinderDummy implements ModuleFinder {
 
 	public ModuleFinderDummy() {}
 
+	@Override
 	public ModuleSource find( URI source, ImportPath importPath ) throws ModuleNotFoundException {
 		return new PathSource( Paths.get( "" ) );
 	}

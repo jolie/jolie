@@ -35,6 +35,7 @@ public class FreshValueExpression implements Expression {
 		private static final FreshValueExpression INSTANCE = new FreshValueExpression();
 	}
 
+	@Override
 	public Expression cloneExpression( TransformationReason reason ) {
 		return this;
 	}
@@ -43,6 +44,7 @@ public class FreshValueExpression implements Expression {
 		return FreshValueExpression.LazyHolder.INSTANCE;
 	}
 
+	@Override
 	public Value evaluate() {
 		return Value.create( UUID.randomUUID().toString() );
 	}

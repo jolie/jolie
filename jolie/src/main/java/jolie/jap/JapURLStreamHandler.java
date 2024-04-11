@@ -31,6 +31,7 @@ import java.net.URLStreamHandler;
  * @author Fabrizio Montesi
  */
 public class JapURLStreamHandler extends URLStreamHandler {
+	@Override
 	protected URLConnection openConnection( URL url )
 		throws IOException {
 		return new JapURLConnection( url );

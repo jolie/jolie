@@ -1274,10 +1274,12 @@ public class Interpreter {
 			logSessionStart( message, spawnedSession.getSessionId() );
 
 			spawnedSession.addSessionListener( new SessionListener() {
+				@Override
 				public void onSessionExecuted( SessionThread session ) {
 					logSessionEnd( message, session.getSessionId() );
 				}
 
+				@Override
 				public void onSessionError( SessionThread session, FaultException fault ) {
 					logSessionEnd( message, session.getSessionId() );
 				}
@@ -1299,6 +1301,7 @@ public class Interpreter {
 			logSessionStart( message, spawnedSession.getSessionId() );
 			spawnedSession.addSessionListener( correlationEngine );
 			spawnedSession.addSessionListener( new SessionListener() {
+				@Override
 				public void onSessionExecuted( SessionThread session ) {
 					synchronized( waitingSessionThreads ) {
 						if( !waitingSessionThreads.isEmpty() ) {
@@ -1311,6 +1314,7 @@ public class Interpreter {
 					logSessionEnd( message, session.getSessionId() );
 				}
 
+				@Override
 				public void onSessionError( SessionThread session, FaultException fault ) {
 					synchronized( waitingSessionThreads ) {
 						if( !waitingSessionThreads.isEmpty() ) {

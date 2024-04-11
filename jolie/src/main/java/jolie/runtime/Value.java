@@ -645,7 +645,7 @@ public abstract class Value implements Expression, Cloneable {
 		}
 	}
 
-	public ByteArray byteArrayValueStrict()
+	public final ByteArray byteArrayValueStrict()
 		throws TypeCastingException {
 		ByteArray r = null;
 		Object o = valueObject();
@@ -741,7 +741,7 @@ public abstract class Value implements Expression, Cloneable {
 		}
 	}
 
-	public boolean boolValueStrict()
+	public final boolean boolValueStrict()
 		throws TypeCastingException {
 		boolean r = false;
 		Object o = valueObject();

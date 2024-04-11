@@ -43,6 +43,7 @@ public class SpawnProcess implements Process {
 		this.process = process;
 	}
 
+	@Override
 	public Process copy( TransformationReason reason ) {
 		return new SpawnProcess(
 			(VariablePath) indexPath.cloneExpression( reason ),
@@ -51,6 +52,7 @@ public class SpawnProcess implements Process {
 			process.copy( reason ) );
 	}
 
+	@Override
 	public void run()
 		throws FaultException {
 		new SpawnExecution( this ).run();
@@ -72,6 +74,7 @@ public class SpawnProcess implements Process {
 		return process;
 	}
 
+	@Override
 	public boolean isKillable() {
 		return process.isKillable();
 	}

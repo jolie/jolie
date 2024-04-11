@@ -57,6 +57,7 @@ public class Jolie2JavaCommandLineParser extends CommandLineParser {
 		private Boolean buildXml = true;
 		private Boolean javaservice = false;
 
+		@Override
 		public int onUnrecognizedArgument( List< String > argumentsList, int index )
 			throws CommandLineException {
 			if( "--addSource".equals( argumentsList.get( index ) ) ) {

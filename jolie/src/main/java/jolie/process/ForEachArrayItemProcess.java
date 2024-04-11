@@ -39,6 +39,7 @@ public class ForEachArrayItemProcess implements Process {
 		this.process = process;
 	}
 
+	@Override
 	public Process copy( TransformationReason reason ) {
 		return new ForEachArrayItemProcess(
 			keyPath.copy(),
@@ -46,6 +47,7 @@ public class ForEachArrayItemProcess implements Process {
 			process.copy( reason ) );
 	}
 
+	@Override
 	public void run()
 		throws FaultException, ExitingException {
 		final ValueVector targetVector = targetPath.getValueVectorOrNull();

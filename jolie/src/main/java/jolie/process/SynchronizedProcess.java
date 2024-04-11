@@ -34,10 +34,12 @@ public class SynchronizedProcess implements Process {
 		this.process = process;
 	}
 
+	@Override
 	public Process copy( TransformationReason reason ) {
 		return new SynchronizedProcess( id, process.copy( reason ) );
 	}
 
+	@Override
 	public void run()
 		throws FaultException, ExitingException {
 		synchronized( Interpreter.getInstance().getLock( id ) ) {
@@ -45,6 +47,7 @@ public class SynchronizedProcess implements Process {
 		}
 	}
 
+	@Override
 	public boolean isKillable() {
 		return process.isKillable();
 	}

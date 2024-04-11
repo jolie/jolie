@@ -31,7 +31,7 @@ import java.util.Map.Entry;
 
 public class HttpMessage {
 	public enum Type {
-		RESPONSE, GET, HEAD, POST, DELETE, PUT, OPTIONS, PATCH, UNSUPPORTED, ERROR
+		RESPONSE, GET, HEAD, POST, DELETE, PUT, OPTIONS, PATCH, UNSUPPORTED
 	}
 
 	public enum Version {
@@ -208,10 +208,6 @@ public class HttpMessage {
 		return type == Type.RESPONSE;
 	}
 
-	public boolean isError() {
-		return type == Type.ERROR;
-	}
-
 	public int statusCode() {
 		return statusCode;
 	}
@@ -220,16 +216,8 @@ public class HttpMessage {
 		statusCode = code;
 	}
 
-	public String getMethod() {
-		String method = "";
-		if( type == Type.GET ||
-			type == Type.POST ||
-			type == Type.DELETE ||
-			type == Type.PUT ||
-			type == Type.PATCH ) {
-			method = type.name();
-		}
-		return method;
+	public Method getMethod() throws UnsupportedMethodException {
+		return Method.fromString( type.name() );
 	}
 
 	public byte[] content() {

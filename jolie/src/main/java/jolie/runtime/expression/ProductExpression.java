@@ -32,6 +32,7 @@ public class ProductExpression implements Expression {
 		this.children = children;
 	}
 
+	@Override
 	public Expression cloneExpression( TransformationReason reason ) {
 		Operand[] cc = new Operand[ children.length ];
 

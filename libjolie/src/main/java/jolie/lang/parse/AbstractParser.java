@@ -553,8 +553,8 @@ public abstract class AbstractParser {
 		throws ParserException, IOException {
 		CodeCheckMessage exceptionMessage;
 		ParsingContext context = getContext();
-		if( !token.content().equals( "" ) ) {
-			if( !mesg.equals( "" ) ) {
+		if( !token.content().isEmpty() ) {
+			if( !mesg.isEmpty() ) {
 				if( mesg.contains( "term" ) ) {
 					mesg += ": " + token.content() + "\n";
 				} else {
@@ -613,7 +613,7 @@ public abstract class AbstractParser {
 		CodeCheckMessage exceptionMessage;
 		// Get a context with more accurate informatin with respect to the error
 		ParsingContext context = getContextDuringError();
-		if( !token.content().equals( "" ) ) {
+		if( !token.content().isEmpty() ) {
 			// Add the token we found to the message
 			mesg += ". Found term: " + token.content() + "\n";
 		} else {
@@ -820,7 +820,7 @@ public abstract class AbstractParser {
 					}
 					i += 1;
 				}
-				if( correctLine.equals( "" ) ) {
+				if( correctLine.isEmpty() ) {
 					context = new URIParsingContext( context.source(), context.startLine(), context.endLine(),
 						context.startColumn(), context.endColumn(), extralines );
 				}

@@ -32,11 +32,13 @@ public class SodepProtocolFactory extends CommProtocolFactory {
 		super( commCore );
 	}
 
+	@Override
 	public CommProtocol createOutputProtocol( VariablePath configurationPath, URI location )
 		throws IOException {
 		return new SodepProtocol( configurationPath );
 	}
 
+	@Override
 	public CommProtocol createInputProtocol( VariablePath configurationPath, URI location )
 		throws IOException {
 		return new SodepProtocol( configurationPath );

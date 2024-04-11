@@ -31,15 +31,18 @@ public class ParallelProcess implements Process {
 		this.children = children;
 	}
 
+	@Override
 	public void run()
 		throws FaultException {
 		(new ParallelExecution( children )).run();
 	}
 
+	@Override
 	public Process copy( TransformationReason reason ) {
 		return new ParallelProcess( children );
 	}
 
+	@Override
 	public boolean isKillable() {
 		for( Process child : children ) {
 			if( child.isKillable() == false ) {

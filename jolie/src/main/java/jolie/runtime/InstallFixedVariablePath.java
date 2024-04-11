@@ -39,6 +39,7 @@ public class InstallFixedVariablePath implements Expression {
 		this.fixedEvaluation = fixedEvaluation;
 	}
 
+	@Override
 	public Expression cloneExpression( TransformationReason reason ) {
 		if( reason instanceof HandlerInstallationReason ) {
 			return new InstallFixedVariablePath( Value.createDeepCopy( path.getValue() ) );
@@ -47,6 +48,7 @@ public class InstallFixedVariablePath implements Expression {
 		return new InstallFixedVariablePath( path );
 	}
 
+	@Override
 	public Value evaluate() {
 		return fixedEvaluation;
 	}

@@ -67,6 +67,7 @@ public class NativeJolieThread extends Thread implements InterpreterThread {
 	/**
 	 * Returns the interpreter that this thread refers to.
 	 */
+	@Override
 	public Interpreter interpreter() {
 		return interpreter.get();
 	}

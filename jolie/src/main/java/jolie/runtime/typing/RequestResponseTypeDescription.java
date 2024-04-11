@@ -54,10 +54,12 @@ public class RequestResponseTypeDescription implements OperationTypeDescription 
 		return faultTypes;
 	}
 
+	@Override
 	public OneWayTypeDescription asOneWayTypeDescription() {
 		return null;
 	}
 
+	@Override
 	public RequestResponseTypeDescription asRequestResponseTypeDescription() {
 		return this;
 	}

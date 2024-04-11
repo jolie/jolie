@@ -49,6 +49,7 @@ public class MakePointerProcess implements Process {
 	// }
 
 
+	@Override
 	public Process copy( TransformationReason reason ) {
 		return new MakePointerProcess(
 			(VariablePath) leftPath.cloneExpression( reason ),
@@ -56,6 +57,7 @@ public class MakePointerProcess implements Process {
 			context );
 	}
 
+	@Override
 	public void run() {
 		if( ExecutionThread.currentThread().isKilled() )
 			return;
@@ -72,6 +74,7 @@ public class MakePointerProcess implements Process {
 
 	}
 
+	@Override
 	public boolean isKillable() {
 		return true;
 	}

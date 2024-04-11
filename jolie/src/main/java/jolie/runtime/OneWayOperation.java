@@ -34,6 +34,7 @@ public class OneWayOperation extends InputOperation {
 		this.requestType = requestType;
 	}
 
+	@Override
 	public Type requestType() {
 		return requestType;
 	}

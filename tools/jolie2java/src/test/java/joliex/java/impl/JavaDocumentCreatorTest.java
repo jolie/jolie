@@ -48,7 +48,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map.Entry;
-import java.util.Optional;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -68,6 +67,7 @@ public class JavaDocumentCreatorTest {
 	private static final Boolean TESTBOOL = true;
 	private static final Long TESTLONG = 2L;
 	private static final Boolean DELETE_AFTER_TEST = true;
+	private static final double DOUBLE_DELTA = 0.001;
 
 	private static URLClassLoader classLoader;
 	private static final String outputDirectory = "./target/jolie2java-generated-sources/";
@@ -189,7 +189,7 @@ public class JavaDocumentCreatorTest {
 		IllegalAccessException, IllegalArgumentException, InvocationTargetException {
 		// String testName = "testInterfaceImpl";
 		Class< ? > MyOutputPortImpl = Class.forName( "com.test.MyOutputPortImpl", true, classLoader );
-		Constructor myOutputPortImplConstructor = MyOutputPortImpl.getConstructor();
+		Constructor< ? > myOutputPortImplConstructor = MyOutputPortImpl.getConstructor();
 		// Object myOutputPortImplInstance = myOutputPortImplConstructor.newInstance();
 		int methodCount = 0;
 		for( int i = 0; i < MyOutputPortImpl.getMethods().length; i++ ) {
@@ -210,13 +210,14 @@ public class JavaDocumentCreatorTest {
 		String testName = "testFlatStructure";
 		// FileStructure
 		Class< ? > FlatStructureType = Class.forName( packageName + ".FlatStructureType", true, classLoader );
-		Constructor flatStructureTypeConstructor = FlatStructureType.getConstructor( Value.class );
+		Constructor< ? > flatStructureTypeConstructor = FlatStructureType.getConstructor( Value.class );
 		Jolie2JavaInterface flatStructureType =
 			(Jolie2JavaInterface) flatStructureTypeConstructor.newInstance( getFlatStructuredType() );
 		// checking TypeCheckingException
 		Value exceptionValue = Value.create();
 		exceptionValue.setValue( TESTBOOL );
 		try {
+			@SuppressWarnings( "unused" )
 			Jolie2JavaInterface flatStructureTypeException =
 				(Jolie2JavaInterface) flatStructureTypeConstructor.newInstance( exceptionValue );
 			assertTrue( "Exception not thrown", false );
@@ -234,7 +235,8 @@ public class JavaDocumentCreatorTest {
 			.getMethod( "toValue", FlatStructureType ).invoke( flatStructureType, flatStructureType ), 0 ) );
 
 
-		Jolie2JavaInterface flatStructureTypeEmpty = (Jolie2JavaInterface) FlatStructureType.newInstance();
+		Jolie2JavaInterface flatStructureTypeEmpty =
+			(Jolie2JavaInterface) FlatStructureType.getDeclaredConstructor().newInstance();
 		System.out.println( testName + " constructors and getValue() OK" );
 		// check methods
 		checkMethods( FlatStructureType, getFlatStructuredType() );
@@ -252,7 +254,7 @@ public class JavaDocumentCreatorTest {
 		// FileStructureVector
 		Class< ? > FlatStructureVectorsType =
 			Class.forName( packageName + ".FlatStructureVectorsType", true, classLoader );
-		Constructor flatStructureVectorsTypeConstructor =
+		Constructor< ? > flatStructureVectorsTypeConstructor =
 			FlatStructureVectorsType.getConstructor( Value.class );
 		Jolie2JavaInterface flatStructureVectorsType =
 			(Jolie2JavaInterface) flatStructureVectorsTypeConstructor.newInstance( getFlatStructuredVectorsType() );
@@ -270,7 +272,7 @@ public class JavaDocumentCreatorTest {
 			0 ) );
 
 		Jolie2JavaInterface flatStructureVectorsTypeEmpty =
-			(Jolie2JavaInterface) FlatStructureVectorsType.newInstance();
+			(Jolie2JavaInterface) FlatStructureVectorsType.getDeclaredConstructor().newInstance();
 		System.out.println( testName + " constructors and getValue() OK" );
 
 		// check methods
@@ -289,7 +291,7 @@ public class JavaDocumentCreatorTest {
 		String testName = "testInLineStructureType";
 		// FileStructureVector
 		Class< ? > InLineStructureType = Class.forName( packageName + ".InLineStructureType", true, classLoader );
-		Constructor inLineStructureTypeConstructor = InLineStructureType.getConstructor( Value.class );
+		Constructor< ? > inLineStructureTypeConstructor = InLineStructureType.getConstructor( Value.class );
 		Jolie2JavaInterface inLineStructureType =
 			(Jolie2JavaInterface) inLineStructureTypeConstructor.newInstance( getInlineStructureType() );
 		// check constructor and getValues
@@ -298,6 +300,7 @@ public class JavaDocumentCreatorTest {
 		Value exceptionValue = Value.create();
 		exceptionValue.getFirstChild( "zzzzzz" ).setValue( TESTBOOL );
 		try {
+			@SuppressWarnings( "unused" )
 			Jolie2JavaInterface inLineStructureTypeException =
 				(Jolie2JavaInterface) inLineStructureTypeConstructor.newInstance( exceptionValue );
 			assertTrue( "Exception not thrown", false );
@@ -311,7 +314,8 @@ public class JavaDocumentCreatorTest {
 		assertTrue( compareValues( getInlineStructureType(), (Value) InLineStructureType
 			.getMethod( "toValue", InLineStructureType ).invoke( inLineStructureType, inLineStructureType ), 0 ) );
 
-		Jolie2JavaInterface inLineStructureTypeEmpty = (Jolie2JavaInterface) InLineStructureType.newInstance();
+		Jolie2JavaInterface inLineStructureTypeEmpty =
+			(Jolie2JavaInterface) InLineStructureType.getDeclaredConstructor().newInstance();
 		System.out.println( testName + " constructors and getValue() OK" );
 
 		// check methods
@@ -331,7 +335,7 @@ public class JavaDocumentCreatorTest {
 		// FileStructureVector
 		Class< ? > InLineStructureVectorsType =
 			Class.forName( packageName + ".InLineStructureVectorsType", true, classLoader );
-		Constructor inLineStructureVectorsTypeConstructor =
+		Constructor< ? > inLineStructureVectorsTypeConstructor =
 			InLineStructureVectorsType.getConstructor( Value.class );
 		Jolie2JavaInterface inLineStructureVectorsType =
 			(Jolie2JavaInterface) inLineStructureVectorsTypeConstructor.newInstance( getInlineStructureVectorsType() );
@@ -348,7 +352,7 @@ public class JavaDocumentCreatorTest {
 			0 ) );
 
 		Jolie2JavaInterface inLineStructureVectorsTypeEmpty =
-			(Jolie2JavaInterface) InLineStructureVectorsType.newInstance();
+			(Jolie2JavaInterface) InLineStructureVectorsType.getDeclaredConstructor().newInstance();
 		System.out.println( testName + " constructors and getValue() OK" );
 
 		// check methods
@@ -370,7 +374,7 @@ public class JavaDocumentCreatorTest {
 		// FileStructureVector
 		Class< ? > LinkedTypeStructureType =
 			Class.forName( packageName + ".LinkedTypeStructureType", true, classLoader );
-		Constructor linkedTypeStructureTypeConstructor =
+		Constructor< ? > linkedTypeStructureTypeConstructor =
 			LinkedTypeStructureType.getConstructor( Value.class );
 		Jolie2JavaInterface linkedTypeStructureType =
 			(Jolie2JavaInterface) linkedTypeStructureTypeConstructor.newInstance( getLinkedTypeStructureType() );
@@ -385,7 +389,8 @@ public class JavaDocumentCreatorTest {
 			.getMethod( "toValue", LinkedTypeStructureType ).invoke( linkedTypeStructureType, linkedTypeStructureType ),
 			0 ) );
 
-		Jolie2JavaInterface linkedTypeStructureTypeEmpty = (Jolie2JavaInterface) LinkedTypeStructureType.newInstance();
+		Jolie2JavaInterface linkedTypeStructureTypeEmpty =
+			(Jolie2JavaInterface) LinkedTypeStructureType.getConstructor().newInstance();
 		System.out.println( testName + " constructors and getValue() OK" );
 
 		// check methods
@@ -400,7 +405,7 @@ public class JavaDocumentCreatorTest {
 		IllegalAccessException, NoSuchMethodException, IllegalArgumentException, InvocationTargetException {
 		String testName = "testChoiceLinkedType";
 		Class< ? > ChoiceLinkedType = Class.forName( packageName + ".ChoiceLinkedType", true, classLoader );
-		Constructor choiceLinkedTypeConstructor = ChoiceLinkedType.getConstructor( Value.class );
+		Constructor< ? > choiceLinkedTypeConstructor = ChoiceLinkedType.getConstructor( Value.class );
 		// LinkedTypeStructureType
 		Jolie2JavaInterface choiceLinkedType =
 			(Jolie2JavaInterface) choiceLinkedTypeConstructor.newInstance( getLinkedTypeStructureType() );
@@ -505,7 +510,7 @@ public class JavaDocumentCreatorTest {
 		IllegalAccessException, NoSuchMethodException, IllegalArgumentException, InvocationTargetException {
 		String testName = "testChoiceInlineType";
 		Class< ? > ChoiceInlineType = Class.forName( "com.test.types.ChoiceInlineType", true, classLoader );
-		Constructor choiceInlineTypeConstructor = ChoiceInlineType.getConstructor( Value.class );
+		Constructor< ? > choiceInlineTypeConstructor = ChoiceInlineType.getConstructor( Value.class );
 		// ChoiceInlineType1
 		Jolie2JavaInterface choiceInlineType =
 			(Jolie2JavaInterface) choiceInlineTypeConstructor.newInstance( getChoiceInlineType1() );
@@ -588,7 +593,7 @@ public class JavaDocumentCreatorTest {
 		IllegalAccessException, NoSuchMethodException, IllegalArgumentException, InvocationTargetException {
 		String testName = "testChoiceSimpleType";
 		Class< ? > ChoiceSimpleType = Class.forName( packageName + ".ChoiceSimpleType", true, classLoader );
-		Constructor choiceSimpleTypeConstructor = ChoiceSimpleType.getConstructor( Value.class );
+		Constructor< ? > choiceSimpleTypeConstructor = ChoiceSimpleType.getConstructor( Value.class );
 
 
 		// string
@@ -669,7 +674,7 @@ public class JavaDocumentCreatorTest {
 		// FileStructureVector
 		Class< ? > LinkedTypeStructureVectorsType =
 			Class.forName( packageName + ".LinkedTypeStructureVectorsType", true, classLoader );
-		Constructor linkedTypeStructureVectorsTypeConstructor =
+		Constructor< ? > linkedTypeStructureVectorsTypeConstructor =
 			LinkedTypeStructureVectorsType.getConstructor( Value.class );
 		Jolie2JavaInterface linkedTypeStructureVectorsType =
 			(Jolie2JavaInterface) linkedTypeStructureVectorsTypeConstructor
@@ -688,7 +693,7 @@ public class JavaDocumentCreatorTest {
 
 
 		Jolie2JavaInterface linkedTypeStructureVectorsTypeEmpty =
-			(Jolie2JavaInterface) LinkedTypeStructureVectorsType.newInstance();
+			(Jolie2JavaInterface) LinkedTypeStructureVectorsType.getDeclaredConstructor().newInstance();
 		System.out.println( testName + " constructors and getValue() OK" );
 
 		// check methods
@@ -706,7 +711,7 @@ public class JavaDocumentCreatorTest {
 		for( int i = 1; i <= numberOfRootValueTypeSamples; i++ ) {
 			String testName = "testRootValue" + i + "Type";
 			Class< ? > RootValueType = Class.forName( packageName + ".RootValue" + i + "Type", true, classLoader );
-			Constructor rootValueConstructotr = RootValueType.getConstructor( Value.class );
+			Constructor< ? > rootValueConstructotr = RootValueType.getConstructor( Value.class );
 			Jolie2JavaInterface rootValueTypeInstance =
 				(Jolie2JavaInterface) rootValueConstructotr.newInstance( getRootValue( i ) );
 			assertTrue( compareValues( getRootValue( i ), rootValueTypeInstance.getValue(), 0 ) );
@@ -717,7 +722,8 @@ public class JavaDocumentCreatorTest {
 				.invoke( rootValueTypeInstance, rootValueTypeInstance ), 0 ) );
 
 
-			Jolie2JavaInterface rootValueTypeInstanceEmpty = (Jolie2JavaInterface) RootValueType.newInstance();
+			Jolie2JavaInterface rootValueTypeInstanceEmpty =
+				(Jolie2JavaInterface) RootValueType.getDeclaredConstructor().newInstance();
 			System.out.println( testName + " constructors and getValue() OK" );
 			// check methods
 			checkMethods( RootValueType, getRootValue( i ) );
@@ -748,7 +754,7 @@ public class JavaDocumentCreatorTest {
 		for( Entry< String, Object > entry : simpleTypeList.entrySet() ) {
 			String testName = "test" + entry.getKey() + "Type";
 			Class< ? > simpleType = Class.forName( packageName + "." + entry.getKey() + "Type", true, classLoader );
-			Constructor stringTypeConstructotr = simpleType.getConstructor( Value.class );
+			Constructor< ? > stringTypeConstructotr = simpleType.getConstructor( Value.class );
 			Value v = Value.create();
 			if( entry.getValue() != null ) {
 				v.setValue( entry.getValue() );
@@ -764,7 +770,8 @@ public class JavaDocumentCreatorTest {
 				0 ) );
 
 
-			Jolie2JavaInterface simpleTypeInstanceEmpty = (Jolie2JavaInterface) simpleType.newInstance();
+			Jolie2JavaInterface simpleTypeInstanceEmpty =
+				(Jolie2JavaInterface) simpleType.getDeclaredConstructor().newInstance();
 			System.out.println( testName + " constructors and getValue() OK" );
 			// check methods
 			checkMethods( simpleType, v );
@@ -778,7 +785,7 @@ public class JavaDocumentCreatorTest {
 
 	}
 
-	private void checkMethods( Class cls, Value value ) {
+	private void checkMethods( Class< ? > cls, Value value ) {
 		setMethodList = new HashMap<>();
 		getMethodList = new HashMap<>();
 		getMethodValueList = new HashMap<>();
@@ -867,7 +874,7 @@ public class JavaDocumentCreatorTest {
 		InstantiationException, ClassNotFoundException {
 		// invoking methods
 		Class< ? > InLineStructureType = Class.forName( packageName + ".InLineStructureType", true, classLoader );
-		Constructor inLineStructureTypeConstructor = InLineStructureType.getConstructor( Value.class );
+		Constructor< ? > inLineStructureTypeConstructor = InLineStructureType.getConstructor( Value.class );
 		Jolie2JavaInterface inLineStructureType =
 			(Jolie2JavaInterface) inLineStructureTypeConstructor.newInstance( getInlineStructureType() );
 		setMethodList.get( "A" ).invoke( obj, inLineStructureType );
@@ -876,7 +883,7 @@ public class JavaDocumentCreatorTest {
 
 		Class< ? > InLineStructureVectorsType =
 			Class.forName( packageName + ".InLineStructureVectorsType", true, classLoader );
-		Constructor inLineStructureVectorsTypeConstructor =
+		Constructor< ? > inLineStructureVectorsTypeConstructor =
 			InLineStructureVectorsType.getConstructor( Value.class );
 		Jolie2JavaInterface inLineStructureVectorsType =
 			(Jolie2JavaInterface) inLineStructureVectorsTypeConstructor.newInstance( getInlineStructureVectorsType() );
@@ -886,7 +893,7 @@ public class JavaDocumentCreatorTest {
 			inLineStructureVectorsType );
 
 		Class< ? > FlatStructureType = Class.forName( packageName + ".FlatStructureType", true, classLoader );
-		Constructor flatStructureTypeConstructor = FlatStructureType.getConstructor( Value.class );
+		Constructor< ? > flatStructureTypeConstructor = FlatStructureType.getConstructor( Value.class );
 		Jolie2JavaInterface flatStructureType =
 			(Jolie2JavaInterface) flatStructureTypeConstructor.newInstance( getFlatStructuredType() );
 		setMethodList.get( "C" ).invoke( obj, flatStructureType );
@@ -894,7 +901,7 @@ public class JavaDocumentCreatorTest {
 		assertEquals( "Linked type c does not correspond ", FlatStructureType.cast( c ), flatStructureType );
 
 		Class< ? > NewType = Class.forName( packageName + ".NewType", true, classLoader );
-		Constructor newTypeConstructor = NewType.getConstructor( Value.class );
+		Constructor< ? > newTypeConstructor = NewType.getConstructor( Value.class );
 		Jolie2JavaInterface newType = (Jolie2JavaInterface) newTypeConstructor.newInstance( getNewType() );
 		setMethodList.get( "D" ).invoke( obj, newType );
 		Object d = getMethodList.get( "D" ).invoke( obj );
@@ -906,7 +913,7 @@ public class JavaDocumentCreatorTest {
 		InstantiationException, ClassNotFoundException {
 		// invoking methods
 		Class< ? > InLineStructureType = Class.forName( packageName + ".InLineStructureType", true, classLoader );
-		Constructor inLineStructureTypeConstructor = InLineStructureType.getConstructor( Value.class );
+		Constructor< ? > inLineStructureTypeConstructor = InLineStructureType.getConstructor( Value.class );
 		Integer aElements = 10;
 		for( int i = 0; i < aElements; i++ ) {
 			Jolie2JavaInterface inLineStructureType =
@@ -926,7 +933,7 @@ public class JavaDocumentCreatorTest {
 
 		// TODO test field b
 		Class< ? > FlatStructureType = Class.forName( packageName + ".FlatStructureType", true, classLoader );
-		Constructor flatStructureTypeConstructor = FlatStructureType.getConstructor( Value.class );
+		Constructor< ? > flatStructureTypeConstructor = FlatStructureType.getConstructor( Value.class );
 		Integer cElements = 7;
 		for( int i = 0; i < cElements; i++ ) {
 			Jolie2JavaInterface flatStructureType =
@@ -945,7 +952,7 @@ public class JavaDocumentCreatorTest {
 			Integer.valueOf( 0 ) );
 
 		Class< ? > NewType = Class.forName( packageName + ".NewType", true, classLoader );
-		Constructor newTypeConstructor = NewType.getConstructor( Value.class );
+		Constructor< ? > newTypeConstructor = NewType.getConstructor( Value.class );
 		Integer dElements = 10;
 		for( int i = 0; i < dElements; i++ ) {
 			Jolie2JavaInterface newType = (Jolie2JavaInterface) newTypeConstructor.newInstance( getNewType() );
@@ -963,7 +970,7 @@ public class JavaDocumentCreatorTest {
 			Integer.valueOf( 0 ) );
 	}
 
-	private void checkRootMethods( Class cls, Object obj, Value v ) throws IllegalAccessException,
+	private void checkRootMethods( Class< ? > cls, Object obj, Value v ) throws IllegalAccessException,
 		IllegalArgumentException, InvocationTargetException, NoSuchMethodException, InstantiationException {
 		if( v.isBool() || v.isByteArray() || v.isString() || v.isDouble() || v.isInt() || v.isLong() ) {
 			Method getRootValue = cls.getDeclaredMethod( "getRootValue" );
@@ -988,7 +995,7 @@ public class JavaDocumentCreatorTest {
 			if( v.isDouble() ) {
 				Method setRootValue = cls.getDeclaredMethod( "setRootValue", Double.class );
 				setRootValue.invoke( obj, v.doubleValue() );
-				assertEquals( "Root values in methods do not correspond", new Double( v.doubleValue() ),
+				assertEquals( "Root values in methods do not correspond", Double.valueOf( v.doubleValue() ),
 					getRootValue.invoke( obj ) );
 			}
 			if( v.isInt() ) {
@@ -1006,7 +1013,7 @@ public class JavaDocumentCreatorTest {
 		}
 	}
 
-	private void checkRootMethodsAnyValue( Class cls, Object obj, Value v ) throws IllegalAccessException,
+	private void checkRootMethodsAnyValue( Class< ? > cls, Object obj, Value v ) throws IllegalAccessException,
 		IllegalArgumentException, InvocationTargetException, NoSuchMethodException, InstantiationException {
 		if( v.isBool() || v.isByteArray() || v.isString() || v.isDouble() || v.isInt() || v.isLong() ) {
 			Method getRootValue = cls.getDeclaredMethod( "getRootValue" );
@@ -1028,7 +1035,7 @@ public class JavaDocumentCreatorTest {
 			}
 			if( v.isDouble() ) {
 				setRootValue.invoke( obj, v.doubleValue() );
-				assertEquals( "Root values in methods do not correspond", new Double( v.doubleValue() ),
+				assertEquals( "Root values in methods do not correspond", Double.valueOf( v.doubleValue() ),
 					getRootValue.invoke( obj ) );
 			}
 			if( v.isInt() ) {
@@ -1044,7 +1051,7 @@ public class JavaDocumentCreatorTest {
 		}
 	}
 
-	private void invokingSetAddGetMethods( Class cls, Object obj, Value v ) throws IllegalAccessException,
+	private void invokingSetAddGetMethods( Class< ? > cls, Object obj, Value v ) throws IllegalAccessException,
 		IllegalArgumentException, InvocationTargetException, NoSuchMethodException, InstantiationException {
 
 		// invoking methods
@@ -1055,8 +1062,8 @@ public class JavaDocumentCreatorTest {
 					if( value.hasChildren() ) {
 						String mNameTmp = vv.getKey().substring( 0, 1 ).toUpperCase() + vv.getKey().substring( 1 );
 						for( int y = 0; y < addMethodList.get( mNameTmp ).getParameterTypes().length; y++ ) {
-							Class SubClass = addMethodList.get( mNameTmp ).getParameterTypes()[ y ];
-							Constructor subClassConstructor = Arrays.stream( SubClass.getConstructors() )
+							Class< ? > SubClass = addMethodList.get( mNameTmp ).getParameterTypes()[ y ];
+							Constructor< ? > subClassConstructor = Arrays.stream( SubClass.getConstructors() )
 								.filter( constructor -> constructor.getParameterCount() > 1 ).findAny()
 								.orElseThrow( () -> new NoSuchMethodException() );
 							Object subClassInstance = subClassConstructor.newInstance( obj, value );
@@ -1074,9 +1081,9 @@ public class JavaDocumentCreatorTest {
 				if( value.hasChildren() ) {
 					String mNameTmp = vv.getKey().substring( 0, 1 ).toUpperCase() + vv.getKey().substring( 1 );
 					for( int i = 0; i < setMethodList.get( mNameTmp ).getParameterTypes().length; i++ ) {
-						Class SubClass = setMethodList.get( mNameTmp ).getParameterTypes()[ i ];
+						Class< ? > SubClass = setMethodList.get( mNameTmp ).getParameterTypes()[ i ];
 
-						Constructor subClassConstructor = null;
+						Constructor< ? > subClassConstructor = null;
 						for( int c = 0; c < SubClass.getConstructors().length; c++ ) {
 							if( SubClass.getConstructors()[ c ].getParameterTypes().length > 1 ) {
 								subClassConstructor = SubClass.getConstructors()[ c ];
@@ -1114,8 +1121,8 @@ public class JavaDocumentCreatorTest {
 		} else if( v.isDouble() ) {
 			setMethodList.get( mNameTmp ).invoke( obj, v.doubleValue() );
 			Double returnValue = (Double) getMethodList.get( mNameTmp ).invoke( obj );
-			assertEquals( "check methods for field " + fieldName + " failed", new Double( v.doubleValue() ),
-				returnValue );
+			assertEquals( "check methods for field " + fieldName + " failed", v.doubleValue(),
+				returnValue.doubleValue(), DOUBLE_DELTA );
 		} else if( v.isLong() ) {
 			setMethodList.get( mNameTmp ).invoke( obj, v.longValue() );
 			Long returnValue = (Long) getMethodList.get( mNameTmp ).invoke( obj );
@@ -1154,7 +1161,7 @@ public class JavaDocumentCreatorTest {
 			addMethodList.get( mNameTmp ).invoke( obj, v.doubleValue() );
 			Double returnValue = (Double) getMethodValueList.get( mNameTmp ).invoke( obj, index );
 			assertEquals( "check methods for field " + fieldName + ", index " + index + " failed",
-				new Double( v.doubleValue() ), returnValue );
+				v.doubleValue(), returnValue.doubleValue(), DOUBLE_DELTA );
 		} else if( v.isLong() ) {
 			addMethodList.get( mNameTmp ).invoke( obj, v.longValue() );
 			Long returnValue = (Long) getMethodValueList.get( mNameTmp ).invoke( obj, index );

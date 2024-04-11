@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2016 Fabrizio Montesi <famontesi@gmail.com>
+ * Copyright (C) 2022 Balint Maschio <bmaschio@italianasoftware.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -17,29 +17,30 @@
  * MA 02110-1301  USA
  */
 
+package jolie.net;
 
-package jolie.runtime.expression;
-
-import jolie.process.TransformationReason;
+import jolie.runtime.FaultException;
 import jolie.runtime.Value;
-import jolie.runtime.ValueVector;
-import jolie.runtime.VariablePath;
 
-public class ValueVectorSizeExpression implements Expression {
-	private final VariablePath path;
+public class RequestErrorCommMessage extends CommMessage {
 
-	public ValueVectorSizeExpression( VariablePath path ) {
-		this.path = path;
+	private final String template;
+
+	/**
+	 * Constructor
+	 *
+	 * @param requestId the identifier for the request
+	 * @param operationName the operation name for this message
+	 * @param value the message data to equip the message with
+	 * @param fault the fault to equip the message with
+	 */
+	public RequestErrorCommMessage( long requestId, String operationName, String resourcePath, Value value,
+		FaultException fault, String template ) {
+		super( requestId, operationName, resourcePath, value, fault );
+		this.template = template;
 	}
 
-	@Override
-	public Expression cloneExpression( TransformationReason reason ) {
-		return new ValueVectorSizeExpression( path );
-	}
-
-	@Override
-	public Value evaluate() {
-		ValueVector vector = path.getValueVectorOrNull();
-		return Value.create( (vector == null) ? 0 : vector.size() );
+	public String getTemplate() {
+		return this.template;
 	}
 }

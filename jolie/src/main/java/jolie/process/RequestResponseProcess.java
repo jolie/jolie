@@ -66,10 +66,12 @@ public class RequestResponseProcess implements InputOperationProcess {
 		this.context = context;
 	}
 
+	@Override
 	public void setSessionStarter( boolean isSessionStarter ) {
 		this.isSessionStarter = isSessionStarter;
 	}
 
+	@Override
 	public InputOperation inputOperation() {
 		return operation;
 	}
@@ -85,10 +87,12 @@ public class RequestResponseProcess implements InputOperationProcess {
 			context ) );
 	}
 
+	@Override
 	public boolean isKillable() {
 		return true;
 	}
 
+	@Override
 	public Process copy( TransformationReason reason ) {
 		return new RequestResponseProcess(
 			operation,
@@ -98,6 +102,7 @@ public class RequestResponseProcess implements InputOperationProcess {
 			context );
 	}
 
+	@Override
 	public Process receiveMessage( final SessionMessage sessionMessage, jolie.State state ) {
 		if( Interpreter.getInstance().isMonitoring() && !isSessionStarter ) {
 			Interpreter.getInstance().fireMonitorEvent(
@@ -112,21 +117,25 @@ public class RequestResponseProcess implements InputOperationProcess {
 		}
 
 		return new Process() {
+			@Override
 			public void run()
 				throws FaultException, ExitingException {
 				runBehaviour( sessionMessage.channel(), sessionMessage.message() );
 			}
 
+			@Override
 			public Process copy( TransformationReason reason ) {
 				return this;
 			}
 
+			@Override
 			public boolean isKillable() {
 				return false;
 			}
 		};
 	}
 
+	@Override
 	public void run()
 		throws FaultException, ExitingException {
 		ExecutionThread ethread = ExecutionThread.currentThread();

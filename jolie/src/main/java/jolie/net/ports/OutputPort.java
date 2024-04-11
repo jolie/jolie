@@ -329,6 +329,7 @@ public class OutputPort extends AbstractIdentifiableObject implements Port {
 	}
 
 	// TODO: What's the resourcePath doing here?
+	@Override
 	public OperationTypeDescription getOperationTypeDescription( String operationName, String resourcePath ) {
 		OperationTypeDescription ret = iface.oneWayOperations().get( operationName );
 		if( ret == null ) {

@@ -81,6 +81,7 @@ public class InputPort implements Port {
 	 * 
 	 * @return the {@link Interface} of this input port
 	 */
+	@Override
 	public Interface getInterface() {
 		return iface;
 	}
@@ -91,6 +92,7 @@ public class InputPort implements Port {
 	 * @return the variable path to the value containing the protocol configuration for this input port
 	 * @see VariablePath
 	 */
+	@Override
 	public VariablePath protocolConfigurationPath() {
 		return protocolConfigurationPath;
 	}
@@ -165,6 +167,7 @@ public class InputPort implements Port {
 		return aggregationMap.get( operationName );
 	}
 
+	@Override
 	public OperationTypeDescription getOperationTypeDescription( String operationName, String resourcePath ) {
 		OperationTypeDescription ret = null;
 

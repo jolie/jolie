@@ -21,7 +21,7 @@
  ***************************************************************************/
 
 
-from .private.http_template_interface import HttpTemplateInterface
+from .private.http_template_interface import HttpTemplateInterface,UnauthorizedException
 from .private.http_template_server import HttpTemplateServer
 from ..test-unit import TestUnitInterface
 from string_utils import StringUtils
@@ -50,7 +50,9 @@ service Main {
            osc.addOrder.template="/api/orders"
            osc.addOrder.method="POST"
            osc.addOrder.outHeaders.("Authorization")= "token"
-           osc.addOrder.statusCodes.IOException = 500
+           osc.addOrder.responseHeaders = "headers"
+           osc.notExisting.template="/api/orders/"
+           osc.notExisting.method="GET"
         }
         Location : "socket://localhost:9099"
     }
@@ -59,6 +61,14 @@ service Main {
     embed Console as console
     embed HttpTemplateServer in TestHttpTemplateB
 
+    define checkLocationHeader {
+        if (!is_defined( resp.headers.statusCode ) || resp.headers.statusCode != 201) {
+            throw( TestFailed, "wrong status code" )
+        }
+        if (!is_defined( resp.headers.location ) || !startsWith@stringUtils( resp.headers.location { .prefix = "/api/orders/" })) {
+            throw( TestFailed, "missing/wrong location header" )
+        }
+    }
 
 	main {
 		test()() {
@@ -72,12 +82,16 @@ service Main {
 			*
 			* throw( TestFailed, "string concatenation does not match correct result" )
 			*/
-			addOrder@TestHttpTemplate({token="sometoken"
-                                       ammount = 10.0})()
+            resp.headers = null
             addOrder@TestHttpTemplate({token="sometoken"
-                                       ammount = 11.0})()
+                                       ammount = 10.0})(resp)
+            checkLocationHeader
             addOrder@TestHttpTemplate({token="sometoken"
-                                       ammount = 21.0})()
+                                       ammount = 11.0})(resp)
+            checkLocationHeader
+            addOrder@TestHttpTemplate({token="sometoken"
+                                       ammount = 21.0})(resp)
+            checkLocationHeader
             getOrders@TestHttpTemplate({token="sometoken"})(resultGetOrders)
             if (#resultGetOrders.orders!=3){
                 throw( TestFailed, "wrong number of results in getOrders" )
@@ -90,6 +104,25 @@ service Main {
                 throw( TestFailed, "wrong id" )
             }
 
-		}
-	}
+            scope(s) {
+                install( TypeMismatch => nullProcess )
+
+                request.token = "x" // wrong token
+                request.id = resultGetOrders.orders[2].id
+                getOrder@TestHttpTemplate(request)(resultGetOrder)
+                if (!(resultGetOrder instanceof UnauthorizedException)) {
+                    throw( TestFailed, "Should return Unauthorized" )
+                }
+            }
+
+            scope(s) {
+                install ( default =>
+                    if ( s.default!= "TypeMismatch" || !is_defined(response.IOException) ) {
+                            throw( TestFailed, "Wrong Exception" )
+                        }
+                    );
+                notExisting@TestHttpTemplate()(response)
+            }
+        }
+    }
 }

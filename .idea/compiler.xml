@@ -46,43 +46,43 @@
     <bytecodeTargetLevel>
       <module name="auto" target="11" />
       <module name="btl2cap" target="11" />
-      <module name="build-tools" target="1.5" />
+      <module name="build-tools" target="11" />
       <module name="coreJavaServices" target="11" />
-      <module name="distribution" target="1.5" />
+      <module name="distribution" target="11" />
       <module name="http" target="11" />
-      <module name="https" target="1.8" />
-      <module name="javascript" target="1.8" />
+      <module name="https" target="11" />
+      <module name="javascript" target="11" />
       <module name="jolie" target="11" />
       <module name="jolie-cli" target="11" />
-      <module name="jolie-distribution" target="1.5" />
-      <module name="jolie-embedding-legacy" target="1.8" />
-      <module name="jolie-java" target="1.8" />
-      <module name="jolie-js" target="1.8" />
-      <module name="jolie-ssl" target="1.8" />
-      <module name="jolie-uri" target="1.8" />
-      <module name="jolie-xml" target="1.8" />
-      <module name="jolie2dummy" target="1.8" />
-      <module name="jolie2java" target="1.8" />
-      <module name="jolie2plasma" target="1.8" />
-      <module name="jolie2surface" target="1.8" />
-      <module name="jolie2wsdl" target="1.8" />
-      <module name="joliec" target="1.8" />
-      <module name="jsonrpc" target="1.8" />
-      <module name="launchers" target="1.6" />
+      <module name="jolie-distribution" target="11" />
+      <module name="jolie-embedding-legacy" target="11" />
+      <module name="jolie-java" target="11" />
+      <module name="jolie-js" target="11" />
+      <module name="jolie-ssl" target="11" />
+      <module name="jolie-uri" target="11" />
+      <module name="jolie-xml" target="11" />
+      <module name="jolie2dummy" target="11" />
+      <module name="jolie2java" target="11" />
+      <module name="jolie2plasma" target="11" />
+      <module name="jolie2surface" target="11" />
+      <module name="jolie2wsdl" target="11" />
+      <module name="joliec" target="11" />
+      <module name="jsonrpc" target="11" />
+      <module name="launchers" target="11" />
       <module name="libjolie" target="11" />
-      <module name="local" target="1.8" />
-      <module name="localsocket" target="1.8" />
-      <module name="metaservice-java" target="1.8" />
-      <module name="monitorJavaServices" target="1.8" />
-      <module name="rmi" target="1.8" />
-      <module name="soap" target="1.8" />
-      <module name="soaps" target="1.8" />
-      <module name="sodep" target="1.8" />
-      <module name="sodeps" target="1.8" />
-      <module name="test" target="1.5" />
-      <module name="WSTest" target="1.8" />
-      <module name="xmlrpc" target="1.8" />
-      <module name="xsom" target="1.8" />
+      <module name="local" target="11" />
+      <module name="localsocket" target="11" />
+      <module name="metaservice-java" target="11" />
+      <module name="monitorJavaServices" target="11" />
+      <module name="rmi" target="11" />
+      <module name="soap" target="11" />
+      <module name="soaps" target="11" />
+      <module name="sodep" target="11" />
+      <module name="sodeps" target="11" />
+      <module name="test" target="11" />
+      <module name="WSTest" target="11" />
+      <module name="xmlrpc" target="11" />
+      <module name="xsom" target="11" />
     </bytecodeTargetLevel>
   </component>
 </project>

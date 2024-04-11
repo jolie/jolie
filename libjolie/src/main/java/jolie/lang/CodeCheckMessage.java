@@ -109,6 +109,7 @@ public class CodeCheckMessage {
 	/**
 	 * Returns a string, containing the information from the CodeCheckMessage
 	 */
+	@Override
 	public String toString() {
 		StringBuilder messageBuilder = new StringBuilder();
 		if( context != null ) {

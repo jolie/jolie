@@ -116,7 +116,7 @@ public class XmlUtils {
 		if( value.hasChildren( PREFIX ) ) {
 			prefix = value.getFirstChild( PREFIX ).strValue();
 		}
-		return prefix.equals( "" ) ? startingName : prefix + ":" + startingName;
+		return prefix.isEmpty() ? startingName : prefix + ":" + startingName;
 	}
 
 	private static void addForcedAttribute( Value value, Element element ) {

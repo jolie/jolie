@@ -43,6 +43,10 @@ main
 			undef( response );
 			response << request
 		} ]
+		[ consume( request )( ) {
+			nullProcess
+		} ]
+		[ consume2( request ) ]
 	until
 		[ shutdown() ]
 }

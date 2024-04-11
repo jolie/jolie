@@ -68,6 +68,7 @@ public class ForwardNotificationProcess implements Process {
 		this.context = context;
 	}
 
+	@Override
 	public Process copy( TransformationReason reason ) {
 		return new ForwardNotificationProcess(
 			operationName,
@@ -88,6 +89,7 @@ public class ForwardNotificationProcess implements Process {
 			context ) );
 	}
 
+	@Override
 	public void run()
 		throws FaultException {
 		if( ExecutionThread.currentThread().isKilled() ) {
@@ -151,6 +153,7 @@ public class ForwardNotificationProcess implements Process {
 		}
 	}
 
+	@Override
 	public boolean isKillable() {
 		return true;
 	}

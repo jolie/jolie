@@ -28,10 +28,12 @@ import jolie.runtime.Value;
 public class VoidExpression implements Expression {
 	public VoidExpression() {}
 
+	@Override
 	public Expression cloneExpression( TransformationReason reason ) {
 		return new VoidExpression();
 	}
 
+	@Override
 	public Value evaluate() {
 		return Value.create();
 	}
