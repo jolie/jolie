@@ -233,22 +233,23 @@ public class DatabaseService extends JavaService {
 		_checkConnection();
 		Value resultValue = Value.create();
 
-		if( request.hasChildren( "txHandle" ) ) {
-			int txHandle = request.getFirstChild( "txHandle" ).intValue();
-			Connection tx = _tryGetOpenTransaction( txHandle );
-
-			try( PreparedStatement stm = new NamedStatementParser( tx, request.strValue(), request )
-				.getPreparedStatement(); ) {
-				resultValue.setValue( stm.executeUpdate() );
-				openTxs.put( txHandle, tx );
-			} catch( SQLException e ) {
-				throw createFaultException( e );
-			}
-		} else {
+		if( request.isString() ) {
 			try( Connection con = connectionPool.getConnection() ) {
 				PreparedStatement stm = new NamedStatementParser( con, request.strValue(), request )
 					.getPreparedStatement();
 				resultValue.setValue( stm.executeUpdate() );
+			} catch( SQLException e ) {
+				throw createFaultException( e );
+			}
+		} else {
+			int txHandle = request.getFirstChild( "txHandle" ).intValue();
+			Connection tx = _tryGetOpenTransaction( txHandle );
+
+			try( PreparedStatement stm = new NamedStatementParser( tx, request.getFirstChild( "query" ).strValue(),
+				request.getFirstChild( "query" ) )
+					.getPreparedStatement(); ) {
+				resultValue.setValue( stm.executeUpdate() );
+				openTxs.put( txHandle, tx );
 			} catch( SQLException e ) {
 				throw createFaultException( e );
 			}
@@ -506,21 +507,22 @@ public class DatabaseService extends JavaService {
 		_checkConnection();
 		Value resultValue;
 
-		if( request.hasChildren( "txHandle" ) ) {
-			int txHandle = request.getFirstChild( "txHandle" ).intValue();
-			Connection tx = _tryGetOpenTransaction( txHandle );
-			try( PreparedStatement stm = new NamedStatementParser( tx, request.strValue(), request )
-				.getPreparedStatement(); ) {
-				resultValue = _executeQuery( stm, request );
-				openTxs.put( txHandle, tx );
-			} catch( SQLException e ) {
-				throw createFaultException( e );
-			}
-		} else {
+		if( request.isString() ) {
 			try( Connection con = connectionPool.getConnection();
 				PreparedStatement stm = new NamedStatementParser( con, request.strValue(), request )
 					.getPreparedStatement() ) {
 				resultValue = _executeQuery( stm, request );
+			} catch( SQLException e ) {
+				throw createFaultException( e );
+			}
+		} else {
+			int txHandle = request.getFirstChild( "txHandle" ).intValue();
+			Connection tx = _tryGetOpenTransaction( txHandle );
+			try( PreparedStatement stm = new NamedStatementParser( tx, request.getFirstChild( "query" ).strValue(),
+				request.getFirstChild( "query" ) )
+					.getPreparedStatement(); ) {
+				resultValue = _executeQuery( stm, request.getFirstChild( "query" ) );
+				openTxs.put( txHandle, tx );
 			} catch( SQLException e ) {
 				throw createFaultException( e );
 			}
@@ -531,7 +533,7 @@ public class DatabaseService extends JavaService {
 	private FaultException createTransactionException( String message ) {
 		Value v = Value.create();
 		v.getNewChild( "message" ).setValue( message );
-		return new FaultException( "SQLException", v );
+		return new FaultException( "TransactionException", v );
 	}
 
 	private Value _executeQuery( PreparedStatement stm, Value request ) throws SQLException {

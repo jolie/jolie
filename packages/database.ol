@@ -53,9 +53,15 @@ type DatabaseTransactionResult:void {
 
 type TxHandle:int
 
-type QueryRequest:string { ? } 
+type QueryRequest:string { ? } | void { 
+    txHandle: TxHandle 
+    query: string { ? } 
+}
 
-type UpdateRequest:string { ? }
+type UpdateRequest:string { ? } | void { 
+    txHandle: TxHandle 
+    query: string { ? } 
+}
 
 interface DatabaseInterface {
 RequestResponse:
