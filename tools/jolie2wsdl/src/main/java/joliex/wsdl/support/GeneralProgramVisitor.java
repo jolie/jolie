@@ -23,13 +23,18 @@ public abstract class GeneralProgramVisitor implements GeneralProgramVisitorInte
 		this.program = program;
 	}
 
+	@Override
 	abstract public void run();
 
+	@Override
 	abstract public void clearLists();
 
+	@Override
 	abstract public InterfaceDefinition[] getInterfaceDefinitions();
 
+	@Override
 	abstract public OutputPortInfo[] getOutputPortInfo();
 
+	@Override
 	abstract public InputPortInfo[] getInputPortInfo();
 }

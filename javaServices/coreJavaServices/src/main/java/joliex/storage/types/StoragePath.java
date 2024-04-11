@@ -58,6 +58,7 @@ public class StoragePath implements Iterable< Node > {
 			this.array = array;
 		}
 
+		@Override
 		public T next() {
 			if( index + 1 >= array.length ) {
 				throw new NoSuchElementException();
@@ -65,10 +66,12 @@ public class StoragePath implements Iterable< Node > {
 			return array[ index++ ];
 		}
 
+		@Override
 		public boolean hasNext() {
 			return index + 1 < array.length;
 		}
 
+		@Override
 		public void remove() {
 			throw new UnsupportedOperationException();
 		}
@@ -84,6 +87,7 @@ public class StoragePath implements Iterable< Node > {
 		return nodes;
 	}
 
+	@Override
 	public Iterator< Node > iterator() {
 		return new ArrayIterator<>( nodes );
 	}

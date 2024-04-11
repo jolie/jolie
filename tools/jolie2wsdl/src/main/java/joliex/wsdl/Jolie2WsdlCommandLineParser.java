@@ -35,6 +35,7 @@ public class Jolie2WsdlCommandLineParser extends CommandLineParser {
 		private String address;
 		private String outputFile;
 
+		@Override
 		public int onUnrecognizedArgument( List< String > argumentsList, int index )
 			throws CommandLineException {
 			if( "--namespace".equals( argumentsList.get( index ) ) ) {

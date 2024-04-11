@@ -39,25 +39,30 @@ public class RemoteBasicChannelImpl implements RemoteBasicChannel {
 		this.parent = parent;
 	}
 
+	@Override
 	public void send( CommMessage message )
 		throws IOException {
 		channel.send( message );
 	}
 
+	@Override
 	public boolean isReady() {
 		return channel.isReady();
 	}
 
+	@Override
 	public void close() {
 		parent.disposeOf( this );
 	}
 
+	@Override
 	public CommMessage recv()
 		throws IOException {
 		throw new IOException( "Unsupported operation" );
 		// return channel.recv();
 	}
 
+	@Override
 	public Future< CommMessage > recvResponseFor( CommMessage request )
 		throws IOException {
 		return channel.recvResponseFor( request );
