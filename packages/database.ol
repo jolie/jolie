@@ -51,13 +51,17 @@ type DatabaseTransactionResult:void {
 	.result[0,*]:TransactionQueryResult
 }
 
-type QueryRequest:string { ? }
+type TxHandle:int
 
-type UpdateRequest:string { ? }
+type QueryRequest:string { ? } | void { 
+	txHandle: TxHandle 
+	query: string { ? } 
+	}
 
-type InitializeTransactionResponse:string { ? }
-
-type TransactionHandle:string { ? }
+type UpdateRequest:string { ? } | void { 
+	txHandle: TxHandle 
+	query: string { ? } 
+	}
 
 interface DatabaseInterface {
 RequestResponse:
@@ -119,8 +123,8 @@ RequestResponse:
 	 *   }
 	 * _template does not currently support vectors.
 	 * 
-	 * To run the query within a specific transaction, a transaction handle can be provided using the field 'transactionHandle'.
-	 * In the example above, adding 'queryRequest.transactionHandle = "someTransactionHandle"' will make the database service
+	 * To run the query within a specific transaction, a transaction handle can be provided using the field 'TxHandle'.
+	 * In the example above, adding 'queryRequest.TxHandle = "someTxHandle"' will make the database service
 	 * attempt to execute the query on the specific connection that handle references, and throw a TransactionException if this fails.
 	 *
 	 */
@@ -137,8 +141,8 @@ RequestResponse:
 	 * updateRequest.data = r;
 	 * update@Database( updateRequest )( ret )
 	 *
-	 * To run the update within specific transaction, a transaction handle can be provided using the field 'transactionHandle'.
-	 * In the exmple above, adding 'updateRequest.transactionHandle = "someTransactionHandle"' will make the database service attempt
+	 * To run the update within specific transaction, a transaction handle can be provided using the field 'TxHandle'.
+	 * In the exmple above, adding 'updateRequest.TxHandle = "someTxHandle"' will make the database service attempt
 	 * to execute the update in the specific connection associated with the handle, and throw a TransactionException if it cannot.
 	 * 
 	 */
@@ -152,19 +156,19 @@ RequestResponse:
 	 */
 	executeTransaction(DatabaseTransactionRequest)(DatabaseTransactionResult) throws SQLException ConnectionError,
 	/**!
-	*  Designates a connection from the connection pool as an open transaction, and returns a string which can be used to refer to the now open transaction.	
+	*  Designates a connection from the connection pool as an open transaction, and returns an int which can be used to refer to the now open transaction.	
 	*/
-	initializeTransaction( void )( InitializeTransactionResponse ) throws SQLException ConnectionError,
+	beginTx( void )( TxHandle ) throws SQLException ConnectionError,
 	/**!
 	*  Commits and closes the connection associated with the transaction handle in CommitTransactionRequest. The connection is
 	*  then returned to the connection pool, and any further actions attempted using the transaction handle will throw a TransactionException.
 	*/
-	commitTransaction( TransactionHandle )( void ) throws SQLException ConnectionError TransactionException,
+	commitTx( TxHandle )( void ) throws SQLException ConnectionError TransactionException,
 	/**!
-	*  Rolls back and closes the connection associated with the handle TransactionHandle. The connection is
+	*  Rolls back and closes the connection associated with the handle TxHandle. The connection is
 	*  then returned to the connection pool, and any further actions attempted using the transaction handle will throw a TransactionException.
 	*/
-	abortTransaction(TransactionHandle)( void ) throws SQLException ConnectionError TransactionException,
+	rollbackTx(TxHandle)( void ) throws SQLException ConnectionError TransactionException,
 
 }
 
