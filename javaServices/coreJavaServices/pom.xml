@@ -27,7 +27,7 @@
                 <configuration>
                     <archive>
                         <manifestEntries>
-                            <Class-Path>lib/jolie.jar lib/libjolie.jar lib/mailapi.jar lib/smtp.jar lib/jolie-xml.jar lib/ini4j.jar lib/c3p0-0.9.1.1.jar lib/smack.jar lib/smackx.jar lib/wsdl4j.jar lib/xsom.jar lib/commons-lang3.jar lib/http.jar lib/jolie-js.jar lib/uri-templates.jar lib/quartz-2.2.1.jar lib/quartz-jobs-2.2.1.jar lib/slf4j-api.jar lib/slf4j-simple.jar lib/javax.activation.jar lib/joda-time.jar lib/HikariCP.jar</Class-Path>
+                            <Class-Path>lib/jolie.jar lib/libjolie.jar lib/mailapi.jar lib/smtp.jar lib/jolie-xml.jar lib/ini4j.jar lib/c3p0-0.9.1.1.jar lib/smack.jar lib/smackx.jar lib/wsdl4j.jar lib/xsom.jar lib/commons-lang3.jar lib/http.jar lib/jolie-js.jar lib/uri-templates.jar lib/quartz-2.2.1.jar lib/quartz-jobs-2.2.1.jar lib/slf4j-api.jar lib/slf4j-simple.jar lib/slf4j-nop.jar lib/javax.activation.jar lib/joda-time.jar lib/HikariCP.jar</Class-Path>
                         </manifestEntries>
                     </archive>
                 </configuration>
@@ -353,7 +353,12 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-            <version>1.7.25</version>
+            <version>2.0.12</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-nop</artifactId>
+            <version>2.0.12</version>
         </dependency>
         <dependency>
             <groupId>c3p0</groupId>
@@ -575,7 +580,7 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-simple</artifactId>
-            <version>1.7.25</version>
+            <version>2.0.12</version>
         </dependency>
         <dependency>
             <groupId>com.github.spullara.mustache.java</groupId>
