@@ -35,13 +35,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 // Connection Pooling
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
 import java.util.Optional;
-import java.util.UUID;
 
 import jolie.runtime.ByteArray;
 import jolie.runtime.CanUseJars;
@@ -68,14 +68,14 @@ import joliex.db.impl.NamedStatementParser;
 	"hsqldb.jar", // HSQLDB
 	"db2jcc.jar", // DB2
 	"HikariCP.jar",
-	"HikariCP-java7.jar",
 	"slf4j-simple.jar",
 	"slf4j-api.jar"
 } )
 public class DatabaseService extends JavaService {
-	private HikariDataSource connectionPoolDataSource = null;
-	private ConcurrentHashMap< String, Object > transactionMutexes = null;
-	private ConcurrentHashMap< String, Connection > openTransactions = null;
+	private HikariDataSource connectionPool = null;
+	private ConcurrentHashMap< Integer, Connection > openTxs = null;
+	private AtomicInteger txHandles = null;
+
 
 	private String connectionString = null;
 	private String username = null;
@@ -90,15 +90,18 @@ public class DatabaseService extends JavaService {
 
 	@RequestResponse
 	public void close() {
-		if( connectionPoolDataSource != null ) {
+		if( connectionPool != null ) {
 			connectionString = null;
 			username = null;
 			password = null;
-			connectionPoolDataSource.close();
-			connectionPoolDataSource = null;
-			transactionMutexes.clear();
 
-			openTransactions.forEach( ( key, con ) -> {
+			// Close the connection pool, reset t
+			connectionPool.close();
+			connectionPool = null;
+			txHandles = null;
+
+			// These connections might not have been
+			openTxs.forEach( ( key, con ) -> {
 				try {
 					con.close();
 				} catch( SQLException e ) {
@@ -112,8 +115,8 @@ public class DatabaseService extends JavaService {
 		throws FaultException {
 		close();
 
-		transactionMutexes = new ConcurrentHashMap<>();
-		openTransactions = new ConcurrentHashMap<>();
+		openTxs = new ConcurrentHashMap<>();
+		txHandles = new AtomicInteger();
 
 		mustCheckConnection = request.getFirstChild( "checkConnection" ).intValue() > 0;
 
@@ -190,10 +193,10 @@ public class DatabaseService extends JavaService {
 				if( !attributes.isEmpty() ) {
 					connectionString += ";" + attributes;
 				}
-				connectionPoolDataSource = _createDataSource();
+				connectionPool = _createDataSource();
 				if( !"hsqldb".equals( driver ) ) {
-					connectionPoolDataSource.setUsername( null );
-					connectionPoolDataSource.setPassword( null );
+					connectionPool.setUsername( null );
+					connectionPool.setPassword( null );
 				}
 			} else {
 				if( driver.startsWith( "hsqldb" ) ) {
@@ -206,14 +209,14 @@ public class DatabaseService extends JavaService {
 				if( encoding.isPresent() ) {
 					connectionString += "?characterEncoding=" + encoding.get();
 				}
-				connectionPoolDataSource = _createDataSource();
+				connectionPool = _createDataSource();
 			}
 
-			if( connectionPoolDataSource == null ) {
+			if( connectionPool == null ) {
 				throw new FaultException( "ConnectionError" );
 			} else {
 				interpreter().cleaner().register( this, () -> {
-					connectionPoolDataSource.close();
+					connectionPool.close();
 				} );
 			}
 		} catch( ClassNotFoundException e ) {
@@ -223,12 +226,12 @@ public class DatabaseService extends JavaService {
 
 	private void _checkConnection()
 		throws FaultException {
-		if( connectionPoolDataSource == null ) {
+		if( connectionPool == null ) {
 			throw new FaultException( "ConnectionError" );
 		}
 		if( mustCheckConnection ) {
-			if( connectionPoolDataSource.isClosed() ) {
-				connectionPoolDataSource = _createDataSource();
+			if( connectionPool.isClosed() ) {
+				connectionPool = _createDataSource();
 			}
 		}
 	}
@@ -236,7 +239,7 @@ public class DatabaseService extends JavaService {
 	@RequestResponse
 	public void checkConnection()
 		throws FaultException {
-		if( connectionPoolDataSource == null || connectionPoolDataSource.isClosed() ) {
+		if( connectionPool == null || connectionPool.isClosed() ) {
 			throw new FaultException( "ConnectionError" );
 		}
 	}
@@ -247,48 +250,36 @@ public class DatabaseService extends JavaService {
 		_checkConnection();
 		Value resultValue = Value.create();
 
-		if( request.hasChildren( "transactionHandle" ) ) {
-			Connection con;
-			String transactionHandle = request.getFirstChild( "transactionHandle" ).strValue();
-
-			if( !transactionMutexes.containsKey( transactionHandle ) ) {
-				throw createTransactionException(
-					"Transaction with handle '" + transactionHandle + "' does not exist or is no longer open." );
-			}
-
-			synchronized( transactionMutexes.get( transactionHandle ) ) {
-				// ÆRØ:
-				// When two threads both call 'get' simultaniously, they can both access
-				// the lock. if the first one to execute then commits, the object is removed
-				// from the transactionMutexes map, but since the reference to the object is
-				// still present at the second thread,
-				// the object is not deleted. The second thread can then enter the protected
-				// block, and do work on a transaction that was already committed. Hence, this
-				// check, which ensures that if the scenario above occurs, it is detected, and
-				// no work is done.
-				if( !transactionMutexes.containsKey( transactionHandle ) ) {
-					throw createTransactionException(
-						"Transaction with handle '" + transactionHandle + "' does not exist or is no longer open." );
-				}
-
-				con = openTransactions.get( transactionHandle );
-				try( PreparedStatement stm = new NamedStatementParser( con, request.strValue(), request )
-					.getPreparedStatement(); ) {
-					resultValue.setValue( stm.executeUpdate() );
-				} catch( SQLException e ) {
-					throw createFaultException( e );
-				}
-			}
-		} else {
-			try( Connection con = connectionPoolDataSource.getConnection() ) {
+		if( request.isString() ) {
+			try( Connection con = connectionPool.getConnection() ) {
 				PreparedStatement stm = new NamedStatementParser( con, request.strValue(), request )
 					.getPreparedStatement();
 				resultValue.setValue( stm.executeUpdate() );
 			} catch( SQLException e ) {
 				throw createFaultException( e );
 			}
+		} else {
+			int txHandle = request.getFirstChild( "txHandle" ).intValue();
+			Connection tx = _tryGetOpenTransaction( txHandle );
+
+			try( PreparedStatement stm = new NamedStatementParser( tx, request.strValue(), request )
+				.getPreparedStatement(); ) {
+				resultValue.setValue( stm.executeUpdate() );
+				openTxs.put( txHandle, tx );
+			} catch( SQLException e ) {
+				throw createFaultException( e );
+			}
 		}
+
 		return resultValue;
+	}
+
+	private Connection _tryGetOpenTransaction( int txHandle ) throws FaultException {
+		Connection tx = openTxs.remove( txHandle );
+		if( tx == null ) {
+			throw createTransactionException( "Transaction " + txHandle + " is unavailable or closed" );
+		}
+		return tx;
 	}
 
 	private void _tryEnableTransactions() throws FaultException {
@@ -301,7 +292,7 @@ public class DatabaseService extends JavaService {
 				case "hsqldb_hsqls":
 				case "hsqldb_http":
 				case "hsqldb_https":
-					Connection con = connectionPoolDataSource.getConnection();
+					Connection con = connectionPool.getConnection();
 					PreparedStatement stm = con.prepareStatement( "SET DATABASE TRANSACTION CONTROL MVCC;" );
 					stm.execute();
 					con.close();
@@ -493,7 +484,7 @@ public class DatabaseService extends JavaService {
 		_checkConnection();
 		Value resultValue = Value.create();
 		ValueVector resultVector = resultValue.getChildren( "result" );
-		try( Connection con = connectionPoolDataSource.getConnection() ) {
+		try( Connection con = connectionPool.getConnection() ) {
 			con.setAutoCommit( false );
 			Value currResultValue;
 			int updateCount;
@@ -524,7 +515,7 @@ public class DatabaseService extends JavaService {
 						con.rollback();
 					} catch( SQLException e1 ) {
 						// Something has gone totally wrong. Close the connectionpool
-						connectionPoolDataSource.close();
+						connectionPool.close();
 					}
 					throw createFaultException( e );
 				}
@@ -560,35 +551,22 @@ public class DatabaseService extends JavaService {
 		_checkConnection();
 		Value resultValue;
 
-		if( request.hasChildren( "transactionHandle" ) ) {
-			String transactionHandle = request.getFirstChild( "transactionHandle" ).strValue();
-
-			if( !transactionMutexes.containsKey( transactionHandle ) ) {
-				throw createTransactionException(
-					"Transaction with handle '" + transactionHandle + "' does not exist or is no longer open." );
-			}
-
-			synchronized( transactionMutexes.get( transactionHandle ) ) {
-				// Ensure that no other thread has committed the transaction while this was
-				// waiting to access
-				if( !transactionMutexes.containsKey( transactionHandle ) ) {
-					throw createTransactionException(
-						"Transaction with handle '" + transactionHandle + "' does not exist or is no longer open." );
-				}
-
-				try( Connection con = openTransactions.get( transactionHandle );
-					PreparedStatement stm = new NamedStatementParser( con, request.strValue(), request )
-						.getPreparedStatement(); ) {
-					resultValue = _executeQuery( stm, request );
-				} catch( SQLException e ) {
-					throw createFaultException( e );
-				}
-			}
-		} else {
-			try( Connection con = connectionPoolDataSource.getConnection();
+		if( request.isString() ) {
+			try( Connection con = connectionPool.getConnection();
 				PreparedStatement stm = new NamedStatementParser( con, request.strValue(), request )
 					.getPreparedStatement() ) {
 				resultValue = _executeQuery( stm, request );
+			} catch( SQLException e ) {
+				throw createFaultException( e );
+			}
+		} else { // Execute request in a transaction
+			int txHandle = request.getFirstChild( "txHandle" ).intValue();
+			Connection tx = _tryGetOpenTransaction( txHandle );
+			try( PreparedStatement stm = new NamedStatementParser( tx, request.strValue(), request )
+				.getPreparedStatement(); ) {
+
+				resultValue = _executeQuery( stm, request );
+				openTxs.put( txHandle, tx );
 			} catch( SQLException e ) {
 				throw createFaultException( e );
 			}
@@ -598,14 +576,9 @@ public class DatabaseService extends JavaService {
 	}
 
 	private FaultException createTransactionException( String message ) {
-		Exception e = new Exception( "Stack trace" );
 		Value v = Value.create();
-		ByteArrayOutputStream bs = new ByteArrayOutputStream();
-		e.printStackTrace( new PrintStream( bs ) );
-		v.getNewChild( "stackTrace" ).setValue( bs.toString() );
-		v.getNewChild( "message" )
-			.setValue( message );
-		return new FaultException( "TransactionException", v );
+		v.getNewChild( "message" ).setValue( message );
+		return new FaultException( "SQLException", v );
 	}
 
 	private Value _executeQuery( PreparedStatement stm, Value request ) throws SQLException {
@@ -622,102 +595,60 @@ public class DatabaseService extends JavaService {
 	}
 
 	@RequestResponse
-	public Value initializeTransaction() throws FaultException {
+	public Value beginTx() throws FaultException {
 		_checkConnection();
 		_tryEnableTransactions();
 		Value response = Value.create();
 		Connection con;
 		try {
-			// Create a new connection, and map it to a generated UUID.
-			con = connectionPoolDataSource.getConnection();
-			String uuid = Thread.currentThread().getId() + UUID.randomUUID().toString();
-			Object transactionLock = new Object();
+			con = connectionPool.getConnection();
+			int txHandle = txHandles.getAndIncrement();
 			con.setAutoCommit( false );
 
-			// Store the open transactions in a map. uuid is used as a handle.
-			transactionMutexes.put( uuid, transactionLock );
-			openTransactions.put( uuid, con );
+			openTxs.put( txHandle, con );
 
-			response.setValue( uuid );
+			response.setValue( txHandle );
 			return response;
 		} catch( SQLException e ) {
-			e.printStackTrace();
-			throw new FaultException( "SQLException", "Error while starting transaction." );
+			throw createFaultException( e );
 		}
 	}
 
 	@RequestResponse
-	public void commitTransaction( Value request ) throws FaultException {
+	public void commitTx( Value request ) throws FaultException {
 		_checkConnection();
-		String transactionHandle = request.strValue();
 
-		if( !transactionMutexes.containsKey( transactionHandle ) ) {
-			throw createTransactionException(
-				"Transaction with handle '" + transactionHandle + "' does not exist or is no longer open." );
-		}
-
-		synchronized( transactionMutexes.get( transactionHandle ) ) {
-			// Ensure that no other thread has committed the transaction while this was
-			// waiting to access
-			if( !transactionMutexes.containsKey( transactionHandle ) ) {
-				throw createTransactionException(
-					"Transaction with handle '" + transactionHandle + "' does not exist or is no longer open." );
-			}
-
-			Connection con = openTransactions.get( transactionHandle );
-			try {
-				con.commit();
-				con.setAutoCommit( false ); // ÆRØ: Don't know if this is needed, or if HikariCP resets it on close
-				openTransactions.remove( transactionHandle );
-				transactionMutexes.remove( transactionHandle );
-			} catch( SQLException e ) {
-				_closeTransaction( con, transactionHandle );
-			}
-		}
-
-	}
-
-	@RequestResponse
-	public void abortTransaction( Value request ) throws FaultException {
-		_checkConnection();
-		String transactionHandle = request.strValue();
-
-		if( !transactionMutexes.containsKey( transactionHandle ) ) {
-			throw createTransactionException(
-				"Transaction with handle '" + transactionHandle + "' does not exist or is no longer open." );
-		}
-
-		synchronized( transactionMutexes.get( transactionHandle ) ) {
-			// Ensure that no other thread has committed the transaction while this was
-			// waiting to access
-			if( !transactionMutexes.containsKey( transactionHandle ) ) {
-				throw createTransactionException(
-					"Transaction with handle '" + transactionHandle + "' does not exist or is no longer open." );
-			}
-
-			Connection con = openTransactions.get( transactionHandle );
-			_closeTransaction( con, transactionHandle );
-		}
-	}
-
-	private void _closeTransaction( Connection con, String transactionHandle ) throws FaultException {
-		SQLException exception = null;
+		int txHandle = request.intValue();
+		Connection tx = openTxs.remove( txHandle );
 		try {
+			tx.commit();
+		} catch( SQLException e ) {
+			createFaultException( e );
+		} finally {
+			_tryCloseTransaction( tx );
+		}
+	}
+
+	@RequestResponse
+	public void rollbackTx( Value request ) throws FaultException {
+		_checkConnection();
+
+		int txHandle = request.intValue();
+		Connection tx = openTxs.remove( txHandle );
+		_tryCloseTransaction( tx );
+	}
+
+	private void _tryCloseTransaction( Connection con ) throws FaultException {
+		try {
+			con.setAutoCommit( true );
 			con.rollback();
-			con.setAutoCommit( false );
 			con.close();
 		} catch( SQLException e ) {
-			exception = e;
 			try {
 				con.close();
 			} catch( SQLException e1 ) {
+				throw createFaultException( e );
 			}
-		} finally {
-			transactionMutexes.remove( transactionHandle );
-			openTransactions.remove( transactionHandle );
-		}
-		if( exception != null ) {
-			throw createFaultException( exception );
 		}
 	}
 
@@ -726,7 +657,7 @@ public class DatabaseService extends JavaService {
 
 		config.setUsername( username );
 		config.setPassword( password );
-		config.setMaximumPoolSize( 6 ); // TODO: ÆRØ Figure this out
+		config.setMaximumPoolSize( 6 );
 		config.setJdbcUrl( connectionString );
 		config.setDriverClassName( driverClass );
 
