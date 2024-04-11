@@ -67,9 +67,9 @@ import joliex.db.impl.NamedStatementParser;
 	"jt400.jar", // AS400
 	"hsqldb.jar", // HSQLDB
 	"db2jcc.jar", // DB2
-	"HikariCP.jar",
-	"slf4j-simple.jar",
-	"slf4j-api.jar"
+	"HikariCP.jar", // Connection Pool
+	"slf4j-api.jar", // Logger API needed by CP
+	"slf4j-nop.jar" // Logger implementation
 } )
 public class DatabaseService extends JavaService {
 	private HikariDataSource connectionPool = null;
@@ -85,7 +85,6 @@ public class DatabaseService extends JavaService {
 	private static boolean toLowerCase = false;
 	private static boolean toUpperCase = false;
 	private boolean mustCheckConnection = false;
-	private boolean transactionsEnabled = false;
 	private final static String TEMPLATE_FIELD = "_template";
 
 	@RequestResponse
@@ -95,18 +94,8 @@ public class DatabaseService extends JavaService {
 			username = null;
 			password = null;
 
-			// Close the connection pool, reset t
 			connectionPool.close();
-			connectionPool = null;
 			txHandles = null;
-
-			// These connections might not have been
-			openTxs.forEach( ( key, con ) -> {
-				try {
-					con.close();
-				} catch( SQLException e ) {
-				}
-			} );
 		}
 	}
 
@@ -138,7 +127,6 @@ public class DatabaseService extends JavaService {
 		String attributes = request.getFirstChild( "attributes" ).strValue();
 		String separator = "/";
 		boolean isEmbedded = false;
-		transactionsEnabled = false;
 		Optional< String > encoding = Optional
 			.ofNullable( request.hasChildren( "encoding" ) ? request.getFirstChild( "encoding" ).strValue() : null );
 		try {
@@ -194,7 +182,7 @@ public class DatabaseService extends JavaService {
 					connectionString += ";" + attributes;
 				}
 				connectionPool = _createDataSource();
-				if( !"hsqldb".equals( driver ) ) {
+				if( !"hsqldb".equals( driver ) ) { // driver == sqlite || driver == derby_embedded
 					connectionPool.setUsername( null );
 					connectionPool.setPassword( null );
 				}
@@ -212,13 +200,9 @@ public class DatabaseService extends JavaService {
 				connectionPool = _createDataSource();
 			}
 
-			if( connectionPool == null ) {
-				throw new FaultException( "ConnectionError" );
-			} else {
-				interpreter().cleaner().register( this, () -> {
-					connectionPool.close();
-				} );
-			}
+			interpreter().cleaner().register( this, () -> {
+				connectionPool.close();
+			} );
 		} catch( ClassNotFoundException e ) {
 			throw new FaultException( "DriverClassNotFound", e );
 		}
@@ -250,15 +234,7 @@ public class DatabaseService extends JavaService {
 		_checkConnection();
 		Value resultValue = Value.create();
 
-		if( request.isString() ) {
-			try( Connection con = connectionPool.getConnection() ) {
-				PreparedStatement stm = new NamedStatementParser( con, request.strValue(), request )
-					.getPreparedStatement();
-				resultValue.setValue( stm.executeUpdate() );
-			} catch( SQLException e ) {
-				throw createFaultException( e );
-			}
-		} else {
+		if( request.hasChildren( "txHandle" ) ) {
 			int txHandle = request.getFirstChild( "txHandle" ).intValue();
 			Connection tx = _tryGetOpenTransaction( txHandle );
 
@@ -266,6 +242,14 @@ public class DatabaseService extends JavaService {
 				.getPreparedStatement(); ) {
 				resultValue.setValue( stm.executeUpdate() );
 				openTxs.put( txHandle, tx );
+			} catch( SQLException e ) {
+				throw createFaultException( e );
+			}
+		} else {
+			try( Connection con = connectionPool.getConnection() ) {
+				PreparedStatement stm = new NamedStatementParser( con, request.strValue(), request )
+					.getPreparedStatement();
+				resultValue.setValue( stm.executeUpdate() );
 			} catch( SQLException e ) {
 				throw createFaultException( e );
 			}
@@ -280,32 +264,6 @@ public class DatabaseService extends JavaService {
 			throw createTransactionException( "Transaction " + txHandle + " is unavailable or closed" );
 		}
 		return tx;
-	}
-
-	private void _tryEnableTransactions() throws FaultException {
-		if( !transactionsEnabled ) {
-			try {
-				switch( driver ) {
-				case "hsqldb":
-				case "hsqldb_embedded":
-				case "hsqldb_hsql":
-				case "hsqldb_hsqls":
-				case "hsqldb_http":
-				case "hsqldb_https":
-					Connection con = connectionPool.getConnection();
-					PreparedStatement stm = con.prepareStatement( "SET DATABASE TRANSACTION CONTROL MVCC;" );
-					stm.execute();
-					con.close();
-					stm.close();
-					break;
-				case "sqlite":
-					throw createTransactionException( "SQLite does not support manipulating multiple connections." );
-				}
-				transactionsEnabled = true;
-			} catch( SQLException e ) {
-				throw createFaultException( e );
-			}
-		}
 	}
 
 	private static void setValue( Value fieldValue, ResultSet result, int columnType, int index )
@@ -515,7 +473,7 @@ public class DatabaseService extends JavaService {
 						con.rollback();
 					} catch( SQLException e1 ) {
 						// Something has gone totally wrong. Close the connectionpool
-						connectionPool.close();
+						close();
 					}
 					throw createFaultException( e );
 				}
@@ -551,15 +509,7 @@ public class DatabaseService extends JavaService {
 		_checkConnection();
 		Value resultValue;
 
-		if( request.isString() ) {
-			try( Connection con = connectionPool.getConnection();
-				PreparedStatement stm = new NamedStatementParser( con, request.strValue(), request )
-					.getPreparedStatement() ) {
-				resultValue = _executeQuery( stm, request );
-			} catch( SQLException e ) {
-				throw createFaultException( e );
-			}
-		} else { // Execute request in a transaction
+		if( request.hasChildren( "txHandle" ) ) {
 			int txHandle = request.getFirstChild( "txHandle" ).intValue();
 			Connection tx = _tryGetOpenTransaction( txHandle );
 			try( PreparedStatement stm = new NamedStatementParser( tx, request.strValue(), request )
@@ -570,8 +520,15 @@ public class DatabaseService extends JavaService {
 			} catch( SQLException e ) {
 				throw createFaultException( e );
 			}
+		} else {
+			try( Connection con = connectionPool.getConnection();
+				PreparedStatement stm = new NamedStatementParser( con, request.strValue(), request )
+					.getPreparedStatement() ) {
+				resultValue = _executeQuery( stm, request );
+			} catch( SQLException e ) {
+				throw createFaultException( e );
+			}
 		}
-
 		return resultValue;
 	}
 
@@ -597,7 +554,6 @@ public class DatabaseService extends JavaService {
 	@RequestResponse
 	public Value beginTx() throws FaultException {
 		_checkConnection();
-		_tryEnableTransactions();
 		Value response = Value.create();
 		Connection con;
 		try {
