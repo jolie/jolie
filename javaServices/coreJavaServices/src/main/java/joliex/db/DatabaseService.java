@@ -69,7 +69,7 @@ import joliex.db.impl.NamedStatementParser;
 	"db2jcc.jar", // DB2
 	"HikariCP.jar", // Connection Pool
 	"slf4j-api.jar", // Logger API needed by CP
-	"slf4j-nop.jar" // Logger implementation
+	"slf4j-nop.jar", // Logger implementation
 } )
 public class DatabaseService extends JavaService {
 	private HikariDataSource connectionPool = null;
@@ -92,8 +92,15 @@ public class DatabaseService extends JavaService {
 			connectionString = null;
 			username = null;
 			password = null;
+			driver = null;
+			driverClass = null;
+			toLowerCase = false;
+			toUpperCase = false;
+			mustCheckConnection = false;
 
 			connectionPool.close();
+			openTxs = null;
+			connectionPool = null;
 			txHandles = null;
 		}
 	}
@@ -180,7 +187,7 @@ public class DatabaseService extends JavaService {
 				if( !attributes.isEmpty() ) {
 					connectionString += ";" + attributes;
 				}
-				connectionPool = _createDataSource();
+				connectionPool = _createDataSource( request.getFirstChild( "connectionPoolConfig" ) );
 				if( !"hsqldb".equals( driver ) ) { // driver == sqlite || driver == derby_embedded
 					connectionPool.setUsername( null );
 					connectionPool.setPassword( null );
@@ -196,8 +203,10 @@ public class DatabaseService extends JavaService {
 				if( encoding.isPresent() ) {
 					connectionString += "?characterEncoding=" + encoding.get();
 				}
-				connectionPool = _createDataSource();
+				connectionPool = _createDataSource( request.getFirstChild( "connectionPoolConfig" ) );
 			}
+
+			connectionPool = new HikariDataSource( (HikariConfig) connectionPool.getHikariConfigMXBean() );
 
 			interpreter().cleaner().register( this, () -> {
 				connectionPool.close();
@@ -214,7 +223,7 @@ public class DatabaseService extends JavaService {
 		}
 		if( mustCheckConnection ) {
 			if( connectionPool.isClosed() ) {
-				connectionPool = _createDataSource();
+				connectionPool = new HikariDataSource( (HikariConfig) connectionPool.getHikariConfigMXBean() );
 			}
 		}
 	}
@@ -606,20 +615,69 @@ public class DatabaseService extends JavaService {
 		}
 	}
 
-	private HikariDataSource _createDataSource() {
+	private HikariDataSource _createDataSource( Value providedConfig ) {
 		HikariConfig config = new HikariConfig();
-
 		config.setUsername( username );
 		config.setPassword( password );
-		config.setMaximumPoolSize( 6 );
-		config.setJdbcUrl( connectionString );
 		config.setDriverClassName( driverClass );
+		config.setJdbcUrl( connectionString );
 
-		// Disabeling leak detection menas that no error will be logged when a
-		// conenction has been out of the pool for a long time.
-		// This is what we want, we want to be able to remove a connection for multiple
-		// seconds for inter-service transactions.
-		config.setLeakDetectionThreshold( 0 );
+		_setUserprovidedConfig( config, providedConfig );
+
 		return new HikariDataSource( config );
+	}
+
+	private void _setUserprovidedConfig( HikariConfig config, Value providedConfig ) {
+		if( providedConfig.hasChildren() ) {
+			if( providedConfig.hasChildren( "connectionTimeout" ) ) {
+				config.setConnectionTimeout( providedConfig.getFirstChild( "connectionTimeout" ).longValue() );
+			}
+			if( providedConfig.hasChildren( "idleTimeout" ) ) {
+				config.setIdleTimeout( providedConfig.getFirstChild( "idleTimeout" ).longValue() );
+			}
+			if( providedConfig.hasChildren( "maxLifetime" ) ) {
+				config.setMaxLifetime( providedConfig.getFirstChild( "maxLifetime" ).longValue() );
+			}
+			if( providedConfig.hasChildren( "connectionTestQuery" ) ) {
+				config.setConnectionTestQuery( providedConfig.getFirstChild( "connectionTestQuery" ).strValue() );
+			}
+			if( providedConfig.hasChildren( "minimumIdle" ) ) {
+				config.setMinimumIdle( providedConfig.getFirstChild( "minimumIdle" ).intValue() );
+			}
+			if( providedConfig.hasChildren( "maximumPoolSize" ) ) {
+				config.setMaximumPoolSize( providedConfig.getFirstChild( "maximumPoolSize" ).intValue() );
+			}
+			if( providedConfig.hasChildren( "poolName" ) ) {
+				config.setPoolName( providedConfig.getFirstChild( "poolName" ).strValue() );
+			}
+			if( providedConfig.hasChildren( "initializationFailTimeout" ) ) {
+				config.setInitializationFailTimeout(
+					providedConfig.getFirstChild( "initializationFailTimeout" ).longValue() );
+			}
+			if( providedConfig.hasChildren( "isolateInternalQueries" ) ) {
+				config
+					.setIsolateInternalQueries( providedConfig.getFirstChild( "isolateInternalQueries" ).boolValue() );
+			}
+			if( providedConfig.hasChildren( "readOnly" ) ) {
+				config
+					.setReadOnly( providedConfig.getFirstChild( "readOnly" ).boolValue() );
+			}
+			if( providedConfig.hasChildren( "catalog" ) ) {
+				config
+					.setCatalog( providedConfig.getFirstChild( "catalog" ).strValue() );
+			}
+			if( providedConfig.hasChildren( "connectionInitSql" ) ) {
+				config
+					.setConnectionInitSql( providedConfig.getFirstChild( "connectionInitSql" ).strValue() );
+			}
+			if( providedConfig.hasChildren( "transactionIsolation" ) ) {
+				config
+					.setTransactionIsolation( providedConfig.getFirstChild( "transactionIsolation" ).strValue() );
+			}
+			if( providedConfig.hasChildren( "validationTimeout" ) ) {
+				config
+					.setValidationTimeout( providedConfig.getFirstChild( "validationTimeout" ).longValue() );
+			}
+		}
 	}
 }
