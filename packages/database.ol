@@ -33,6 +33,25 @@ type ConnectionInfo:void {
 	.checkConnection?:int // if true (> 0) check connection before each DB command (default: false (0))
 	.toLowerCase?: bool // lowercase attribute names
 	.toUpperCase?: bool // uppercase attribute names
+	.connectionPoolConfig?: ConnectionPoolConfig
+}
+
+// See https://github.com/brettwooldridge/HikariCP?tab=readme-ov-file#frequently-used for descriptions
+type ConnectionPoolConfig: void {
+	.connectionTimeout?: int
+	.idleTimeout?: int
+	.maxLifetime?: int
+	.connectionTestQuery?: string
+	.minimumIdle?: int
+	.maximumPoolSize?: int
+	.poolName?: string
+	.initializationFailTimeout?: int
+	.isolateInternalQueries?: bool
+	.readOnly?: bool
+	.catalog?: string
+	.connectionInitSql?: string
+	.transactionIsolation?: string
+	.validationTimeout?: int
 }
 
 type QueryResult:void {
