@@ -113,7 +113,12 @@ public class Scanner {
 		RUN,				///< run
 		UNDEF,				///< undef
 		HASH,				///< #
+		DOLLAR,				///< $
 		PERCENT_SIGN,		///< %
+		APOSTROPHE,			///< '
+		BACKTICK,			///< `
+		UNDERSCORE,			///< _
+		TILDE,				///< ~
 		FOR,				///< for
 		FOREACH,			///< foreach
 		WITH,				///< with
