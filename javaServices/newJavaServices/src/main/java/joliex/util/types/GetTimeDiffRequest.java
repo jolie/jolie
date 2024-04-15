@@ -11,6 +11,7 @@ import java.util.SequencedCollection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
@@ -23,10 +24,9 @@ import joliex.java.embedding.JolieNative.*;
 import joliex.java.embedding.util.*;
 
 /**
- * this class is an {@link ImmutableStructure} which can be described as follows:
+ * this class is an {@link JolieValue} which can be described as follows:
  * 
  * <pre>
- * content: {@link Void}
  *     time1: {@link String}
  *     time2: {@link String}
  * </pre>
@@ -35,141 +35,89 @@ import joliex.java.embedding.util.*;
  * @see JolieNative
  * @see #construct()
  */
-public final class GetTimeDiffRequest extends ImmutableStructure<JolieVoid> {
+public final class GetTimeDiffRequest implements JolieValue {
     
-    public String time1() { return getFirstChildValue( "time1", JolieString.class ).get(); }
-    public String time2() { return getFirstChildValue( "time2", JolieString.class ).get(); }
+    private static final Set<String> FIELD_KEYS = Set.of( "time1", "time2" );
     
-    private GetTimeDiffRequest( Builder<?> builder ) {
-        super( builder.content(), builder.children() );
+    private final String time1;
+    private final String time2;
+    
+    public GetTimeDiffRequest( String time1, String time2 ) {
+        this.time1 = ValueManager.validated( time1 );
+        this.time2 = ValueManager.validated( time2 );
     }
     
-    public static InlineBuilder construct() { return new InlineBuilder(); }
+    public String time1() { return time1; }
+    public String time2() { return time2; }
     
-    static <T> NestedBuilder<T> constructNested( Function<GetTimeDiffRequest, T> doneFunc ) { return new NestedBuilder<>( doneFunc ); }
-    static <T> NestedBuilder<T> constructNested( Function<GetTimeDiffRequest, T> doneFunc, JolieValue t ) { return new NestedBuilder<>( doneFunc, t ); }
+    public JolieVoid content() { return new JolieVoid(); }
+    public Map<String, List<JolieValue>> children() {
+        return one.util.streamex.EntryStream.of(
+            "time1", List.of( JolieValue.create( time1 ) ),
+            "time2", List.of( JolieValue.create( time2 ) )
+        ).filterValues( Objects::nonNull ).toImmutableMap();
+    }
     
-    static InlineListBuilder constructList() { return new InlineListBuilder(); }
+    public static Builder construct() { return new Builder(); }
     
-    static <T> NestedListBuilder<T> constructNestedList( Function<List<GetTimeDiffRequest>, T> doneFunc ) { return new NestedListBuilder<>( doneFunc ); }
-    static <T> NestedListBuilder<T> constructNestedList( Function<List<GetTimeDiffRequest>, T> doneFunc, SequencedCollection<? extends JolieValue> c ) { return new NestedListBuilder<>( doneFunc, c ); }
+    public static ListBuilder constructList() { return new ListBuilder(); }
     
-    public static InlineBuilder constructFrom( JolieValue t ) { return new InlineBuilder( t ); }
+    public static Builder constructFrom( JolieValue j ) { return new Builder( j ); }
     
-    public static GetTimeDiffRequest createFrom( JolieValue t ) throws TypeValidationException { return constructFrom( t ).build(); }
+    public static ListBuilder constructListFrom( SequencedCollection<? extends JolieValue> c ) { return new ListBuilder( c ); }
     
-    public static Value toValue( GetTimeDiffRequest t ) { return JolieValue.toValue( t ); }
-    public static GetTimeDiffRequest fromValue( Value value ) throws TypeCheckingException { return Builder.buildFrom( value ); }
-    
-    static abstract class Builder<B> extends StructureBuilder<JolieVoid, B> {
-        
-        private static final Map<String,FieldManager<?>> FIELD_MAP = Map.of(
-            "time1", FieldManager.createNative( JolieString::fromValue, JolieString::createFrom ),
-            "time2", FieldManager.createNative( JolieString::fromValue, JolieString::createFrom )
+    public static GetTimeDiffRequest createFrom( JolieValue j ) {
+        return new GetTimeDiffRequest(
+            ValueManager.fieldFrom( j.getFirstChild( "time1" ), c -> c.content() instanceof JolieString content ? content.value() : null ),
+            ValueManager.fieldFrom( j.getFirstChild( "time2" ), c -> c.content() instanceof JolieString content ? content.value() : null )
         );
+    }
+    
+    public static GetTimeDiffRequest fromValue( Value v ) throws TypeCheckingException {
+        ValueManager.requireChildren( v, FIELD_KEYS );
+        return new GetTimeDiffRequest(
+            ValueManager.fieldFrom( v.firstChildOrDefault( "time1", Function.identity(), null ), JolieString::fieldFromValue ),
+            ValueManager.fieldFrom( v.firstChildOrDefault( "time2", Function.identity(), null ), JolieString::fieldFromValue )
+        );
+    }
+    
+    public static Value toValue( GetTimeDiffRequest t ) {
+        final Value v = Value.create();
         
-        protected Builder() {}
-        protected Builder( JolieValue structure ) {
-            super(
-                null,
-                structure.children()
-                    .entrySet()
-                    .parallelStream()
-                    .filter( e -> FIELD_MAP.containsKey( e.getKey() ) )
-                    .collect( Collectors.toConcurrentMap(
-                        Map.Entry::getKey,
-                        e -> FIELD_MAP.get( e.getKey() ).fromJolieValues( e.getValue() )
-                    ) )
-            );
+        v.getFirstChild( "time1" ).setValue( t.time1() );
+        v.getFirstChild( "time2" ).setValue( t.time2() );
+        
+        return v;
+    }
+    
+    public static class Builder {
+        
+        private String time1;
+        private String time2;
+        
+        private Builder() {}
+        private Builder( JolieValue j ) {
+            this.time1 = ValueManager.fieldFrom( j.getFirstChild( "time1" ), c -> c.content() instanceof JolieString content ? content.value() : null );
+            this.time2 = ValueManager.fieldFrom( j.getFirstChild( "time2" ), c -> c.content() instanceof JolieString content ? content.value() : null );
         }
         
-        private JolieVoid content() { return JolieNative.create(); }
-        private Map<String, List<JolieValue>> children() { return children; }
+        public Builder time1( String time1 ) { this.time1 = time1; return this; }
+        public Builder time2( String time2 ) { this.time2 = time2; return this; }
         
-        public B setTime1( JolieString contentEntry ) { return putAs( "time1", contentEntry, JolieValue::create ); }
-        public B setTime1( String valueEntry ) { return putAs( "time1", valueEntry, JolieValue::create ); }
-        public B replaceTime1( UnaryOperator<String> valueOperator ) { return computeAs( "time1", (n,v) -> valueOperator.apply( v ), s -> JolieString.class.cast( s.content() ).value(), JolieValue::create ); }
-        
-        public B setTime2( JolieString contentEntry ) { return putAs( "time2", contentEntry, JolieValue::create ); }
-        public B setTime2( String valueEntry ) { return putAs( "time2", valueEntry, JolieValue::create ); }
-        public B replaceTime2( UnaryOperator<String> valueOperator ) { return computeAs( "time2", (n,v) -> valueOperator.apply( v ), s -> JolieString.class.cast( s.content() ).value(), JolieValue::create ); }
-        
-        protected GetTimeDiffRequest validatedBuild() throws TypeValidationException {
-            validateChildren( FIELD_MAP );
-            
-            return new GetTimeDiffRequest( this );
-        }
-        
-        private static GetTimeDiffRequest buildFrom( Value value ) throws TypeCheckingException {
-            InlineBuilder builder = GetTimeDiffRequest.construct();
-            
-            builder.content( JolieVoid.fromValue( value ) );
-            
-            for ( Map.Entry<String, ValueVector> child : value.children().entrySet() ) {
-                if ( !FIELD_MAP.containsKey( child.getKey() ) )
-                    throw new TypeCheckingException( "Unexpected field was set, field \"" + child.getKey() + "\"." );
-                
-                builder.put( child.getKey(), FIELD_MAP.get( child.getKey() ).fromValueVector( child.getValue() ) );
-            }
-            
-            try {
-                return builder.build();
-            } catch ( TypeValidationException e ) {
-                throw new TypeCheckingException( e.getMessage() );
-            }
+        public GetTimeDiffRequest build() {
+            return new GetTimeDiffRequest( time1, time2 );
         }
     }
     
-    public static class InlineBuilder extends Builder<InlineBuilder> {
+    public static class ListBuilder extends AbstractListBuilder<ListBuilder, GetTimeDiffRequest> {
         
-        private InlineBuilder() {}
-        private InlineBuilder( JolieValue t ) { super( t ); }
+        private ListBuilder() {}
+        private ListBuilder( SequencedCollection<? extends JolieValue> c ) { super( c, GetTimeDiffRequest::createFrom ); }
         
-        protected InlineBuilder self() { return this; }
+        protected ListBuilder self() { return this; }
         
-        public GetTimeDiffRequest build() throws TypeValidationException { return validatedBuild(); }
-    }
-    
-    public static class NestedBuilder<T> extends Builder<NestedBuilder<T>> {
-        
-        private final Function<GetTimeDiffRequest, T> doneFunc;
-        
-        private NestedBuilder( Function<GetTimeDiffRequest, T> doneFunc, JolieValue t ) { super( t ); this.doneFunc = doneFunc; }
-        private NestedBuilder( Function<GetTimeDiffRequest, T> doneFunc ) { this.doneFunc = doneFunc; }
-        
-        protected NestedBuilder<T> self() { return this; }
-        
-        public T done() throws TypeValidationException { return doneFunc.apply( validatedBuild() ); }
-    }
-    
-    static abstract class ListBuilder<B> extends StructureListBuilder<GetTimeDiffRequest, B> {
-        
-        protected ListBuilder( SequencedCollection<? extends JolieValue> elements ) { super( elements.parallelStream().map( GetTimeDiffRequest::createFrom ).toList() ); }
-        protected ListBuilder() {}
-        
-        public NestedBuilder<B> addConstructed() { return constructNested( this::add ); }
-        public NestedBuilder<B> setConstructed( int index ) { return constructNested( e -> set( index, e ) ); }
-        public NestedBuilder<B> addConstructedFrom( JolieValue t ) { return constructNested( this::add, t ); }
-        public NestedBuilder<B> setConstructedFrom( int index, JolieValue t ) { return constructNested( e -> set( index, e ), t ); }
-        public NestedBuilder<B> reconstruct( int index ) { return setConstructedFrom( index, elements.get( index ) ); }
-    }
-    
-    public static class InlineListBuilder extends ListBuilder<InlineListBuilder> {
-        
-        protected InlineListBuilder self() { return this; }
-        
-        public List<GetTimeDiffRequest> build() { return super.build(); }
-    }
-    
-    public static class NestedListBuilder<T> extends ListBuilder<NestedListBuilder<T>> {
-        
-        private final Function<List<GetTimeDiffRequest>, T> doneFunc;
-        
-        private NestedListBuilder( Function<List<GetTimeDiffRequest>, T> doneFunc, SequencedCollection<? extends JolieValue> c ) { super( c ); this.doneFunc = doneFunc; }
-        private NestedListBuilder( Function<List<GetTimeDiffRequest>, T> doneFunc ) { this.doneFunc = doneFunc; }
-        
-        protected NestedListBuilder<T> self() { return this; }
-        
-        public T done() throws TypeValidationException { return doneFunc.apply( build() ); }
+        public ListBuilder add( Function<Builder, GetTimeDiffRequest> b ) { return add( b.apply( construct() ) ); }
+        public ListBuilder set( int index, Function<Builder, GetTimeDiffRequest> b ) { return set( index, b.apply( construct() ) ); }
+        public ListBuilder reconstruct( int index, Function<Builder, GetTimeDiffRequest> b ) { return replace( index, j -> b.apply( constructFrom( j ) ) ); }
     }
 }

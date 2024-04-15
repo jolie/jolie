@@ -1,16 +1,12 @@
 package joliex.java.embedding;
 
 import java.util.SequencedCollection;
-import java.util.List;
 import java.util.Optional;
-import java.util.function.Function;
-
 import jolie.runtime.ByteArray;
 import jolie.runtime.Value;
 import jolie.runtime.JavaService.ValueConverter;
 import jolie.runtime.typing.TypeCheckingException;
-
-import joliex.java.embedding.util.StructureListBuilder;
+import joliex.java.embedding.util.AbstractListBuilder;
 
 public sealed interface JolieNative<T> extends ValueConverter {
     
@@ -18,6 +14,7 @@ public sealed interface JolieNative<T> extends ValueConverter {
 
     default T value() { return null; }
 
+    // TODO: make JolieVoid into a singleton
     public static record JolieVoid() implements JolieNative<Void> {
         
         public Value jolieRepr() { return Value.create(); }
@@ -26,15 +23,20 @@ public sealed interface JolieNative<T> extends ValueConverter {
         public int hashCode() { return 0; }
         public String toString() { return ""; }
 
-        public static JolieVoid createFrom( JolieValue t ) { return new JolieVoid(); }
+        public static JolieVoid createFrom( JolieValue j ) { return new JolieVoid(); }
 
-        public static Value toValue( JolieVoid t ) { return t.jolieRepr(); }
+        public static Value requireVoid( Value v ) throws TypeCheckingException {
+            if ( v.isDefined() )
+                throw new TypeCheckingException( "The given Value was defined, but expected void." );
+
+            return requireNoChildren( v );
+        }
         public static JolieVoid fromValue( Value v ) throws TypeCheckingException {
-            if ( v.valueObject() != null )
-                throw new TypeCheckingException( "The valueObject of the given Value was of an unexpected type." );
-
+            requireVoid( v );
             return new JolieVoid();
         }
+
+        public static Value toValue( JolieVoid t ) { return t.jolieRepr(); }
     }
 
     public static record JolieBool( Boolean value ) implements JolieNative<Boolean> {
@@ -43,23 +45,31 @@ public sealed interface JolieNative<T> extends ValueConverter {
 
         public boolean equals( Object obj ) { return obj instanceof JolieBool b && value.equals( b.value() ); }
         public int hashCode() { return value.hashCode(); }
-
         public String toString() { return value.toString(); }
 
         public static JolieBool createFrom( JolieValue j ) throws TypeValidationException { 
             if ( j.content() instanceof JolieBool content )
                 return content;
             
-            throw new TypeValidationException( "The given JolieValue could not be converted to a JolieBool." );
+            throw new TypeValidationException( "The content of the given JolieValue was of an unexpected type: " + j.content().getClass().getName() + ", expected JolieBool." );
+        }
+        
+        public static Boolean contentFromValue( Value v ) throws TypeCheckingException {
+            if ( v.valueObject() instanceof Boolean b )
+                return b;
+            
+            throw new TypeCheckingException( "The given value isn't a Boolean." );
+        }
+        
+        public static Boolean fieldFromValue( Value v ) throws TypeCheckingException {
+            return contentFromValue( requireNoChildren( v ) );
+        }
+
+        public static JolieBool fromValue( Value v ) throws TypeCheckingException { 
+            return new JolieBool( fieldFromValue( v ) ); 
         }
 
         public static Value toValue( JolieBool t ) { return t.jolieRepr(); }
-        public static JolieBool fromValue( Value v ) throws TypeCheckingException {
-            if ( !v.isBool() )
-                throw new TypeCheckingException( "The given value isn't a Boolean." );
-
-            return new JolieBool( v.boolValue() );
-        }
     }
 
     public static record JolieInt( Integer value ) implements JolieNative<Integer> {
@@ -68,23 +78,31 @@ public sealed interface JolieNative<T> extends ValueConverter {
 
         public boolean equals( Object obj ) { return obj instanceof JolieInt n && value.equals( n.value() ); }
         public int hashCode() { return value.hashCode(); }
-
         public String toString() { return value.toString(); }
 
         public static JolieInt createFrom( JolieValue j ) throws TypeValidationException { 
             if ( j.content() instanceof JolieInt content )
                 return content;
             
-            throw new TypeValidationException( "The given JolieValue could not be converted to a JolieInt." );
+            throw new TypeValidationException( "The content of the given JolieValue was of an unexpected type: " + j.content().getClass().getName() + ", expected JolieInt." );
+        }
+
+        public static Integer contentFromValue( Value v ) throws TypeCheckingException {
+            if ( v.valueObject() instanceof Integer i )
+                return i;
+            
+            throw new TypeCheckingException( "The given value isn't an Integer." );
+        }
+        
+        public static Integer fieldFromValue( Value v ) throws TypeCheckingException {
+            return contentFromValue( requireNoChildren( v ) );
+        }
+
+        public static JolieInt fromValue( Value v ) throws TypeCheckingException {
+            return new JolieInt( fieldFromValue( v ) );
         }
 
         public static Value toValue( JolieInt t ) { return t.jolieRepr(); }
-        public static JolieInt fromValue( Value v ) throws TypeCheckingException {
-            if ( !v.isInt() )
-                throw new TypeCheckingException( "The given value isn't an Integer." );
-
-            return new JolieInt( v.intValue() );
-        }
     }
 
     public static record JolieLong( Long value ) implements JolieNative<Long> {
@@ -93,23 +111,31 @@ public sealed interface JolieNative<T> extends ValueConverter {
 
         public boolean equals( Object obj ) { return obj instanceof JolieLong n && value.equals( n.value() ); }
         public int hashCode() { return value.hashCode(); }
-
         public String toString() { return value.toString(); }
 
         public static JolieLong createFrom( JolieValue j ) throws TypeValidationException {
             if ( j.content() instanceof JolieLong content )
                 return content;
             
-            throw new TypeValidationException( "The given JolieValue could not be converted to a JolieLong." );
+            throw new TypeValidationException( "The content of the given JolieValue was of an unexpected type: " + j.content().getClass().getName() + ", expected JolieLong." );
+        }
+
+        public static Long contentFromValue( Value v ) throws TypeCheckingException {
+            if ( v.valueObject() instanceof Long l )
+                return l;
+            
+            throw new TypeCheckingException( "The given value isn't a Long." );
+        }
+        
+        public static Long fieldFromValue( Value v ) throws TypeCheckingException {
+            return contentFromValue( requireNoChildren( v ) );
+        }
+
+        public static JolieLong fromValue( Value v ) throws TypeCheckingException {
+            return new JolieLong( fieldFromValue( v ) );
         }
 
         public static Value toValue( JolieLong t ) { return t.jolieRepr(); }
-        public static JolieLong fromValue( Value v ) throws TypeCheckingException {
-            if ( !v.isLong() )
-                throw new TypeCheckingException( "The given value isn't a Long." );
-
-            return new JolieLong( v.longValue() );
-        }
     }
 
     public static record JolieDouble( Double value ) implements JolieNative<Double> {
@@ -118,23 +144,31 @@ public sealed interface JolieNative<T> extends ValueConverter {
 
         public boolean equals( Object obj ) { return obj instanceof JolieDouble n && value.equals( n.value() ); }
         public int hashCode() { return value.hashCode(); }
-
         public String toString() { return value.toString(); }
 
         public static JolieDouble createFrom( JolieValue j ) throws TypeValidationException { 
             if ( j.content() instanceof JolieDouble content )
                 return content;
             
-            throw new TypeValidationException( "The given JolieValue could not be converted to a JolieDouble." );
+            throw new TypeValidationException( "The content of the given JolieValue was of an unexpected type: " + j.content().getClass().getName() + ", expected JolieDouble." );
+        }
+
+        public static Double contentFromValue( Value v ) throws TypeCheckingException {
+            if ( v.valueObject() instanceof Double d )
+                return d;
+            
+            throw new TypeCheckingException( "The given value isn't a Double." );
+        }
+        
+        public static Double fieldFromValue( Value v ) throws TypeCheckingException {
+            return contentFromValue( requireNoChildren( v ) );
+        }
+
+        public static JolieDouble fromValue( Value v ) throws TypeCheckingException {
+            return new JolieDouble( fieldFromValue( v ) );
         }
 
         public static Value toValue( JolieDouble t ) { return t.jolieRepr(); }
-        public static JolieDouble fromValue( Value v ) throws TypeCheckingException {
-            if ( !v.isDouble() )
-                throw new TypeCheckingException( "The given value isn't a Double." );
-
-            return new JolieDouble( v.doubleValue() );
-        }
     }
 
     public static record JolieString( String value ) implements JolieNative<String> {
@@ -143,23 +177,31 @@ public sealed interface JolieNative<T> extends ValueConverter {
 
         public boolean equals( Object obj ) { return obj instanceof JolieString n && value.equals( n.value() ); }
         public int hashCode() { return value.hashCode(); }
-
         public String toString() { return value; }
 
         public static JolieString createFrom( JolieValue j ) throws TypeValidationException {
             if ( j.content() instanceof JolieString content )
                 return content;
             
-            throw new TypeValidationException( "The given JolieValue could not be converted to a JolieString." );
+            throw new TypeValidationException( "The content of the given JolieValue was of an unexpected type: " + j.content().getClass().getName() + ", expected JolieString." );
+        }
+
+        public static String contentFromValue( Value v ) throws TypeCheckingException {
+            if ( v.valueObject() instanceof String i )
+                return i;
+            
+            throw new TypeCheckingException( "The given value isn't a String." );
+        }
+        
+        public static String fieldFromValue( Value v ) throws TypeCheckingException {
+            return contentFromValue( requireNoChildren( v ) );
+        }
+
+        public static JolieString fromValue( Value v ) throws TypeCheckingException {
+            return new JolieString( fieldFromValue( v ) );
         }
 
         public static Value toValue( JolieString t ) { return t.jolieRepr(); }
-        public static JolieString fromValue( Value v ) throws TypeCheckingException {
-            if ( !v.isString() )
-                throw new TypeCheckingException( "The given value isn't a String." );
-
-            return new JolieString( v.strValue() );
-        }
     }
 
     public static record JolieRaw( ByteArray value ) implements JolieNative<ByteArray> {
@@ -168,23 +210,31 @@ public sealed interface JolieNative<T> extends ValueConverter {
 
         public boolean equals( Object obj ) { return obj instanceof JolieRaw n && value.equals( n.value() ); }
         public int hashCode() { return value.hashCode(); }
-
         public String toString() { return value.toString(); }
 
         public static JolieRaw createFrom( JolieValue j ) throws TypeValidationException {
             if ( j.content() instanceof JolieRaw content )
                 return content;
             
-            throw new TypeValidationException( "The given JolieValue could not be converted to a JolieRaw." );
+            throw new TypeValidationException( "The content of the given JolieValue was of an unexpected type: " + j.content().getClass().getName() + ", expected JolieRaw." );
+        }
+
+        public static ByteArray contentFromValue( Value v ) throws TypeCheckingException {
+            if ( v.valueObject() instanceof ByteArray i )
+                return i;
+            
+            throw new TypeCheckingException( "The given value isn't a ByteArray." );
+        }
+
+        public static ByteArray fieldFromValue( Value v ) throws TypeCheckingException {
+            return contentFromValue( requireNoChildren( v ) );
+        }
+
+        public static JolieRaw fromValue( Value v ) throws TypeCheckingException {
+            return new JolieRaw( fieldFromValue( v ) );
         }
 
         public static Value toValue( JolieRaw t ) { return t.jolieRepr(); }
-        public static JolieRaw fromValue( Value v ) throws TypeCheckingException {
-            if ( !v.isByteArray() )
-                throw new TypeCheckingException( "The given value isn't a ByteArray." );
-
-            return new JolieRaw( v.byteArrayValue() );
-        }
     }
 
     public static JolieVoid create() { return new JolieVoid(); }
@@ -195,70 +245,60 @@ public sealed interface JolieNative<T> extends ValueConverter {
     public static JolieString create( String value ) { return Optional.ofNullable( value ).map( JolieString::new ).orElse( null ); }
     public static JolieRaw create( ByteArray value ) { return Optional.ofNullable( value ).map( JolieRaw::new ).orElse( null ); }
 
-    public static JolieNative<?> createFrom( JolieValue t ) { return t.content(); }
+    public static JolieNative<?> createFrom( JolieValue j ) { return j.content(); }
 
-    public static InlineListBuilder constructList() { return new InlineListBuilder(); }
+    public static ListBuilder constructList() { return new ListBuilder(); }
+
+    public static ListBuilder constructListFrom( SequencedCollection<? extends JolieValue> c ) { return new ListBuilder( c ); }
     
-    public static <T> NestedListBuilder<T> constructNestedList( Function<List<JolieNative<?>>, T> f, SequencedCollection<? extends JolieValue> c ) { return new NestedListBuilder<>( f, c ); }
-    public static <T> NestedListBuilder<T> constructNestedList( Function<List<JolieNative<?>>, T> f ) { return new NestedListBuilder<>( f ); }
-    
-    public static Value toValue( JolieNative<?> any ) { return any.jolieRepr(); }
-    public static JolieNative<?> fromValue( Value value ) {
-        if ( value.isBool() )
-            return new JolieBool( value.boolValue() );
-        if ( value.isInt() )
-            return new JolieInt( value.intValue() );
-        if ( value.isLong() )
-            return new JolieLong( value.longValue() );
-        if ( value.isDouble() )
-            return new JolieDouble( value.doubleValue() );
-        if ( value.isString() )
-            return new JolieString( value.strValue() );
-        if ( value.isByteArray() )
-            return new JolieRaw( value.byteArrayValue() );
+    public static JolieNative<?> contentFromValue( Value v ) {
+        if ( v.valueObject() instanceof Boolean n )
+            return new JolieBool( n );
+        if ( v.valueObject() instanceof Integer n )
+            return new JolieInt( n );
+        if ( v.valueObject() instanceof Long n )
+            return new JolieLong( n );
+        if ( v.valueObject() instanceof Double n )
+            return new JolieDouble( n );
+        if ( v.valueObject() instanceof String n )
+            return new JolieString( n );
+        if ( v.valueObject() instanceof ByteArray n )
+            return new JolieRaw( n );
         return new JolieVoid();
     }
 
-    public static abstract class ListBuilder<B> extends StructureListBuilder<JolieNative<?>, B> {
-
-        protected ListBuilder( SequencedCollection<? extends JolieValue> c ) { super( c.parallelStream().map( JolieValue::content ).toList() ); }
-        protected ListBuilder() {}
-
-        protected abstract B self();
-
-        public B add( Boolean value ) { return add( create( value ) ); }
-        public B add( Integer value ) { return add( create( value ) ); }
-        public B add( Long value ) { return add( create( value ) ); }
-        public B add( Double value ) { return add( create( value ) ); }
-        public B add( String value ) { return add( create( value ) ); }
-        public B add( ByteArray value ) { return add( create( value ) ); }
-
-        public B set( int index, Boolean value ) { return set( index, create( value ) ); }
-        public B set( int index, Integer value ) { return set( index, create( value ) ); }
-        public B set( int index, Long value ) { return set( index, create( value ) ); }
-        public B set( int index, Double value ) { return set( index, create( value ) ); }
-        public B set( int index, String value ) { return set( index, create( value ) ); }
-        public B set( int index, ByteArray value ) { return set( index, create( value ) ); }
+    public static JolieNative<?> fromValue( Value v ) throws TypeCheckingException { 
+        return contentFromValue( requireNoChildren( v ) ); 
     }
 
-    public static class InlineListBuilder extends ListBuilder<InlineListBuilder> {
+    public static Value toValue( JolieNative<?> any ) { return any.jolieRepr(); }
 
-        private InlineListBuilder() {}
+    private static Value requireNoChildren( Value v ) throws TypeCheckingException {
+        if ( v.hasChildren() )
+            throw new TypeCheckingException( "The given Value had unexpected children." );
 
-        protected InlineListBuilder self() { return this; }
-
-        public List<JolieNative<?>> build() { return super.build(); }
+        return v;
     }
 
-    public static class NestedListBuilder<B> extends ListBuilder<NestedListBuilder<B>> {
+    public static class ListBuilder extends AbstractListBuilder<ListBuilder, JolieNative<?>> {
 
-        private final Function<List<JolieNative<?>>, B> doneFunc;
+        private ListBuilder() {}
+        private ListBuilder( SequencedCollection<? extends JolieValue> c ) { super( c, JolieNative::createFrom ); }
 
-        private NestedListBuilder( Function<List<JolieNative<?>>, B> doneFunc, SequencedCollection<? extends JolieValue> structures ) { super( structures ); this.doneFunc = doneFunc; }
-        private NestedListBuilder( Function<List<JolieNative<?>>, B> doneFunc ) { this.doneFunc = doneFunc; }
+        protected ListBuilder self() { return this; }
 
-        protected NestedListBuilder<B> self() { return this; }
+        public ListBuilder add( Boolean value ) { return add( create( value ) ); }
+        public ListBuilder add( Integer value ) { return add( create( value ) ); }
+        public ListBuilder add( Long value ) { return add( create( value ) ); }
+        public ListBuilder add( Double value ) { return add( create( value ) ); }
+        public ListBuilder add( String value ) { return add( create( value ) ); }
+        public ListBuilder add( ByteArray value ) { return add( create( value ) ); }
 
-        public B done() throws TypeValidationException { return doneFunc.apply( build() ); }
+        public ListBuilder set( int index, Boolean value ) { return set( index, create( value ) ); }
+        public ListBuilder set( int index, Integer value ) { return set( index, create( value ) ); }
+        public ListBuilder set( int index, Long value ) { return set( index, create( value ) ); }
+        public ListBuilder set( int index, Double value ) { return set( index, create( value ) ); }
+        public ListBuilder set( int index, String value ) { return set( index, create( value ) ); }
+        public ListBuilder set( int index, ByteArray value ) { return set( index, create( value ) ); }
     }
 }

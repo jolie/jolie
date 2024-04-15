@@ -11,6 +11,7 @@ import java.util.SequencedCollection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
@@ -23,10 +24,10 @@ import joliex.java.embedding.JolieNative.*;
 import joliex.java.embedding.util.*;
 
 /**
- * this class is an {@link ImmutableStructure} which can be described as follows:
+ * this class is an {@link JolieValue} which can be described as follows:
  * 
  * <pre>
- * content: {@link Double}
+ * contentValue: {@link Double}
  *     decimals[0,1]: {@link Integer}
  * </pre>
  * 
@@ -34,147 +35,88 @@ import joliex.java.embedding.util.*;
  * @see JolieNative
  * @see #construct()
  */
-public final class RoundRequestType extends ImmutableStructure<JolieDouble> {
+public final class RoundRequestType implements JolieValue {
     
-    public Optional<Integer> decimals() { return getFirstChildValue( "decimals", JolieInt.class ); }
+    private static final Set<String> FIELD_KEYS = Set.of( "decimals" );
     
-    private RoundRequestType( Builder<?> builder ) {
-        super( builder.content(), builder.children() );
+    private final Double contentValue;
+    private final Integer decimals;
+    
+    public RoundRequestType( Double contentValue, Integer decimals ) {
+        this.contentValue = ValueManager.validated( contentValue );
+        this.decimals = decimals;
     }
     
-    public static InlineBuilder construct() { return new InlineBuilder(); }
-    public static InlineBuilder construct( JolieDouble content ) { return construct().content( content ); }
-    public static InlineBuilder construct( Double contentValue ) { return construct().content( contentValue ); }
+    public Double contentValue() { return contentValue; }
+    public Optional<Integer> decimals() { return Optional.ofNullable( decimals ); }
     
-    static <T> NestedBuilder<T> constructNested( Function<RoundRequestType, T> doneFunc ) { return new NestedBuilder<>( doneFunc ); }
-    static <T> NestedBuilder<T> constructNested( Function<RoundRequestType, T> doneFunc, JolieValue t ) { return new NestedBuilder<>( doneFunc, t ); }
+    public JolieDouble content() { return new JolieDouble( contentValue ); }
+    public Map<String, List<JolieValue>> children() {
+        return one.util.streamex.EntryStream.of(
+            "decimals", decimals == null ? null : List.of( JolieValue.create( decimals ) )
+        ).filterValues( Objects::nonNull ).toImmutableMap();
+    }
     
-    static InlineListBuilder constructList() { return new InlineListBuilder(); }
+    public static Builder construct() { return new Builder(); }
     
-    static <T> NestedListBuilder<T> constructNestedList( Function<List<RoundRequestType>, T> doneFunc ) { return new NestedListBuilder<>( doneFunc ); }
-    static <T> NestedListBuilder<T> constructNestedList( Function<List<RoundRequestType>, T> doneFunc, SequencedCollection<? extends JolieValue> c ) { return new NestedListBuilder<>( doneFunc, c ); }
+    public static ListBuilder constructList() { return new ListBuilder(); }
     
-    public static InlineBuilder constructFrom( JolieValue t ) { return new InlineBuilder( t ); }
+    public static Builder constructFrom( JolieValue j ) { return new Builder( j ); }
     
-    public static RoundRequestType createFrom( JolieValue t ) throws TypeValidationException { return constructFrom( t ).build(); }
+    public static ListBuilder constructListFrom( SequencedCollection<? extends JolieValue> c ) { return new ListBuilder( c ); }
     
-    public static Value toValue( RoundRequestType t ) { return JolieValue.toValue( t ); }
-    public static RoundRequestType fromValue( Value value ) throws TypeCheckingException { return Builder.buildFrom( value ); }
-    
-    static abstract class Builder<B> extends StructureBuilder<JolieDouble, B> {
-        
-        private static final Map<String,FieldManager<?>> FIELD_MAP = Map.of(
-            "decimals", FieldManager.createNative( 0, 1, JolieInt::fromValue, JolieInt::createFrom )
+    public static RoundRequestType createFrom( JolieValue j ) {
+        return new RoundRequestType(
+            JolieDouble.createFrom( j ).value(),
+            ValueManager.fieldFrom( j.getFirstChild( "decimals" ), c -> c.content() instanceof JolieInt content ? content.value() : null )
         );
+    }
+    
+    public static RoundRequestType fromValue( Value v ) throws TypeCheckingException {
+        ValueManager.requireChildren( v, FIELD_KEYS );
+        return new RoundRequestType(
+            JolieDouble.contentFromValue( v ),
+            ValueManager.fieldFrom( v.firstChildOrDefault( "decimals", Function.identity(), null ), JolieInt::fieldFromValue )
+        );
+    }
+    
+    public static Value toValue( RoundRequestType t ) {
+        final Value v = Value.create( t.contentValue() );
         
-        protected Builder() {}
-        protected Builder( JolieValue structure ) {
-            super(
-                structure.content() instanceof JolieDouble content ? content : null,
-                structure.children()
-                    .entrySet()
-                    .parallelStream()
-                    .filter( e -> FIELD_MAP.containsKey( e.getKey() ) )
-                    .collect( Collectors.toConcurrentMap(
-                        Map.Entry::getKey,
-                        e -> FIELD_MAP.get( e.getKey() ).fromJolieValues( e.getValue() )
-                    ) )
-            );
+        t.decimals().ifPresent( c -> v.getFirstChild( "decimals" ).setValue( c ) );
+        
+        return v;
+    }
+    
+    public static class Builder {
+        
+        private Double contentValue;
+        private Integer decimals;
+        
+        private Builder() {}
+        private Builder( JolieValue j ) {
+            
+            contentValue = j.content() instanceof JolieDouble content ? content.value() : null;
+            this.decimals = ValueManager.fieldFrom( j.getFirstChild( "decimals" ), c -> c.content() instanceof JolieInt content ? content.value() : null );
         }
         
-        private JolieDouble content() { return content; }
-        private Map<String, List<JolieValue>> children() { return children; }
+        public Builder contentValue( Double contentValue ) { this.contentValue = contentValue; return this; }
+        public Builder decimals( Integer decimals ) { this.decimals = decimals; return this; }
         
-        public B content( JolieDouble content ) { return super.content( content ); }
-        public B content( Double value ) { return content( JolieNative.create( value ) ); }
-        public B content( UnaryOperator<Double> valueOperator ) { return content( valueOperator.apply( content.value() ) ); }
-        
-        public B setDecimals( JolieInt contentEntry ) { return putAs( "decimals", contentEntry, JolieValue::create ); }
-        public B setDecimals( Integer valueEntry ) { return putAs( "decimals", valueEntry, JolieValue::create ); }
-        public B replaceDecimals( UnaryOperator<Integer> valueOperator ) { return computeAs( "decimals", (n,v) -> valueOperator.apply( v ), s -> JolieInt.class.cast( s.content() ).value(), JolieValue::create ); }
-        
-        protected RoundRequestType validatedBuild() throws TypeValidationException {
-            validateChildren( FIELD_MAP );
-            
-            return new RoundRequestType( this );
-        }
-        
-        private static RoundRequestType buildFrom( Value value ) throws TypeCheckingException {
-            InlineBuilder builder = RoundRequestType.construct();
-            
-            builder.content( JolieDouble.fromValue( value ) );
-            
-            for ( Map.Entry<String, ValueVector> child : value.children().entrySet() ) {
-                if ( !FIELD_MAP.containsKey( child.getKey() ) )
-                    throw new TypeCheckingException( "Unexpected field was set, field \"" + child.getKey() + "\"." );
-                
-                builder.put( child.getKey(), FIELD_MAP.get( child.getKey() ).fromValueVector( child.getValue() ) );
-            }
-            
-            try {
-                return builder.build();
-            } catch ( TypeValidationException e ) {
-                throw new TypeCheckingException( e.getMessage() );
-            }
+        public RoundRequestType build() {
+            return new RoundRequestType( contentValue, decimals );
         }
     }
     
-    public static class InlineBuilder extends Builder<InlineBuilder> {
+    public static class ListBuilder extends AbstractListBuilder<ListBuilder, RoundRequestType> {
         
-        private InlineBuilder() {}
-        private InlineBuilder( JolieValue t ) { super( t ); }
+        private ListBuilder() {}
+        private ListBuilder( SequencedCollection<? extends JolieValue> c ) { super( c, RoundRequestType::createFrom ); }
         
-        protected InlineBuilder self() { return this; }
+        protected ListBuilder self() { return this; }
         
-        public RoundRequestType build() throws TypeValidationException { return validatedBuild(); }
-    }
-    
-    public static class NestedBuilder<T> extends Builder<NestedBuilder<T>> {
-        
-        private final Function<RoundRequestType, T> doneFunc;
-        
-        private NestedBuilder( Function<RoundRequestType, T> doneFunc, JolieValue t ) { super( t ); this.doneFunc = doneFunc; }
-        private NestedBuilder( Function<RoundRequestType, T> doneFunc ) { this.doneFunc = doneFunc; }
-        
-        protected NestedBuilder<T> self() { return this; }
-        
-        public T done() throws TypeValidationException { return doneFunc.apply( validatedBuild() ); }
-    }
-    
-    static abstract class ListBuilder<B> extends StructureListBuilder<RoundRequestType, B> {
-        
-        protected ListBuilder( SequencedCollection<? extends JolieValue> elements ) { super( elements.parallelStream().map( RoundRequestType::createFrom ).toList() ); }
-        protected ListBuilder() {}
-        
-        public NestedBuilder<B> addConstructed() { return constructNested( this::add ); }
-        public NestedBuilder<B> setConstructed( int index ) { return constructNested( e -> set( index, e ) ); }
-        public NestedBuilder<B> addConstructedFrom( JolieValue t ) { return constructNested( this::add, t ); }
-        public NestedBuilder<B> setConstructedFrom( int index, JolieValue t ) { return constructNested( e -> set( index, e ), t ); }
-        public NestedBuilder<B> reconstruct( int index ) { return setConstructedFrom( index, elements.get( index ) ); }
-        
-        public NestedBuilder<B> addConstructed( JolieDouble content ) { return addConstructed().content( content ); }
-        public NestedBuilder<B> setConstructed( int index, JolieDouble content ) { return setConstructed( index ).content( content ); }
-        public NestedBuilder<B> addConstructed( Double contentValue ) { return addConstructed( JolieNative.create( contentValue ) ); }
-        public NestedBuilder<B> setConstructed( int index, Double contentValue ) { return setConstructed( index, JolieNative.create( contentValue ) ); }
-        public NestedBuilder<B> reconstruct( int index, UnaryOperator<Double> valueOperator ) { return reconstruct( index ).content( valueOperator ); }
-    }
-    
-    public static class InlineListBuilder extends ListBuilder<InlineListBuilder> {
-        
-        protected InlineListBuilder self() { return this; }
-        
-        public List<RoundRequestType> build() { return super.build(); }
-    }
-    
-    public static class NestedListBuilder<T> extends ListBuilder<NestedListBuilder<T>> {
-        
-        private final Function<List<RoundRequestType>, T> doneFunc;
-        
-        private NestedListBuilder( Function<List<RoundRequestType>, T> doneFunc, SequencedCollection<? extends JolieValue> c ) { super( c ); this.doneFunc = doneFunc; }
-        private NestedListBuilder( Function<List<RoundRequestType>, T> doneFunc ) { this.doneFunc = doneFunc; }
-        
-        protected NestedListBuilder<T> self() { return this; }
-        
-        public T done() throws TypeValidationException { return doneFunc.apply( build() ); }
+        public ListBuilder add( Function<Builder, RoundRequestType> b ) { return add( b.apply( construct() ) ); }
+        public ListBuilder set( int index, Function<Builder, RoundRequestType> b ) { return set( index, b.apply( construct() ) ); }
+        public ListBuilder reconstruct( int index, Function<Builder, RoundRequestType> b ) { return replace( index, j -> b.apply( constructFrom( j ) ) ); }
     }
 }

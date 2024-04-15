@@ -11,6 +11,7 @@ import java.util.SequencedCollection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
@@ -23,10 +24,10 @@ import joliex.java.embedding.JolieNative.*;
 import joliex.java.embedding.util.*;
 
 /**
- * this class is an {@link ImmutableStructure} which can be described as follows:
+ * this class is an {@link JolieValue} which can be described as follows:
  * 
  * <pre>
- * content: {@link String}
+ * contentValue: {@link String}
  *     format[0,1]: {@link String}
  *     language[0,1]: {@link String}
  * </pre>
@@ -35,153 +36,98 @@ import joliex.java.embedding.util.*;
  * @see JolieNative
  * @see #construct()
  */
-public final class GetTimestampFromStringRequest extends ImmutableStructure<JolieString> {
+public final class GetTimestampFromStringRequest implements JolieValue {
     
-    public Optional<String> format() { return getFirstChildValue( "format", JolieString.class ); }
-    public Optional<String> language() { return getFirstChildValue( "language", JolieString.class ); }
+    private static final Set<String> FIELD_KEYS = Set.of( "format", "language" );
     
-    private GetTimestampFromStringRequest( Builder<?> builder ) {
-        super( builder.content(), builder.children() );
+    private final String contentValue;
+    private final String format;
+    private final String language;
+    
+    public GetTimestampFromStringRequest( String contentValue, String format, String language ) {
+        this.contentValue = ValueManager.validated( contentValue );
+        this.format = format;
+        this.language = language;
     }
     
-    public static InlineBuilder construct() { return new InlineBuilder(); }
-    public static InlineBuilder construct( JolieString content ) { return construct().content( content ); }
-    public static InlineBuilder construct( String contentValue ) { return construct().content( contentValue ); }
+    public String contentValue() { return contentValue; }
+    public Optional<String> format() { return Optional.ofNullable( format ); }
+    public Optional<String> language() { return Optional.ofNullable( language ); }
     
-    static <T> NestedBuilder<T> constructNested( Function<GetTimestampFromStringRequest, T> doneFunc ) { return new NestedBuilder<>( doneFunc ); }
-    static <T> NestedBuilder<T> constructNested( Function<GetTimestampFromStringRequest, T> doneFunc, JolieValue t ) { return new NestedBuilder<>( doneFunc, t ); }
+    public JolieString content() { return new JolieString( contentValue ); }
+    public Map<String, List<JolieValue>> children() {
+        return one.util.streamex.EntryStream.of(
+            "format", format == null ? null : List.of( JolieValue.create( format ) ),
+            "language", language == null ? null : List.of( JolieValue.create( language ) )
+        ).filterValues( Objects::nonNull ).toImmutableMap();
+    }
     
-    static InlineListBuilder constructList() { return new InlineListBuilder(); }
+    public static Builder construct() { return new Builder(); }
     
-    static <T> NestedListBuilder<T> constructNestedList( Function<List<GetTimestampFromStringRequest>, T> doneFunc ) { return new NestedListBuilder<>( doneFunc ); }
-    static <T> NestedListBuilder<T> constructNestedList( Function<List<GetTimestampFromStringRequest>, T> doneFunc, SequencedCollection<? extends JolieValue> c ) { return new NestedListBuilder<>( doneFunc, c ); }
+    public static ListBuilder constructList() { return new ListBuilder(); }
     
-    public static InlineBuilder constructFrom( JolieValue t ) { return new InlineBuilder( t ); }
+    public static Builder constructFrom( JolieValue j ) { return new Builder( j ); }
     
-    public static GetTimestampFromStringRequest createFrom( JolieValue t ) throws TypeValidationException { return constructFrom( t ).build(); }
+    public static ListBuilder constructListFrom( SequencedCollection<? extends JolieValue> c ) { return new ListBuilder( c ); }
     
-    public static Value toValue( GetTimestampFromStringRequest t ) { return JolieValue.toValue( t ); }
-    public static GetTimestampFromStringRequest fromValue( Value value ) throws TypeCheckingException { return Builder.buildFrom( value ); }
-    
-    static abstract class Builder<B> extends StructureBuilder<JolieString, B> {
-        
-        private static final Map<String,FieldManager<?>> FIELD_MAP = Map.of(
-            "format", FieldManager.createNative( 0, 1, JolieString::fromValue, JolieString::createFrom ),
-            "language", FieldManager.createNative( 0, 1, JolieString::fromValue, JolieString::createFrom )
+    public static GetTimestampFromStringRequest createFrom( JolieValue j ) {
+        return new GetTimestampFromStringRequest(
+            JolieString.createFrom( j ).value(),
+            ValueManager.fieldFrom( j.getFirstChild( "format" ), c -> c.content() instanceof JolieString content ? content.value() : null ),
+            ValueManager.fieldFrom( j.getFirstChild( "language" ), c -> c.content() instanceof JolieString content ? content.value() : null )
         );
+    }
+    
+    public static GetTimestampFromStringRequest fromValue( Value v ) throws TypeCheckingException {
+        ValueManager.requireChildren( v, FIELD_KEYS );
+        return new GetTimestampFromStringRequest(
+            JolieString.contentFromValue( v ),
+            ValueManager.fieldFrom( v.firstChildOrDefault( "format", Function.identity(), null ), JolieString::fieldFromValue ),
+            ValueManager.fieldFrom( v.firstChildOrDefault( "language", Function.identity(), null ), JolieString::fieldFromValue )
+        );
+    }
+    
+    public static Value toValue( GetTimestampFromStringRequest t ) {
+        final Value v = Value.create( t.contentValue() );
         
-        protected Builder() {}
-        protected Builder( JolieValue structure ) {
-            super(
-                structure.content() instanceof JolieString content ? content : null,
-                structure.children()
-                    .entrySet()
-                    .parallelStream()
-                    .filter( e -> FIELD_MAP.containsKey( e.getKey() ) )
-                    .collect( Collectors.toConcurrentMap(
-                        Map.Entry::getKey,
-                        e -> FIELD_MAP.get( e.getKey() ).fromJolieValues( e.getValue() )
-                    ) )
-            );
+        t.format().ifPresent( c -> v.getFirstChild( "format" ).setValue( c ) );
+        t.language().ifPresent( c -> v.getFirstChild( "language" ).setValue( c ) );
+        
+        return v;
+    }
+    
+    public static class Builder {
+        
+        private String contentValue;
+        private String format;
+        private String language;
+        
+        private Builder() {}
+        private Builder( JolieValue j ) {
+            
+            contentValue = j.content() instanceof JolieString content ? content.value() : null;
+            this.format = ValueManager.fieldFrom( j.getFirstChild( "format" ), c -> c.content() instanceof JolieString content ? content.value() : null );
+            this.language = ValueManager.fieldFrom( j.getFirstChild( "language" ), c -> c.content() instanceof JolieString content ? content.value() : null );
         }
         
-        private JolieString content() { return content; }
-        private Map<String, List<JolieValue>> children() { return children; }
+        public Builder contentValue( String contentValue ) { this.contentValue = contentValue; return this; }
+        public Builder format( String format ) { this.format = format; return this; }
+        public Builder language( String language ) { this.language = language; return this; }
         
-        public B content( JolieString content ) { return super.content( content ); }
-        public B content( String value ) { return content( JolieNative.create( value ) ); }
-        public B content( UnaryOperator<String> valueOperator ) { return content( valueOperator.apply( content.value() ) ); }
-        
-        public B setFormat( JolieString contentEntry ) { return putAs( "format", contentEntry, JolieValue::create ); }
-        public B setFormat( String valueEntry ) { return putAs( "format", valueEntry, JolieValue::create ); }
-        public B replaceFormat( UnaryOperator<String> valueOperator ) { return computeAs( "format", (n,v) -> valueOperator.apply( v ), s -> JolieString.class.cast( s.content() ).value(), JolieValue::create ); }
-        
-        public B setLanguage( JolieString contentEntry ) { return putAs( "language", contentEntry, JolieValue::create ); }
-        public B setLanguage( String valueEntry ) { return putAs( "language", valueEntry, JolieValue::create ); }
-        public B replaceLanguage( UnaryOperator<String> valueOperator ) { return computeAs( "language", (n,v) -> valueOperator.apply( v ), s -> JolieString.class.cast( s.content() ).value(), JolieValue::create ); }
-        
-        protected GetTimestampFromStringRequest validatedBuild() throws TypeValidationException {
-            validateChildren( FIELD_MAP );
-            
-            return new GetTimestampFromStringRequest( this );
-        }
-        
-        private static GetTimestampFromStringRequest buildFrom( Value value ) throws TypeCheckingException {
-            InlineBuilder builder = GetTimestampFromStringRequest.construct();
-            
-            builder.content( JolieString.fromValue( value ) );
-            
-            for ( Map.Entry<String, ValueVector> child : value.children().entrySet() ) {
-                if ( !FIELD_MAP.containsKey( child.getKey() ) )
-                    throw new TypeCheckingException( "Unexpected field was set, field \"" + child.getKey() + "\"." );
-                
-                builder.put( child.getKey(), FIELD_MAP.get( child.getKey() ).fromValueVector( child.getValue() ) );
-            }
-            
-            try {
-                return builder.build();
-            } catch ( TypeValidationException e ) {
-                throw new TypeCheckingException( e.getMessage() );
-            }
+        public GetTimestampFromStringRequest build() {
+            return new GetTimestampFromStringRequest( contentValue, format, language );
         }
     }
     
-    public static class InlineBuilder extends Builder<InlineBuilder> {
+    public static class ListBuilder extends AbstractListBuilder<ListBuilder, GetTimestampFromStringRequest> {
         
-        private InlineBuilder() {}
-        private InlineBuilder( JolieValue t ) { super( t ); }
+        private ListBuilder() {}
+        private ListBuilder( SequencedCollection<? extends JolieValue> c ) { super( c, GetTimestampFromStringRequest::createFrom ); }
         
-        protected InlineBuilder self() { return this; }
+        protected ListBuilder self() { return this; }
         
-        public GetTimestampFromStringRequest build() throws TypeValidationException { return validatedBuild(); }
-    }
-    
-    public static class NestedBuilder<T> extends Builder<NestedBuilder<T>> {
-        
-        private final Function<GetTimestampFromStringRequest, T> doneFunc;
-        
-        private NestedBuilder( Function<GetTimestampFromStringRequest, T> doneFunc, JolieValue t ) { super( t ); this.doneFunc = doneFunc; }
-        private NestedBuilder( Function<GetTimestampFromStringRequest, T> doneFunc ) { this.doneFunc = doneFunc; }
-        
-        protected NestedBuilder<T> self() { return this; }
-        
-        public T done() throws TypeValidationException { return doneFunc.apply( validatedBuild() ); }
-    }
-    
-    static abstract class ListBuilder<B> extends StructureListBuilder<GetTimestampFromStringRequest, B> {
-        
-        protected ListBuilder( SequencedCollection<? extends JolieValue> elements ) { super( elements.parallelStream().map( GetTimestampFromStringRequest::createFrom ).toList() ); }
-        protected ListBuilder() {}
-        
-        public NestedBuilder<B> addConstructed() { return constructNested( this::add ); }
-        public NestedBuilder<B> setConstructed( int index ) { return constructNested( e -> set( index, e ) ); }
-        public NestedBuilder<B> addConstructedFrom( JolieValue t ) { return constructNested( this::add, t ); }
-        public NestedBuilder<B> setConstructedFrom( int index, JolieValue t ) { return constructNested( e -> set( index, e ), t ); }
-        public NestedBuilder<B> reconstruct( int index ) { return setConstructedFrom( index, elements.get( index ) ); }
-        
-        public NestedBuilder<B> addConstructed( JolieString content ) { return addConstructed().content( content ); }
-        public NestedBuilder<B> setConstructed( int index, JolieString content ) { return setConstructed( index ).content( content ); }
-        public NestedBuilder<B> addConstructed( String contentValue ) { return addConstructed( JolieNative.create( contentValue ) ); }
-        public NestedBuilder<B> setConstructed( int index, String contentValue ) { return setConstructed( index, JolieNative.create( contentValue ) ); }
-        public NestedBuilder<B> reconstruct( int index, UnaryOperator<String> valueOperator ) { return reconstruct( index ).content( valueOperator ); }
-    }
-    
-    public static class InlineListBuilder extends ListBuilder<InlineListBuilder> {
-        
-        protected InlineListBuilder self() { return this; }
-        
-        public List<GetTimestampFromStringRequest> build() { return super.build(); }
-    }
-    
-    public static class NestedListBuilder<T> extends ListBuilder<NestedListBuilder<T>> {
-        
-        private final Function<List<GetTimestampFromStringRequest>, T> doneFunc;
-        
-        private NestedListBuilder( Function<List<GetTimestampFromStringRequest>, T> doneFunc, SequencedCollection<? extends JolieValue> c ) { super( c ); this.doneFunc = doneFunc; }
-        private NestedListBuilder( Function<List<GetTimestampFromStringRequest>, T> doneFunc ) { this.doneFunc = doneFunc; }
-        
-        protected NestedListBuilder<T> self() { return this; }
-        
-        public T done() throws TypeValidationException { return doneFunc.apply( build() ); }
+        public ListBuilder add( Function<Builder, GetTimestampFromStringRequest> b ) { return add( b.apply( construct() ) ); }
+        public ListBuilder set( int index, Function<Builder, GetTimestampFromStringRequest> b ) { return set( index, b.apply( construct() ) ); }
+        public ListBuilder reconstruct( int index, Function<Builder, GetTimestampFromStringRequest> b ) { return replace( index, j -> b.apply( constructFrom( j ) ) ); }
     }
 }

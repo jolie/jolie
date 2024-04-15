@@ -176,13 +176,14 @@ public final class NewTimeService extends JavaService implements TimeInterface {
 			final Date timestamp = new Date( tm );
 			GregorianCalendar cal = new GregorianCalendar();
 			cal.setTimeInMillis( timestamp.getTime() );
-			return GetDateTimeResponse.construct( sdf.format( timestamp ) )
-				.setDay( cal.get( Calendar.DAY_OF_MONTH ) )
-				.setMonth( cal.get( Calendar.MONTH ) + 1 )
-				.setYear( cal.get( Calendar.YEAR ) )
-				.setHour( cal.get( Calendar.HOUR_OF_DAY ) )
-				.setMinute( cal.get( Calendar.MINUTE ) )
-				.setSecond( cal.get( Calendar.SECOND ) )
+			return GetDateTimeResponse.construct()
+				.contentValue( sdf.format( timestamp ) )
+				.day( cal.get( Calendar.DAY_OF_MONTH ) )
+				.month( cal.get( Calendar.MONTH ) + 1 )
+				.year( cal.get( Calendar.YEAR ) )
+				.hour( cal.get( Calendar.HOUR_OF_DAY ) )
+				.minute( cal.get( Calendar.MINUTE ) )
+				.second( cal.get( Calendar.SECOND ) )
 				.build();
 		} catch( Exception e ) {
 			e.printStackTrace(); // TODO FaultException
@@ -197,9 +198,9 @@ public final class NewTimeService extends JavaService implements TimeInterface {
 		GregorianCalendar cal = new GregorianCalendar();
 		cal.setTimeInMillis( new Date().getTime() );
 		return DateValuesType.construct()
-			.setDay( cal.get( Calendar.DAY_OF_MONTH ) )
-			.setMonth( cal.get( Calendar.MONTH ) + 1 )
-			.setYear( cal.get( Calendar.YEAR ) )
+			.day( cal.get( Calendar.DAY_OF_MONTH ) )
+			.month( cal.get( Calendar.MONTH ) + 1 )
+			.year( cal.get( Calendar.YEAR ) )
 			.build();
 	}
 
@@ -217,9 +218,9 @@ public final class NewTimeService extends JavaService implements TimeInterface {
 			final Date dt = sdf.parse( request.content().value() );
 			cal.setTimeInMillis( dt.getTime() );
 			return DateValuesType.construct()
-				.setDay( cal.get( Calendar.DAY_OF_MONTH ) )
-				.setMonth( cal.get( Calendar.MONTH ) + 1 )
-				.setYear( cal.get( Calendar.YEAR ) )
+				.day( cal.get( Calendar.DAY_OF_MONTH ) )
+				.month( cal.get( Calendar.MONTH ) + 1 )
+				.year( cal.get( Calendar.YEAR ) )
 				.build();
 		} catch( ParseException pe ) {
 			throw new InvalidDate( JolieValue.create( pe.getMessage() ) );
@@ -250,12 +251,12 @@ public final class NewTimeService extends JavaService implements TimeInterface {
 			final Date dt = sdf.parse( request.content().value() );
 			cal.setTimeInMillis( dt.getTime() );
 			return DateTimeType.construct()
-				.setDay( cal.get( Calendar.DAY_OF_MONTH ) )
-				.setMonth( cal.get( Calendar.MONTH ) + 1 )
-				.setYear( cal.get( Calendar.YEAR ) )
-				.setHour( cal.get( Calendar.HOUR_OF_DAY ) )
-				.setMinute( cal.get( Calendar.MINUTE ) )
-				.setSecond( cal.get( Calendar.SECOND ) )
+				.day( cal.get( Calendar.DAY_OF_MONTH ) )
+				.month( cal.get( Calendar.MONTH ) + 1 )
+				.year( cal.get( Calendar.YEAR ) )
+				.hour( cal.get( Calendar.HOUR_OF_DAY ) )
+				.minute( cal.get( Calendar.MINUTE ) )
+				.second( cal.get( Calendar.SECOND ) )
 				.build();
 		} catch( ParseException pe ) {
 			throw new InvalidDate( JolieValue.create( pe.getMessage() ) );
@@ -274,9 +275,9 @@ public final class NewTimeService extends JavaService implements TimeInterface {
 			Calendar calendar = Calendar.getInstance();
 			calendar.setTimeInMillis( date.getTime() );
 			return TimeValuesType.construct()
-				.setHour( calendar.get( Calendar.HOUR_OF_DAY ) )
-				.setMinute( calendar.get( Calendar.MINUTE ) )
-				.setSecond( calendar.get( Calendar.SECOND ) )
+				.hour( calendar.get( Calendar.HOUR_OF_DAY ) )
+				.minute( calendar.get( Calendar.MINUTE ) )
+				.second( calendar.get( Calendar.SECOND ) )
 				.build();
 		} catch( ParseException e ) {
 			throw new FaultException( "InvalidTime", e );
@@ -319,9 +320,9 @@ public final class NewTimeService extends JavaService implements TimeInterface {
 		Calendar calendar = Calendar.getInstance( timeZone );
 		calendar.setTimeInMillis( request );
 		return TimeValuesType.construct()
-			.setHour( calendar.get( Calendar.HOUR_OF_DAY ) )
-			.setMinute( calendar.get( Calendar.MINUTE ) )
-			.setSecond( calendar.get( Calendar.SECOND ) )
+			.hour( calendar.get( Calendar.HOUR_OF_DAY ) )
+			.minute( calendar.get( Calendar.MINUTE ) )
+			.second( calendar.get( Calendar.SECOND ) )
 			.build();
 	}
 

@@ -677,10 +677,10 @@ The following subsections will look at examples of valid Jolie types which can r
 The Jolie types:
 
     type JolieValue: double {?}
-    type CustomStructureType: long {?}
-    type customStructureType: int {?}
+    type CustomJolieValue: long {?}
+    type customJolieValue: int {?}
 
-all get translated to `CustomStructureType`, so one always overwrites the others.
+all get translated to `CustomJolieValue`, so one always overwrites the others.
 
 ##### Inner Class Hiding Enclosing Class
 

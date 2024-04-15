@@ -11,6 +11,7 @@ import java.util.SequencedCollection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
@@ -23,10 +24,9 @@ import joliex.java.embedding.JolieNative.*;
 import joliex.java.embedding.util.*;
 
 /**
- * this class is an {@link ImmutableStructure} which can be described as follows:
+ * this class is an {@link JolieValue} which can be described as follows:
  * 
  * <pre>
- * content: {@link Void}
  *     format[0,1]: {@link String}
  *     date2: {@link String}
  *     date1: {@link String}
@@ -36,147 +36,99 @@ import joliex.java.embedding.util.*;
  * @see JolieNative
  * @see #construct()
  */
-public final class DiffDateRequestType extends ImmutableStructure<JolieVoid> {
+public final class DiffDateRequestType implements JolieValue {
     
-    public Optional<String> format() { return getFirstChildValue( "format", JolieString.class ); }
-    public String date2() { return getFirstChildValue( "date2", JolieString.class ).get(); }
-    public String date1() { return getFirstChildValue( "date1", JolieString.class ).get(); }
+    private static final Set<String> FIELD_KEYS = Set.of( "format", "date2", "date1" );
     
-    private DiffDateRequestType( Builder<?> builder ) {
-        super( builder.content(), builder.children() );
+    private final String format;
+    private final String date2;
+    private final String date1;
+    
+    public DiffDateRequestType( String format, String date2, String date1 ) {
+        this.format = format;
+        this.date2 = ValueManager.validated( date2 );
+        this.date1 = ValueManager.validated( date1 );
     }
     
-    public static InlineBuilder construct() { return new InlineBuilder(); }
+    public Optional<String> format() { return Optional.ofNullable( format ); }
+    public String date2() { return date2; }
+    public String date1() { return date1; }
     
-    static <T> NestedBuilder<T> constructNested( Function<DiffDateRequestType, T> doneFunc ) { return new NestedBuilder<>( doneFunc ); }
-    static <T> NestedBuilder<T> constructNested( Function<DiffDateRequestType, T> doneFunc, JolieValue t ) { return new NestedBuilder<>( doneFunc, t ); }
+    public JolieVoid content() { return new JolieVoid(); }
+    public Map<String, List<JolieValue>> children() {
+        return one.util.streamex.EntryStream.of(
+            "format", format == null ? null : List.of( JolieValue.create( format ) ),
+            "date2", List.of( JolieValue.create( date2 ) ),
+            "date1", List.of( JolieValue.create( date1 ) )
+        ).filterValues( Objects::nonNull ).toImmutableMap();
+    }
     
-    static InlineListBuilder constructList() { return new InlineListBuilder(); }
+    public static Builder construct() { return new Builder(); }
     
-    static <T> NestedListBuilder<T> constructNestedList( Function<List<DiffDateRequestType>, T> doneFunc ) { return new NestedListBuilder<>( doneFunc ); }
-    static <T> NestedListBuilder<T> constructNestedList( Function<List<DiffDateRequestType>, T> doneFunc, SequencedCollection<? extends JolieValue> c ) { return new NestedListBuilder<>( doneFunc, c ); }
+    public static ListBuilder constructList() { return new ListBuilder(); }
     
-    public static InlineBuilder constructFrom( JolieValue t ) { return new InlineBuilder( t ); }
+    public static Builder constructFrom( JolieValue j ) { return new Builder( j ); }
     
-    public static DiffDateRequestType createFrom( JolieValue t ) throws TypeValidationException { return constructFrom( t ).build(); }
+    public static ListBuilder constructListFrom( SequencedCollection<? extends JolieValue> c ) { return new ListBuilder( c ); }
     
-    public static Value toValue( DiffDateRequestType t ) { return JolieValue.toValue( t ); }
-    public static DiffDateRequestType fromValue( Value value ) throws TypeCheckingException { return Builder.buildFrom( value ); }
-    
-    static abstract class Builder<B> extends StructureBuilder<JolieVoid, B> {
-        
-        private static final Map<String,FieldManager<?>> FIELD_MAP = Map.of(
-            "format", FieldManager.createNative( 0, 1, JolieString::fromValue, JolieString::createFrom ),
-            "date2", FieldManager.createNative( JolieString::fromValue, JolieString::createFrom ),
-            "date1", FieldManager.createNative( JolieString::fromValue, JolieString::createFrom )
+    public static DiffDateRequestType createFrom( JolieValue j ) {
+        return new DiffDateRequestType(
+            ValueManager.fieldFrom( j.getFirstChild( "format" ), c -> c.content() instanceof JolieString content ? content.value() : null ),
+            ValueManager.fieldFrom( j.getFirstChild( "date2" ), c -> c.content() instanceof JolieString content ? content.value() : null ),
+            ValueManager.fieldFrom( j.getFirstChild( "date1" ), c -> c.content() instanceof JolieString content ? content.value() : null )
         );
+    }
+    
+    public static DiffDateRequestType fromValue( Value v ) throws TypeCheckingException {
+        ValueManager.requireChildren( v, FIELD_KEYS );
+        return new DiffDateRequestType(
+            ValueManager.fieldFrom( v.firstChildOrDefault( "format", Function.identity(), null ), JolieString::fieldFromValue ),
+            ValueManager.fieldFrom( v.firstChildOrDefault( "date2", Function.identity(), null ), JolieString::fieldFromValue ),
+            ValueManager.fieldFrom( v.firstChildOrDefault( "date1", Function.identity(), null ), JolieString::fieldFromValue )
+        );
+    }
+    
+    public static Value toValue( DiffDateRequestType t ) {
+        final Value v = Value.create();
         
-        protected Builder() {}
-        protected Builder( JolieValue structure ) {
-            super(
-                null,
-                structure.children()
-                    .entrySet()
-                    .parallelStream()
-                    .filter( e -> FIELD_MAP.containsKey( e.getKey() ) )
-                    .collect( Collectors.toConcurrentMap(
-                        Map.Entry::getKey,
-                        e -> FIELD_MAP.get( e.getKey() ).fromJolieValues( e.getValue() )
-                    ) )
-            );
+        t.format().ifPresent( c -> v.getFirstChild( "format" ).setValue( c ) );
+        v.getFirstChild( "date2" ).setValue( t.date2() );
+        v.getFirstChild( "date1" ).setValue( t.date1() );
+        
+        return v;
+    }
+    
+    public static class Builder {
+        
+        private String format;
+        private String date2;
+        private String date1;
+        
+        private Builder() {}
+        private Builder( JolieValue j ) {
+            this.format = ValueManager.fieldFrom( j.getFirstChild( "format" ), c -> c.content() instanceof JolieString content ? content.value() : null );
+            this.date2 = ValueManager.fieldFrom( j.getFirstChild( "date2" ), c -> c.content() instanceof JolieString content ? content.value() : null );
+            this.date1 = ValueManager.fieldFrom( j.getFirstChild( "date1" ), c -> c.content() instanceof JolieString content ? content.value() : null );
         }
         
-        private JolieVoid content() { return JolieNative.create(); }
-        private Map<String, List<JolieValue>> children() { return children; }
+        public Builder format( String format ) { this.format = format; return this; }
+        public Builder date2( String date2 ) { this.date2 = date2; return this; }
+        public Builder date1( String date1 ) { this.date1 = date1; return this; }
         
-        public B setFormat( JolieString contentEntry ) { return putAs( "format", contentEntry, JolieValue::create ); }
-        public B setFormat( String valueEntry ) { return putAs( "format", valueEntry, JolieValue::create ); }
-        public B replaceFormat( UnaryOperator<String> valueOperator ) { return computeAs( "format", (n,v) -> valueOperator.apply( v ), s -> JolieString.class.cast( s.content() ).value(), JolieValue::create ); }
-        
-        public B setDate2( JolieString contentEntry ) { return putAs( "date2", contentEntry, JolieValue::create ); }
-        public B setDate2( String valueEntry ) { return putAs( "date2", valueEntry, JolieValue::create ); }
-        public B replaceDate2( UnaryOperator<String> valueOperator ) { return computeAs( "date2", (n,v) -> valueOperator.apply( v ), s -> JolieString.class.cast( s.content() ).value(), JolieValue::create ); }
-        
-        public B setDate1( JolieString contentEntry ) { return putAs( "date1", contentEntry, JolieValue::create ); }
-        public B setDate1( String valueEntry ) { return putAs( "date1", valueEntry, JolieValue::create ); }
-        public B replaceDate1( UnaryOperator<String> valueOperator ) { return computeAs( "date1", (n,v) -> valueOperator.apply( v ), s -> JolieString.class.cast( s.content() ).value(), JolieValue::create ); }
-        
-        protected DiffDateRequestType validatedBuild() throws TypeValidationException {
-            validateChildren( FIELD_MAP );
-            
-            return new DiffDateRequestType( this );
-        }
-        
-        private static DiffDateRequestType buildFrom( Value value ) throws TypeCheckingException {
-            InlineBuilder builder = DiffDateRequestType.construct();
-            
-            builder.content( JolieVoid.fromValue( value ) );
-            
-            for ( Map.Entry<String, ValueVector> child : value.children().entrySet() ) {
-                if ( !FIELD_MAP.containsKey( child.getKey() ) )
-                    throw new TypeCheckingException( "Unexpected field was set, field \"" + child.getKey() + "\"." );
-                
-                builder.put( child.getKey(), FIELD_MAP.get( child.getKey() ).fromValueVector( child.getValue() ) );
-            }
-            
-            try {
-                return builder.build();
-            } catch ( TypeValidationException e ) {
-                throw new TypeCheckingException( e.getMessage() );
-            }
+        public DiffDateRequestType build() {
+            return new DiffDateRequestType( format, date2, date1 );
         }
     }
     
-    public static class InlineBuilder extends Builder<InlineBuilder> {
+    public static class ListBuilder extends AbstractListBuilder<ListBuilder, DiffDateRequestType> {
         
-        private InlineBuilder() {}
-        private InlineBuilder( JolieValue t ) { super( t ); }
+        private ListBuilder() {}
+        private ListBuilder( SequencedCollection<? extends JolieValue> c ) { super( c, DiffDateRequestType::createFrom ); }
         
-        protected InlineBuilder self() { return this; }
+        protected ListBuilder self() { return this; }
         
-        public DiffDateRequestType build() throws TypeValidationException { return validatedBuild(); }
-    }
-    
-    public static class NestedBuilder<T> extends Builder<NestedBuilder<T>> {
-        
-        private final Function<DiffDateRequestType, T> doneFunc;
-        
-        private NestedBuilder( Function<DiffDateRequestType, T> doneFunc, JolieValue t ) { super( t ); this.doneFunc = doneFunc; }
-        private NestedBuilder( Function<DiffDateRequestType, T> doneFunc ) { this.doneFunc = doneFunc; }
-        
-        protected NestedBuilder<T> self() { return this; }
-        
-        public T done() throws TypeValidationException { return doneFunc.apply( validatedBuild() ); }
-    }
-    
-    static abstract class ListBuilder<B> extends StructureListBuilder<DiffDateRequestType, B> {
-        
-        protected ListBuilder( SequencedCollection<? extends JolieValue> elements ) { super( elements.parallelStream().map( DiffDateRequestType::createFrom ).toList() ); }
-        protected ListBuilder() {}
-        
-        public NestedBuilder<B> addConstructed() { return constructNested( this::add ); }
-        public NestedBuilder<B> setConstructed( int index ) { return constructNested( e -> set( index, e ) ); }
-        public NestedBuilder<B> addConstructedFrom( JolieValue t ) { return constructNested( this::add, t ); }
-        public NestedBuilder<B> setConstructedFrom( int index, JolieValue t ) { return constructNested( e -> set( index, e ), t ); }
-        public NestedBuilder<B> reconstruct( int index ) { return setConstructedFrom( index, elements.get( index ) ); }
-    }
-    
-    public static class InlineListBuilder extends ListBuilder<InlineListBuilder> {
-        
-        protected InlineListBuilder self() { return this; }
-        
-        public List<DiffDateRequestType> build() { return super.build(); }
-    }
-    
-    public static class NestedListBuilder<T> extends ListBuilder<NestedListBuilder<T>> {
-        
-        private final Function<List<DiffDateRequestType>, T> doneFunc;
-        
-        private NestedListBuilder( Function<List<DiffDateRequestType>, T> doneFunc, SequencedCollection<? extends JolieValue> c ) { super( c ); this.doneFunc = doneFunc; }
-        private NestedListBuilder( Function<List<DiffDateRequestType>, T> doneFunc ) { this.doneFunc = doneFunc; }
-        
-        protected NestedListBuilder<T> self() { return this; }
-        
-        public T done() throws TypeValidationException { return doneFunc.apply( build() ); }
+        public ListBuilder add( Function<Builder, DiffDateRequestType> b ) { return add( b.apply( construct() ) ); }
+        public ListBuilder set( int index, Function<Builder, DiffDateRequestType> b ) { return set( index, b.apply( construct() ) ); }
+        public ListBuilder reconstruct( int index, Function<Builder, DiffDateRequestType> b ) { return replace( index, j -> b.apply( constructFrom( j ) ) ); }
     }
 }

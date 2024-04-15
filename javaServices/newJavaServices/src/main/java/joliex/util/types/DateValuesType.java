@@ -11,6 +11,7 @@ import java.util.SequencedCollection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
@@ -23,10 +24,9 @@ import joliex.java.embedding.JolieNative.*;
 import joliex.java.embedding.util.*;
 
 /**
- * this class is an {@link ImmutableStructure} which can be described as follows:
+ * this class is an {@link JolieValue} which can be described as follows:
  * 
  * <pre>
- * content: {@link Void}
  *     month: {@link Integer}
  *     year: {@link Integer}
  *     day: {@link Integer}
@@ -36,147 +36,99 @@ import joliex.java.embedding.util.*;
  * @see JolieNative
  * @see #construct()
  */
-public final class DateValuesType extends ImmutableStructure<JolieVoid> {
+public final class DateValuesType implements JolieValue {
     
-    public Integer month() { return getFirstChildValue( "month", JolieInt.class ).get(); }
-    public Integer year() { return getFirstChildValue( "year", JolieInt.class ).get(); }
-    public Integer day() { return getFirstChildValue( "day", JolieInt.class ).get(); }
+    private static final Set<String> FIELD_KEYS = Set.of( "month", "year", "day" );
     
-    private DateValuesType( Builder<?> builder ) {
-        super( builder.content(), builder.children() );
+    private final Integer month;
+    private final Integer year;
+    private final Integer day;
+    
+    public DateValuesType( Integer month, Integer year, Integer day ) {
+        this.month = ValueManager.validated( month );
+        this.year = ValueManager.validated( year );
+        this.day = ValueManager.validated( day );
     }
     
-    public static InlineBuilder construct() { return new InlineBuilder(); }
+    public Integer month() { return month; }
+    public Integer year() { return year; }
+    public Integer day() { return day; }
     
-    static <T> NestedBuilder<T> constructNested( Function<DateValuesType, T> doneFunc ) { return new NestedBuilder<>( doneFunc ); }
-    static <T> NestedBuilder<T> constructNested( Function<DateValuesType, T> doneFunc, JolieValue t ) { return new NestedBuilder<>( doneFunc, t ); }
+    public JolieVoid content() { return new JolieVoid(); }
+    public Map<String, List<JolieValue>> children() {
+        return one.util.streamex.EntryStream.of(
+            "month", List.of( JolieValue.create( month ) ),
+            "year", List.of( JolieValue.create( year ) ),
+            "day", List.of( JolieValue.create( day ) )
+        ).filterValues( Objects::nonNull ).toImmutableMap();
+    }
     
-    static InlineListBuilder constructList() { return new InlineListBuilder(); }
+    public static Builder construct() { return new Builder(); }
     
-    static <T> NestedListBuilder<T> constructNestedList( Function<List<DateValuesType>, T> doneFunc ) { return new NestedListBuilder<>( doneFunc ); }
-    static <T> NestedListBuilder<T> constructNestedList( Function<List<DateValuesType>, T> doneFunc, SequencedCollection<? extends JolieValue> c ) { return new NestedListBuilder<>( doneFunc, c ); }
+    public static ListBuilder constructList() { return new ListBuilder(); }
     
-    public static InlineBuilder constructFrom( JolieValue t ) { return new InlineBuilder( t ); }
+    public static Builder constructFrom( JolieValue j ) { return new Builder( j ); }
     
-    public static DateValuesType createFrom( JolieValue t ) throws TypeValidationException { return constructFrom( t ).build(); }
+    public static ListBuilder constructListFrom( SequencedCollection<? extends JolieValue> c ) { return new ListBuilder( c ); }
     
-    public static Value toValue( DateValuesType t ) { return JolieValue.toValue( t ); }
-    public static DateValuesType fromValue( Value value ) throws TypeCheckingException { return Builder.buildFrom( value ); }
-    
-    static abstract class Builder<B> extends StructureBuilder<JolieVoid, B> {
-        
-        private static final Map<String,FieldManager<?>> FIELD_MAP = Map.of(
-            "month", FieldManager.createNative( JolieInt::fromValue, JolieInt::createFrom ),
-            "year", FieldManager.createNative( JolieInt::fromValue, JolieInt::createFrom ),
-            "day", FieldManager.createNative( JolieInt::fromValue, JolieInt::createFrom )
+    public static DateValuesType createFrom( JolieValue j ) {
+        return new DateValuesType(
+            ValueManager.fieldFrom( j.getFirstChild( "month" ), c -> c.content() instanceof JolieInt content ? content.value() : null ),
+            ValueManager.fieldFrom( j.getFirstChild( "year" ), c -> c.content() instanceof JolieInt content ? content.value() : null ),
+            ValueManager.fieldFrom( j.getFirstChild( "day" ), c -> c.content() instanceof JolieInt content ? content.value() : null )
         );
+    }
+    
+    public static DateValuesType fromValue( Value v ) throws TypeCheckingException {
+        ValueManager.requireChildren( v, FIELD_KEYS );
+        return new DateValuesType(
+            ValueManager.fieldFrom( v.firstChildOrDefault( "month", Function.identity(), null ), JolieInt::fieldFromValue ),
+            ValueManager.fieldFrom( v.firstChildOrDefault( "year", Function.identity(), null ), JolieInt::fieldFromValue ),
+            ValueManager.fieldFrom( v.firstChildOrDefault( "day", Function.identity(), null ), JolieInt::fieldFromValue )
+        );
+    }
+    
+    public static Value toValue( DateValuesType t ) {
+        final Value v = Value.create();
         
-        protected Builder() {}
-        protected Builder( JolieValue structure ) {
-            super(
-                null,
-                structure.children()
-                    .entrySet()
-                    .parallelStream()
-                    .filter( e -> FIELD_MAP.containsKey( e.getKey() ) )
-                    .collect( Collectors.toConcurrentMap(
-                        Map.Entry::getKey,
-                        e -> FIELD_MAP.get( e.getKey() ).fromJolieValues( e.getValue() )
-                    ) )
-            );
+        v.getFirstChild( "month" ).setValue( t.month() );
+        v.getFirstChild( "year" ).setValue( t.year() );
+        v.getFirstChild( "day" ).setValue( t.day() );
+        
+        return v;
+    }
+    
+    public static class Builder {
+        
+        private Integer month;
+        private Integer year;
+        private Integer day;
+        
+        private Builder() {}
+        private Builder( JolieValue j ) {
+            this.month = ValueManager.fieldFrom( j.getFirstChild( "month" ), c -> c.content() instanceof JolieInt content ? content.value() : null );
+            this.year = ValueManager.fieldFrom( j.getFirstChild( "year" ), c -> c.content() instanceof JolieInt content ? content.value() : null );
+            this.day = ValueManager.fieldFrom( j.getFirstChild( "day" ), c -> c.content() instanceof JolieInt content ? content.value() : null );
         }
         
-        private JolieVoid content() { return JolieNative.create(); }
-        private Map<String, List<JolieValue>> children() { return children; }
+        public Builder month( Integer month ) { this.month = month; return this; }
+        public Builder year( Integer year ) { this.year = year; return this; }
+        public Builder day( Integer day ) { this.day = day; return this; }
         
-        public B setMonth( JolieInt contentEntry ) { return putAs( "month", contentEntry, JolieValue::create ); }
-        public B setMonth( Integer valueEntry ) { return putAs( "month", valueEntry, JolieValue::create ); }
-        public B replaceMonth( UnaryOperator<Integer> valueOperator ) { return computeAs( "month", (n,v) -> valueOperator.apply( v ), s -> JolieInt.class.cast( s.content() ).value(), JolieValue::create ); }
-        
-        public B setYear( JolieInt contentEntry ) { return putAs( "year", contentEntry, JolieValue::create ); }
-        public B setYear( Integer valueEntry ) { return putAs( "year", valueEntry, JolieValue::create ); }
-        public B replaceYear( UnaryOperator<Integer> valueOperator ) { return computeAs( "year", (n,v) -> valueOperator.apply( v ), s -> JolieInt.class.cast( s.content() ).value(), JolieValue::create ); }
-        
-        public B setDay( JolieInt contentEntry ) { return putAs( "day", contentEntry, JolieValue::create ); }
-        public B setDay( Integer valueEntry ) { return putAs( "day", valueEntry, JolieValue::create ); }
-        public B replaceDay( UnaryOperator<Integer> valueOperator ) { return computeAs( "day", (n,v) -> valueOperator.apply( v ), s -> JolieInt.class.cast( s.content() ).value(), JolieValue::create ); }
-        
-        protected DateValuesType validatedBuild() throws TypeValidationException {
-            validateChildren( FIELD_MAP );
-            
-            return new DateValuesType( this );
-        }
-        
-        private static DateValuesType buildFrom( Value value ) throws TypeCheckingException {
-            InlineBuilder builder = DateValuesType.construct();
-            
-            builder.content( JolieVoid.fromValue( value ) );
-            
-            for ( Map.Entry<String, ValueVector> child : value.children().entrySet() ) {
-                if ( !FIELD_MAP.containsKey( child.getKey() ) )
-                    throw new TypeCheckingException( "Unexpected field was set, field \"" + child.getKey() + "\"." );
-                
-                builder.put( child.getKey(), FIELD_MAP.get( child.getKey() ).fromValueVector( child.getValue() ) );
-            }
-            
-            try {
-                return builder.build();
-            } catch ( TypeValidationException e ) {
-                throw new TypeCheckingException( e.getMessage() );
-            }
+        public DateValuesType build() {
+            return new DateValuesType( month, year, day );
         }
     }
     
-    public static class InlineBuilder extends Builder<InlineBuilder> {
+    public static class ListBuilder extends AbstractListBuilder<ListBuilder, DateValuesType> {
         
-        private InlineBuilder() {}
-        private InlineBuilder( JolieValue t ) { super( t ); }
+        private ListBuilder() {}
+        private ListBuilder( SequencedCollection<? extends JolieValue> c ) { super( c, DateValuesType::createFrom ); }
         
-        protected InlineBuilder self() { return this; }
+        protected ListBuilder self() { return this; }
         
-        public DateValuesType build() throws TypeValidationException { return validatedBuild(); }
-    }
-    
-    public static class NestedBuilder<T> extends Builder<NestedBuilder<T>> {
-        
-        private final Function<DateValuesType, T> doneFunc;
-        
-        private NestedBuilder( Function<DateValuesType, T> doneFunc, JolieValue t ) { super( t ); this.doneFunc = doneFunc; }
-        private NestedBuilder( Function<DateValuesType, T> doneFunc ) { this.doneFunc = doneFunc; }
-        
-        protected NestedBuilder<T> self() { return this; }
-        
-        public T done() throws TypeValidationException { return doneFunc.apply( validatedBuild() ); }
-    }
-    
-    static abstract class ListBuilder<B> extends StructureListBuilder<DateValuesType, B> {
-        
-        protected ListBuilder( SequencedCollection<? extends JolieValue> elements ) { super( elements.parallelStream().map( DateValuesType::createFrom ).toList() ); }
-        protected ListBuilder() {}
-        
-        public NestedBuilder<B> addConstructed() { return constructNested( this::add ); }
-        public NestedBuilder<B> setConstructed( int index ) { return constructNested( e -> set( index, e ) ); }
-        public NestedBuilder<B> addConstructedFrom( JolieValue t ) { return constructNested( this::add, t ); }
-        public NestedBuilder<B> setConstructedFrom( int index, JolieValue t ) { return constructNested( e -> set( index, e ), t ); }
-        public NestedBuilder<B> reconstruct( int index ) { return setConstructedFrom( index, elements.get( index ) ); }
-    }
-    
-    public static class InlineListBuilder extends ListBuilder<InlineListBuilder> {
-        
-        protected InlineListBuilder self() { return this; }
-        
-        public List<DateValuesType> build() { return super.build(); }
-    }
-    
-    public static class NestedListBuilder<T> extends ListBuilder<NestedListBuilder<T>> {
-        
-        private final Function<List<DateValuesType>, T> doneFunc;
-        
-        private NestedListBuilder( Function<List<DateValuesType>, T> doneFunc, SequencedCollection<? extends JolieValue> c ) { super( c ); this.doneFunc = doneFunc; }
-        private NestedListBuilder( Function<List<DateValuesType>, T> doneFunc ) { this.doneFunc = doneFunc; }
-        
-        protected NestedListBuilder<T> self() { return this; }
-        
-        public T done() throws TypeValidationException { return doneFunc.apply( build() ); }
+        public ListBuilder add( Function<Builder, DateValuesType> b ) { return add( b.apply( construct() ) ); }
+        public ListBuilder set( int index, Function<Builder, DateValuesType> b ) { return set( index, b.apply( construct() ) ); }
+        public ListBuilder reconstruct( int index, Function<Builder, DateValuesType> b ) { return replace( index, j -> b.apply( constructFrom( j ) ) ); }
     }
 }

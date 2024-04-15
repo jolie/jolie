@@ -2,40 +2,59 @@ package joliex.java.embedding.util;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.SequencedCollection;
-import java.util.function.UnaryOperator;
-
-import jolie.runtime.ByteArray;
-import joliex.java.embedding.JolieNative;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 import joliex.java.embedding.JolieValue;
 
-public abstract class UntypedBuilder<T extends JolieNative<?>,B> extends StructureBuilder<T,B> {
+public abstract class UntypedBuilder<B> {
 
-    protected UntypedBuilder() {}
-    protected UntypedBuilder( final T content, final Map<String, List<JolieValue>> children ) { super( content, children ); }
-    
-    public B putAs( String name, Boolean entryValue ) { return putAs( name, JolieValue.create( entryValue ) ); }
-    public B putAs( String name, Integer entryValue ) { return putAs( name, JolieValue.create( entryValue ) ); }
-    public B putAs( String name, Long entryValue ) { return putAs( name, JolieValue.create( entryValue ) ); }
-    public B putAs( String name, Double entryValue ) { return putAs( name, JolieValue.create( entryValue ) ); }
-    public B putAs( String name, String entryValue ) { return putAs( name, JolieValue.create( entryValue ) ); }
-    public B putAs( String name, ByteArray entryValue ) { return putAs( name, JolieValue.create( entryValue ) ); }
+    protected final Map<String, List<JolieValue>> children;
 
-    public JolieValue.NestedListBuilder<B> construct( String name ) { return JolieValue.constructNestedList( child -> put( name, child ) ); }
-    public JolieValue.NestedListBuilder<B> constructFrom( String name, SequencedCollection<? extends JolieValue> c ) { return JolieValue.constructNestedList( child -> put( name, child ), c ); }
-    public JolieValue.NestedListBuilder<B> reconstruct( String name ) { return constructFrom( name, child( name ) ); }
+    protected UntypedBuilder( final Map<String, List<JolieValue>> children ) { this.children = new ConcurrentHashMap<>( children ); }
+    protected UntypedBuilder() { this( new ConcurrentHashMap<>() ); }
 
-    public JolieValue.NestedBuilder<B> constructAs( String name ) { return JolieValue.constructNested( childEntry -> putAs( name, childEntry ) ); }
-    public JolieValue.NestedBuilder<B> constructAsFrom( String name, JolieValue e ) { return JolieValue.constructNested( childEntry -> putAs( name, childEntry ), e ); }
-    public JolieValue.NestedBuilder<B> reconstructAs( String name ) { return firstChild( name ).map( e -> constructAsFrom( name, e ) ).orElse( constructAs( name ) ); }
+    protected abstract B self();
 
-    public JolieValue.NestedBuilder<B> constructAs( String name, JolieNative<?> content ) { return constructAs( name ).content( content ); }
-    public JolieValue.NestedBuilder<B> constructAs( String name, Boolean contentValue ) { return constructAs( name, JolieNative.create( contentValue ) ); }
-    public JolieValue.NestedBuilder<B> constructAs( String name, Integer contentValue ) { return constructAs( name, JolieNative.create( contentValue ) ); }
-    public JolieValue.NestedBuilder<B> constructAs( String name, Long contentValue ) { return constructAs( name, JolieNative.create( contentValue ) ); }
-    public JolieValue.NestedBuilder<B> constructAs( String name, Double contentValue ) { return constructAs( name, JolieNative.create( contentValue ) ); }
-    public JolieValue.NestedBuilder<B> constructAs( String name, String contentValue ) { return constructAs( name, JolieNative.create( contentValue ) ); }
-    public JolieValue.NestedBuilder<B> constructAs( String name, ByteArray contentValue ) { return constructAs( name, JolieNative.create( contentValue ) ); }
+    public final B put( String name, SequencedCollection<? extends JolieValue> child ) {
+        if ( child != null )
+            children.put( name, makeChild( child ) );
 
-    public JolieValue.NestedBuilder<B> reconstructAs( String name, UnaryOperator<JolieNative<?>> contentOperator ) { return reconstructAs( name ).content( contentOperator ); }
+        return self();
+    }
+
+    public final B putAs( String name, JolieValue childEntry ) {
+        if ( childEntry != null )
+            children.put( name, List.of( childEntry ) );
+
+        return self();
+    }
+
+    public final B put( String name, Function<JolieValue.ListBuilder, List<JolieValue>> b ) { return put( name, b.apply( JolieValue.constructList() ) ); }
+
+    public final B putAs( String name, Function<JolieValue.Builder, JolieValue> b ) { return putAs( name, b.apply( JolieValue.construct() ) ); }
+
+    public final B compute( String name, BiFunction<? super String, ? super List<JolieValue>, ? extends SequencedCollection<? extends JolieValue>> remappingFunction ) {
+        children.compute( name, remappingFunction.andThen( ls -> ls == null ? null : makeChild( ls ) ) );
+        return self();
+    }
+
+    public final B computeAs( String name, BiFunction<? super String, ? super JolieValue, ? extends JolieValue> remappingFunction ) {
+        children.compute( name, (n,c) -> remappingFunction
+            .andThen( e -> e == null ? null : List.<JolieValue>of( e ) )
+            .apply( n, c == null || c.isEmpty() ? null : c.getFirst() )
+        );
+        return self();
+    }
+
+    public final B remove( String name ) { children.remove( name ); return self(); }
+
+    private static List<JolieValue> makeChild( SequencedCollection<? extends JolieValue> c ) {
+        return c.parallelStream()
+            .filter( Objects::nonNull )
+            .map( JolieValue.class::cast )
+            .toList();
+    }
 }

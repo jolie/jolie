@@ -11,7 +11,6 @@ import java.util.stream.Stream;
 
 import jolie.lang.Constants;
 import jolie.lang.parse.util.ProgramInspector;
-
 import joliex.java.generate.operation.ExceptionClassBuilder;
 import joliex.java.generate.operation.InterfaceClassBuilder;
 import joliex.java.generate.operation.ServiceClassBuilder;
@@ -106,7 +105,7 @@ public class JavaDocumentCreator {
             .map( JolieOperation::faults )
             .flatMap( Collection::stream )
             .distinct()
-            .map( fault -> ExceptionClassBuilder.create( fault, packageName, typesPackage, faultsPackage ) )
+            .map( fault -> new ExceptionClassBuilder( fault, packageName, typesPackage, faultsPackage ) )
             .forEach( builder -> {
                 if ( !generated.getAndSet( true ) )
                     createDirectory( faultsDirectory );

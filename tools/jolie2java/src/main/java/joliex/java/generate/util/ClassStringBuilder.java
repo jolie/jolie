@@ -1,7 +1,5 @@
 package joliex.java.generate.util;
 
-import java.util.Optional;
-
 public class ClassStringBuilder {
 
     private static final int INDENTSTEP = 4;
@@ -13,8 +11,6 @@ public class ClassStringBuilder {
     public ClassStringBuilder append( String str ) { builder.append( str ); return this; }
 
     public ClassStringBuilder append( int i ) { return append( String.valueOf( i ) ); }
-
-    public ClassStringBuilder append( Optional<String> o ) { o.ifPresent( this::append ); return this; }
 
     public ClassStringBuilder indent() {
         indentation += INDENTSTEP;
@@ -46,24 +42,26 @@ public class ClassStringBuilder {
     
     public ClassStringBuilder newNewlineAppend( String str ) { return newline().newlineAppend( str ); }
 
-    public ClassStringBuilder body( Runnable bodyAppender ) {
+    public ClassStringBuilder indented( Runnable appender ) {
+        return indent().run( appender ).dedent();
+    }
+
+    public ClassStringBuilder body( Runnable appender ) {
         return append( " {" )
-            .indent()
-            .run( bodyAppender )
-            .dedent()
+            .indented( appender )
             .newlineAppend( "}" );
     }
 
-    public ClassStringBuilder commentBlock( Runnable blockAppender ) {
+    public ClassStringBuilder commentBlock( Runnable appender ) {
         newlineAppend( "/**" );
         linePrefix = COMMENTBLOCKLINEPREFIX;
-        blockAppender.run();
+        appender.run();
         linePrefix = "";
         return newlineAppend( " */" );
     }
 
-    public ClassStringBuilder codeBlock( Runnable blockAppender ) {
-        return newlineAppend( "<pre>" ).run( blockAppender ).newlineAppend( "</pre>" );
+    public ClassStringBuilder codeBlock( Runnable appender ) {
+        return newlineAppend( "<pre>" ).run( appender ).newlineAppend( "</pre>" );
     }
 
     public String toString() throws ClassBuilderException {

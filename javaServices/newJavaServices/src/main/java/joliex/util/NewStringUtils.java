@@ -11,6 +11,7 @@ import java.io.Writer;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.text.MessageFormat;
+import java.util.Arrays;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
@@ -31,9 +32,7 @@ public final class NewStringUtils extends JavaService implements StringUtilsInte
 	}
 
 	public StringItemList sort( StringItemList request ) {
-		return StringItemList.construct()
-			.setItem( request.item().stream().sorted().toList() )
-			.build();
+		return new StringItemList( request.item().stream().sorted().toList() );
 	}
 
 	public String replaceAll( ReplaceRequest request ) {
@@ -71,41 +70,35 @@ public final class NewStringUtils extends JavaService implements StringUtilsInte
 	}
 
 	public SplitResult split( SplitRequest request ) {
-		return SplitResult.construct()
-			.setResult( request.content().value().split( request.regex(), request.limit().orElse( 0 ) ) )
-			.build();
+		return new SplitResult( Arrays.asList( request.content().value().split( request.regex(), request.limit().orElse( 0 ) ) ) );
 	}
 
 	public SplitResult splitByLength( SplitByLengthRequest request ) {
 		final String str = request.content().value();
-		return SplitResult.construct()
-			.setResult(
-				IntStream.range( 0, Math.ceilDiv( str.length(), request.length() ) )
-					.parallel()
-					.map( i -> i * request.length() )
-					.mapToObj( offset -> str.substring( offset, Math.min( offset + request.length(), str.length() ) ) )
-					.toList() )
-			.build();
+		return new SplitResult( IntStream.range( 0, Math.ceilDiv( str.length(), request.length() ) )
+			.parallel()
+			.map( i -> i * request.length() )
+			.mapToObj( offset -> str.substring( offset, Math.min( offset + request.length(), str.length() ) ) )
+			.toList() );
 	}
 
 	public MatchResult match( MatchRequest request ) {
 		Matcher m = Pattern.compile( request.regex() ).matcher( request.content().value() );
 		return m.matches()
-			? MatchResult.construct( 1 )
-				.setGroup(
+			? MatchResult.construct()
+				.contentValue( 1 )
+				.group(
 					IntStream.rangeClosed( 1, m.groupCount() )
 						.parallel()
 						.mapToObj( m::group )
 						.map( s -> s == null ? "" : s )
 						.toList() )
 				.build()
-			: MatchResult.construct( 0 ).build();
+			: MatchResult.construct().contentValue( 0 ).build();
 	}
 
-	public MatchResult find( MatchRequest request ) {
-		return match( request ); // TODO: is it on purpose that this is the same as match in the actual
-									// StringUtils.java?
-	}
+	// TODO: is it on purpose that this is the same as match in the actual StringUtils.java?
+	public MatchResult find( MatchRequest request ) { return match( request ); }
 
 	private static String padString( PadRequest request ) {
 		return String.valueOf( request.chars().charAt( 0 ) )

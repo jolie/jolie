@@ -21,9 +21,7 @@ public class InterfaceClassBuilder extends JavaClassBuilder {
         this.interfaceFolder = interfaceFolder;
     }
 
-    public String className() {
-        return className;
-    }
+    public String className() { return className; }
 
     public void appendHeader() {
         builder.append( "package " ).append( packageName ).append( "." ).append( interfaceFolder ).append( ";" )

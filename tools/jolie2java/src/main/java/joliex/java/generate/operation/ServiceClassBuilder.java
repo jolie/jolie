@@ -64,7 +64,7 @@ public class ServiceClassBuilder extends JavaClassBuilder {
         if ( operation instanceof JolieOperation.RequestResponse && operation.responseType().isEmpty() )
             builder.newlineAppend( "@RequestResponse" );
 
-        builder.newlineAppend( "public " ).append( operation.responseType().orElse( "void" ) ).append( " " ).append( operation.name() ).append( operation.requestType().map( t -> "( " + t + " request )" ).orElse( "()" ) ).append( operation.faults().parallelStream().map( Fault::className ).reduce( (n1, n2) -> n1 + ", " + n2 ).map( s -> " throws " + s ) )
+        builder.newlineAppend( "public " ).append( operation.responseType().orElse( "void" ) ).append( " " ).append( operation.name() ).append( operation.requestType().map( t -> "( " + t + " request )" ).orElse( "()" ) ).append( operation.faults().parallelStream().map( Fault::className ).reduce( (n1, n2) -> n1 + ", " + n2 ).map( s -> " throws " + s ).orElse( "" ) )
             .body( () -> {
                 appendRequestUnpacking( operation );
                 appendDefaultResponse( operation );
@@ -109,13 +109,13 @@ public class ServiceClassBuilder extends JavaClassBuilder {
         else
             switch( operation.response() ) {
 
-                case Native n -> builder.newlineAppend( "return " ).append( n == Native.ANY ? "JolieNative.create( /* value */ );" : "null; /* TODO: return actual value */" );
+                case Native n -> builder.newlineAppend( "return " ).append( n == Native.ANY ? "JolieNative.create( /* TODO: create with actual value */ );" : "null; /* TODO: return actual value */" );
 
-                case Basic b -> builder.newlineAppend( "return " ).append( b.name() ).append( ".create( null ); /* TODO: create with actual value */" );
+                case Basic b -> builder.newlineAppend( "return new " ).append( b.name() ).append( "( null ); /* TODO: create with actual value */" );
                 
                 case Structure s -> builder
-                    .newlineAppend( "return " ).append( s.name() ).append( ".construct(" ).append( s.nativeType() == Native.VOID ? "" : " /* root */ " ).append( ")" )
-                    .indentedNewlineAppend( "/* fields */" )
+                    .newlineAppend( "return " ).append( s.name() ).append( ".construct()" )
+                    .indentedNewlineAppend( "/* children */" )
                     .indentedNewlineAppend( ".build();" );
 
                 case Choice c -> builder.newlineAppend( "return null; /* TODO: replace with static construction method call (e.g. \"return " ).append( c.name() ).append( ".create( VALUE );\") */" );

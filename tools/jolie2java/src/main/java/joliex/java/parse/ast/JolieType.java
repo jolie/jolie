@@ -63,10 +63,21 @@ public sealed interface JolieType {
     
             default Optional<NativeRefinement> possibleRefinement() { return Optional.ofNullable( nativeRefinement() ); }
     
-            public static record Inline( String name, Native nativeType, NativeRefinement nativeRefinement, List<Field> fields ) implements Structure {
-    
-                public boolean equals( Object obj ) { return obj != null && obj instanceof Structure other && name.equals( other.name() ); }
-                public int hashCode() { return name.hashCode(); }
+            public static sealed interface Inline extends Structure {
+
+                public static record Typed( String name, Native nativeType, NativeRefinement nativeRefinement, List<Field> fields ) implements Inline {
+                    
+                    public boolean equals( Object obj ) { return obj != null && obj instanceof Structure other && name.equals( other.name() ); }
+                    public int hashCode() { return name.hashCode(); }
+                }
+
+                public static record Untyped( String name, Native nativeType, NativeRefinement nativeRefinement ) implements Inline {
+                    
+                    public List<Field> fields() { return List.of(); }
+
+                    public boolean equals( Object obj ) { return obj != null && obj instanceof Structure other && name.equals( other.name() ); }
+                    public int hashCode() { return name.hashCode(); }
+                }
             }
     
             public static record Link( Inline definition ) implements Structure {

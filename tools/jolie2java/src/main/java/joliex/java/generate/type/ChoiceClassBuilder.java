@@ -1,9 +1,8 @@
 package joliex.java.generate.type;
 
-import java.util.HashSet;
-import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
+import java.util.HashSet;
 import java.util.Objects;
 
 import joliex.java.generate.JavaClassDirector;
@@ -16,26 +15,11 @@ import joliex.java.parse.ast.JolieType.Definition.Structure;
 public class ChoiceClassBuilder extends TypeClassBuilder {
     
     private final Choice choice;
-    private final boolean listable;
-    private final List<OptionMethodBuilder> methodBuilders;
 
-    public ChoiceClassBuilder( Choice choice, String packageName, String typeFolder, boolean listable ) { 
+    public ChoiceClassBuilder( Choice choice, String packageName, String typeFolder ) { 
         super( choice.name(), packageName, typeFolder );
 
-        this.choice = choice; 
-        this.listable = listable;
-        this.methodBuilders = choice.numberedOptions()
-            .mapKeyValue( (number, option) -> {
-                return switch ( option ) {
-                    case Native n -> new BasicMethodBuilder( null, number, n );
-                    case Basic.Inline b -> new BasicMethodBuilder( null, number, b.nativeType() );
-                    case Basic.Link b -> new BasicMethodBuilder( b.name(), number, b.nativeType() );
-                    case Structure s -> new StructureMethodBuilder( s.name(), number, s.nativeType() );
-                    case Choice c -> new ChoiceMethodBuilder( c.name(), number );
-                    default -> throw new IllegalArgumentException( "Didn't recognize the type of the option, unfolded options should only contain Basic and Structure options." );
-                };
-            } )
-            .toList();
+        this.choice = choice;
     }
 
     public void appendDefinition( boolean isInnerClass ) {
@@ -52,8 +36,6 @@ public class ChoiceClassBuilder extends TypeClassBuilder {
             .newline()
             .newlineAppend( "@see JolieValue" )
             .newlineAppend( "@see JolieNative" );
-
-        methodBuilders.parallelStream().forEachOrdered( OptionMethodBuilder::appendDocumentationLinks );
     }
     
     private void appendChoiceDocumentation() {
@@ -71,15 +53,40 @@ public class ChoiceClassBuilder extends TypeClassBuilder {
     }
 
     private void appendDefinitionBody() {
-        appendOptionClasses();
         appendMethods();
-        if ( listable ) appendListBuilders();
+        appendOptionClasses();
+        appendStaticMethods();
         appendInnerClasses();
+    }
+
+    private void appendMethods() {
+        builder.newNewlineAppend( "Value jolieRepr();" );
+    }
+
+    private void appendStaticMethods() {
+        // create() methods
+        choice.options().forEach( o -> {
+
+        } );
+        // createFrom() method
+        builder.newNewlineAppend( "public static " ).append( className ).append( " createFrom( JolieValue j ) throws TypeValidationException" ).body( () -> 
+            builder.newlineAppend( "return ValueManager.choiceFrom( j, " )
+                .append( fromFunctionList( "createFrom" ) )
+                .append( " );" ) 
+        );
+        // fromValue() method
+        builder.newNewlineAppend( "public static " ).append( className ).append( " fromValue( Value v ) throws TypeCheckingException" ).body( () -> 
+            builder.newlineAppend( "return ValueManager.choiceFrom( v, " )
+                .append( fromFunctionList( "fromValue" ) )
+                .append( " );" )
+        );
+        // toValue() method
+        builder.newNewlineAppend( "public static Value toValue( " ).append( className ).append( " t ) { return t.jolieRepr(); }" );
     }
 
     private void appendOptionClasses() {
         choice.numberedOptions()
-            .mapKeyValue( (number, option) -> OptionClassBuilder.create( "C" + number, className, option ) )
+            .mapKeyValue( (number, type) -> new OptionClassBuilder( type, "C" + number, className ) )
             .map( JavaClassDirector::constructInnerClass )
             .forEachOrdered( builder::newlineAppend );
     }
@@ -87,235 +94,41 @@ public class ChoiceClassBuilder extends TypeClassBuilder {
     private void appendInnerClasses() {
         choice.options()
             .parallelStream()
-            .map( Choice.Option::type )
-            .map( o -> o instanceof Structure.Inline s
-                ? new StructureClassBuilder( s, null, null, false )
-                : null
-            )
+            .map( o -> switch ( o.type() ) {
+                case Structure.Inline.Typed s -> new TypedStructureClassBuilder( s, null, null );
+                case Structure.Inline.Untyped s -> new UntypedStructureClassBuilder( s, null, null );
+                default -> null;
+            } )
             .filter( Objects::nonNull )
             .map( JavaClassDirector::constructInnerClass )
             .forEachOrdered( builder::newlineAppend );
     }
 
-    private void appendMethods() {
-        methodBuilders.forEach( OptionMethodBuilder::appendStaticMethods );
-
-        if ( listable )
-            builder.newline()
-                .newlineAppend( "static InlineListBuilder constructList() { return new InlineListBuilder(); }" )
-                .newlineAppend( "static <T> NestedListBuilder<T> constructNestedList( Function<List<" ).append( className ).append( ">, T> doneFunc, SequencedCollection<? extends JolieValue> c ) { return new NestedListBuilder<>( doneFunc, c ); }" )
-                .newlineAppend( "static <T> NestedListBuilder<T> constructNestedList( Function<List<" ).append( className ).append( ">, T> doneFunc ) { return new NestedListBuilder<>( doneFunc ); }" );
-
-        builder.newline()
-            .newlineAppend( "public static " ).append( className ).append( " createFrom( JolieValue t ) throws TypeValidationException" )
-            .body( () -> appendFromMethodBody( "Function", "JolieValue", "t", "createFrom", "TypeValidationException", "\"The given JolieValue couldn't be converted to any of the option types.\"" ) )
-            .newline()
-            .newlineAppend( "public static Value toValue( " ).append( className ).append( " t ) { return JolieValue.toValue( t ); }" )
-            .newlineAppend( "public static " ).append( className ).append( " fromValue( Value value ) throws TypeCheckingException" )
-            .body( () -> appendFromMethodBody( "ConversionFunction", "Value", "value", "fromValue", "TypeCheckingException", "\"The given Value couldn't be converted to any of the option types.\"" ) );
+    private String fromFunctionList( String methodName ) {
+        return fromFunctionStream( choice, methodName, new HashSet<>() )
+            .map( StringBuilder::toString )
+            .reduce( (s1, s2) -> s1 + ", " + s2 )
+            .map( s -> "List.of( " + s + " )" )
+            .orElse( "List.of()" );
     }
 
-    private Stream<String> inlineFromMethodCalls( String fromMethod, Choice choice, HashSet<String> choiceNames ) {
-        if ( className.equals( choice.name() ) || !choiceNames.add( choice.name() ) )
+    private Stream<StringBuilder> fromFunctionStream( Choice choice, String methodName, HashSet<String> choiceNames ) {
+        if ( !choiceNames.add( choice.name() ) )
             return Stream.empty();
 
+        final String optionPrefix = choice.equals( this.choice ) ? "" : choice.name() + ".";
         return choice.numberedOptions()
-            .flatMapKeyValue( (i, d) -> d instanceof Choice c  
-                ? inlineFromMethodCalls( fromMethod, c, choiceNames ).map( s -> choice.name() + ".create" + i + "( " + s + " )" )
-                : Stream.of( choice.name() + ".C" + i + "." + fromMethod + "( v )" )
+            .flatMapKeyValue( (i,t) -> t instanceof Choice c
+                ? fromFunctionStream( c, methodName, choiceNames ).map( b -> b
+                    .append( ".andThen( " )
+                    .append( optionPrefix )
+                    .append( "C" ).append( i ).append( "::new" )
+                    .append( " )" ) )
+                : Stream.of( new StringBuilder()
+                    .append( "ValueManager.castFunc( " )
+                    .append( optionPrefix )
+                    .append( "C" ).append( i ).append( "::" ).append( methodName )
+                    .append( " )" ) )
             );
-    }
-
-    private void appendFromMethodBody( String functionType, String paramType, String paramName, String fromMethod, String exceptionType, String exceptionMessage ) {
-        builder.newlineAppend( "return Stream.<" ).append( functionType ).append( "<" ).append( paramType ).append( ", " ).append( className ).append( ">>of(" )
-            .indentedNewlineAppend( 
-                choice.numberedOptions()
-                    .parallel()
-                    .flatMapKeyValue( (i,d) -> d instanceof Choice c
-                        ? inlineFromMethodCalls( fromMethod, c, new HashSet<>() ).map( s -> "v -> create" + i + "( " + s + " )" )
-                        : Stream.of( "C" + i + "::" + fromMethod )
-                    )
-                    .reduce( (s1, s2) -> s1 + ",\n" + s2 )
-                    .orElseGet( () -> "" )
-            )
-            .newlineAppend( ")" )
-            .indent()
-                .newlineAppend( ".map( f ->" ).body( () -> builder
-                    .newlineAppend( "try" ).body( () -> builder
-                        .newlineAppend( "return f.apply( " ).append( paramName ).append( " );" ) 
-                    ).append( " catch ( " ).append( exceptionType ).append( " e )" ).body( () -> builder
-                        .newlineAppend( "return null;" )
-                    )
-                ).append( " )" )
-                .newlineAppend( ".filter( Objects::nonNull )" )
-                .newlineAppend( ".findFirst()" )
-                .newlineAppend( ".orElseThrow( () -> new " ).append( exceptionType ).append( "( " ).append( exceptionMessage ).append( " ) );" )
-            .dedent();
-    }
-
-    private void appendListBuilders() {
-        builder.newNewlineAppend( "static abstract class ListBuilder<B> extends StructureListBuilder<" ).append( className ).append( ", B>" )
-            .body( this::appendListBuilderDefinition );
-
-        builder.newNewlineAppend( "public static class InlineListBuilder extends ListBuilder<InlineListBuilder>" ).body( () -> builder
-            .newline()
-            .newlineAppend( "protected InlineListBuilder self() { return this; }" )
-            .newline()
-            .newlineAppend( "public List<" ).append( className ).append( "> build() { return super.build(); }" )
-        );
-
-        builder.newNewlineAppend( "public static class NestedListBuilder<T> extends ListBuilder<NestedListBuilder<T>>" ).body( () -> builder
-            .newline()
-            .newlineAppend( "private final Function<List<" ).append( className ).append( ">, T> doneFunc;" )
-            .newline()
-            .newlineAppend( "private NestedListBuilder( Function<List<" ).append( className ).append( ">, T> doneFunc, SequencedCollection<? extends JolieValue> c ) { super( c ); this.doneFunc = doneFunc; }" )
-            .newlineAppend( "private NestedListBuilder( Function<List<" ).append( className ).append( ">, T> doneFunc ) { this.doneFunc = doneFunc; }" )
-            .newline()
-            .newlineAppend( "protected NestedListBuilder<T> self() { return this; }" )
-            .newline()
-            .newlineAppend( "public T done() throws TypeValidationException { return doneFunc.apply( build() ); }" )
-        );
-    }
-
-    private void appendListBuilderDefinition() {
-        builder.newline()
-            .newlineAppend( "protected ListBuilder( SequencedCollection<? extends JolieValue> elements ) { super( elements.parallelStream().map( " ).append( className ).append( "::createFrom ).toList() ); }" )
-            .newlineAppend( "protected ListBuilder() {}" );
-
-        methodBuilders.forEach( OptionMethodBuilder::appendListBuilderMethods );
-    }
-    
-
-    private abstract class OptionMethodBuilder {
-
-        protected final String typeName;
-        protected final int number;
-        protected final String optionName;
-
-        protected OptionMethodBuilder( String typeName, int number ) {
-            this.typeName = typeName;
-            this.number = number;
-            this.optionName = "C" + number;
-        }
-
-        public abstract void appendDocumentationLinks();
-        public abstract void appendStaticMethods();
-        public abstract void appendListBuilderMethods();
-    }
-
-    private class StructureMethodBuilder extends OptionMethodBuilder {
-
-        private final String typeName;
-        private final Native content;
-
-        public StructureMethodBuilder( String typeName, int number, Native content ) {
-            super( typeName, number );
-            this.typeName = typeName;
-            this.content = content;
-        }
-
-        public void appendDocumentationLinks() {
-            builder.newline()
-                .newlineAppend( "@see " ).append( typeName )
-                .newlineAppend( "@see #create" ).append( number ).append( "(" ).append( typeName ).append( ")" )
-                .newlineAppend( "@see #construct" ).append( number ).append( "()" );
-        }
-
-        public void appendStaticMethods() {
-            builder.newNewlineAppend( "public static " ).append( className ).append( " create" ).append( number ).append( "( " ).append( typeName ).append( " option ) { return new " ).append( optionName ).append( "( option ); }" )
-                .newline()
-                .newlineAppend( "public static " ).append( optionName ).append( ".InlineBuilder construct" ).append( number ).append( "() { return " ).append( optionName ).append( ".construct(); }" );
-                        
-            if ( content != Native.VOID ) {
-                builder.newlineAppend( "public static " ).append( optionName ).append( ".InlineBuilder construct" ).append( number ).append( "( " ).append( content.wrapperName() ).append( " content ) { return construct" ).append( number ).append( "().content( content ); }" );
-                content.valueNames().forEach( vn -> builder.newlineAppend( "public static " ).append( optionName ).append( ".InlineBuilder construct" ).append( number ).append("( " ).append( vn ).append( " contentValue ) { return construct" ).append( number ).append( "().content( contentValue ); }" ) );
-            }
-
-            builder.newlineAppend( "public static " ).append( optionName ).append( ".InlineBuilder construct" ).append( number ).append( "From( JolieValue t ) { return " ).append( optionName ).append( ".constructFrom( t ); }" );
-            builder.newlineAppend( "public static " ).append( optionName ).append( " create" ).append( number ).append( "From( JolieValue t ) throws TypeValidationException { return " ).append( optionName ).append( ".createFrom( t ); }" );
-        }
-
-        public void appendListBuilderMethods() {
-            builder.newline()
-                .newlineAppend( "public B add" ).append( number ).append( "( " ).append( typeName ).append( " option ) { return add( create" ).append( number ).append( "( option ) ); }" )
-                .newlineAppend( "public B set" ).append( number ).append( "( int index, " ).append( typeName ).append( " option ) { return set( index, create" ).append( number ).append( "( option ) ); }" )
-                .newlineAppend( "public " ).append( typeName ).append( ".NestedBuilder<B> addConstructed" ).append( number ).append( "() { return " ).append( typeName ).append( ".constructNested( this::add" ).append( number ).append( " ); }" )
-                .newlineAppend( "public " ).append( typeName ).append( ".NestedBuilder<B> addConstructed" ).append( number ).append( "From( JolieValue t ) { return " ).append( typeName ).append( ".constructNested( this::add" ).append( number ).append( ", t ); }" )
-                .newlineAppend( "public " ).append( typeName ).append( ".NestedBuilder<B> setConstructed" ).append( number ).append( "( int index ) { return " ).append( typeName ).append( ".constructNested( option -> set" ).append( number ).append( "( index, option ) ); }" )
-                .newlineAppend( "public " ).append( typeName ).append( ".NestedBuilder<B> setConstructed" ).append( number ).append( "From( int index, JolieValue t ) { return " ).append( typeName ).append( ".constructNested( option -> set" ).append( number ).append( "( index, option ), t ); }" )
-                .newlineAppend( "public " ).append( typeName ).append( ".NestedBuilder<B> reconstruct" ).append( number ).append( "( int index ) { return " ).append( typeName ).append( ".constructNested( option -> set" ).append( number ).append( "( index, option ), elements.get( index ) ); }" );
-            
-            if ( content != Native.VOID ) {
-                builder
-                    .newlineAppend( "public " ).append( typeName ).append( ".NestedBuilder<B> addConstructed" ).append( number ).append( "( " ).append( content.wrapperName() ).append( " content ) { return addConstructed" ).append( number ).append( "().content( content ); }" )
-                    .newlineAppend( "public " ).append( typeName ).append( ".NestedBuilder<B> setConstructed" ).append( number ).append( "( int index, " ).append( content.wrapperName() ).append( " content ) { return setConstructed" ).append( number ).append( "( index ).content( content ); }" );
-                
-                content.valueNames().forEach( vn -> builder
-                    .newlineAppend( "public " ).append( typeName ).append( ".NestedBuilder<B> addConstructed" ).append( number ).append( "( " ).append( vn ).append( " contentValue ) { return addConstructed" ).append( number ).append( "( JolieNative.create( contentValue ) ); }" )
-                    .newlineAppend( "public " ).append( typeName ).append( ".NestedBuilder<B> setConstructed" ).append( number ).append( "( int index, " ).append( vn ).append( " contentValue ) { return setConstructed" ).append( number ).append( "( index, JolieNative.create( contentValue ) ); }" )
-                );
-                
-                if ( content == Native.ANY )
-                    builder.newlineAppend( "public " ).append( typeName ).append( ".NestedBuilder<B> reconstruct" ).append( number ).append( "( int index, UnaryOperator<" ).append( content.wrapperName() ).append( "> contentOperator ) { return reconstruct" ).append( number ).append( "( index ).content( contentOperator ); }" );
-                else
-                    builder.newlineAppend( "public " ).append( typeName ).append( ".NestedBuilder<B> reconstruct" ).append( number ).append( "( int index, UnaryOperator<" ).append( content.valueName() ).append( "> valueOperator ) { return reconstruct" ).append( number ).append( "( index ).content( valueOperator ); }" );
-            }
-        }
-    }
-
-    private class BasicMethodBuilder extends OptionMethodBuilder {
-
-        private final Native type;
-
-        public BasicMethodBuilder( String typeName, int number, Native type ) {
-            super( typeName, number );
-            this.type = type;
-        }
-
-        public void appendDocumentationLinks() {
-            if ( typeName != null )
-                builder.newlineAppend( "@see #create" ).append( number ).append( "(" ).append( typeName ).append( ")" );
-            builder.newlineAppend( "@see #create" ).append( number ).append( "(" ).append( type == Native.VOID ? "" : type.valueName() ).append( ")" );
-        }
-
-        public void appendStaticMethods() {
-            if ( typeName != null )
-                builder.newNewlineAppend( "public static " ).append( className ).append( " create" ).append( number ).append( "( " ).append( typeName ).append( " option ) { return new " ).append( optionName ).append( "( option ); }" )
-                    .newlineAppend( "public static " ).append( className ).append( " create" ).append( number ).append( type == Native.VOID ? "()" : "( " + type.valueName() + " option )" ).append( " { return create" ).append( number ).append( "( " ).append( typeName ).append( ".create( option ) ); }" );
-            else
-                builder.newNewlineAppend( "public static " ).append( className ).append( " create" ).append( number ).append( type == Native.VOID ? "()" : "( " + type.valueName() + " option )" ).append( " { return new " ).append( optionName ).append( type == Native.VOID ? "()" : "( option )" ).append( "; }" );
-        }
-
-        public void appendListBuilderMethods() {
-            if ( type == Native.VOID )
-                builder.newline()
-                    .newlineAppend( "public B add" ).append( number ).append( "() { return add( create" ).append( number ).append( "() ); }" )
-                    .newlineAppend( "public B set" ).append( number ).append( "( int index ) { return set( index, create" ).append( number ).append( "() ); }" );
-            else
-                builder.newline()
-                    .newlineAppend( "public B add" ).append( number ).append( "( " ).append( type.valueName() ).append( " option ) { return add( create" ).append( number ).append( "( option ) ); }" )
-                    .newlineAppend( "public B set" ).append( number ).append( "( int index, " ).append( type.valueName() ).append( " option ) { return set( index, create" ).append( number ).append( "( option ) ); }" );
-        }
-    }
-
-    private class ChoiceMethodBuilder extends OptionMethodBuilder {
-
-        public ChoiceMethodBuilder( String typeName, int number ) {
-            super( typeName, number );
-        }
-
-        public void appendDocumentationLinks() {
-            builder.newlineAppend( "@see #create" ).append( number ).append( "(" ).append( typeName ).append( ")" );
-        }
-
-        public void appendStaticMethods() {
-            builder.newNewlineAppend( "public static " ).append( className ).append( " create" ).append( number ).append( "( " ).append( typeName ).append( " option ) { return new " ).append( optionName ).append( "( option ); }" );
-        }
-
-        public void appendListBuilderMethods() {
-            builder.newline()
-                .newlineAppend( "public B add" ).append( number ).append( "( " ).append( typeName ).append( " option ) { return add( create" ).append( number ).append( "( option ) ); }" )
-                .newlineAppend( "public B set" ).append( number ).append( "( int index, " ).append( typeName ).append( " option ) { return set( index, create" ).append( number ).append( "( option ) ); }" );
-        }
     }
 }

@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import joliex.java.generate.type.TypeClassBuilder;
 import joliex.java.generate.util.ClassBuilderException;
 

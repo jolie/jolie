@@ -67,10 +67,10 @@ public class TypeFactory {
         final NativeRefinement refinement = NativeRefinement.create( inlineDefinition.basicType().refinements() );
 
         if ( inlineDefinition.hasSubTypes() )
-            return new Structure.Inline( nameSupplier.get(), type, refinement, createFields( inlineDefinition ) );
+            return new Structure.Inline.Typed( nameSupplier.get(), type, refinement, createFields( inlineDefinition ) );
 
         if ( inlineDefinition.untypedSubTypes() )
-            return new Structure.Inline( nameSupplier.get(), type, refinement, List.of() );
+            return new Structure.Inline.Untyped( nameSupplier.get(), type, refinement );
 
         if ( refinement != null )
             return new Basic.Inline( nameSupplier.get(), type, refinement );
@@ -96,7 +96,8 @@ public class TypeFactory {
         final JolieType t = get( unpackLink( linkDefinition ) );
         return switch ( t ) {
             case Basic.Inline b -> new Basic.Inline( nameSupplier.get(), b.nativeType(), b.refinement() );
-            case Structure.Inline s -> new Structure.Inline( nameSupplier.get(), s.nativeType(), s.nativeRefinement(), s.fields() );
+            case Structure.Inline.Typed s -> new Structure.Inline.Typed( nameSupplier.get(), s.nativeType(), s.nativeRefinement(), s.fields() );
+            case Structure.Inline.Untyped u -> new Structure.Inline.Untyped( nameSupplier.get(), u.nativeType(), u.nativeRefinement() );
             case Choice.Inline c -> new Choice.Inline( nameSupplier.get(), c.options() );
             default -> t;
         };

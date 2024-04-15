@@ -34,6 +34,7 @@ public abstract class TypeClassBuilder extends JavaClassBuilder {
             .newlineAppend( "import java.util.List;" )
             .newlineAppend( "import java.util.Optional;" )
             .newlineAppend( "import java.util.Objects;" )
+            .newlineAppend( "import java.util.Set;" )
             .newlineAppend( "import java.util.function.Function;" )
             .newlineAppend( "import java.util.function.Predicate;" )
             .newlineAppend( "import java.util.function.UnaryOperator;" )
@@ -50,16 +51,15 @@ public abstract class TypeClassBuilder extends JavaClassBuilder {
 
     public abstract void appendDefinition( boolean isInnerClass );
 
-    private static TypeClassBuilder create( JolieType type, String packageName, String typeFolder, boolean listable ) {
+    public static TypeClassBuilder create( JolieType type, String packageName, String typeFolder ) {
         return switch ( type ) {
             case Basic.Inline b -> new BasicClassBuilder( b, packageName, typeFolder );
-            case Structure.Inline s -> new StructureClassBuilder( s, packageName, typeFolder, listable );
-            case Choice.Inline c -> new ChoiceClassBuilder( c, packageName, typeFolder, listable );
+            case Structure.Inline.Typed s -> new TypedStructureClassBuilder( s, packageName, typeFolder );
+            case Structure.Inline.Untyped s -> new UntypedStructureClassBuilder( s, packageName, typeFolder );
+            case Choice.Inline c -> new ChoiceClassBuilder( c, packageName, typeFolder );
             default -> null;
         };
     }
-
-    public static TypeClassBuilder create( JolieType type, String packageName, String typeFolder ) { return create( type, packageName, typeFolder, true ); }
     
-    protected static TypeClassBuilder create( JolieType type, boolean listable ) { return create( type, null, null, listable ); }
+    protected static TypeClassBuilder create( JolieType type ) { return create( type, null, null ); }
 }

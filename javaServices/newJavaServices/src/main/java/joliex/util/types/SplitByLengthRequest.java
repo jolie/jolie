@@ -11,6 +11,7 @@ import java.util.SequencedCollection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
@@ -23,10 +24,10 @@ import joliex.java.embedding.JolieNative.*;
 import joliex.java.embedding.util.*;
 
 /**
- * this class is an {@link ImmutableStructure} which can be described as follows:
+ * this class is an {@link JolieValue} which can be described as follows:
  * 
  * <pre>
- * content: {@link String}
+ * contentValue: {@link String}
  *     length: {@link Integer}
  * </pre>
  * 
@@ -34,147 +35,88 @@ import joliex.java.embedding.util.*;
  * @see JolieNative
  * @see #construct()
  */
-public final class SplitByLengthRequest extends ImmutableStructure<JolieString> {
+public final class SplitByLengthRequest implements JolieValue {
     
-    public Integer length() { return getFirstChildValue( "length", JolieInt.class ).get(); }
+    private static final Set<String> FIELD_KEYS = Set.of( "length" );
     
-    private SplitByLengthRequest( Builder<?> builder ) {
-        super( builder.content(), builder.children() );
+    private final String contentValue;
+    private final Integer length;
+    
+    public SplitByLengthRequest( String contentValue, Integer length ) {
+        this.contentValue = ValueManager.validated( contentValue );
+        this.length = ValueManager.validated( length );
     }
     
-    public static InlineBuilder construct() { return new InlineBuilder(); }
-    public static InlineBuilder construct( JolieString content ) { return construct().content( content ); }
-    public static InlineBuilder construct( String contentValue ) { return construct().content( contentValue ); }
+    public String contentValue() { return contentValue; }
+    public Integer length() { return length; }
     
-    static <T> NestedBuilder<T> constructNested( Function<SplitByLengthRequest, T> doneFunc ) { return new NestedBuilder<>( doneFunc ); }
-    static <T> NestedBuilder<T> constructNested( Function<SplitByLengthRequest, T> doneFunc, JolieValue t ) { return new NestedBuilder<>( doneFunc, t ); }
+    public JolieString content() { return new JolieString( contentValue ); }
+    public Map<String, List<JolieValue>> children() {
+        return one.util.streamex.EntryStream.of(
+            "length", List.of( JolieValue.create( length ) )
+        ).filterValues( Objects::nonNull ).toImmutableMap();
+    }
     
-    static InlineListBuilder constructList() { return new InlineListBuilder(); }
+    public static Builder construct() { return new Builder(); }
     
-    static <T> NestedListBuilder<T> constructNestedList( Function<List<SplitByLengthRequest>, T> doneFunc ) { return new NestedListBuilder<>( doneFunc ); }
-    static <T> NestedListBuilder<T> constructNestedList( Function<List<SplitByLengthRequest>, T> doneFunc, SequencedCollection<? extends JolieValue> c ) { return new NestedListBuilder<>( doneFunc, c ); }
+    public static ListBuilder constructList() { return new ListBuilder(); }
     
-    public static InlineBuilder constructFrom( JolieValue t ) { return new InlineBuilder( t ); }
+    public static Builder constructFrom( JolieValue j ) { return new Builder( j ); }
     
-    public static SplitByLengthRequest createFrom( JolieValue t ) throws TypeValidationException { return constructFrom( t ).build(); }
+    public static ListBuilder constructListFrom( SequencedCollection<? extends JolieValue> c ) { return new ListBuilder( c ); }
     
-    public static Value toValue( SplitByLengthRequest t ) { return JolieValue.toValue( t ); }
-    public static SplitByLengthRequest fromValue( Value value ) throws TypeCheckingException { return Builder.buildFrom( value ); }
-    
-    static abstract class Builder<B> extends StructureBuilder<JolieString, B> {
-        
-        private static final Map<String,FieldManager<?>> FIELD_MAP = Map.of(
-            "length", FieldManager.createNative( JolieInt::fromValue, JolieInt::createFrom )
+    public static SplitByLengthRequest createFrom( JolieValue j ) {
+        return new SplitByLengthRequest(
+            JolieString.createFrom( j ).value(),
+            ValueManager.fieldFrom( j.getFirstChild( "length" ), c -> c.content() instanceof JolieInt content ? content.value() : null )
         );
+    }
+    
+    public static SplitByLengthRequest fromValue( Value v ) throws TypeCheckingException {
+        ValueManager.requireChildren( v, FIELD_KEYS );
+        return new SplitByLengthRequest(
+            JolieString.contentFromValue( v ),
+            ValueManager.fieldFrom( v.firstChildOrDefault( "length", Function.identity(), null ), JolieInt::fieldFromValue )
+        );
+    }
+    
+    public static Value toValue( SplitByLengthRequest t ) {
+        final Value v = Value.create( t.contentValue() );
         
-        protected Builder() {}
-        protected Builder( JolieValue structure ) {
-            super(
-                structure.content() instanceof JolieString content ? content : null,
-                structure.children()
-                    .entrySet()
-                    .parallelStream()
-                    .filter( e -> FIELD_MAP.containsKey( e.getKey() ) )
-                    .collect( Collectors.toConcurrentMap(
-                        Map.Entry::getKey,
-                        e -> FIELD_MAP.get( e.getKey() ).fromJolieValues( e.getValue() )
-                    ) )
-            );
+        v.getFirstChild( "length" ).setValue( t.length() );
+        
+        return v;
+    }
+    
+    public static class Builder {
+        
+        private String contentValue;
+        private Integer length;
+        
+        private Builder() {}
+        private Builder( JolieValue j ) {
+            
+            contentValue = j.content() instanceof JolieString content ? content.value() : null;
+            this.length = ValueManager.fieldFrom( j.getFirstChild( "length" ), c -> c.content() instanceof JolieInt content ? content.value() : null );
         }
         
-        private JolieString content() { return content; }
-        private Map<String, List<JolieValue>> children() { return children; }
+        public Builder contentValue( String contentValue ) { this.contentValue = contentValue; return this; }
+        public Builder length( Integer length ) { this.length = length; return this; }
         
-        public B content( JolieString content ) { return super.content( content ); }
-        public B content( String value ) { return content( JolieNative.create( value ) ); }
-        public B content( UnaryOperator<String> valueOperator ) { return content( valueOperator.apply( content.value() ) ); }
-        
-        public B setLength( JolieInt contentEntry ) { return putAs( "length", contentEntry, JolieValue::create ); }
-        public B setLength( Integer valueEntry ) { return putAs( "length", valueEntry, JolieValue::create ); }
-        public B replaceLength( UnaryOperator<Integer> valueOperator ) { return computeAs( "length", (n,v) -> valueOperator.apply( v ), s -> JolieInt.class.cast( s.content() ).value(), JolieValue::create ); }
-        
-        protected SplitByLengthRequest validatedBuild() throws TypeValidationException {
-            validateChildren( FIELD_MAP );
-            
-            return new SplitByLengthRequest( this );
-        }
-        
-        private static SplitByLengthRequest buildFrom( Value value ) throws TypeCheckingException {
-            InlineBuilder builder = SplitByLengthRequest.construct();
-            
-            builder.content( JolieString.fromValue( value ) );
-            
-            for ( Map.Entry<String, ValueVector> child : value.children().entrySet() ) {
-                if ( !FIELD_MAP.containsKey( child.getKey() ) )
-                    throw new TypeCheckingException( "Unexpected field was set, field \"" + child.getKey() + "\"." );
-                
-                builder.put( child.getKey(), FIELD_MAP.get( child.getKey() ).fromValueVector( child.getValue() ) );
-            }
-            
-            try {
-                return builder.build();
-            } catch ( TypeValidationException e ) {
-                throw new TypeCheckingException( e.getMessage() );
-            }
+        public SplitByLengthRequest build() {
+            return new SplitByLengthRequest( contentValue, length );
         }
     }
     
-    public static class InlineBuilder extends Builder<InlineBuilder> {
+    public static class ListBuilder extends AbstractListBuilder<ListBuilder, SplitByLengthRequest> {
         
-        private InlineBuilder() {}
-        private InlineBuilder( JolieValue t ) { super( t ); }
+        private ListBuilder() {}
+        private ListBuilder( SequencedCollection<? extends JolieValue> c ) { super( c, SplitByLengthRequest::createFrom ); }
         
-        protected InlineBuilder self() { return this; }
+        protected ListBuilder self() { return this; }
         
-        public SplitByLengthRequest build() throws TypeValidationException { return validatedBuild(); }
-    }
-    
-    public static class NestedBuilder<T> extends Builder<NestedBuilder<T>> {
-        
-        private final Function<SplitByLengthRequest, T> doneFunc;
-        
-        private NestedBuilder( Function<SplitByLengthRequest, T> doneFunc, JolieValue t ) { super( t ); this.doneFunc = doneFunc; }
-        private NestedBuilder( Function<SplitByLengthRequest, T> doneFunc ) { this.doneFunc = doneFunc; }
-        
-        protected NestedBuilder<T> self() { return this; }
-        
-        public T done() throws TypeValidationException { return doneFunc.apply( validatedBuild() ); }
-    }
-    
-    static abstract class ListBuilder<B> extends StructureListBuilder<SplitByLengthRequest, B> {
-        
-        protected ListBuilder( SequencedCollection<? extends JolieValue> elements ) { super( elements.parallelStream().map( SplitByLengthRequest::createFrom ).toList() ); }
-        protected ListBuilder() {}
-        
-        public NestedBuilder<B> addConstructed() { return constructNested( this::add ); }
-        public NestedBuilder<B> setConstructed( int index ) { return constructNested( e -> set( index, e ) ); }
-        public NestedBuilder<B> addConstructedFrom( JolieValue t ) { return constructNested( this::add, t ); }
-        public NestedBuilder<B> setConstructedFrom( int index, JolieValue t ) { return constructNested( e -> set( index, e ), t ); }
-        public NestedBuilder<B> reconstruct( int index ) { return setConstructedFrom( index, elements.get( index ) ); }
-        
-        public NestedBuilder<B> addConstructed( JolieString content ) { return addConstructed().content( content ); }
-        public NestedBuilder<B> setConstructed( int index, JolieString content ) { return setConstructed( index ).content( content ); }
-        public NestedBuilder<B> addConstructed( String contentValue ) { return addConstructed( JolieNative.create( contentValue ) ); }
-        public NestedBuilder<B> setConstructed( int index, String contentValue ) { return setConstructed( index, JolieNative.create( contentValue ) ); }
-        public NestedBuilder<B> reconstruct( int index, UnaryOperator<String> valueOperator ) { return reconstruct( index ).content( valueOperator ); }
-    }
-    
-    public static class InlineListBuilder extends ListBuilder<InlineListBuilder> {
-        
-        protected InlineListBuilder self() { return this; }
-        
-        public List<SplitByLengthRequest> build() { return super.build(); }
-    }
-    
-    public static class NestedListBuilder<T> extends ListBuilder<NestedListBuilder<T>> {
-        
-        private final Function<List<SplitByLengthRequest>, T> doneFunc;
-        
-        private NestedListBuilder( Function<List<SplitByLengthRequest>, T> doneFunc, SequencedCollection<? extends JolieValue> c ) { super( c ); this.doneFunc = doneFunc; }
-        private NestedListBuilder( Function<List<SplitByLengthRequest>, T> doneFunc ) { this.doneFunc = doneFunc; }
-        
-        protected NestedListBuilder<T> self() { return this; }
-        
-        public T done() throws TypeValidationException { return doneFunc.apply( build() ); }
+        public ListBuilder add( Function<Builder, SplitByLengthRequest> b ) { return add( b.apply( construct() ) ); }
+        public ListBuilder set( int index, Function<Builder, SplitByLengthRequest> b ) { return set( index, b.apply( construct() ) ); }
+        public ListBuilder reconstruct( int index, Function<Builder, SplitByLengthRequest> b ) { return replace( index, j -> b.apply( constructFrom( j ) ) ); }
     }
 }

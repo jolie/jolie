@@ -126,7 +126,7 @@ type ChoiceInlineType: void {
 int
 |
 string {
-  .d*:int {
+  .d[1,*]:int {
     .e[3,5]:double {
       .f: raw
     }

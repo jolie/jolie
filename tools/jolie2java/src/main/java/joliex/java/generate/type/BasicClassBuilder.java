@@ -19,21 +19,20 @@ public class BasicClassBuilder extends TypeClassBuilder {
     }
 
     private void appendDocumentation() {
-        builder.newlineAppend( "this class is a {@link JolieValue} which can be described as follows:" )
+        builder.newlineAppend( "this record is a {@link JolieValue} which can be described as follows:" )
             .newline()
             .codeBlock( () -> builder
-                .newlineAppend( "content: {@link " ).append( basic.nativeType().valueName() ).append( "}( " ).append( basic.refinement().definitionString() ).append( " )" )
+                .newlineAppend( "contentValue: {@link " ).append( basic.nativeType().valueName() ).append( "}( " ).append( basic.refinement().definitionString() ).append( " )" )
             )
             .newline()
             .newlineAppend( "@see JolieValue" )
-            .newlineAppend( "@see JolieNative" )
-            .newlineAppend( "@see #create(" ).append( basic.nativeType().valueName() ).append( ")" );
+            .newlineAppend( "@see JolieNative" );
     }
 
     private void appendDefinitionBody() {
         appendAttributes();
-        appendMethods();
         appendConstructors();
+        appendMethods();
         appendStaticMethods();
     }
 
@@ -42,8 +41,9 @@ public class BasicClassBuilder extends TypeClassBuilder {
     }
 
     private void appendConstructors() {
-        builder.newNewlineAppend( "public " ).append( className ).append( "( " ).append( basic.nativeType().valueName() ).append( " contentValue )" )
-            .body( () -> builder.newlineAppend( "this.contentValue = Refinement.validated( contentValue, refinements );" ) );
+        builder.newNewlineAppend( "public " ).append( className ).append( "( " ).append( basic.nativeType().valueName() ).append( " contentValue )" ).body( () -> 
+            builder.newlineAppend( "this.contentValue = Refinement.validated( Objects.requireNonNull( contentValue ), refinements );" ) 
+        );
     }
 
     private void appendMethods() {
@@ -51,17 +51,21 @@ public class BasicClassBuilder extends TypeClassBuilder {
             .newlineAppend( "public " ).append( basic.nativeType().wrapperName() ).append( " content() { return new " ).append( basic.nativeType().wrapperName() ).append("( contentValue ); }" )
             .newlineAppend( "public Map<String, List<JolieValue>> children() { return Map.of(); }" )
             .newline()
-            .newlineAppend( "public boolean equals( Object obj ) { return obj instanceof JolieValue j && content().equals( j.content() ) && children().equals( j.children() ); }" )
+            .newlineAppend( "public boolean equals( Object obj ) { return obj instanceof " ).append( className ).append( " other && contentValue.equals( other.contentValue() ); }" )
             .newlineAppend( "public int hashCode() { return contentValue.hashCode(); }" )
             .newlineAppend( "public String toString() { return contentValue.toString(); }" );
     }
 
     private void appendStaticMethods() {
-        builder.newline()
-            .newlineAppend( "public static " ).append( className ).append( " create( " ).append( basic.nativeType().valueName() ).append( " v ) throws TypeValidationException { return new " ).append( basic.name() ).append( "( v ); }" )
-            .newlineAppend( "public static " ).append( className ).append( " createFrom( JolieType t ) throws TypeValidationException { return new " ).append( basic.name() ).append( "( " ).append( basic.nativeType().wrapperName() ).append( ".createFrom( t ).value() ); }" )
-            .newline()
-            .newlineAppend( "public static Value toValue( " ).append( className ).append( " t ) { return JolieValue.toValue( t ); }" )
-            .newlineAppend( "public static " ).append( className ).append( " fromValue( Value value ) throws TypeCheckingException { return new " ).append( basic.name() ).append( "( " + basic.nativeType().wrapperName() + ".fromValue( value ).value() ); }" );
+        // createFrom() method
+        builder.newNewlineAppend( "public static " ).append( className ).append( " createFrom( JolieValue j ) throws TypeValidationException" ).body( () -> {
+            builder.newlineAppend( "return new " ).append( className ).append( "( " ).append( basic.nativeType().wrapperName() ).append( ".createFrom( j ).value() );" );
+        } );
+        // fromValue() method
+        builder.newNewlineAppend( "public static " ).append( className ).append( " fromValue( Value v ) throws TypeCheckingException" ).body( () -> {
+            builder.newlineAppend( "return new " ).append( className ).append( "( " ).append( basic.nativeType().wrapperName() ).append( ".fieldFromValue( v ) );" );
+        } );
+        // toValue() method
+        builder.newNewlineAppend( "public static Value toValue( " ).append( className ).append( " t ) { return Value.create( t.contentValue() ); }" );
     }
 }

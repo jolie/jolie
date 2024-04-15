@@ -1,21 +1,23 @@
 package joliex.util.faults;
 
-import jolie.runtime.FaultException;
-import joliex.java.embedding.*;
+import java.util.Objects;
 
-import java.util.function.Function;
+import jolie.runtime.Value;
+import jolie.runtime.ByteArray;
+import jolie.runtime.FaultException;
+
+import joliex.java.embedding.JolieValue;
+import joliex.java.embedding.JolieNative;
+
+import joliex.util.types.*;
 
 public class InvalidTimestamp extends FaultException {
     
     private final JolieValue fault;
-    
-    public JolieValue fault() { return fault; }
-    
     public InvalidTimestamp( JolieValue fault ) {
         super( "InvalidTimestamp", JolieValue.toValue( fault ) );
-        this.fault = fault;
+        this.fault = Objects.requireNonNull( fault );
     }
     
-    public static InvalidTimestamp create( Function<JolieValue.InlineBuilder, JolieValue> builder ) { return new InvalidTimestamp( builder.apply( JolieValue.construct() ) ); }
-    public static InvalidTimestamp createFrom( JolieValue t, Function<JolieValue.InlineBuilder, JolieValue> rebuilder ) { return new InvalidTimestamp( rebuilder.apply( JolieValue.constructFrom( t ) ) ); }
+    public JolieValue fault() { return fault; }
 }

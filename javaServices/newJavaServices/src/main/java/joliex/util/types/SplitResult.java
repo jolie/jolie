@@ -11,6 +11,7 @@ import java.util.SequencedCollection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
@@ -23,10 +24,9 @@ import joliex.java.embedding.JolieNative.*;
 import joliex.java.embedding.util.*;
 
 /**
- * this class is an {@link ImmutableStructure} which can be described as follows:
+ * this class is an {@link JolieValue} which can be described as follows:
  * 
  * <pre>
- * content: {@link Void}
  *     result[0,2147483647]: {@link String}
  * </pre>
  * 
@@ -34,135 +34,79 @@ import joliex.java.embedding.util.*;
  * @see JolieNative
  * @see #construct()
  */
-public final class SplitResult extends ImmutableStructure<JolieVoid> {
+public final class SplitResult implements JolieValue {
     
-    public List<String> result() { return getChildValues( "result", JolieString.class ); }
+    private static final Set<String> FIELD_KEYS = Set.of( "result" );
     
-    private SplitResult( Builder<?> builder ) {
-        super( builder.content(), builder.children() );
+    private final List<String> result;
+    
+    public SplitResult( SequencedCollection<String> result ) {
+        this.result = ValueManager.validated( result, 0, 2147483647 );
     }
     
-    public static InlineBuilder construct() { return new InlineBuilder(); }
+    public List<String> result() { return result; }
     
-    static <T> NestedBuilder<T> constructNested( Function<SplitResult, T> doneFunc ) { return new NestedBuilder<>( doneFunc ); }
-    static <T> NestedBuilder<T> constructNested( Function<SplitResult, T> doneFunc, JolieValue t ) { return new NestedBuilder<>( doneFunc, t ); }
+    public JolieVoid content() { return new JolieVoid(); }
+    public Map<String, List<JolieValue>> children() {
+        return one.util.streamex.EntryStream.of(
+            "result", result.parallelStream().map( JolieValue::create ).toList()
+        ).filterValues( Objects::nonNull ).toImmutableMap();
+    }
     
-    static InlineListBuilder constructList() { return new InlineListBuilder(); }
+    public static Builder construct() { return new Builder(); }
     
-    static <T> NestedListBuilder<T> constructNestedList( Function<List<SplitResult>, T> doneFunc ) { return new NestedListBuilder<>( doneFunc ); }
-    static <T> NestedListBuilder<T> constructNestedList( Function<List<SplitResult>, T> doneFunc, SequencedCollection<? extends JolieValue> c ) { return new NestedListBuilder<>( doneFunc, c ); }
+    public static ListBuilder constructList() { return new ListBuilder(); }
     
-    public static InlineBuilder constructFrom( JolieValue t ) { return new InlineBuilder( t ); }
+    public static Builder constructFrom( JolieValue j ) { return new Builder( j ); }
     
-    public static SplitResult createFrom( JolieValue t ) throws TypeValidationException { return constructFrom( t ).build(); }
+    public static ListBuilder constructListFrom( SequencedCollection<? extends JolieValue> c ) { return new ListBuilder( c ); }
     
-    public static Value toValue( SplitResult t ) { return JolieValue.toValue( t ); }
-    public static SplitResult fromValue( Value value ) throws TypeCheckingException { return Builder.buildFrom( value ); }
-    
-    static abstract class Builder<B> extends StructureBuilder<JolieVoid, B> {
-        
-        private static final Map<String,FieldManager<?>> FIELD_MAP = Map.of(
-            "result", FieldManager.createNative( 0, 2147483647, JolieString::fromValue, JolieString::createFrom )
+    public static SplitResult createFrom( JolieValue j ) {
+        return new SplitResult(
+            ValueManager.fieldFrom( j.getChildOrDefault( "result", List.of() ), c -> c.content() instanceof JolieString content ? content.value() : null )
         );
+    }
+    
+    public static SplitResult fromValue( Value v ) throws TypeCheckingException {
+        ValueManager.requireChildren( v, FIELD_KEYS );
+        return new SplitResult(
+            ValueManager.fieldFrom( v.children().getOrDefault( "result", ValueVector.create() ), JolieString::fieldFromValue )
+        );
+    }
+    
+    public static Value toValue( SplitResult t ) {
+        final Value v = Value.create();
         
-        protected Builder() {}
-        protected Builder( JolieValue structure ) {
-            super(
-                null,
-                structure.children()
-                    .entrySet()
-                    .parallelStream()
-                    .filter( e -> FIELD_MAP.containsKey( e.getKey() ) )
-                    .collect( Collectors.toConcurrentMap(
-                        Map.Entry::getKey,
-                        e -> FIELD_MAP.get( e.getKey() ).fromJolieValues( e.getValue() )
-                    ) )
-            );
+        t.result().forEach( c -> v.getNewChild( "result" ).setValue( c ) );
+        
+        return v;
+    }
+    
+    public static class Builder {
+        
+        private SequencedCollection<String> result;
+        
+        private Builder() {}
+        private Builder( JolieValue j ) {
+            this.result = ValueManager.fieldFrom( j.getChildOrDefault( "result", List.of() ), c -> c.content() instanceof JolieString content ? content.value() : null );
         }
         
-        private JolieVoid content() { return JolieNative.create(); }
-        private Map<String, List<JolieValue>> children() { return children; }
+        public Builder result( SequencedCollection<String> result ) { this.result = result; return this; }
         
-        public B setResult( SequencedCollection<String> values ) { return put( "result", values, JolieValue::create ); }
-        public B setResult( String... values ) { return setResult( List.of( values ) ); }
-        public B mergeResult( SequencedCollection<String> values, BinaryOperator<SequencedCollection<String>> valuesOperator ) { return compute( "result", (n,c) -> c == null ? values : valuesOperator.apply( c, values ), s -> JolieString.class.cast( s.content() ).value(), JolieValue::create ); }
-        
-        protected SplitResult validatedBuild() throws TypeValidationException {
-            validateChildren( FIELD_MAP );
-            
-            return new SplitResult( this );
-        }
-        
-        private static SplitResult buildFrom( Value value ) throws TypeCheckingException {
-            InlineBuilder builder = SplitResult.construct();
-            
-            builder.content( JolieVoid.fromValue( value ) );
-            
-            for ( Map.Entry<String, ValueVector> child : value.children().entrySet() ) {
-                if ( !FIELD_MAP.containsKey( child.getKey() ) )
-                    throw new TypeCheckingException( "Unexpected field was set, field \"" + child.getKey() + "\"." );
-                
-                builder.put( child.getKey(), FIELD_MAP.get( child.getKey() ).fromValueVector( child.getValue() ) );
-            }
-            
-            try {
-                return builder.build();
-            } catch ( TypeValidationException e ) {
-                throw new TypeCheckingException( e.getMessage() );
-            }
+        public SplitResult build() {
+            return new SplitResult( result );
         }
     }
     
-    public static class InlineBuilder extends Builder<InlineBuilder> {
+    public static class ListBuilder extends AbstractListBuilder<ListBuilder, SplitResult> {
         
-        private InlineBuilder() {}
-        private InlineBuilder( JolieValue t ) { super( t ); }
+        private ListBuilder() {}
+        private ListBuilder( SequencedCollection<? extends JolieValue> c ) { super( c, SplitResult::createFrom ); }
         
-        protected InlineBuilder self() { return this; }
+        protected ListBuilder self() { return this; }
         
-        public SplitResult build() throws TypeValidationException { return validatedBuild(); }
-    }
-    
-    public static class NestedBuilder<T> extends Builder<NestedBuilder<T>> {
-        
-        private final Function<SplitResult, T> doneFunc;
-        
-        private NestedBuilder( Function<SplitResult, T> doneFunc, JolieValue t ) { super( t ); this.doneFunc = doneFunc; }
-        private NestedBuilder( Function<SplitResult, T> doneFunc ) { this.doneFunc = doneFunc; }
-        
-        protected NestedBuilder<T> self() { return this; }
-        
-        public T done() throws TypeValidationException { return doneFunc.apply( validatedBuild() ); }
-    }
-    
-    static abstract class ListBuilder<B> extends StructureListBuilder<SplitResult, B> {
-        
-        protected ListBuilder( SequencedCollection<? extends JolieValue> elements ) { super( elements.parallelStream().map( SplitResult::createFrom ).toList() ); }
-        protected ListBuilder() {}
-        
-        public NestedBuilder<B> addConstructed() { return constructNested( this::add ); }
-        public NestedBuilder<B> setConstructed( int index ) { return constructNested( e -> set( index, e ) ); }
-        public NestedBuilder<B> addConstructedFrom( JolieValue t ) { return constructNested( this::add, t ); }
-        public NestedBuilder<B> setConstructedFrom( int index, JolieValue t ) { return constructNested( e -> set( index, e ), t ); }
-        public NestedBuilder<B> reconstruct( int index ) { return setConstructedFrom( index, elements.get( index ) ); }
-    }
-    
-    public static class InlineListBuilder extends ListBuilder<InlineListBuilder> {
-        
-        protected InlineListBuilder self() { return this; }
-        
-        public List<SplitResult> build() { return super.build(); }
-    }
-    
-    public static class NestedListBuilder<T> extends ListBuilder<NestedListBuilder<T>> {
-        
-        private final Function<List<SplitResult>, T> doneFunc;
-        
-        private NestedListBuilder( Function<List<SplitResult>, T> doneFunc, SequencedCollection<? extends JolieValue> c ) { super( c ); this.doneFunc = doneFunc; }
-        private NestedListBuilder( Function<List<SplitResult>, T> doneFunc ) { this.doneFunc = doneFunc; }
-        
-        protected NestedListBuilder<T> self() { return this; }
-        
-        public T done() throws TypeValidationException { return doneFunc.apply( build() ); }
+        public ListBuilder add( Function<Builder, SplitResult> b ) { return add( b.apply( construct() ) ); }
+        public ListBuilder set( int index, Function<Builder, SplitResult> b ) { return set( index, b.apply( construct() ) ); }
+        public ListBuilder reconstruct( int index, Function<Builder, SplitResult> b ) { return replace( index, j -> b.apply( constructFrom( j ) ) ); }
     }
 }
