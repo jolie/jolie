@@ -342,6 +342,9 @@ public class SSLProtocol extends SequentialCommProtocol {
 					keepRun = false;
 				}
 				break;
+			default:
+				throw new IllegalStateException( "Unknown handshake status: "
+					+ sslEngine.getHandshakeStatus() );
 			}
 		}
 	}
