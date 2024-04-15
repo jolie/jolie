@@ -35,7 +35,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 // Connection Pooling
 import com.zaxxer.hikari.HikariConfig;
@@ -73,8 +73,8 @@ import joliex.db.impl.NamedStatementParser;
 } )
 public class DatabaseService extends JavaService {
 	private HikariDataSource connectionPool = null;
-	private ConcurrentHashMap< Integer, Connection > openTxs = null;
-	private AtomicInteger txHandles = null;
+	private ConcurrentHashMap< Long, Connection > openTxs = null;
+	private AtomicLong txHandles = null;
 
 	private String connectionString = null;
 	private String username = null;
@@ -94,14 +94,7 @@ public class DatabaseService extends JavaService {
 			password = null;
 			driver = null;
 			driverClass = null;
-			toLowerCase = false;
-			toUpperCase = false;
-			mustCheckConnection = false;
-
-			connectionPool.close();
-			openTxs = null;
-			connectionPool = null;
-			txHandles = null;
+			_closeConnectionPool();
 		}
 	}
 
@@ -111,7 +104,7 @@ public class DatabaseService extends JavaService {
 		close();
 
 		openTxs = new ConcurrentHashMap<>();
-		txHandles = new AtomicInteger();
+		txHandles = new AtomicLong();
 
 		mustCheckConnection = request.getFirstChild( "checkConnection" ).intValue() > 0;
 
@@ -206,10 +199,8 @@ public class DatabaseService extends JavaService {
 				connectionPool = _createDataSource( request.getFirstChild( "connectionPoolConfig" ) );
 			}
 
-			connectionPool = new HikariDataSource( (HikariConfig) connectionPool.getHikariConfigMXBean() );
-
 			interpreter().cleaner().register( this, () -> {
-				connectionPool.close();
+				_closeConnectionPool();
 			} );
 		} catch( ClassNotFoundException e ) {
 			throw new FaultException( "DriverClassNotFound", e );
@@ -251,8 +242,8 @@ public class DatabaseService extends JavaService {
 				throw createFaultException( e );
 			}
 		} else {
-			int txHandle = request.getFirstChild( "txHandle" ).intValue();
-			Connection tx = _tryGetOpenTransaction( txHandle );
+			long txHandle = request.getFirstChild( "txHandle" ).longValue();
+			Connection tx = _getOpenTransaction( txHandle );
 
 			try( PreparedStatement stm = new NamedStatementParser( tx, request.getFirstChild( "query" ).strValue(),
 				request.getFirstChild( "query" ) )
@@ -266,7 +257,7 @@ public class DatabaseService extends JavaService {
 		return resultValue;
 	}
 
-	private Connection _tryGetOpenTransaction( int txHandle ) throws FaultException {
+	private Connection _getOpenTransaction( long txHandle ) throws FaultException {
 		Connection tx = openTxs.remove( txHandle );
 		if( tx == null ) {
 			throw createTransactionException( "Transaction " + txHandle + " is unavailable or closed" );
@@ -525,8 +516,8 @@ public class DatabaseService extends JavaService {
 				throw createFaultException( e );
 			}
 		} else {
-			int txHandle = request.getFirstChild( "txHandle" ).intValue();
-			Connection tx = _tryGetOpenTransaction( txHandle );
+			long txHandle = request.getFirstChild( "txHandle" ).longValue();
+			Connection tx = _getOpenTransaction( txHandle );
 			try( PreparedStatement stm = new NamedStatementParser( tx, request.getFirstChild( "query" ).strValue(),
 				request.getFirstChild( "query" ) )
 					.getPreparedStatement(); ) {
@@ -565,7 +556,7 @@ public class DatabaseService extends JavaService {
 		Connection con;
 		try {
 			con = connectionPool.getConnection();
-			int txHandle = txHandles.getAndIncrement();
+			long txHandle = txHandles.getAndIncrement();
 			con.setAutoCommit( false );
 
 			openTxs.put( txHandle, con );
@@ -581,14 +572,14 @@ public class DatabaseService extends JavaService {
 	public void commitTx( Value request ) throws FaultException {
 		_checkConnection();
 
-		int txHandle = request.intValue();
+		long txHandle = request.longValue();
 		Connection tx = openTxs.remove( txHandle );
 		try {
 			tx.commit();
 		} catch( SQLException e ) {
 			createFaultException( e );
 		} finally {
-			_tryCloseTransaction( tx );
+			_closeTransaction( tx );
 		}
 	}
 
@@ -596,12 +587,12 @@ public class DatabaseService extends JavaService {
 	public void rollbackTx( Value request ) throws FaultException {
 		_checkConnection();
 
-		int txHandle = request.intValue();
+		long txHandle = request.longValue();
 		Connection tx = openTxs.remove( txHandle );
-		_tryCloseTransaction( tx );
+		_closeTransaction( tx );
 	}
 
-	private void _tryCloseTransaction( Connection con ) throws FaultException {
+	private void _closeTransaction( Connection con ) throws FaultException {
 		try {
 			con.setAutoCommit( true );
 			con.rollback();
@@ -613,6 +604,19 @@ public class DatabaseService extends JavaService {
 				throw createFaultException( e );
 			}
 		}
+	}
+
+	private void _closeConnectionPool() {
+		for( long handle : openTxs.keySet() ) {
+			try {
+				Connection con = openTxs.remove( handle );
+				con.rollback();
+				con.close();
+			} catch( SQLException e ) {
+			}
+		}
+		openTxs.clear();
+		connectionPool.close();
 	}
 
 	private HikariDataSource _createDataSource( Value providedConfig ) {

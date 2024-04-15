@@ -70,7 +70,7 @@ type DatabaseTransactionResult:void {
 	.result[0,*]:TransactionQueryResult
 }
 
-type TxHandle:int
+type TxHandle:long
 
 type QueryRequest:string { ? } | void { 
     txHandle: TxHandle 
@@ -193,7 +193,6 @@ RequestResponse:
 	*  then returned to the connection pool, and any further actions attempted using the transaction handle will throw a TransactionException.
 	*/
 	rollbackTx(TxHandle)( void ) throws SQLException ConnectionError TransactionException,
-
 }
 
 service Database {
