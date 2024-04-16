@@ -224,6 +224,12 @@ public class DatabaseService extends JavaService {
 		throws FaultException {
 		if( connectionPool == null || connectionPool.isClosed() ) {
 			throw new FaultException( "ConnectionError" );
+		} else {
+			try( Connection con = connectionPool.getConnection() ) { // HikariCP validates connections before providing
+																		// them
+			} catch( SQLException e ) {
+				createFaultException( e );
+			}
 		}
 	}
 
@@ -626,12 +632,12 @@ public class DatabaseService extends JavaService {
 		config.setDriverClassName( driverClass );
 		config.setJdbcUrl( connectionString );
 
-		_setUserprovidedConfig( config, providedConfig );
+		_setUserProvidedConfig( config, providedConfig );
 
 		return new HikariDataSource( config );
 	}
 
-	private void _setUserprovidedConfig( HikariConfig config, Value providedConfig ) {
+	private void _setUserProvidedConfig( HikariConfig config, Value providedConfig ) {
 		if( providedConfig.hasChildren() ) {
 			if( providedConfig.hasChildren( "connectionTimeout" ) ) {
 				config.setConnectionTimeout( providedConfig.getFirstChild( "connectionTimeout" ).longValue() );
