@@ -22,6 +22,7 @@
 package joliex.io;
 
 import java.io.BufferedInputStream;
+import java.io.EOFException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -41,6 +42,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
@@ -152,7 +154,8 @@ public class FileService extends JavaService {
 	private static void readBase64IntoValue( InputStream istream, long size, Value value )
 		throws IOException {
 		byte[] buffer = new byte[ (int) size ];
-		istream.read( buffer );
+		if( istream.read( buffer ) < 0 )
+			throw new EOFException();
 		Base64.Encoder encoder = Base64.getEncoder();
 		value.setValue( encoder.encodeToString( buffer ) );
 	}
@@ -160,7 +163,8 @@ public class FileService extends JavaService {
 	private static void readBinaryIntoValue( InputStream istream, long size, Value value )
 		throws IOException {
 		byte[] buffer = new byte[ (int) size ];
-		istream.read( buffer );
+		if( istream.read( buffer ) < 0 )
+			throw new EOFException();
 		value.setValue( new ByteArray( buffer ) );
 	}
 
@@ -261,7 +265,9 @@ public class FileService extends JavaService {
 	private static void __copyDir( File src, File dest ) throws IOException {
 		if( src.isDirectory() ) {
 			if( !dest.exists() ) {
-				dest.mkdir();
+				if( !dest.mkdir() ) {
+					throw new FileAlreadyExistsException( dest.getAbsolutePath() );
+				}
 			}
 			String[] files = src.list();
 			for( String file : files ) {

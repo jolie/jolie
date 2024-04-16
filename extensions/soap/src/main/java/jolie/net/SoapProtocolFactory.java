@@ -55,6 +55,7 @@ public class SoapProtocolFactory extends CommProtocolFactory {
 		super( commCore );
 	}
 
+	@Override
 	public CommProtocol createInputProtocol( VariablePath configurationPath, URI location )
 		throws IOException {
 		try {
@@ -64,6 +65,7 @@ public class SoapProtocolFactory extends CommProtocolFactory {
 		}
 	}
 
+	@Override
 	public CommProtocol createOutputProtocol( VariablePath configurationPath, URI location )
 		throws IOException {
 		try {
