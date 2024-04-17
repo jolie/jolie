@@ -33,7 +33,7 @@ Interfaces: ServerInterface
 outputPort SODEPSServer {
 Location: Location_SODEPSServer
 Protocol: sodeps {
-	.ssl.trustStore = "extensions/private/client.jks";
+	.ssl.trustStore = "extensions/private/truststore.jks";
 	.ssl.trustStorePassword = KeystorePassword
 }
 Interfaces: ServerInterface
@@ -77,7 +77,7 @@ Protocol: https {
 	.format -> format;
 	.compression -> compression;
 	.requestCompression -> requestCompression;
-	.ssl.trustStore = "extensions/private/client.jks";
+	.ssl.trustStore = "extensions/private/truststore.jks";
 	.ssl.trustStorePassword = KeystorePassword
 }
 Interfaces: ServerInterface
