@@ -43,6 +43,7 @@ import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLEngineResult;
+import javax.net.ssl.SSLParameters;
 import javax.net.ssl.SSLEngineResult.HandshakeStatus;
 import javax.net.ssl.SSLEngineResult.Status;
 import javax.net.ssl.TrustManagerFactory;
@@ -282,7 +283,6 @@ public class SSLProtocol extends SequentialCommProtocol {
 			KeyManagerFactory kmf = KeyManagerFactory.getInstance( KeyManagerFactory.getDefaultAlgorithm() );
 			kmf.init( ks, passphrase );
 
-
 			if( trustStorePassword != null ) {
 				passphrase = trustStorePassword.toCharArray();
 			} else {
@@ -307,6 +307,10 @@ public class SSLProtocol extends SequentialCommProtocol {
 			if( isClient == false ) {
 				sslEngine.setWantClientAuth( getSSLIntegerParameter( "wantClientAuth", 1 ) > 0 );
 			}
+
+			SSLParameters sslParameters = sslEngine.getSSLParameters();
+			sslParameters.setEndpointIdentificationAlgorithm( "HTTPS" );
+			sslEngine.setSSLParameters( sslParameters );
 		} catch( NoSuchAlgorithmException | CertificateException | UnrecoverableKeyException | KeyStoreException
 			| KeyManagementException e ) {
 			throw new IOException( e );
