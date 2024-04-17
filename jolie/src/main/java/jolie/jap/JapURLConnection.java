@@ -30,6 +30,7 @@ import java.net.JarURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.file.Files;
 import java.security.AccessController;
 import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
@@ -76,7 +77,7 @@ public class JapURLConnection extends URLConnection {
 					File tmpFile = null;
 					OutputStream out = null;
 					try {
-						tmpFile = File.createTempFile( "jap_cache", null );
+						tmpFile = Files.createTempFile( "jap_cache", null ).toFile();
 						tmpFile.deleteOnExit();
 						out = new FileOutputStream( tmpFile );
 						int read;
