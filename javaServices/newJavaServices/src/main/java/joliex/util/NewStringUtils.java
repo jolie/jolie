@@ -3,6 +3,7 @@ package joliex.util;
 import jolie.runtime.JavaService;
 import jolie.runtime.ValuePrettyPrinter;
 import jolie.runtime.FaultException;
+import jolie.runtime.embedding.java.JolieValue;
 
 import java.io.IOException;
 import java.io.StringWriter;
@@ -21,7 +22,7 @@ import java.util.stream.IntStream;
 
 import org.apache.commons.text.StringSubstitutor;
 import org.apache.commons.text.lookup.StringLookup;
-import joliex.java.embedding.JolieValue;
+
 import joliex.util.interfaces.StringUtilsInterface;
 import joliex.util.types.*;
 

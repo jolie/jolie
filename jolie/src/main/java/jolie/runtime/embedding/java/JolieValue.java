@@ -1,4 +1,4 @@
-package joliex.java.embedding;
+package jolie.runtime.embedding.java;
 
 import java.util.SequencedCollection;
 import java.util.List;
@@ -12,8 +12,8 @@ import jolie.runtime.ByteArray;
 import jolie.runtime.JavaService.ValueConverter;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
-import joliex.java.embedding.util.AbstractListBuilder;
-import joliex.java.embedding.util.UntypedBuilder;
+import jolie.runtime.embedding.java.util.AbstractListBuilder;
+import jolie.runtime.embedding.java.util.UntypedBuilder;
 
 public interface JolieValue extends ValueConverter {
 
@@ -73,12 +73,12 @@ public interface JolieValue extends ValueConverter {
 
     public static Value toValue( JolieValue t ) { 
         final Value value = t.content().jolieRepr();
-
         t.children().forEach( (name, ls) -> {
-            final ValueVector vv = value.getChildren( name );
-            ls.forEach( e -> vv.add( toValue( e ) ) );
+            if ( !ls.isEmpty() ) {
+                final ValueVector vv = value.getChildren( name );
+                ls.forEach( e -> vv.add( toValue( e ) ) );
+            }
         } );
-        
         return value;
     }
 
@@ -117,23 +117,23 @@ public interface JolieValue extends ValueConverter {
         
         public ListBuilder add( Function<Builder, JolieValue> b ) { return add( b.apply( construct() ) ); }
 
-        public ListBuilder add( JolieNative<?> basic ) { return add( JolieValue.create( basic ) ); }
-        public ListBuilder add( Boolean basicValue ) { return add( JolieNative.create( basicValue ) ); }
-        public ListBuilder add( Integer basicValue ) { return add( JolieNative.create( basicValue ) ); }
-        public ListBuilder add( Long basicValue ) { return add( JolieNative.create( basicValue ) ); }
-        public ListBuilder add( Double basicValue ) { return add( JolieNative.create( basicValue ) ); }
-        public ListBuilder add( String basicValue ) { return add( JolieNative.create( basicValue ) ); }
-        public ListBuilder add( ByteArray basicValue ) { return add( JolieNative.create( basicValue ) ); }
+        public ListBuilder add( JolieNative<?> contentEntry ) { return add( JolieValue.create( contentEntry ) ); }
+        public ListBuilder add( Boolean valueEntry ) { return add( JolieNative.create( valueEntry ) ); }
+        public ListBuilder add( Integer valueEntry ) { return add( JolieNative.create( valueEntry ) ); }
+        public ListBuilder add( Long valueEntry ) { return add( JolieNative.create( valueEntry ) ); }
+        public ListBuilder add( Double valueEntry ) { return add( JolieNative.create( valueEntry ) ); }
+        public ListBuilder add( String valueEntry ) { return add( JolieNative.create( valueEntry ) ); }
+        public ListBuilder add( ByteArray valueEntry ) { return add( JolieNative.create( valueEntry ) ); }
 
         public ListBuilder set( int index, Function<Builder, JolieValue> b ) { return set( index, b.apply( construct() ) ); }
 
-        public ListBuilder set( int index, JolieNative<?> basic ) { return set( index, JolieValue.create( basic ) ); }
-        public ListBuilder set( int index, Boolean basicValue ) { return set( index, JolieNative.create( basicValue ) ); }
-        public ListBuilder set( int index, Integer basicValue ) { return set( index, JolieNative.create( basicValue ) ); }
-        public ListBuilder set( int index, Long basicValue ) { return set( index, JolieNative.create( basicValue ) ); }
-        public ListBuilder set( int index, Double basicValue ) { return set( index, JolieNative.create( basicValue ) ); }
-        public ListBuilder set( int index, String basicValue ) { return set( index, JolieNative.create( basicValue ) ); }
-        public ListBuilder set( int index, ByteArray basicValue ) { return set( index, JolieNative.create( basicValue ) ); }
+        public ListBuilder set( int index, JolieNative<?> contentEntry ) { return set( index, JolieValue.create( contentEntry ) ); }
+        public ListBuilder set( int index, Boolean valueEntry ) { return set( index, JolieNative.create( valueEntry ) ); }
+        public ListBuilder set( int index, Integer valueEntry ) { return set( index, JolieNative.create( valueEntry ) ); }
+        public ListBuilder set( int index, Long valueEntry ) { return set( index, JolieNative.create( valueEntry ) ); }
+        public ListBuilder set( int index, Double valueEntry ) { return set( index, JolieNative.create( valueEntry ) ); }
+        public ListBuilder set( int index, String valueEntry ) { return set( index, JolieNative.create( valueEntry ) ); }
+        public ListBuilder set( int index, ByteArray valueEntry ) { return set( index, JolieNative.create( valueEntry ) ); }
 
         public ListBuilder reconstruct( int index, Function<Builder, JolieValue> b ) { return replace( index, j -> b.apply( constructFrom( j ) ) ); }
     }

@@ -1,4 +1,4 @@
-package joliex.java.embedding.util;
+package jolie.runtime.embedding.java.util;
 
 import java.util.List;
 import java.util.Map;
@@ -7,7 +7,7 @@ import java.util.SequencedCollection;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiFunction;
 import java.util.function.Function;
-import joliex.java.embedding.JolieValue;
+import jolie.runtime.embedding.java.JolieValue;
 
 public abstract class UntypedBuilder<B> {
 

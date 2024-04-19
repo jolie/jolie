@@ -24,11 +24,20 @@ public final class OptionClassBuilder extends JavaClassBuilder {
     public void appendHeader() {}
 
     public void appendDefinition() {
-        builder.newlineAppend( "public static record " ).append( className ).append( type == Native.VOID ? "()" : "( " + typeName( type ) + " option )" ).append( " implements " ).append( superName ).body( () -> {
-            appendConstructors();
-            appendMethods();
-            appendStaticMethods();
-        });
+        appendSignature();
+        builder.body( this::appendBody );
+    }
+
+    private void appendSignature() {
+        builder.newlineAppend( "public static record " ).append( className ).append( type == Native.VOID ? "()" : "( " + typeName( type ) + " option )" ).append( " implements " ).append( superName );
+    }
+
+    private void appendBody() {
+        appendConstructors();
+        switch ( type ) {
+            case Native n -> appendMethods( n );
+            case Definition d -> appendMethods( d );
+        }
     }
 
     private void appendConstructors() {
@@ -36,12 +45,31 @@ public final class OptionClassBuilder extends JavaClassBuilder {
             builder.newNewlineAppend( "public " ).append( className ).append( "( " ).append( typeName( type ) ).append( " option ) { this.option = Objects.requireNonNull( option ); }" );
     }
 
-    private void appendMethods() {
-        switch ( type( type ) ) {
-            case Native n -> appendMethods( n );
-            case Definition d -> appendMethods( d );
-        }
-        
+    private void appendMethods( Native n ) {
+        builder.newline()
+            .newlineAppend( "public " ).append( n.wrapperName() ).append( " content() { return " ).append( switch ( n ) { case ANY -> "option"; case VOID -> "new JolieVoid()"; default -> "JolieNative.create( option )"; } ).append( "; }" )
+            .newlineAppend( "public Map<String, List<JolieValue>> children() { return Map.of(); }" )
+            .newlineAppend( "public Value jolieRepr() { return " ).append( switch ( n ) { case ANY -> "JolieNative.toValue( option )"; case VOID -> "Value.create()"; default -> "Value.create( option )"; } ).append( "; }" );
+
+        appendOverrideMethods();
+        appendCreateFromMethod( n );
+        appendFromValueMethod( n );
+        appendToValueMethod();
+    }
+    
+    private void appendMethods( Definition d ) {
+        builder.newline()
+            .newlineAppend( "public " ).append( switch ( d ) { case Basic b -> b.nativeType().wrapperName(); case Structure s -> s.nativeType().wrapperName(); case Choice c -> "JolieNative<?>"; } ).append( " content() { return option.content(); }" )
+            .newlineAppend( "public Map<String, List<JolieValue>> children() { return option.children(); }" )
+            .newlineAppend( "public Value jolieRepr() { return " ).append( d.name() ).append( ".toValue( option ); }" );
+
+        appendOverrideMethods();
+        appendCreateFromMethod( d );
+        appendFromValueMethod( d );
+        appendToValueMethod();
+    }
+
+    private void appendOverrideMethods() {
         if ( type != Native.VOID )
             builder.newline()
                 .newlineAppend( "public boolean equals( Object obj ) { return obj instanceof " ).append( className ).append( " o && option.equals( o.option() ); }" )
@@ -54,31 +82,7 @@ public final class OptionClassBuilder extends JavaClassBuilder {
                 .newlineAppend( "public String toString() { return \"\"; }" );
     }
 
-    private void appendMethods( Native n ) {
-        builder.newline()
-            .newlineAppend( "public " ).append( n.wrapperName() ).append( " content() { return " ).append( switch ( n ) { case ANY -> "option"; case VOID -> "new JolieVoid()"; default -> "JolieNative.create( option )"; } ).append( "; }" )
-            .newlineAppend( "public Map<String, List<JolieValue>> children() { return Map.of(); }" )
-            .newlineAppend( "public Value jolieRepr() { return " ).append( switch ( n ) { case ANY -> "JolieNative.toValue( option )"; case VOID -> "Value.create()"; default -> "Value.create( option )"; } ).append( "; }" );
-    }
-    
-    private void appendMethods( Definition d ) {
-        builder.newline()
-            .newlineAppend( "public " ).append( switch ( d ) { case Basic b -> b.nativeType().wrapperName(); case Structure s -> s.nativeType().wrapperName(); case Choice c -> "JolieNative<?>"; } ).append( " content() { return option.content(); }" )
-            .newlineAppend( "public Map<String, List<JolieValue>> children() { return option.children(); }" )
-            .newlineAppend( "public Value jolieRepr() { return " ).append( d.name() ).append( ".toValue( option ); }" );
-    }
-
-    private void appendStaticMethods() {
-        switch ( type( type ) ) {
-            case Native n -> appendStaticMethods( n );
-            case Definition d -> appendStaticMethods( d );
-        }
-        // toValue() method
-        builder.newNewlineAppend( "public static Value toValue( " ).append( className ).append( " t ) { return t.jolieRepr(); }" );
-    }
-
-    private void appendStaticMethods( Native n ) {
-        // createFrom() method
+    private void appendCreateFromMethod( Native n ) {
         builder.newNewlineAppend( "public static " ).append( className ).append( " createFrom( JolieValue j ) throws TypeValidationException" ).body( () -> {
             if ( n == Native.VOID )
                 builder.newlineAppend( "return new " ).append( className ).append( "();" );
@@ -87,7 +91,13 @@ public final class OptionClassBuilder extends JavaClassBuilder {
             else
                 builder.newlineAppend( "return new " ).append( className ).append( "( " ).append( n.wrapperName() ).append( ".createFrom( j ).value() );" );
         } );
-        // fromValue() method
+    }
+
+    private void appendCreateFromMethod( Definition d ) {
+        builder.newNewlineAppend( "public static " ).append( className ).append( " createFrom( JolieValue j ) throws TypeValidationException { return new " ).append( className ).append( "( " ).append( d.name() ).append( ".createFrom( j ) ); }" );
+    }
+
+    private void appendFromValueMethod( Native n ) {
         builder.newNewlineAppend( "public static " ).append( className ).append( " fromValue( Value v ) throws TypeCheckingException { " ).append(
             switch ( n ) {
                 case VOID -> "JolieVoid.requireVoid( v ); return new " + className + "();";
@@ -97,25 +107,26 @@ public final class OptionClassBuilder extends JavaClassBuilder {
         ).append( " }" );
     }
 
-    private void appendStaticMethods( Definition d ) {
-        // createFrom() method
-        builder.newNewlineAppend( "public static " ).append( className ).append( " createFrom( JolieValue j ) throws TypeValidationException { return new " ).append( className ).append( "( " ).append( d.name() ).append( ".createFrom( j ) ); }" );
-        // fromValue() method
+    private void appendFromValueMethod( Definition d ) {
         builder.newNewlineAppend( "public static " ).append( className ).append( " fromValue( Value v ) throws TypeCheckingException { return new " ).append( className ).append( "( " ).append( d.name() ).append( ".fromValue( v ) ); }" );
     }
-    
+
+    private void appendToValueMethod() {
+        builder.newNewlineAppend( "public static Value toValue( " ).append( className ).append( " t ) { return t.jolieRepr(); }" );
+    }
+
     /*
      * Convenience method to handle the fact that Basic.Inline and Native are stored in the same way.
      */
-    private static JolieType type( JolieType t ) {
+    protected static JolieType storedType( JolieType t ) {
         return t instanceof Basic.Inline b ? b.nativeType() : t;
     }
 
     /*
      * Convenience method to handle the fact that Basic.Inline and Native are stored in the same way.
      */
-    private static String typeName( JolieType t ) {
-        return switch( type( t ) ) {
+    protected static String typeName( JolieType t ) {
+        return switch( storedType( t ) ) {
             case Native n -> n == Native.VOID ? n.wrapperName() : n.valueName();
             case Definition d -> d.name();
         };

@@ -4,6 +4,12 @@ import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 import jolie.runtime.ByteArray;
 import jolie.runtime.typing.TypeCheckingException;
+import jolie.runtime.embedding.java.JolieValue;
+import jolie.runtime.embedding.java.JolieNative;
+import jolie.runtime.embedding.java.JolieNative.*;
+import jolie.runtime.embedding.java.ImmutableStructure;
+import jolie.runtime.embedding.java.TypeValidationException;
+import jolie.runtime.embedding.java.util.*;
 
 import java.util.ArrayList;
 import java.util.Map;
@@ -19,21 +25,16 @@ import java.util.function.BinaryOperator;
 import java.util.stream.Stream;
 import java.util.stream.Collectors;
 
-import joliex.java.embedding.*;
-import joliex.java.embedding.JolieNative.*;
-import joliex.java.embedding.util.*;
-
 /**
  * this class is an {@link JolieValue} which can be described as follows:
- * 
  * <pre>
+ * 
  * contentValue: {@link String}
- *     word: {@link String}
+     * word: {@link String}
  * </pre>
  * 
  * @see JolieValue
  * @see JolieNative
- * @see #construct()
  */
 public final class IndexOfRequest implements JolieValue {
     
@@ -43,8 +44,8 @@ public final class IndexOfRequest implements JolieValue {
     private final String word;
     
     public IndexOfRequest( String contentValue, String word ) {
-        this.contentValue = ValueManager.validated( contentValue );
-        this.word = ValueManager.validated( word );
+        this.contentValue = ValueManager.validated( "contentValue", contentValue );
+        this.word = ValueManager.validated( "word", word );
     }
     
     public String contentValue() { return contentValue; }
@@ -52,18 +53,10 @@ public final class IndexOfRequest implements JolieValue {
     
     public JolieString content() { return new JolieString( contentValue ); }
     public Map<String, List<JolieValue>> children() {
-        return one.util.streamex.EntryStream.of(
+        return Map.of(
             "word", List.of( JolieValue.create( word ) )
-        ).filterValues( Objects::nonNull ).toImmutableMap();
+        );
     }
-    
-    public static Builder construct() { return new Builder(); }
-    
-    public static ListBuilder constructList() { return new ListBuilder(); }
-    
-    public static Builder constructFrom( JolieValue j ) { return new Builder( j ); }
-    
-    public static ListBuilder constructListFrom( SequencedCollection<? extends JolieValue> c ) { return new ListBuilder( c ); }
     
     public static IndexOfRequest createFrom( JolieValue j ) {
         return new IndexOfRequest(
@@ -86,37 +79,5 @@ public final class IndexOfRequest implements JolieValue {
         v.getFirstChild( "word" ).setValue( t.word() );
         
         return v;
-    }
-    
-    public static class Builder {
-        
-        private String contentValue;
-        private String word;
-        
-        private Builder() {}
-        private Builder( JolieValue j ) {
-            
-            contentValue = j.content() instanceof JolieString content ? content.value() : null;
-            this.word = ValueManager.fieldFrom( j.getFirstChild( "word" ), c -> c.content() instanceof JolieString content ? content.value() : null );
-        }
-        
-        public Builder contentValue( String contentValue ) { this.contentValue = contentValue; return this; }
-        public Builder word( String word ) { this.word = word; return this; }
-        
-        public IndexOfRequest build() {
-            return new IndexOfRequest( contentValue, word );
-        }
-    }
-    
-    public static class ListBuilder extends AbstractListBuilder<ListBuilder, IndexOfRequest> {
-        
-        private ListBuilder() {}
-        private ListBuilder( SequencedCollection<? extends JolieValue> c ) { super( c, IndexOfRequest::createFrom ); }
-        
-        protected ListBuilder self() { return this; }
-        
-        public ListBuilder add( Function<Builder, IndexOfRequest> b ) { return add( b.apply( construct() ) ); }
-        public ListBuilder set( int index, Function<Builder, IndexOfRequest> b ) { return set( index, b.apply( construct() ) ); }
-        public ListBuilder reconstruct( int index, Function<Builder, IndexOfRequest> b ) { return replace( index, j -> b.apply( constructFrom( j ) ) ); }
     }
 }

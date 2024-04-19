@@ -19,15 +19,18 @@
  *   For details about the authors of this software, see the AUTHORS file.
  */
 
+///@GenerateBuilder(false)
 type RoundRequestType:double {
 	.decimals?:int
 }
 
+///@GenerateBuilder(false)
 type PowRequest:void {
 	.base:double
 	.exponent:double
 }
 
+///@GenerateBuilder(false)
 type SummationRequest:void {
 	.from:int
 	.to:int

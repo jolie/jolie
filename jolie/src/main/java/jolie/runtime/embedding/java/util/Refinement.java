@@ -1,10 +1,10 @@
-package joliex.java.embedding.util;
+package jolie.runtime.embedding.java.util;
 
 import java.util.Collection;
 import java.util.List;
 
-import joliex.java.embedding.JolieNative;
-import joliex.java.embedding.TypeValidationException;
+import jolie.runtime.embedding.java.JolieNative;
+import jolie.runtime.embedding.java.TypeValidationException;
 
 public sealed interface Refinement<V> {
 

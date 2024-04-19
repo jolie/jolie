@@ -2,8 +2,8 @@ package joliex.util.interfaces;
 
 import jolie.runtime.ByteArray;
 import jolie.runtime.FaultException;
-
-import joliex.java.embedding.*;
+import jolie.runtime.embedding.java.JolieValue;
+import jolie.runtime.embedding.java.JolieNative;
 import joliex.util.types.*;
 
 public interface StringUtilsInterface {

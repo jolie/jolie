@@ -22,8 +22,8 @@ import jolie.InterpreterThread;
 import jolie.net.CommMessage;
 import jolie.runtime.FaultException;
 import jolie.runtime.embedding.RequestResponse;
+import jolie.runtime.embedding.java.JolieValue;
 
-import joliex.java.embedding.*;
 import joliex.util.types.*;
 import joliex.util.faults.*;
 import joliex.util.interfaces.*;

@@ -4,6 +4,12 @@ import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 import jolie.runtime.ByteArray;
 import jolie.runtime.typing.TypeCheckingException;
+import jolie.runtime.embedding.java.JolieValue;
+import jolie.runtime.embedding.java.JolieNative;
+import jolie.runtime.embedding.java.JolieNative.*;
+import jolie.runtime.embedding.java.ImmutableStructure;
+import jolie.runtime.embedding.java.TypeValidationException;
+import jolie.runtime.embedding.java.util.*;
 
 import java.util.ArrayList;
 import java.util.Map;
@@ -19,21 +25,15 @@ import java.util.function.BinaryOperator;
 import java.util.stream.Stream;
 import java.util.stream.Collectors;
 
-import joliex.java.embedding.*;
-import joliex.java.embedding.JolieNative.*;
-import joliex.java.embedding.util.*;
-
 /**
  * this class is an {@link JolieValue} which can be described as follows:
- * 
  * <pre>
- *     base: {@link Double}
- *     exponent: {@link Double}
+ * base: {@link Double}
+ * exponent: {@link Double}
  * </pre>
  * 
  * @see JolieValue
  * @see JolieNative
- * @see #construct()
  */
 public final class PowRequest implements JolieValue {
     
@@ -43,8 +43,8 @@ public final class PowRequest implements JolieValue {
     private final Double exponent;
     
     public PowRequest( Double base, Double exponent ) {
-        this.base = ValueManager.validated( base );
-        this.exponent = ValueManager.validated( exponent );
+        this.base = ValueManager.validated( "base", base );
+        this.exponent = ValueManager.validated( "exponent", exponent );
     }
     
     public Double base() { return base; }
@@ -52,19 +52,11 @@ public final class PowRequest implements JolieValue {
     
     public JolieVoid content() { return new JolieVoid(); }
     public Map<String, List<JolieValue>> children() {
-        return one.util.streamex.EntryStream.of(
+        return Map.of(
             "base", List.of( JolieValue.create( base ) ),
             "exponent", List.of( JolieValue.create( exponent ) )
-        ).filterValues( Objects::nonNull ).toImmutableMap();
+        );
     }
-    
-    public static Builder construct() { return new Builder(); }
-    
-    public static ListBuilder constructList() { return new ListBuilder(); }
-    
-    public static Builder constructFrom( JolieValue j ) { return new Builder( j ); }
-    
-    public static ListBuilder constructListFrom( SequencedCollection<? extends JolieValue> c ) { return new ListBuilder( c ); }
     
     public static PowRequest createFrom( JolieValue j ) {
         return new PowRequest(
@@ -88,36 +80,5 @@ public final class PowRequest implements JolieValue {
         v.getFirstChild( "exponent" ).setValue( t.exponent() );
         
         return v;
-    }
-    
-    public static class Builder {
-        
-        private Double base;
-        private Double exponent;
-        
-        private Builder() {}
-        private Builder( JolieValue j ) {
-            this.base = ValueManager.fieldFrom( j.getFirstChild( "base" ), c -> c.content() instanceof JolieDouble content ? content.value() : null );
-            this.exponent = ValueManager.fieldFrom( j.getFirstChild( "exponent" ), c -> c.content() instanceof JolieDouble content ? content.value() : null );
-        }
-        
-        public Builder base( Double base ) { this.base = base; return this; }
-        public Builder exponent( Double exponent ) { this.exponent = exponent; return this; }
-        
-        public PowRequest build() {
-            return new PowRequest( base, exponent );
-        }
-    }
-    
-    public static class ListBuilder extends AbstractListBuilder<ListBuilder, PowRequest> {
-        
-        private ListBuilder() {}
-        private ListBuilder( SequencedCollection<? extends JolieValue> c ) { super( c, PowRequest::createFrom ); }
-        
-        protected ListBuilder self() { return this; }
-        
-        public ListBuilder add( Function<Builder, PowRequest> b ) { return add( b.apply( construct() ) ); }
-        public ListBuilder set( int index, Function<Builder, PowRequest> b ) { return set( index, b.apply( construct() ) ); }
-        public ListBuilder reconstruct( int index, Function<Builder, PowRequest> b ) { return replace( index, j -> b.apply( constructFrom( j ) ) ); }
     }
 }

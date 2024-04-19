@@ -60,18 +60,19 @@ public sealed interface JolieType {
             Native nativeType();
             NativeRefinement nativeRefinement();
             List<Field> fields();
+            default boolean hasBuilder() { return true; }
     
             default Optional<NativeRefinement> possibleRefinement() { return Optional.ofNullable( nativeRefinement() ); }
     
             public static sealed interface Inline extends Structure {
 
-                public static record Typed( String name, Native nativeType, NativeRefinement nativeRefinement, List<Field> fields ) implements Inline {
+                public static record Typed( String name, Native nativeType, NativeRefinement nativeRefinement, List<Field> fields, boolean hasBuilder ) implements Inline {
                     
                     public boolean equals( Object obj ) { return obj != null && obj instanceof Structure other && name.equals( other.name() ); }
                     public int hashCode() { return name.hashCode(); }
                 }
 
-                public static record Untyped( String name, Native nativeType, NativeRefinement nativeRefinement ) implements Inline {
+                public static record Untyped( String name, Native nativeType, NativeRefinement nativeRefinement, boolean hasBuilder ) implements Inline {
                     
                     public List<Field> fields() { return List.of(); }
 
@@ -86,6 +87,7 @@ public sealed interface JolieType {
                 public Native nativeType() { return definition.nativeType(); }
                 public NativeRefinement nativeRefinement() { return definition.nativeRefinement(); }
                 public List<Field> fields() { return definition.fields(); }
+                public boolean hasBuilder() { return definition.hasBuilder(); }
     
                 public boolean equals( Object obj ) { return definition.equals( obj ); }
                 public int hashCode() { return definition.hashCode(); }
@@ -114,11 +116,12 @@ public sealed interface JolieType {
             }
     
             List<Option> options();
+            boolean hasBuilder();
             default EntryStream<Integer, JolieType> numberedOptions() {
                 return EntryStream.of( options() ).mapKeys( i -> ++i ).mapValues( Option::type );
             }
     
-            public static record Inline( String name, List<Option> options ) implements Choice {
+            public static record Inline( String name, List<Option> options, boolean hasBuilder ) implements Choice {
                 
                 public boolean equals( Object obj ) { return obj != null && obj instanceof Choice other && name.equals( other.name() ); }
                 public int hashCode() { return name.hashCode(); } 
@@ -128,6 +131,7 @@ public sealed interface JolieType {
     
                 public String name() { return definition.name(); }
                 public List<Option> options() { return definition.options(); }
+                public boolean hasBuilder() { return definition.hasBuilder(); }
     
                 public boolean equals( Object obj ) { return definition.equals( obj ); }
                 public int hashCode() { return definition.hashCode(); }

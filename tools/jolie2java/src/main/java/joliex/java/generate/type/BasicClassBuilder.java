@@ -6,30 +6,30 @@ public class BasicClassBuilder extends TypeClassBuilder {
 
     private final Basic basic;
 
-    public BasicClassBuilder( Basic basic, String packageName, String typeFolder ) {
-        super( basic.name(), packageName, typeFolder );
+    public BasicClassBuilder( Basic basic, String typesPackage ) {
+        super( basic.name(), typesPackage );
         this.basic = basic; 
     }
 
-    public void appendDefinition( boolean isInnerClass ) {
-        builder.newline()
-            .commentBlock( this::appendDocumentation )
-            .newlineAppend( "public " ).append( isInnerClass ? "static " : "" ).append( "record " ).append( className ).append( "( " ).append( basic.nativeType().valueName() ).append( " contentValue ) implements JolieValue" )
-            .body( this::appendDefinitionBody );
+    protected void appendDescriptionDocumentation() {
+        builder.newlineAppend( "this record is a {@link JolieValue} which can be described as follows:" );
     }
 
-    private void appendDocumentation() {
-        builder.newlineAppend( "this record is a {@link JolieValue} which can be described as follows:" )
-            .newline()
-            .codeBlock( () -> builder
-                .newlineAppend( "contentValue: {@link " ).append( basic.nativeType().valueName() ).append( "}( " ).append( basic.refinement().definitionString() ).append( " )" )
-            )
-            .newline()
+    protected void appendDefinitionDocumentation() {
+        builder.newlineAppend( "contentValue: {@link " ).append( basic.nativeType().valueName() ).append( "}( " ).append( basic.refinement().definitionString() ).append( " )" );
+    }
+
+    protected void appendSeeDocumentation() {
+        builder.newline()
             .newlineAppend( "@see JolieValue" )
             .newlineAppend( "@see JolieNative" );
     }
 
-    private void appendDefinitionBody() {
+    protected void appendSignature( boolean isInnerClass ) {
+        builder.newlineAppend( "public " ).append( isInnerClass ? "static " : "" ).append( "record " ).append( className ).append( "( " ).append( basic.nativeType().valueName() ).append( " contentValue ) implements JolieValue" );
+    }
+
+    protected void appendBody() {
         appendAttributes();
         appendConstructors();
         appendMethods();

@@ -9,17 +9,15 @@ import joliex.java.parse.ast.JolieType.Native;
 public class ExceptionClassBuilder extends JavaClassBuilder {
 
     private final Fault fault;
-    private final String packageName;
-    private final String typesFolder;
-    private final String faultsFolder;
+    private final String faultsPackage;
+    private final String typesPackage;
 
     private final Optional<String> typeName;
 
-    public ExceptionClassBuilder( Fault fault, String packageName, String typesFolder, String faultsFolder ) {
+    public ExceptionClassBuilder( Fault fault, String faultsPackage, String typesPackage ) {
         this.fault = fault;
-        this.packageName = packageName;
-        this.typesFolder = typesFolder;
-        this.faultsFolder = faultsFolder;
+        this.faultsPackage = faultsPackage;
+        this.typesPackage = typesPackage;
 
         typeName = Optional.ofNullable( switch( fault.type() ) {
             case Native n -> n == Native.VOID ? null : n.valueName();
@@ -30,19 +28,18 @@ public class ExceptionClassBuilder extends JavaClassBuilder {
     public String className() { return fault.className(); }
 
     public void appendHeader() { 
-        builder.append( "package " ).append( packageName ).append( "." ).append( faultsFolder ).append( ";" )
+        builder.append( "package " ).append( faultsPackage ).append( ";" )
             .newline()
             .newlineAppend( "import java.util.Objects;" )
             .newline()
             .newlineAppend( "import jolie.runtime.Value;" )
             .newlineAppend( "import jolie.runtime.ByteArray;" )
             .newlineAppend( "import jolie.runtime.FaultException;" )
-            .newline()
-            .newlineAppend( "import joliex.java.embedding.JolieValue;" )
-            .newlineAppend( "import joliex.java.embedding.JolieNative;" );
+            .newlineAppend( "import jolie.runtime.embedding.java.JolieValue;" )
+            .newlineAppend( "import jolie.runtime.embedding.java.JolieNative;" );
 
-        if ( fault.type() instanceof Definition )
-            builder.newNewlineAppend( "import " ).append( packageName ).append( "." ).append( typesFolder ).append( ".*;" );
+        if ( fault.type() instanceof Definition && !typesPackage.equals( faultsPackage ) )
+            builder.newNewlineAppend( "import " ).append( typesPackage ).append( ".*;" );
     }
 
     public void appendDefinition() {

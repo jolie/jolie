@@ -1,8 +1,8 @@
-package joliex.java.embedding.util;
+package jolie.runtime.embedding.java.util;
 
 import java.util.Objects;
 import jolie.runtime.typing.TypeCheckingException;
-import joliex.java.embedding.TypeValidationException;
+import jolie.runtime.embedding.java.TypeValidationException;
 
 @FunctionalInterface
 public interface ConversionFunction<T,R> {

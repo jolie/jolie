@@ -2,6 +2,7 @@ package joliex.java;
 
 import java.io.IOException;
 
+import jolie.Interpreter;
 import jolie.JolieURLStreamHandlerFactory;
 import jolie.cli.CommandLineException;
 import jolie.lang.CodeCheckException;
@@ -9,6 +10,7 @@ import jolie.lang.parse.SemanticVerifier;
 import jolie.lang.parse.ast.Program;
 import jolie.lang.parse.util.ParsingUtils;
 import jolie.lang.parse.util.ProgramInspector;
+
 import joliex.java.generate.JavaDocumentCreator;
 
 public class Jolie2Java {
@@ -45,20 +47,21 @@ public class Jolie2Java {
 		catch( IOException | CodeCheckException e ) { e.printStackTrace(); }
 	}
 
-	private static ProgramInspector getInspector( Jolie2JavaCommandLineParser cmdParser ) throws CommandLineException, IOException, CodeCheckException  {
-		final SemanticVerifier.Configuration configuration = new SemanticVerifier.Configuration( cmdParser.getInterpreterConfiguration().executionTarget() );
+	public static ProgramInspector getInspector( Jolie2JavaCommandLineParser cmdParser ) throws CommandLineException, IOException, CodeCheckException  {
+		final Interpreter.Configuration interpreterConfiguration = cmdParser.getInterpreterConfiguration();
+		final SemanticVerifier.Configuration semanticConfiguration = new SemanticVerifier.Configuration( interpreterConfiguration.executionTarget() );
 
-		configuration.setCheckForMain( false );
+		semanticConfiguration.setCheckForMain( false );
 
 		final Program program = ParsingUtils.parseProgram(
-			cmdParser.getInterpreterConfiguration().inputStream(),
-			cmdParser.getInterpreterConfiguration().programFilepath().toURI(),
-			cmdParser.getInterpreterConfiguration().charset(),
-			cmdParser.getInterpreterConfiguration().includePaths(),
-			cmdParser.getInterpreterConfiguration().packagePaths(),
-			cmdParser.getInterpreterConfiguration().jolieClassLoader(),
-			cmdParser.getInterpreterConfiguration().constants(),
-			configuration,
+			interpreterConfiguration.inputStream(),
+			interpreterConfiguration.programFilepath().toURI(),
+			interpreterConfiguration.charset(),
+			interpreterConfiguration.includePaths(),
+			interpreterConfiguration.packagePaths(),
+			interpreterConfiguration.jolieClassLoader(),
+			interpreterConfiguration.constants(),
+			semanticConfiguration,
 			true
 		);
 

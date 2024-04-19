@@ -1,4 +1,4 @@
-package joliex.java.embedding.util;
+package jolie.runtime.embedding.java.util;
 
 import java.util.List;
 import java.util.Objects;
@@ -9,39 +9,40 @@ import java.util.function.UnaryOperator;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 import jolie.runtime.typing.TypeCheckingException;
-import joliex.java.embedding.JolieValue;
-import joliex.java.embedding.TypeValidationException;
+import jolie.runtime.embedding.java.JolieValue;
+import jolie.runtime.embedding.java.TypeValidationException;
 
 public class ValueManager {
 	
-	public static <T> T validated( T t ) throws TypeValidationException { 
+	public static <T> T validated( String n, T t ) throws TypeValidationException { 
 		if ( t == null )
-			throw new TypeValidationException( "Field was unexpectedly unset." );
+			throw new TypeValidationException( "Mandatory field \"" + n + "\" was unset." );
 
 		return t;
 	}
 
-	public static <T> T validated( T t, List<Refinement<T>> rs ) throws TypeValidationException { 
-		return Refinement.validated( validated( t ), rs );
+	public static <T> T validated( String n, T t, List<Refinement<T>> rs ) throws TypeValidationException { 
+		return Refinement.validated( validated( n, t ), rs );
 	}
 
-	public static <T> List<T> validated( SequencedCollection<T> ts, int min, int max ) throws TypeValidationException {
-		return validated( ts, min, max, UnaryOperator.identity() );
+	public static <T> List<T> validated( String n, SequencedCollection<T> ts, int min, int max ) throws TypeValidationException {
+		return validated( n, ts, min, max, UnaryOperator.identity() );
 	}
 
-	public static <T> List<T> validated( SequencedCollection<T> ts, int min, int max, List<Refinement<T>> rs ) throws TypeValidationException {
-		return validated( ts, min, max, t -> Refinement.validated( t, rs ) );
+	public static <T> List<T> validated( String n, SequencedCollection<T> ts, int min, int max, List<Refinement<T>> rs ) throws TypeValidationException {
+		return validated( n, ts, min, max, t -> Refinement.validated( t, rs ) );
 	}
 
-	private static <T> List<T> validated( SequencedCollection<T> ts, int min, int max, UnaryOperator<T> validator ) {
-		final List<T> vts = validated( ts )
-			.parallelStream()
-			.filter( Objects::nonNull )
-			.map( validator::apply )
-			.toList();
+	private static <T> List<T> validated( String n, SequencedCollection<T> ts, int min, int max, UnaryOperator<T> validator ) {
+		final List<T> vts = ts == null 
+			? List.of() 
+			: ts.parallelStream()
+				.filter( Objects::nonNull )
+				.map( validator::apply )
+				.toList();
 
 		if ( vts.size() < min || vts.size() > max )
-			throw new TypeValidationException( "Field cardinality was incorrect." );
+			throw new TypeValidationException( "Field \"" + n + "\"'s cardinality was expected to be in the range [" + min + ", " + max + "], received cardinality=" + vts.size() + "." );
 
 		return vts;
 	}
@@ -89,6 +90,7 @@ public class ValueManager {
 
 	public static void requireChildren( Value v, Set<String> superset ) throws TypeCheckingException { 
 		if ( !superset.containsAll( v.children().keySet() ) )
-            throw new TypeCheckingException( "The given Value contained unexpected children." );
+            throw new TypeCheckingException( "The given Value contained the following set of unexpected children: " + 
+				v.children().keySet().parallelStream().filter( k -> !superset.contains( k ) ).reduce( (s1,s2) -> s1 + ", " + s2 ).map( s -> "{ " + s + " }" ).orElse( "{}" ) );
 	}
 }

@@ -19,38 +19,46 @@
  *   For details about the authors of this software, see the AUTHORS file.
  */
 
+///@GenerateBuilder(false)
 type EndsWithRequest: string {
 	suffix: string
 }
 
+///@GenerateBuilder(false)
 type ReplaceRequest:string {
 	regex:string
 	replacement:string
 }
 
+///@GenerateBuilder(false)
 type JoinRequest:void {
 	piece[0,*]:string
 	delimiter:string
 }
 
+///@GenerateBuilder(false)
 type SplitByLengthRequest:string {
 	length:int
 }
 
+///@GenerateBuilder(false)
 type SplitResult:void {
 	result[0,*]:string
 }
 
+///@GenerateBuilder(false)
 type SplitRequest:string {
 	limit?:int
 	regex:string
 }
 
+///@GenerateBuilder(false)
 type PadRequest:string {
 	length:int
-	chars:string
+	char:string //<@JavaName("chars")
 }
 
+///@GenerateBuilder(false)
 type MatchRequest:string {
 	regex:string
 }
@@ -59,35 +67,43 @@ type MatchResult:int { // 1 if at least a match was found, 0 otherwise.
 	group[0,*]:string
 }
 
+///@GenerateBuilder(false)
 type StartsWithRequest:string {
 	prefix:string
 }
 
+///@GenerateBuilder(false)
 type SubStringRequest:string {
 	begin:int
 	end?:int
 }
 
+///@GenerateBuilder(false)
 type StringItemList:void {
 	item*:string
 }
 
+///@GenerateBuilder(false)
 type IndexOfRequest: string {
 	word: string
 }
 
 type IndexOfResponse: int
 
+///@GenerateBuilder(false)
 type ContainsRequest:string {
 	substring:string
 }
 
+///@GenerateBuilder(false)
 type UrlEncodeRequest: string {
 	charset?: string 
 }
 
+///@GenerateBuilder(false)
 type UrlDecodeRequest: UrlEncodeRequest
 
+///@GenerateBuilder(false)
 type FormatRequest: string { ? }
 	| void {
 		format: string

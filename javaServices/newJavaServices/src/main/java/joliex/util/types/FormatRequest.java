@@ -4,6 +4,12 @@ import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 import jolie.runtime.ByteArray;
 import jolie.runtime.typing.TypeCheckingException;
+import jolie.runtime.embedding.java.JolieValue;
+import jolie.runtime.embedding.java.JolieNative;
+import jolie.runtime.embedding.java.JolieNative.*;
+import jolie.runtime.embedding.java.ImmutableStructure;
+import jolie.runtime.embedding.java.TypeValidationException;
+import jolie.runtime.embedding.java.util.*;
 
 import java.util.ArrayList;
 import java.util.Map;
@@ -19,13 +25,8 @@ import java.util.function.BinaryOperator;
 import java.util.stream.Stream;
 import java.util.stream.Collectors;
 
-import joliex.java.embedding.*;
-import joliex.java.embedding.JolieNative.*;
-import joliex.java.embedding.util.*;
-
 /**
  * this class is a choice type which can be described as follows:
- * 
  * <pre>
  * FormatRequest: S1 | S2
  * </pre>
@@ -75,6 +76,12 @@ public sealed interface FormatRequest extends JolieValue {
         public static Value toValue( C2 t ) { return t.jolieRepr(); }
     }
     
+    public static FormatRequest create1( S1 option ) { return new C1( option ); }
+    public static FormatRequest create1( Function<S1.Builder, S1> b ) { return create1( b.apply( S1.construct() ) ); }
+    
+    public static FormatRequest create2( S2 option ) { return new C2( option ); }
+    public static FormatRequest create2( Function<S2.Builder, S2> b ) { return create2( b.apply( S2.construct() ) ); }
+    
     public static FormatRequest createFrom( JolieValue j ) throws TypeValidationException {
         return ValueManager.choiceFrom( j, List.of( ValueManager.castFunc( C1::createFrom ), ValueManager.castFunc( C2::createFrom ) ) );
     }
@@ -88,9 +95,9 @@ public sealed interface FormatRequest extends JolieValue {
     
     /**
      * this class is an {@link ImmutableStructure} which can be described as follows:
-     * 
      * <pre>
-     * content: {@link String} { ? }
+     * 
+     * contentValue: {@link String}{ ? }
      * </pre>
      * 
      * @see JolieValue
@@ -99,17 +106,16 @@ public sealed interface FormatRequest extends JolieValue {
      */
     public static final class S1 extends ImmutableStructure<JolieString> {
         
-        public String contentValue() { return content().value(); }
-        
         public S1( String contentValue, Map<String, List<JolieValue>> children ) { super( JolieNative.create( contentValue ), children ); }
         
+        public String contentValue() { return content().value(); }
+        
         public static Builder construct() { return new Builder(); }
-        
         public static ListBuilder constructList() { return new ListBuilder(); }
-        
         public static Builder constructFrom( JolieValue j ) { return new Builder( j ); }
-        
         public static ListBuilder constructListFrom( SequencedCollection<? extends JolieValue> c ) { return new ListBuilder( c ); }
+        
+        public static Builder construct( String contentValue ) { return construct().contentValue( contentValue ); }
         
         public static S1 createFrom( JolieValue j ) throws TypeValidationException {
             return new S1( JolieString.createFrom( j ).value(), j.children() );
@@ -154,11 +160,10 @@ public sealed interface FormatRequest extends JolieValue {
     
     /**
      * this class is an {@link JolieValue} which can be described as follows:
-     * 
      * <pre>
-     *     data: {@link Data}
-     *     format: {@link String}
-     *     locale: {@link String}
+     * data: {@link Data}
+     * format: {@link String}
+     * locale: {@link String}
      * </pre>
      * 
      * @see JolieValue
@@ -175,9 +180,9 @@ public sealed interface FormatRequest extends JolieValue {
         private final String locale;
         
         public S2( Data data, String format, String locale ) {
-            this.data = ValueManager.validated( data );
-            this.format = ValueManager.validated( format );
-            this.locale = ValueManager.validated( locale );
+            this.data = ValueManager.validated( "data", data );
+            this.format = ValueManager.validated( "format", format );
+            this.locale = ValueManager.validated( "locale", locale );
         }
         
         public Data data() { return data; }
@@ -186,19 +191,16 @@ public sealed interface FormatRequest extends JolieValue {
         
         public JolieVoid content() { return new JolieVoid(); }
         public Map<String, List<JolieValue>> children() {
-            return one.util.streamex.EntryStream.of(
+            return Map.of(
                 "data", List.<JolieValue>of( data ),
                 "format", List.of( JolieValue.create( format ) ),
                 "locale", List.of( JolieValue.create( locale ) )
-            ).filterValues( Objects::nonNull ).toImmutableMap();
+            );
         }
         
         public static Builder construct() { return new Builder(); }
-        
         public static ListBuilder constructList() { return new ListBuilder(); }
-        
         public static Builder constructFrom( JolieValue j ) { return new Builder( j ); }
-        
         public static ListBuilder constructListFrom( SequencedCollection<? extends JolieValue> c ) { return new ListBuilder( c ); }
         
         public static S2 createFrom( JolieValue j ) {
@@ -242,7 +244,7 @@ public sealed interface FormatRequest extends JolieValue {
             }
             
             public Builder data( Data data ) { this.data = data; return this; }
-            public Builder data( Function<Data.Builder, Data> b ) { return data( b.apply( Data.construct() ) ); }
+            public Builder data( Function<Data.Builder, Data> b ){ return data( b.apply( Data.construct() ) ); }
             public Builder format( String format ) { this.format = format; return this; }
             public Builder locale( String locale ) { this.locale = locale; return this; }
             
@@ -266,9 +268,9 @@ public sealed interface FormatRequest extends JolieValue {
         
         /**
          * this class is an {@link ImmutableStructure} which can be described as follows:
-         * 
          * <pre>
-         * content: {@link Void} { ? }
+         * 
+         * content: {@link JolieVoid} { ? }
          * </pre>
          * 
          * @see JolieValue
@@ -280,11 +282,8 @@ public sealed interface FormatRequest extends JolieValue {
             public Data( Map<String, List<JolieValue>> children ) { super( new JolieVoid(), children ); }
             
             public static Builder construct() { return new Builder(); }
-            
             public static ListBuilder constructList() { return new ListBuilder(); }
-            
             public static Builder constructFrom( JolieValue j ) { return new Builder( j ); }
-            
             public static ListBuilder constructListFrom( SequencedCollection<? extends JolieValue> c ) { return new ListBuilder( c ); }
             
             public static Data createFrom( JolieValue j ) throws TypeValidationException {

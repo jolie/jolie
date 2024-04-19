@@ -4,6 +4,12 @@ import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 import jolie.runtime.ByteArray;
 import jolie.runtime.typing.TypeCheckingException;
+import jolie.runtime.embedding.java.JolieValue;
+import jolie.runtime.embedding.java.JolieNative;
+import jolie.runtime.embedding.java.JolieNative.*;
+import jolie.runtime.embedding.java.ImmutableStructure;
+import jolie.runtime.embedding.java.TypeValidationException;
+import jolie.runtime.embedding.java.util.*;
 
 import java.util.ArrayList;
 import java.util.Map;
@@ -19,21 +25,16 @@ import java.util.function.BinaryOperator;
 import java.util.stream.Stream;
 import java.util.stream.Collectors;
 
-import joliex.java.embedding.*;
-import joliex.java.embedding.JolieNative.*;
-import joliex.java.embedding.util.*;
-
 /**
  * this class is an {@link JolieValue} which can be described as follows:
- * 
  * <pre>
+ * 
  * contentValue: {@link String}
- *     suffix: {@link String}
+     * suffix: {@link String}
  * </pre>
  * 
  * @see JolieValue
  * @see JolieNative
- * @see #construct()
  */
 public final class EndsWithRequest implements JolieValue {
     
@@ -43,8 +44,8 @@ public final class EndsWithRequest implements JolieValue {
     private final String suffix;
     
     public EndsWithRequest( String contentValue, String suffix ) {
-        this.contentValue = ValueManager.validated( contentValue );
-        this.suffix = ValueManager.validated( suffix );
+        this.contentValue = ValueManager.validated( "contentValue", contentValue );
+        this.suffix = ValueManager.validated( "suffix", suffix );
     }
     
     public String contentValue() { return contentValue; }
@@ -52,18 +53,10 @@ public final class EndsWithRequest implements JolieValue {
     
     public JolieString content() { return new JolieString( contentValue ); }
     public Map<String, List<JolieValue>> children() {
-        return one.util.streamex.EntryStream.of(
+        return Map.of(
             "suffix", List.of( JolieValue.create( suffix ) )
-        ).filterValues( Objects::nonNull ).toImmutableMap();
+        );
     }
-    
-    public static Builder construct() { return new Builder(); }
-    
-    public static ListBuilder constructList() { return new ListBuilder(); }
-    
-    public static Builder constructFrom( JolieValue j ) { return new Builder( j ); }
-    
-    public static ListBuilder constructListFrom( SequencedCollection<? extends JolieValue> c ) { return new ListBuilder( c ); }
     
     public static EndsWithRequest createFrom( JolieValue j ) {
         return new EndsWithRequest(
@@ -86,37 +79,5 @@ public final class EndsWithRequest implements JolieValue {
         v.getFirstChild( "suffix" ).setValue( t.suffix() );
         
         return v;
-    }
-    
-    public static class Builder {
-        
-        private String contentValue;
-        private String suffix;
-        
-        private Builder() {}
-        private Builder( JolieValue j ) {
-            
-            contentValue = j.content() instanceof JolieString content ? content.value() : null;
-            this.suffix = ValueManager.fieldFrom( j.getFirstChild( "suffix" ), c -> c.content() instanceof JolieString content ? content.value() : null );
-        }
-        
-        public Builder contentValue( String contentValue ) { this.contentValue = contentValue; return this; }
-        public Builder suffix( String suffix ) { this.suffix = suffix; return this; }
-        
-        public EndsWithRequest build() {
-            return new EndsWithRequest( contentValue, suffix );
-        }
-    }
-    
-    public static class ListBuilder extends AbstractListBuilder<ListBuilder, EndsWithRequest> {
-        
-        private ListBuilder() {}
-        private ListBuilder( SequencedCollection<? extends JolieValue> c ) { super( c, EndsWithRequest::createFrom ); }
-        
-        protected ListBuilder self() { return this; }
-        
-        public ListBuilder add( Function<Builder, EndsWithRequest> b ) { return add( b.apply( construct() ) ); }
-        public ListBuilder set( int index, Function<Builder, EndsWithRequest> b ) { return set( index, b.apply( construct() ) ); }
-        public ListBuilder reconstruct( int index, Function<Builder, EndsWithRequest> b ) { return replace( index, j -> b.apply( constructFrom( j ) ) ); }
     }
 }

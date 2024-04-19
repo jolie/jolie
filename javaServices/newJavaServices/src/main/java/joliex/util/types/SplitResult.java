@@ -4,6 +4,12 @@ import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 import jolie.runtime.ByteArray;
 import jolie.runtime.typing.TypeCheckingException;
+import jolie.runtime.embedding.java.JolieValue;
+import jolie.runtime.embedding.java.JolieNative;
+import jolie.runtime.embedding.java.JolieNative.*;
+import jolie.runtime.embedding.java.ImmutableStructure;
+import jolie.runtime.embedding.java.TypeValidationException;
+import jolie.runtime.embedding.java.util.*;
 
 import java.util.ArrayList;
 import java.util.Map;
@@ -19,20 +25,14 @@ import java.util.function.BinaryOperator;
 import java.util.stream.Stream;
 import java.util.stream.Collectors;
 
-import joliex.java.embedding.*;
-import joliex.java.embedding.JolieNative.*;
-import joliex.java.embedding.util.*;
-
 /**
  * this class is an {@link JolieValue} which can be described as follows:
- * 
  * <pre>
- *     result[0,2147483647]: {@link String}
+ * result[0,2147483647]: {@link String}
  * </pre>
  * 
  * @see JolieValue
  * @see JolieNative
- * @see #construct()
  */
 public final class SplitResult implements JolieValue {
     
@@ -41,25 +41,17 @@ public final class SplitResult implements JolieValue {
     private final List<String> result;
     
     public SplitResult( SequencedCollection<String> result ) {
-        this.result = ValueManager.validated( result, 0, 2147483647 );
+        this.result = ValueManager.validated( "result", result, 0, 2147483647 );
     }
     
     public List<String> result() { return result; }
     
     public JolieVoid content() { return new JolieVoid(); }
     public Map<String, List<JolieValue>> children() {
-        return one.util.streamex.EntryStream.of(
+        return Map.of(
             "result", result.parallelStream().map( JolieValue::create ).toList()
-        ).filterValues( Objects::nonNull ).toImmutableMap();
+        );
     }
-    
-    public static Builder construct() { return new Builder(); }
-    
-    public static ListBuilder constructList() { return new ListBuilder(); }
-    
-    public static Builder constructFrom( JolieValue j ) { return new Builder( j ); }
-    
-    public static ListBuilder constructListFrom( SequencedCollection<? extends JolieValue> c ) { return new ListBuilder( c ); }
     
     public static SplitResult createFrom( JolieValue j ) {
         return new SplitResult(
@@ -80,33 +72,5 @@ public final class SplitResult implements JolieValue {
         t.result().forEach( c -> v.getNewChild( "result" ).setValue( c ) );
         
         return v;
-    }
-    
-    public static class Builder {
-        
-        private SequencedCollection<String> result;
-        
-        private Builder() {}
-        private Builder( JolieValue j ) {
-            this.result = ValueManager.fieldFrom( j.getChildOrDefault( "result", List.of() ), c -> c.content() instanceof JolieString content ? content.value() : null );
-        }
-        
-        public Builder result( SequencedCollection<String> result ) { this.result = result; return this; }
-        
-        public SplitResult build() {
-            return new SplitResult( result );
-        }
-    }
-    
-    public static class ListBuilder extends AbstractListBuilder<ListBuilder, SplitResult> {
-        
-        private ListBuilder() {}
-        private ListBuilder( SequencedCollection<? extends JolieValue> c ) { super( c, SplitResult::createFrom ); }
-        
-        protected ListBuilder self() { return this; }
-        
-        public ListBuilder add( Function<Builder, SplitResult> b ) { return add( b.apply( construct() ) ); }
-        public ListBuilder set( int index, Function<Builder, SplitResult> b ) { return set( index, b.apply( construct() ) ); }
-        public ListBuilder reconstruct( int index, Function<Builder, SplitResult> b ) { return replace( index, j -> b.apply( constructFrom( j ) ) ); }
     }
 }

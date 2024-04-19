@@ -4,6 +4,12 @@ import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 import jolie.runtime.ByteArray;
 import jolie.runtime.typing.TypeCheckingException;
+import jolie.runtime.embedding.java.JolieValue;
+import jolie.runtime.embedding.java.JolieNative;
+import jolie.runtime.embedding.java.JolieNative.*;
+import jolie.runtime.embedding.java.ImmutableStructure;
+import jolie.runtime.embedding.java.TypeValidationException;
+import jolie.runtime.embedding.java.util.*;
 
 import java.util.ArrayList;
 import java.util.Map;
@@ -19,22 +25,17 @@ import java.util.function.BinaryOperator;
 import java.util.stream.Stream;
 import java.util.stream.Collectors;
 
-import joliex.java.embedding.*;
-import joliex.java.embedding.JolieNative.*;
-import joliex.java.embedding.util.*;
-
 /**
  * this class is an {@link JolieValue} which can be described as follows:
- * 
  * <pre>
+ * 
  * contentValue: {@link String}
- *     format[0,1]: {@link String}
- *     language[0,1]: {@link String}
+     * format[0,1]: {@link String}
+     * language[0,1]: {@link String}
  * </pre>
  * 
  * @see JolieValue
  * @see JolieNative
- * @see #construct()
  */
 public final class GetTimestampFromStringRequest implements JolieValue {
     
@@ -45,7 +46,7 @@ public final class GetTimestampFromStringRequest implements JolieValue {
     private final String language;
     
     public GetTimestampFromStringRequest( String contentValue, String format, String language ) {
-        this.contentValue = ValueManager.validated( contentValue );
+        this.contentValue = ValueManager.validated( "contentValue", contentValue );
         this.format = format;
         this.language = language;
     }
@@ -56,19 +57,11 @@ public final class GetTimestampFromStringRequest implements JolieValue {
     
     public JolieString content() { return new JolieString( contentValue ); }
     public Map<String, List<JolieValue>> children() {
-        return one.util.streamex.EntryStream.of(
-            "format", format == null ? null : List.of( JolieValue.create( format ) ),
-            "language", language == null ? null : List.of( JolieValue.create( language ) )
-        ).filterValues( Objects::nonNull ).toImmutableMap();
+        return Map.of(
+            "format", format == null ? List.of() : List.of( JolieValue.create( format ) ),
+            "language", language == null ? List.of() : List.of( JolieValue.create( language ) )
+        );
     }
-    
-    public static Builder construct() { return new Builder(); }
-    
-    public static ListBuilder constructList() { return new ListBuilder(); }
-    
-    public static Builder constructFrom( JolieValue j ) { return new Builder( j ); }
-    
-    public static ListBuilder constructListFrom( SequencedCollection<? extends JolieValue> c ) { return new ListBuilder( c ); }
     
     public static GetTimestampFromStringRequest createFrom( JolieValue j ) {
         return new GetTimestampFromStringRequest(
@@ -94,40 +87,5 @@ public final class GetTimestampFromStringRequest implements JolieValue {
         t.language().ifPresent( c -> v.getFirstChild( "language" ).setValue( c ) );
         
         return v;
-    }
-    
-    public static class Builder {
-        
-        private String contentValue;
-        private String format;
-        private String language;
-        
-        private Builder() {}
-        private Builder( JolieValue j ) {
-            
-            contentValue = j.content() instanceof JolieString content ? content.value() : null;
-            this.format = ValueManager.fieldFrom( j.getFirstChild( "format" ), c -> c.content() instanceof JolieString content ? content.value() : null );
-            this.language = ValueManager.fieldFrom( j.getFirstChild( "language" ), c -> c.content() instanceof JolieString content ? content.value() : null );
-        }
-        
-        public Builder contentValue( String contentValue ) { this.contentValue = contentValue; return this; }
-        public Builder format( String format ) { this.format = format; return this; }
-        public Builder language( String language ) { this.language = language; return this; }
-        
-        public GetTimestampFromStringRequest build() {
-            return new GetTimestampFromStringRequest( contentValue, format, language );
-        }
-    }
-    
-    public static class ListBuilder extends AbstractListBuilder<ListBuilder, GetTimestampFromStringRequest> {
-        
-        private ListBuilder() {}
-        private ListBuilder( SequencedCollection<? extends JolieValue> c ) { super( c, GetTimestampFromStringRequest::createFrom ); }
-        
-        protected ListBuilder self() { return this; }
-        
-        public ListBuilder add( Function<Builder, GetTimestampFromStringRequest> b ) { return add( b.apply( construct() ) ); }
-        public ListBuilder set( int index, Function<Builder, GetTimestampFromStringRequest> b ) { return set( index, b.apply( construct() ) ); }
-        public ListBuilder reconstruct( int index, Function<Builder, GetTimestampFromStringRequest> b ) { return replace( index, j -> b.apply( constructFrom( j ) ) ); }
     }
 }

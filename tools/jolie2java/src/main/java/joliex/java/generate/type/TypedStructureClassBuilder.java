@@ -13,15 +13,12 @@ import joliex.java.parse.ast.JolieType.Definition.Basic;
 import joliex.java.parse.ast.JolieType.Definition.Structure;
 import one.util.streamex.StreamEx;
 
-public class TypedStructureClassBuilder extends TypeClassBuilder {
+public class TypedStructureClassBuilder extends StructureClassBuilder {
 
-    private final Structure structure;
     private final List<Structure.Field> recordFields;
 
-    public TypedStructureClassBuilder( Structure.Inline.Typed structure, String packageName, String typeFolder ) {
-        super( structure.name(), packageName, typeFolder ); 
-
-        this.structure = structure;
+    public TypedStructureClassBuilder( Structure.Inline.Typed structure, String typesPackage ) {
+        super( structure, typesPackage ); 
         this.recordFields = structure.nativeType() == Native.VOID
             ? structure.fields()
             : StreamEx.of( structure.fields() )
@@ -35,26 +32,26 @@ public class TypedStructureClassBuilder extends TypeClassBuilder {
                 .toList();
     }
 
-    public void appendDefinition( boolean isInnerClass ) {
-        builder.newline()
-            .commentBlock( this::appendDocumentation )
-            .newlineAppend( "public " ).append( isInnerClass ? "static " : "" ).append( "final class " ).append( className ).append( " implements JolieValue" ).body( () -> {
-                appendAttributes();
-                appendConstructors();
-                appendMethods();
-                appendStaticMethods();
-                appendBuilder();
-                appendListBuilder();
-                appendInnerClasses();
-            } );
+    protected void appendDescriptionDocumentation() {
+        builder.newlineAppend( "this class is an {@link JolieValue} which can be described as follows:" );
     }
 
-    private void appendDocumentation() {
-        builder.newlineAppend( "this class is an {@link JolieValue} which can be described as follows:" )
-            .newline()
-            .codeBlock( this::appendStructureDocumentation )
-            .newline();
+    protected void appendDefinitionDocumentation() {
+        if ( structure.nativeType() != Native.VOID )
+            builder.newNewlineAppend( structure.nativeType() == Native.ANY ? "content" : "contentValue" ).append( ": {@link " ).append( structure.nativeType().valueName() ).append( "}" ).append( structure.possibleRefinement().map( r -> "( " + r.definitionString() + " )" ).orElse( "" ) )
+                .indented( this::appendFieldDocumentation );
+        else
+            appendFieldDocumentation();
+    }
 
+    private void appendFieldDocumentation() {
+        structure.fields().forEach( field ->
+            builder.newlineAppend( field.possibleName().map( n -> field.key().equals( n ) ? n : n + "(\"" + field.key() + "\")" ).orElse( "\"" + field.key() + "\"" ) ).append( field.min() != 1 || field.max() != 1 ? "[" + field.min() + "," + field.max() + "]" : "" ).append( ": {@link " ).append( field.typeName().replaceAll( "<.*>", "" ) ).append( "}" )
+        );
+    }
+
+    protected void appendSeeDocumentation() {
+        builder.newline();
         StreamEx.of( "JolieValue", "JolieNative" )
             .append( 
                 structure.fields()
@@ -63,47 +60,46 @@ public class TypedStructureClassBuilder extends TypeClassBuilder {
                     .map( t -> t instanceof Definition d ? d.name() : null )
                     .filter( Objects::nonNull )
             )
-            .distinct() 
-            .append( "#construct()" )
+            .distinct()
             .forEachOrdered( s -> builder.newlineAppend( "@see " ).append( s ) );
+
+        if ( structure.hasBuilder() )
+            builder.newlineAppend( "@see #construct()" );
     }
 
-    private void appendStructureDocumentation() {
-        if ( structure.nativeType() != Native.VOID )
-            builder.newlineAppend( structure.nativeType() == Native.ANY ? "content" : "contentValue" ).append( ": {@link " ).append( structure.nativeType().valueName() ).append( "}" ).append( structure.possibleRefinement().map( r -> "( " + r.definitionString() + " )" ).orElse( "" ) );
-
-        structure.fields().forEach( field ->
-            builder.indentedNewlineAppend( field.possibleName().map( n -> field.key().equals( n ) ? n : n + "(\"" + field.key() + "\")" ).orElse( "\"" + field.key() + "\"" ) ).append( field.min() != 1 || field.max() != 1 ? "[" + field.min() + "," + field.max() + "]" : "" ).append( ": {@link " ).append( field.typeName().replaceAll( "<.*>", "" ) ).append( "}" )
-        );
+    protected void appendSignature( boolean isInnerClass ) {
+        builder.newlineAppend( "public " ).append( isInnerClass ? "static " : "" ).append( "final class " ).append( className ).append( " implements JolieValue" );
     }
 
-    private void appendAttributes() {
-        // static set of all field names
+    protected void appendAttributes() {
+        appendStaticAttributes();
+        appendFieldAttributes();
+    }
+
+    private void appendStaticAttributes() {
         builder.newNewlineAppend( "private static final Set<String> FIELD_KEYS = " ).append( structure.fields()
             .parallelStream()
             .map( f -> "\"" + f.key() + "\"" )
             .reduce( (s1,s2) -> s1 + ", " + s2 )
             .map( s -> "Set.of( " + s + " );" )
             .orElse( "Set.of();" ) );
+    }
 
-        // fields
+    private void appendFieldAttributes() {
         builder.newline();
         recordFields.parallelStream()
             .map( f -> new StringBuilder()
                 .append( "private final " )
-                .append( f.max() == 1 ? getTypeName( f ) : "List<" + getTypeName( f ) + ">" )
-                .append( " " )
-                .append( f.fieldName() )
-                .append( ";" )
-                .toString()
-            )
+                .append( f.max() == 1 ? typeName( f.type() ) : "List<" + typeName( f.type() ) + ">" )
+                .append( " " ).append( f.fieldName() ).append( ";" )
+                .toString() )
             .forEachOrdered( builder::newlineAppend );
     }
 
-    private void appendConstructors() {
+    protected void appendConstructors() {
         final String parameters = recordFields.parallelStream()
             .map( f -> new StringBuilder()
-                .append( f.max() == 1 ? getTypeName( f ) : "SequencedCollection<" + getTypeName( f ) + ">" )
+                .append( f.max() == 1 ? typeName( f.type() ) : "SequencedCollection<" + typeName( f.type() ) + ">" )
                 .append( " " )
                 .append( f.fieldName() )
                 .toString()
@@ -122,6 +118,7 @@ public class TypedStructureClassBuilder extends TypeClassBuilder {
 
                     if ( f.max() != 1 )
                         return result.append( "ValueManager.validated( " )
+                            .append( "\"" ).append( f.fieldName() ).append( "\", " )
                             .append( f.fieldName() ).append( ", " )
                             .append( f.min() ).append( ", " )
                             .append( f.max() )
@@ -133,6 +130,7 @@ public class TypedStructureClassBuilder extends TypeClassBuilder {
                         return result.append( refinement.map( r -> "Refinement.validated( " + f.fieldName() + " )" ).orElse( f.fieldName() ) ).append( ";" ).toString();
 
                     return result.append( "ValueManager.validated( " )
+                        .append( "\"" ).append( f.fieldName() ).append( "\", " )
                         .append( f.fieldName() )
                         .append( refinement.map( r -> ", " + r ).orElse( "" ) )
                         .append( " );" )
@@ -142,78 +140,60 @@ public class TypedStructureClassBuilder extends TypeClassBuilder {
         } );
     }
 
-    private void appendMethods() {
+    protected void appendMethods() {
+        appendFieldGetters();
+        appendOverrideMethods();
+    }
+
+    private void appendFieldGetters() {
         builder.newline();
         recordFields.forEach( f -> {
             if ( f.max() != 1 )
-                builder.newlineAppend( "public List<" ).append( getTypeName( f ) ).append( "> " ).append( f.fieldName() ).append( "() { return " ).append( f.fieldName() ).append( "; }" );
+                builder.newlineAppend( "public List<" ).append( typeName( f.type() ) ).append( "> " ).append( f.fieldName() ).append( "() { return " ).append( f.fieldName() ).append( "; }" );
             else if ( f.min() == 0 )
-                builder.newlineAppend( "public Optional<" ).append( getTypeName( f ) ).append( "> " ).append( f.fieldName() ).append( "() { return Optional.ofNullable( " ).append( f.fieldName() ).append( " ); }" );
+                builder.newlineAppend( "public Optional<" ).append( typeName( f.type() ) ).append( "> " ).append( f.fieldName() ).append( "() { return Optional.ofNullable( " ).append( f.fieldName() ).append( " ); }" );
             else
-                builder.newlineAppend( "public " ).append( getTypeName( f ) ).append( " " ).append( f.fieldName() ).append( "() { return " ).append( f.fieldName() ).append( "; }" );
-        } );
-
-        builder.newline();
-        if ( structure.nativeType() != Native.ANY )
-            builder.newlineAppend( "public " ).append( structure.nativeType().wrapperName() ).append( " content() { return new " ).append( structure.nativeType().wrapperName() ).append( structure.nativeType() == Native.VOID ? "()" : "( contentValue )" ).append( "; }" );
-
-        // TODO: make it so this only ever builds the Map once.
-        builder.newlineAppend( "public Map<String, List<JolieValue>> children()" ).body( () -> {
-            builder.newlineAppend( "return one.util.streamex.EntryStream.of(" );
-            structure.fields()
-                .parallelStream()
-                .map( f -> new StringBuilder()
-                    .append( "\"" ).append( f.key() ).append( "\", " )
-                    .append( switch ( getType( f ) ) {
-                        case Native n -> {
-                            if ( f.max() != 1 )
-                                yield f.fieldName() + ".parallelStream().map( JolieValue::create ).toList()";
-                            if ( f.min() == 0 )
-                                yield f.fieldName() + " == null ? null : List.of( JolieValue.create( " + f.fieldName() + " ) )";
-                            yield "List.of( JolieValue.create( " + f.fieldName() + " ) )";
-                        }
-                        case Definition d -> {
-                            if ( f.max() != 1 )
-                                yield f.fieldName() + ".parallelStream().map( JolieValue.class::cast ).toList()";
-                            if ( f.min() == 0 )
-                                yield f.fieldName() + " == null ? null : List.<JolieValue>of( " + f.fieldName() + " )";
-                            yield "List.<JolieValue>of( " + f.fieldName() + " )";
-                        }
-                    } )
-                    .toString() )
-                .reduce( (s1, s2) -> s1 + ",\n" + s2 )
-                .ifPresent( builder::indentedNewlineAppend );
-            builder.newlineAppend( ").filterValues( Objects::nonNull ).toImmutableMap();" );
+                builder.newlineAppend( "public " ).append( typeName( f.type() ) ).append( " " ).append( f.fieldName() ).append( "() { return " ).append( f.fieldName() ).append( "; }" );
         } );
     }
 
-    private void appendStaticMethods() {
-        // construct() method
-        builder.newNewlineAppend( "public static Builder construct() { return new Builder(); }" );
-        // constructList() method
-        builder.newNewlineAppend( "public static ListBuilder constructList() { return new ListBuilder(); }" );
-        // constructFrom() method
-        builder.newNewlineAppend( "public static Builder constructFrom( JolieValue j ) { return new Builder( j ); }" );
-        // constructListFrom() method
-        builder.newNewlineAppend( "public static ListBuilder constructListFrom( SequencedCollection<? extends JolieValue> c ) { return new ListBuilder( c ); }" );
-        // createFrom() method
-        builder.newNewlineAppend( "public static " ).append( className ).append( " createFrom( JolieValue j )" ).body( () -> {
-            builder.newlineAppend( "return new " ).append( className ).append( "(" ).indented( () -> {
-                    if ( structure.nativeType() == Native.ANY )
-                        builder.newlineAppend( "j.content()," );
-                    else if ( structure.nativeType() != Native.VOID )
-                        builder.newlineAppend( structure.nativeType().wrapperName() ).append( ".createFrom( j ).value()," );
-                        
-                    structure.fields()
-                        .parallelStream()
-                        .map( TypedStructureClassBuilder::fromChildString )
-                        .reduce( (s1, s2) -> s1 + ",\n" + s2 )
-                        .ifPresent( builder::newlineAppend );
-                } )
-                .newlineAppend( ");" );
+    private void appendOverrideMethods() {
+        if ( structure.nativeType() != Native.ANY )
+            builder.newNewlineAppend( "public " ).append( structure.nativeType().wrapperName() ).append( " content() { return new " ).append( structure.nativeType().wrapperName() ).append( structure.nativeType() == Native.VOID ? "()" : "( contentValue )" ).append( "; }" );
+        else
+            builder.newline();
+        
+        // TODO: make it so this only ever builds the Map once.
+        builder.newlineAppend( "public Map<String, List<JolieValue>> children()" ).body( () -> {
+            builder.newlineAppend( "return Map.of(" );
+            structure.fields()
+                .parallelStream()
+                .map( TypedStructureClassBuilder::mapEntryString )
+                .reduce( (s1, s2) -> s1 + ",\n" + s2 )
+                .ifPresent( builder::indentedNewlineAppend );
+            builder.newlineAppend( ");" );
         } );
-        // fromValue() method
-        builder.newNewlineAppend( "public static " ).append( className ).append( " fromValue( Value v ) throws TypeCheckingException" ).body( () -> {
+    }
+
+    protected void appendCreateFromMethod() {
+        builder.newNewlineAppend( "public static " ).append( className ).append( " createFrom( JolieValue j )" ).body( () ->
+            builder.newlineAppend( "return new " ).append( className ).append( "(" ).indented( () -> {
+                if ( structure.nativeType() == Native.ANY )
+                    builder.newlineAppend( "j.content()," );
+                else if ( structure.nativeType() != Native.VOID )
+                    builder.newlineAppend( structure.nativeType().wrapperName() ).append( ".createFrom( j ).value()," );
+                    
+                structure.fields()
+                    .parallelStream()
+                    .map( TypedStructureClassBuilder::fromChildString )
+                    .reduce( (s1, s2) -> s1 + ",\n" + s2 )
+                    .ifPresent( builder::newlineAppend );
+            } )
+            .newlineAppend( ");" ) );
+    }
+
+    protected void appendFromValueMethod() {
+        builder.newNewlineAppend( "public static " ).append( className ).append( " fromValue( Value v ) throws TypeCheckingException" ).body( () ->
             builder.newlineAppend( "ValueManager.requireChildren( v, FIELD_KEYS );" )
                 .newlineAppend( "return new " ).append( className ).append( "(" ).indented( () -> {
                     if ( structure.nativeType() == Native.ANY )
@@ -230,7 +210,7 @@ public class TypedStructureClassBuilder extends TypeClassBuilder {
                                 : "v.children().getOrDefault( \"" + f.key() + "\", ValueVector.create() )"
                             )
                             .append( ", " )
-                            .append( switch ( getType( f ) ) {
+                            .append( switch ( storedType( f.type() ) ) {
                                 case Native.ANY -> "JolieNative::fromValue";
                                 case Native.VOID -> "JolieVoid::fromValue";
                                 case Native n -> n.wrapperName() + "::fieldFromValue";
@@ -242,9 +222,10 @@ public class TypedStructureClassBuilder extends TypeClassBuilder {
                         .reduce( (s1, s2) -> s1 + ",\n" + s2 )
                         .ifPresent( builder::newlineAppend );
                 } )
-                .newlineAppend( ");" );
-        } );
-        // toValue() method
+                .newlineAppend( ");" ) );
+    }
+
+    protected void appendToValueMethod() {
         builder.newNewlineAppend( "public static Value toValue( " ).append( className ).append( " t )" ).body( () -> {
             builder.newlineAppend( "final Value v = " ).append( switch ( structure.nativeType() ) {
                 case ANY -> "JolieNative.toValue( t.content() )";
@@ -255,7 +236,7 @@ public class TypedStructureClassBuilder extends TypeClassBuilder {
             builder.newline();
             structure.fields().forEach( f -> {
                 final String getField = "t." + f.fieldName() + "()";
-                final UnaryOperator<String> setValue = x -> switch ( getType( f ) ) {
+                final UnaryOperator<String> setValue = x -> switch ( storedType( f.type() ) ) {
                     case Native n when n == Native.ANY || n == Native.VOID -> ".setValue( " + x + ".value() )";
                     case Native n -> ".setValue( " + x + " )";
                     case Definition d -> ".deepCopy( " + d.name() + ".toValue( " + x + " ) )";
@@ -272,7 +253,7 @@ public class TypedStructureClassBuilder extends TypeClassBuilder {
         } );
     }
 
-    private void appendBuilder() {
+    protected void appendBuilder() {
         builder.newNewlineAppend( "public static class Builder" ).body( () -> {
             appendBuilderAttributes();
             appendBuilderConstructors();
@@ -285,7 +266,7 @@ public class TypedStructureClassBuilder extends TypeClassBuilder {
         recordFields.parallelStream()
             .map( f -> new StringBuilder()
                 .append( "private " )
-                .append( f.max() == 1 ? getTypeName( f ) : "SequencedCollection<" + getTypeName( f ) + ">" )
+                .append( f.max() == 1 ? typeName( f.type() ) : "SequencedCollection<" + typeName( f.type() ) + ">" )
                 .append( " " )
                 .append( f.fieldName() )
                 .append( ";" )
@@ -323,16 +304,8 @@ public class TypedStructureClassBuilder extends TypeClassBuilder {
             builder.newline();
         
         structure.fields().forEach( f -> {
-            builder.newlineAppend( "public Builder " ).append( f.fieldName() ).append( "( " ).append( f.max() == 1 ? getTypeName( f ) : "SequencedCollection<" + getTypeName( f ) + ">" ).append( " " ).append( f.fieldName() ).append( " ) { this." ).append( f.fieldName() ).append( " = " ).append( f.fieldName() ).append( "; return this; }" );
-            
-            if ( f.max() != 1 )
-                Optional.ofNullable( switch ( f.type() ) {
-                    case Native.ANY -> "JolieNative<?>";
-                    case Structure s -> s.name();
-                    default -> null;
-                } ).ifPresent( n -> appendBuilderSetter( f.fieldName(), n, true ) );
-            else if ( f.type() instanceof Structure s )
-                appendBuilderSetter( f.fieldName(), s.name(), false );
+            builder.newlineAppend( "public Builder " ).append( f.fieldName() ).append( "( " ).append( f.max() == 1 ? typeName( f.type() ) : "SequencedCollection<" + typeName( f.type() ) + ">" ).append( " " ).append( f.fieldName() ).append( " ) { this." ).append( f.fieldName() ).append( " = " ).append( f.fieldName() ).append( "; return this; }" );
+            buildingSetterString( f ).ifPresent( builder::newlineAppend );
         } );
 
         builder.newNewlineAppend( "public " ).append( className ).append( " build()" ).body( () -> 
@@ -345,43 +318,67 @@ public class TypedStructureClassBuilder extends TypeClassBuilder {
         );
     }
 
-    private void appendBuilderSetter( String fieldName, String typeName, boolean isList ) {
-        if ( isList )
-            appendBuilderSetter( fieldName, typeName.replace( "<?>", "" ), "ListBuilder", "constructList", "List<" + typeName + ">" );
-        else
-            appendBuilderSetter( fieldName, typeName.replace( "<?>", "" ), "Builder", "construct", typeName );
-    }
-    private void appendBuilderSetter( String fieldName, String typeName, String builderClass, String constructMethod, String returnType ) {
-        builder.newlineAppend( "public Builder " ).append( fieldName ).append( "( Function<" ).append( typeName ).append( "." ).append( builderClass ).append( ", " ).append( returnType ).append( "> b ) { return " ).append( fieldName ).append( "( b.apply( " ).append( typeName ).append( "." ).append( constructMethod ).append( "() ) ); }" );
-    }
-
-    private void appendListBuilder() {
-        builder.newNewlineAppend( "public static class ListBuilder extends AbstractListBuilder<ListBuilder, " ).append( className ).append( ">" ).body( () -> {
-            appendListBuilderConstructors();
-            appendListBuilderMethods();
-        } );
-    }
-
-    private void appendListBuilderConstructors() {
-        builder.newNewlineAppend( "private ListBuilder() {}" )
-            .newlineAppend( "private ListBuilder( SequencedCollection<? extends JolieValue> c ) { super( c, " ).append( className ).append( "::createFrom ); }" );
-    }
-
-    private void appendListBuilderMethods() {
-        builder.newNewlineAppend( "protected ListBuilder self() { return this; }" )
-            .newline()
-            .newlineAppend( "public ListBuilder add( Function<Builder, " ).append( className ).append( "> b ) { return add( b.apply( construct() ) ); }" )
-            .newlineAppend( "public ListBuilder set( int index, Function<Builder, " ).append( className ).append( "> b ) { return set( index, b.apply( construct() ) ); }" )
-            .newlineAppend( "public ListBuilder reconstruct( int index, Function<Builder, " ).append( className ).append( "> b ) { return replace( index, j -> b.apply( constructFrom( j ) ) ); }" );
-    }
-
-    private void appendInnerClasses() {
+    protected void appendTypeClasses() {
         structure.fields()
             .parallelStream()
-            .map( f -> TypeClassBuilder.create( f.type() ) )
+            .map( f -> TypeClassBuilder.create( storedType( f.type() ) ) )
             .filter( Objects::nonNull )
             .map( JavaClassDirector::constructInnerClass )
             .forEachOrdered( builder::newlineAppend );
+    }
+
+    private static Optional<String> buildingSetterString( Structure.Field f ) {
+        return f.max() == 1
+            ? singleBuildingSetterString( f.fieldName(), f.type() )
+            : listBuildingSetterString( f.fieldName(), f.type() );
+    }
+
+    private static Optional<String> singleBuildingSetterString( String fieldName, JolieType fieldType ) {
+        return fieldType instanceof Structure s && s.hasBuilder()
+            ? Optional.of( buildingSetterString( fieldName, s.name(), "Builder", "construct", s.name() ) )
+            : Optional.empty();
+    }
+
+    private static Optional<String> listBuildingSetterString( String fieldName, JolieType fieldType ) {
+        return Optional.ofNullable( switch ( fieldType ) {
+            case Native.ANY -> "JolieNative<?>";
+            case Structure s when s.hasBuilder() -> s.name();
+            default -> null;
+        } ).map( typeName -> buildingSetterString( 
+            fieldName, typeName.replace( "<?>", "" ), 
+            "ListBuilder", "constructList", 
+            "List<" + typeName + ">" 
+        ) );
+    }
+
+    private static String buildingSetterString( String fieldName, String typeName, String builderClass, String constructMethod, String returnType ) {
+        return new StringBuilder()
+            .append( "public Builder " ).append( fieldName )
+            .append( "( Function<" ).append( typeName ).append( "." ).append( builderClass ).append( ", " ).append( returnType ).append( "> b )" )
+            .append( "{ return " ).append( fieldName ).append( "( b.apply( " ).append( typeName ).append( "." ).append( constructMethod ).append( "() ) ); }" )
+            .toString();
+    }
+
+    private static String mapEntryString( Structure.Field f ) {
+        return new StringBuilder()
+            .append( "\"" ).append( f.key() ).append( "\", " )
+            .append( switch ( storedType( f.type() ) ) {
+                case Native n -> {
+                    if ( f.max() != 1 )
+                        yield f.fieldName() + ".parallelStream().map( JolieValue::create ).toList()";
+                    if ( f.min() == 0 )
+                        yield f.fieldName() + " == null ? List.of() : List.of( JolieValue.create( " + f.fieldName() + " ) )";
+                    yield "List.of( JolieValue.create( " + f.fieldName() + " ) )";
+                }
+                case Definition d -> {
+                    if ( f.max() != 1 )
+                        yield f.fieldName() + ".parallelStream().map( JolieValue.class::cast ).toList()";
+                    if ( f.min() == 0 )
+                        yield f.fieldName() + " == null ? List.of() : List.<JolieValue>of( " + f.fieldName() + " )";
+                    yield "List.<JolieValue>of( " + f.fieldName() + " )";
+                }
+            } )
+            .toString();
     }
 
     private static String fromChildString( Structure.Field f ) {
@@ -390,7 +387,7 @@ public class TypedStructureClassBuilder extends TypeClassBuilder {
             .append( "ValueManager.fieldFrom( " )
             .append( f.max() == 1 ? "j.getFirstChild( " + key + " )" : "j.getChildOrDefault( " + key + ", List.of() )" )
             .append( ", " )
-            .append( switch ( getType( f ) ) {
+            .append( switch ( storedType( f.type() ) ) {
                 case Native.ANY -> "JolieValue::content";
                 case Native.VOID -> "c -> c.content() instanceof JolieVoid content ? content : null";
                 case Native n -> "c -> c.content() instanceof " + n.wrapperName() + " content ? content.value() : null";
@@ -398,22 +395,5 @@ public class TypedStructureClassBuilder extends TypeClassBuilder {
             } )
             .append( " )" )
             .toString();
-    }
-    
-    /*
-     * Convenience method to handle the fact that Basic.Inline and Native are stored in the same way.
-     */
-    private static JolieType getType( Structure.Field f ) {
-        return f.type() instanceof Basic.Inline b ? b.nativeType() : f.type();
-    }
-
-    /*
-     * Convenience method to handle the fact that Basic.Inline and Native are stored in the same way.
-     */
-    private static String getTypeName( Structure.Field f ) {
-        return switch( getType( f ) ) {
-            case Native n -> n == Native.VOID ? n.wrapperName() : n.valueName();
-            case Definition d -> d.name();
-        };
     }
 }

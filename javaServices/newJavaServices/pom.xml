@@ -83,10 +83,5 @@
             <artifactId>jolie</artifactId>
             <version>${jolie.version}</version>
         </dependency>
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>jolie2java</artifactId>
-            <version>${jolie.version}</version>
-        </dependency>
     </dependencies>
 </project>

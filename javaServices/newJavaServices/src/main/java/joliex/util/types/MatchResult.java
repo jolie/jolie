@@ -4,6 +4,12 @@ import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 import jolie.runtime.ByteArray;
 import jolie.runtime.typing.TypeCheckingException;
+import jolie.runtime.embedding.java.JolieValue;
+import jolie.runtime.embedding.java.JolieNative;
+import jolie.runtime.embedding.java.JolieNative.*;
+import jolie.runtime.embedding.java.ImmutableStructure;
+import jolie.runtime.embedding.java.TypeValidationException;
+import jolie.runtime.embedding.java.util.*;
 
 import java.util.ArrayList;
 import java.util.Map;
@@ -19,16 +25,12 @@ import java.util.function.BinaryOperator;
 import java.util.stream.Stream;
 import java.util.stream.Collectors;
 
-import joliex.java.embedding.*;
-import joliex.java.embedding.JolieNative.*;
-import joliex.java.embedding.util.*;
-
 /**
  * this class is an {@link JolieValue} which can be described as follows:
- * 
  * <pre>
+ * 
  * contentValue: {@link Integer}
- *     group[0,2147483647]: {@link String}
+     * group[0,2147483647]: {@link String}
  * </pre>
  * 
  * @see JolieValue
@@ -43,8 +45,8 @@ public final class MatchResult implements JolieValue {
     private final List<String> group;
     
     public MatchResult( Integer contentValue, SequencedCollection<String> group ) {
-        this.contentValue = ValueManager.validated( contentValue );
-        this.group = ValueManager.validated( group, 0, 2147483647 );
+        this.contentValue = ValueManager.validated( "contentValue", contentValue );
+        this.group = ValueManager.validated( "group", group, 0, 2147483647 );
     }
     
     public Integer contentValue() { return contentValue; }
@@ -52,18 +54,17 @@ public final class MatchResult implements JolieValue {
     
     public JolieInt content() { return new JolieInt( contentValue ); }
     public Map<String, List<JolieValue>> children() {
-        return one.util.streamex.EntryStream.of(
+        return Map.of(
             "group", group.parallelStream().map( JolieValue::create ).toList()
-        ).filterValues( Objects::nonNull ).toImmutableMap();
+        );
     }
     
     public static Builder construct() { return new Builder(); }
-    
     public static ListBuilder constructList() { return new ListBuilder(); }
-    
     public static Builder constructFrom( JolieValue j ) { return new Builder( j ); }
-    
     public static ListBuilder constructListFrom( SequencedCollection<? extends JolieValue> c ) { return new ListBuilder( c ); }
+    
+    public static Builder construct( Integer contentValue ) { return construct().contentValue( contentValue ); }
     
     public static MatchResult createFrom( JolieValue j ) {
         return new MatchResult(

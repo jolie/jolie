@@ -9,30 +9,28 @@ public class InterfaceClassBuilder extends JavaClassBuilder {
     
     private final String className;
     private final Collection<JolieOperation> operations;
-    private final String packageName;
-    private final String typesFolder;
-    private final String interfaceFolder;
+    private final String interfacesPackage;
+    private final String typesPackage;
 
-    public InterfaceClassBuilder( String className, Collection<JolieOperation> operations, String packageName, String typesFolder, String interfaceFolder ) {
+    public InterfaceClassBuilder( String className, Collection<JolieOperation> operations, String interfacesPackage, String typesPackage ) {
         this.className = className;
         this.operations = operations;
-        this.packageName = packageName;
-        this.typesFolder = typesFolder;
-        this.interfaceFolder = interfaceFolder;
+        this.interfacesPackage = interfacesPackage;
+        this.typesPackage = typesPackage;
     }
 
     public String className() { return className; }
 
     public void appendHeader() {
-        builder.append( "package " ).append( packageName ).append( "." ).append( interfaceFolder ).append( ";" )
+        builder.append( "package " ).append( interfacesPackage ).append( ";" )
             .newline()
             .newlineAppend( "import jolie.runtime.ByteArray;" )
             .newlineAppend( "import jolie.runtime.FaultException;" )
-            .newline()
-            .newlineAppend( "import joliex.java.embedding.*;" );
+            .newlineAppend( "import jolie.runtime.embedding.java.JolieValue;" )
+            .newlineAppend( "import jolie.runtime.embedding.java.JolieNative;" );
 
-        if ( typesFolder != null )
-            builder.newlineAppend( "import " ).append( packageName ).append( "." ).append( typesFolder ).append( ".*;" );
+        if ( typesPackage != null && !typesPackage.equals( interfacesPackage ) )
+            builder.newlineAppend( "import " ).append( typesPackage ).append( ".*;" );
     }
 
     public void appendDefinition() {

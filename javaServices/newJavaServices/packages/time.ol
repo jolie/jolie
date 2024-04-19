@@ -37,6 +37,7 @@ type TimeValuesType:void {
 	.second:int
 }
 
+///@GenerateBuilder(false)
 type DateValuesRequestType:string {
 	/*
 	* Date format.
@@ -46,6 +47,7 @@ type DateValuesRequestType:string {
 	.format?:string
 }
 
+///@GenerateBuilder(false)
 type CurrentDateTimeRequestType:void {
 	/*
 	* 	Date format.
@@ -55,21 +57,25 @@ type CurrentDateTimeRequestType:void {
 	.format?:string
 }
 
+///@GenerateBuilder(false)
 type DiffDateRequestType:void {
 	.format?:string
 	.date1:string
 	.date2:string
 }
+///@GenerateBuilder(false)
 type GetTimeDiffRequest:void {
 	.time1:string
 	.time2:string
 }
 
+///@GenerateBuilder(false)
 type GetTimestampFromStringRequest:string {
 	.format?:string
 	.language?: string
 }
 
+///@GenerateBuilder(false)
 type GetDateTimeRequest: long {
   .format?: string
 
@@ -94,11 +100,13 @@ type DateTimeType:void{
 }
 
 
+///@GenerateBuilder(false)
 type SetNextTimeOutRequest: int {
 	.operation?: string
 	.message?: undefined
 }
 
+///@GenerateBuilder(false)
 type ScheduleTimeOutRequest: int {
 	.operation?: string
 	/*

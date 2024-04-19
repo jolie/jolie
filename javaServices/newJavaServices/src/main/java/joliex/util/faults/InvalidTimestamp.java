@@ -5,9 +5,8 @@ import java.util.Objects;
 import jolie.runtime.Value;
 import jolie.runtime.ByteArray;
 import jolie.runtime.FaultException;
-
-import joliex.java.embedding.JolieValue;
-import joliex.java.embedding.JolieNative;
+import jolie.runtime.embedding.java.JolieValue;
+import jolie.runtime.embedding.java.JolieNative;
 
 import joliex.util.types.*;
 

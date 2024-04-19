@@ -4,6 +4,12 @@ import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 import jolie.runtime.ByteArray;
 import jolie.runtime.typing.TypeCheckingException;
+import jolie.runtime.embedding.java.JolieValue;
+import jolie.runtime.embedding.java.JolieNative;
+import jolie.runtime.embedding.java.JolieNative.*;
+import jolie.runtime.embedding.java.ImmutableStructure;
+import jolie.runtime.embedding.java.TypeValidationException;
+import jolie.runtime.embedding.java.util.*;
 
 import java.util.ArrayList;
 import java.util.Map;
@@ -19,22 +25,17 @@ import java.util.function.BinaryOperator;
 import java.util.stream.Stream;
 import java.util.stream.Collectors;
 
-import joliex.java.embedding.*;
-import joliex.java.embedding.JolieNative.*;
-import joliex.java.embedding.util.*;
-
 /**
  * this class is an {@link JolieValue} which can be described as follows:
- * 
  * <pre>
+ * 
  * contentValue: {@link String}
- *     regex: {@link String}
- *     replacement: {@link String}
+     * regex: {@link String}
+     * replacement: {@link String}
  * </pre>
  * 
  * @see JolieValue
  * @see JolieNative
- * @see #construct()
  */
 public final class ReplaceRequest implements JolieValue {
     
@@ -45,9 +46,9 @@ public final class ReplaceRequest implements JolieValue {
     private final String replacement;
     
     public ReplaceRequest( String contentValue, String regex, String replacement ) {
-        this.contentValue = ValueManager.validated( contentValue );
-        this.regex = ValueManager.validated( regex );
-        this.replacement = ValueManager.validated( replacement );
+        this.contentValue = ValueManager.validated( "contentValue", contentValue );
+        this.regex = ValueManager.validated( "regex", regex );
+        this.replacement = ValueManager.validated( "replacement", replacement );
     }
     
     public String contentValue() { return contentValue; }
@@ -56,19 +57,11 @@ public final class ReplaceRequest implements JolieValue {
     
     public JolieString content() { return new JolieString( contentValue ); }
     public Map<String, List<JolieValue>> children() {
-        return one.util.streamex.EntryStream.of(
+        return Map.of(
             "regex", List.of( JolieValue.create( regex ) ),
             "replacement", List.of( JolieValue.create( replacement ) )
-        ).filterValues( Objects::nonNull ).toImmutableMap();
+        );
     }
-    
-    public static Builder construct() { return new Builder(); }
-    
-    public static ListBuilder constructList() { return new ListBuilder(); }
-    
-    public static Builder constructFrom( JolieValue j ) { return new Builder( j ); }
-    
-    public static ListBuilder constructListFrom( SequencedCollection<? extends JolieValue> c ) { return new ListBuilder( c ); }
     
     public static ReplaceRequest createFrom( JolieValue j ) {
         return new ReplaceRequest(
@@ -94,40 +87,5 @@ public final class ReplaceRequest implements JolieValue {
         v.getFirstChild( "replacement" ).setValue( t.replacement() );
         
         return v;
-    }
-    
-    public static class Builder {
-        
-        private String contentValue;
-        private String regex;
-        private String replacement;
-        
-        private Builder() {}
-        private Builder( JolieValue j ) {
-            
-            contentValue = j.content() instanceof JolieString content ? content.value() : null;
-            this.regex = ValueManager.fieldFrom( j.getFirstChild( "regex" ), c -> c.content() instanceof JolieString content ? content.value() : null );
-            this.replacement = ValueManager.fieldFrom( j.getFirstChild( "replacement" ), c -> c.content() instanceof JolieString content ? content.value() : null );
-        }
-        
-        public Builder contentValue( String contentValue ) { this.contentValue = contentValue; return this; }
-        public Builder regex( String regex ) { this.regex = regex; return this; }
-        public Builder replacement( String replacement ) { this.replacement = replacement; return this; }
-        
-        public ReplaceRequest build() {
-            return new ReplaceRequest( contentValue, regex, replacement );
-        }
-    }
-    
-    public static class ListBuilder extends AbstractListBuilder<ListBuilder, ReplaceRequest> {
-        
-        private ListBuilder() {}
-        private ListBuilder( SequencedCollection<? extends JolieValue> c ) { super( c, ReplaceRequest::createFrom ); }
-        
-        protected ListBuilder self() { return this; }
-        
-        public ListBuilder add( Function<Builder, ReplaceRequest> b ) { return add( b.apply( construct() ) ); }
-        public ListBuilder set( int index, Function<Builder, ReplaceRequest> b ) { return set( index, b.apply( construct() ) ); }
-        public ListBuilder reconstruct( int index, Function<Builder, ReplaceRequest> b ) { return replace( index, j -> b.apply( constructFrom( j ) ) ); }
     }
 }

@@ -1,4 +1,4 @@
-package joliex.java.embedding;
+package jolie.runtime.embedding.java;
 
 import java.util.SequencedCollection;
 import java.util.Optional;
@@ -6,7 +6,7 @@ import jolie.runtime.ByteArray;
 import jolie.runtime.Value;
 import jolie.runtime.JavaService.ValueConverter;
 import jolie.runtime.typing.TypeCheckingException;
-import joliex.java.embedding.util.AbstractListBuilder;
+import jolie.runtime.embedding.java.util.AbstractListBuilder;
 
 public sealed interface JolieNative<T> extends ValueConverter {
     

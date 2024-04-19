@@ -4,6 +4,12 @@ import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 import jolie.runtime.ByteArray;
 import jolie.runtime.typing.TypeCheckingException;
+import jolie.runtime.embedding.java.JolieValue;
+import jolie.runtime.embedding.java.JolieNative;
+import jolie.runtime.embedding.java.JolieNative.*;
+import jolie.runtime.embedding.java.ImmutableStructure;
+import jolie.runtime.embedding.java.TypeValidationException;
+import jolie.runtime.embedding.java.util.*;
 
 import java.util.ArrayList;
 import java.util.Map;
@@ -19,17 +25,12 @@ import java.util.function.BinaryOperator;
 import java.util.stream.Stream;
 import java.util.stream.Collectors;
 
-import joliex.java.embedding.*;
-import joliex.java.embedding.JolieNative.*;
-import joliex.java.embedding.util.*;
-
 /**
  * this class is an {@link JolieValue} which can be described as follows:
- * 
  * <pre>
- *     hour: {@link Integer}
- *     minute: {@link Integer}
- *     second: {@link Integer}
+ * hour: {@link Integer}
+ * minute: {@link Integer}
+ * second: {@link Integer}
  * </pre>
  * 
  * @see JolieValue
@@ -45,9 +46,9 @@ public final class TimeValuesType implements JolieValue {
     private final Integer second;
     
     public TimeValuesType( Integer hour, Integer minute, Integer second ) {
-        this.hour = ValueManager.validated( hour );
-        this.minute = ValueManager.validated( minute );
-        this.second = ValueManager.validated( second );
+        this.hour = ValueManager.validated( "hour", hour );
+        this.minute = ValueManager.validated( "minute", minute );
+        this.second = ValueManager.validated( "second", second );
     }
     
     public Integer hour() { return hour; }
@@ -56,19 +57,16 @@ public final class TimeValuesType implements JolieValue {
     
     public JolieVoid content() { return new JolieVoid(); }
     public Map<String, List<JolieValue>> children() {
-        return one.util.streamex.EntryStream.of(
+        return Map.of(
             "hour", List.of( JolieValue.create( hour ) ),
             "minute", List.of( JolieValue.create( minute ) ),
             "second", List.of( JolieValue.create( second ) )
-        ).filterValues( Objects::nonNull ).toImmutableMap();
+        );
     }
     
     public static Builder construct() { return new Builder(); }
-    
     public static ListBuilder constructList() { return new ListBuilder(); }
-    
     public static Builder constructFrom( JolieValue j ) { return new Builder( j ); }
-    
     public static ListBuilder constructListFrom( SequencedCollection<? extends JolieValue> c ) { return new ListBuilder( c ); }
     
     public static TimeValuesType createFrom( JolieValue j ) {

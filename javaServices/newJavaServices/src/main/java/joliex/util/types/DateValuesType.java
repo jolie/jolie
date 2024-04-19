@@ -4,6 +4,12 @@ import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 import jolie.runtime.ByteArray;
 import jolie.runtime.typing.TypeCheckingException;
+import jolie.runtime.embedding.java.JolieValue;
+import jolie.runtime.embedding.java.JolieNative;
+import jolie.runtime.embedding.java.JolieNative.*;
+import jolie.runtime.embedding.java.ImmutableStructure;
+import jolie.runtime.embedding.java.TypeValidationException;
+import jolie.runtime.embedding.java.util.*;
 
 import java.util.ArrayList;
 import java.util.Map;
@@ -19,17 +25,12 @@ import java.util.function.BinaryOperator;
 import java.util.stream.Stream;
 import java.util.stream.Collectors;
 
-import joliex.java.embedding.*;
-import joliex.java.embedding.JolieNative.*;
-import joliex.java.embedding.util.*;
-
 /**
  * this class is an {@link JolieValue} which can be described as follows:
- * 
  * <pre>
- *     month: {@link Integer}
- *     year: {@link Integer}
- *     day: {@link Integer}
+ * month: {@link Integer}
+ * year: {@link Integer}
+ * day: {@link Integer}
  * </pre>
  * 
  * @see JolieValue
@@ -45,9 +46,9 @@ public final class DateValuesType implements JolieValue {
     private final Integer day;
     
     public DateValuesType( Integer month, Integer year, Integer day ) {
-        this.month = ValueManager.validated( month );
-        this.year = ValueManager.validated( year );
-        this.day = ValueManager.validated( day );
+        this.month = ValueManager.validated( "month", month );
+        this.year = ValueManager.validated( "year", year );
+        this.day = ValueManager.validated( "day", day );
     }
     
     public Integer month() { return month; }
@@ -56,19 +57,16 @@ public final class DateValuesType implements JolieValue {
     
     public JolieVoid content() { return new JolieVoid(); }
     public Map<String, List<JolieValue>> children() {
-        return one.util.streamex.EntryStream.of(
+        return Map.of(
             "month", List.of( JolieValue.create( month ) ),
             "year", List.of( JolieValue.create( year ) ),
             "day", List.of( JolieValue.create( day ) )
-        ).filterValues( Objects::nonNull ).toImmutableMap();
+        );
     }
     
     public static Builder construct() { return new Builder(); }
-    
     public static ListBuilder constructList() { return new ListBuilder(); }
-    
     public static Builder constructFrom( JolieValue j ) { return new Builder( j ); }
-    
     public static ListBuilder constructListFrom( SequencedCollection<? extends JolieValue> c ) { return new ListBuilder( c ); }
     
     public static DateValuesType createFrom( JolieValue j ) {

@@ -1,27 +1,46 @@
-package joliex.java.embedding.util;
+package jolie.runtime.embedding.java.util;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.SequencedCollection;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
-import joliex.java.embedding.JolieValue;
+import jolie.runtime.embedding.java.JolieValue;
 
 public abstract class AbstractListBuilder<B,E> {
 
-	private final ArrayList<E> elements;
+	private final List<E> elements;
 
-	protected AbstractListBuilder() { elements = new ArrayList<>(); }
+	private AbstractListBuilder( ArrayList<E> elements ) { this.elements = Collections.synchronizedList( elements ); }
+	protected AbstractListBuilder() { this( new ArrayList<>() ); }
 	protected AbstractListBuilder( SequencedCollection<? extends JolieValue> elements, Function<JolieValue, E> mapper ) { 
-		this.elements = elements.parallelStream()
-			.map( mapper )
-			.collect( Collectors.toCollection( ArrayList::new ) );
+		this( elements.parallelStream().map( mapper ).collect( Collectors.toCollection( ArrayList::new ) ) );
 	}
 
 	protected abstract B self();
+
+	/**
+	 * Convenience method meant to make certain operations easier.
+	 * 
+	 * @param <T> the type returned by the given function, and therefore also by this method
+	 * @param f the function to apply to this Builder
+	 * @return the result of applying the given function {@code f} to this Builder
+	 * @apiNote The following is an example of using the method to make adding multiple elements easier:
+	 * <pre>
+	 * JolieNative.constructList()
+	 * 		.chain( b -> {
+	 * 			for ( int i = 0; i < 10; i++ )
+	 * 				b.add( i );
+	 * 			return b;
+	 * 		} )
+	 * 		.build();
+	 * </pre>
+	 **/
+	public final <T> T chain( Function<B,T> f ) { return f.apply( self() ); }
 
 	public final B add( E e ) { elements.add( e ); return self(); }
 	public final B addFirst( E e ) { elements.addFirst( e ); return self(); }

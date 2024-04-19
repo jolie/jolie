@@ -1,15 +1,12 @@
 package joliex.java.generate;
 
-import java.io.File;
-import java.util.Arrays;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Stream;
 
-import jolie.lang.Constants;
 import jolie.lang.parse.util.ProgramInspector;
 import joliex.java.generate.operation.ExceptionClassBuilder;
 import joliex.java.generate.operation.InterfaceClassBuilder;
@@ -26,141 +23,105 @@ public class JavaDocumentCreator {
 
     public static final String DEFAULT_OUTPUT_DIRECTORY = "./generated";
     public static final String DEFAULT_SERVICE_NAME = "MainService";
-    public static final String DEFAULT_TYPE_PACKAGE = "types";
-    public static final String DEFAULT_FAULT_PACKAGE = "faults";
-    public static final String DEFAULT_INTERFACE_PACKAGE = "interfaces";
+    public static final String DEFAULT_TYPE_PACKAGE = ".types";
+    public static final String DEFAULT_FAULT_PACKAGE = ".faults";
+    public static final String DEFAULT_INTERFACE_PACKAGE = ".interfaces";
     private final String packageName;
-    private final String packageDirectory;
+    private final Path packageDirectory;
     private final String typesPackage;
-    private final String typesDirectory;
+    private final Path typesDirectory;
     private final String faultsPackage;
-    private final String faultsDirectory;
+    private final Path faultsDirectory;
     private final String interfacesPackage;
-    private final String interfacesDirectory;
+    private final Path interfacesDirectory;
     private final boolean generateService;
     private final String serviceName;
 
     public JavaDocumentCreator( String packageName, String typesPackage, String faultsPackage, String interfacesPackage, String outputDirectory, boolean generateService, String serviceName ) {
-        final String od = Optional.ofNullable( outputDirectory )
-            .map( d -> d.endsWith( Constants.FILE_SEPARATOR ) 
-                ? d.substring( 0, d.length()-1 ) 
-                : d 
-            ).orElse( DEFAULT_OUTPUT_DIRECTORY );
+        final Path outputPath = Path.of( outputDirectory == null ? DEFAULT_OUTPUT_DIRECTORY : outputDirectory );
 
-        this.packageName = packageName.replaceAll( "-", "_" );
-        packageDirectory = getDirectory( od, this.packageName );
+        this.packageName = formatPackageName( packageName );
+        packageDirectory = getPackagePath( outputPath, this.packageName );
 
-        this.typesPackage = Optional.ofNullable( typesPackage ).map( n -> n.replaceAll( "-", "_" ) ).orElse( DEFAULT_TYPE_PACKAGE );
-        this.typesDirectory = getDirectory( packageDirectory, this.typesPackage );
+        this.typesPackage = getPackage( this.packageName, typesPackage == null ? DEFAULT_TYPE_PACKAGE : typesPackage );
+        typesDirectory = getPackagePath( outputPath, this.typesPackage );
 
-        this.faultsPackage = Optional.ofNullable( faultsPackage ).map( n -> n.replaceAll( "-", "_" ) ).orElse( DEFAULT_FAULT_PACKAGE );
-        this.faultsDirectory = getDirectory( packageDirectory, this.faultsPackage );
+        this.faultsPackage = getPackage( this.packageName, faultsPackage == null ? DEFAULT_FAULT_PACKAGE : faultsPackage );
+        faultsDirectory = getPackagePath( outputPath, this.faultsPackage );
 
-        this.interfacesPackage = Optional.ofNullable( interfacesPackage ).map( n -> n.replaceAll( "-", "_" ) ).orElse( DEFAULT_INTERFACE_PACKAGE );
-        this.interfacesDirectory = getDirectory( packageDirectory, this.interfacesPackage );
+        this.interfacesPackage = getPackage( this.packageName, interfacesPackage == null ? DEFAULT_INTERFACE_PACKAGE : interfacesPackage );
+        interfacesDirectory = getPackagePath( outputPath, this.interfacesPackage );
 
         this.generateService = generateService;
         this.serviceName = serviceName == null ? DEFAULT_SERVICE_NAME : serviceName;
-
-        createDirectory( packageDirectory );
     }
 
     public void generateClasses( ProgramInspector inspector ) {
         final TypeFactory definitionFactory = new TypeFactory();
         final OperationFactory operationFactory = new OperationFactory( definitionFactory );
 
-        final boolean generatedTypes = generateTypeClasses( definitionFactory.getAll( inspector.getTypes() ) );
+        generateTypeClasses( definitionFactory.getAll( inspector.getTypes() ) );
 
-        final var operationsMap = operationFactory.createOperationsMap( inspector.getInterfaces() );
+        final Map<String, Collection<JolieOperation>> operationsMap = 
+            operationFactory.createOperationsMap( inspector.getInterfaces() );
 
-        final boolean generatedExceptions = generateExceptionClasses( operationsMap );
-        final boolean generatedInterfaces = generateInterfaceClasses( operationsMap, generatedTypes );
+        generateExceptionClasses( operationsMap );
+        generateInterfaceClasses( operationsMap );
 
         if ( generateService && !operationsMap.isEmpty() )
-            generateServiceClass( operationsMap, generatedTypes, generatedExceptions, generatedInterfaces );
+            generateServiceClass( operationsMap );
     }
 
-    private boolean generateTypeClasses( Stream<JolieType> typeDefinitions ) {
-        final AtomicBoolean generated = new AtomicBoolean( false );
-
+    private void generateTypeClasses( Stream<JolieType> typeDefinitions ) {
         typeDefinitions.parallel()
-            .map( definition -> TypeClassBuilder.create( definition, packageName, typesPackage ) )
+            .map( definition -> TypeClassBuilder.create( definition, typesPackage ) )
             .filter( Objects::nonNull )
-            .forEach( builder -> {
-                if ( !generated.getAndSet( true ) )
-                    createDirectory( typesDirectory );
-
-                JavaClassDirector.writeClass( builder, typesDirectory );
-            } );
-        
-        return generated.get();
+            .forEach( builder -> JavaClassDirector.writeClass( typesDirectory, builder ) );
     }
 
-    private boolean generateExceptionClasses( Map<String, Collection<JolieOperation>> operationsMap ) {
-        final AtomicBoolean generated = new AtomicBoolean( false );
-
+    private void generateExceptionClasses( Map<String, Collection<JolieOperation>> operationsMap ) {
         operationsMap.values()
             .parallelStream()
             .flatMap( Collection::stream )
             .map( JolieOperation::faults )
             .flatMap( Collection::stream )
             .distinct()
-            .map( fault -> new ExceptionClassBuilder( fault, packageName, typesPackage, faultsPackage ) )
-            .forEach( builder -> {
-                if ( !generated.getAndSet( true ) )
-                    createDirectory( faultsDirectory );
-
-                JavaClassDirector.writeClass( builder, faultsDirectory );
-            } );
-
-        return generated.get();
+            .map( fault -> new ExceptionClassBuilder( fault, faultsPackage, typesPackage ) )
+            .forEach( builder -> JavaClassDirector.writeClass( faultsDirectory, builder ) );
     }
 
-    private boolean generateInterfaceClasses( Map<String, Collection<JolieOperation>> operationsMap, boolean generatedTypes ) {
-        final AtomicBoolean generated = new AtomicBoolean( false );
-
+    private void generateInterfaceClasses( Map<String, Collection<JolieOperation>> operationsMap ) {
         EntryStream.of( operationsMap )
             .parallel()
             .mapKeyValue( (name, operations) -> new InterfaceClassBuilder( 
                 name, 
                 operations, 
-                packageName, 
-                generatedTypes ? typesPackage : null,
-                interfacesPackage
-            ) )
-            .forEach( builder -> {
-                if ( !generated.getAndSet( true ) )
-                    createDirectory( interfacesDirectory );
-
-                JavaClassDirector.writeClass( builder, interfacesDirectory );
-            } );
-
-        return generated.get();
+                interfacesPackage,
+                Files.exists( typesDirectory ) ? typesPackage : null ) )
+            .forEach( builder -> JavaClassDirector.writeClass( interfacesDirectory, builder ) );
     }
 
-    private void generateServiceClass( Map<String, Collection<JolieOperation>> operationsMap, boolean generatedTypes, boolean generatedFaults, boolean generatedInterfaces ) {
-        JavaClassDirector.writeClass(
-            new ServiceClassBuilder( 
-                serviceName, 
-                operationsMap,
-                packageName,
-                generatedTypes ? typesPackage : null, 
-                generatedFaults ? faultsPackage : null, 
-                generatedInterfaces ? interfacesPackage : null
-            ), 
-            packageDirectory
-        );
+    private void generateServiceClass( Map<String, Collection<JolieOperation>> operationsMap ) {
+        JavaClassDirector.writeClass( packageDirectory, new ServiceClassBuilder( 
+            serviceName, 
+            operationsMap,
+            packageName,
+            Files.exists( typesDirectory ) ? typesPackage : null, 
+            Files.exists( faultsDirectory ) ? faultsPackage : null, 
+            Files.exists( interfacesDirectory ) ? interfacesPackage : null ) );
     }
 
-    private String getDirectory( String baseDirectory, String packageName ) {
-        return baseDirectory + Arrays.stream( packageName.split( "\\." ) )
-            .map( s -> File.separator + s )
-            .reduce( (s1,s2) -> s1 + s2 )
-            .orElse( "" );
+    private static String formatPackageName( String name ) {
+        return name.replaceAll( "-", "_" );
     }
 
-    private void createDirectory( String directory ) {
-        File f = new File( directory );
-        f.mkdirs();
+    private static String getPackage( String basePackage, String packageName ) {
+        if ( packageName.startsWith( "." ) )
+            return packageName.length() == 1 ? basePackage : basePackage + formatPackageName( packageName );
+        return formatPackageName( packageName );
+    }
+
+    private static Path getPackagePath( Path dir, String packagePath ) {
+        return Path.of( dir.toString(), packagePath.split( "\\." ) );
     }
 }

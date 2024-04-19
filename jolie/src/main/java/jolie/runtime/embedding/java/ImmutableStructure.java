@@ -1,10 +1,10 @@
-package joliex.java.embedding;
+package jolie.runtime.embedding.java;
 
 import java.util.List;
 import java.util.Map;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
-import joliex.java.embedding.util.ValueManager;
+import jolie.runtime.embedding.java.util.ValueManager;
 
 public class ImmutableStructure<T extends JolieNative<?>> implements JolieValue {
 
@@ -12,7 +12,7 @@ public class ImmutableStructure<T extends JolieNative<?>> implements JolieValue 
     private final Map<String, List<JolieValue>> children;
 
     public ImmutableStructure( T content, Map<String, List<JolieValue>> children ) throws TypeValidationException {
-        this.content = ValueManager.validated( content );
+        this.content = ValueManager.validated( "content", content );
         this.children = children == null ? Map.of() : children;
     }
 

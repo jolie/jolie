@@ -1,10 +1,8 @@
 package joliex.java.generate;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.Writer;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import joliex.java.generate.type.TypeClassBuilder;
@@ -23,16 +21,13 @@ public class JavaClassDirector {
             case TypeClassBuilder b -> b.appendDefinition( true );
             default -> builder.appendDefinition();
         }
-
         return builder.getResult();
     }
 
-    public static void writeClass( JavaClassBuilder builder, String directory ) {
+    public static void writeClass( Path dir, JavaClassBuilder builder ) {
         try {
-            Writer writer = new BufferedWriter( new FileWriter( directory + File.separator + builder.className() + ".java" ) );
-            writer.append( constructClass( builder ) );
-            writer.flush();
-            writer.close();
+            Files.createDirectories( dir );
+            Files.writeString( dir.resolve( builder.className() + ".java" ), constructClass( builder ) );
         } catch( IOException ex ) {
             Logger.getLogger( JavaClassDirector.class.getName() ).log( Level.SEVERE, null, ex );
         } catch ( ClassBuilderException ex ) {
