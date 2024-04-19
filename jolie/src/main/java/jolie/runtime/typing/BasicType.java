@@ -23,7 +23,7 @@ import jolie.lang.NativeType;
 import jolie.lang.parse.ast.types.BasicTypeDefinition;
 import jolie.lang.parse.ast.types.refinements.BasicTypeRefinement;
 import jolie.runtime.Value;
-
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -32,8 +32,8 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
-public class BasicType< T extends Object > {
-	private static final Map< NativeType, BasicType< ? extends Object > > PURE_BASIC_TYPES = new HashMap<>();
+public class BasicType< T > {
+	private static final Map< NativeType, BasicType< ? > > PURE_BASIC_TYPES = new HashMap<>();
 	private static final Predicate< Value > ANY_PREDICATE = v -> true;
 	private static final Predicate< Value > INT_PREDICATE = Value::isInt;
 	private static final Predicate< Value > LONG_PREDICATE = v -> v.isLong() || v.isInt();
@@ -66,11 +66,11 @@ public class BasicType< T extends Object > {
 
 	private final NativeType nativeType;
 	private final Predicate< Value > nativeTypePredicate;
-	private final List< BasicTypeRefinement< T > > refinements;
+	private final List< BasicTypeRefinement< ? super T > > refinements;
 	private final Function< Value, T > mapper;
 
 	private BasicType( NativeType nativeType, Predicate< Value > nativeTypePredicate,
-		List< BasicTypeRefinement< T > > refinements, Function< Value, T > mapper ) {
+		List< BasicTypeRefinement< ? super T > > refinements, Function< Value, T > mapper ) {
 		this.nativeType = nativeType;
 		this.nativeTypePredicate = nativeTypePredicate;
 		this.refinements = refinements;
@@ -79,6 +79,14 @@ public class BasicType< T extends Object > {
 
 	public NativeType nativeType() {
 		return nativeType;
+	}
+
+	private static < U, T extends U > void checkRefinement( T nativeValue, BasicTypeRefinement< U > refinement,
+		Supplier< String > pathSupplier ) throws TypeCheckingException {
+		if( !refinement.checkValue( nativeValue ) ) {
+			throw new TypeCheckingException( "Invalid basic value for node " + pathSupplier.get()
+				+ ": does not respect the refinement " + refinement.getDocumentation() );
+		}
 	}
 
 	public void check( Value value, Supplier< String > pathSupplier )
@@ -91,26 +99,35 @@ public class BasicType< T extends Object > {
 		}
 		if( !refinements.isEmpty() ) {
 			T nativeValue = mapper.apply( value );
-			for( BasicTypeRefinement< T > refinement : refinements ) {
-				if( !refinement.checkValue( nativeValue ) ) {
-					throw new TypeCheckingException( "Invalid basic value for node " + pathSupplier.get()
-						+ ": does not respect the refinement " + refinement.getDocumentation() );
-				}
-			}
+			for( BasicTypeRefinement< ? super T > refinement : refinements )
+				checkRefinement( nativeValue, refinement, pathSupplier );
 		}
 	}
 
-	public static BasicType< ? extends Object > fromBasicTypeDefinition( BasicTypeDefinition basicTypeDefinition ) {
-		BasicType< ? extends Object > pureBasicType = PURE_BASIC_TYPES.get( basicTypeDefinition.nativeType() );
-		if( basicTypeDefinition.refinements().isEmpty() ) {
+	@SuppressWarnings( "unchecked" )
+	private static < T > List< BasicTypeRefinement< ? super T > > fromBasicTypeDefinitionRefinements(
+		final List< BasicTypeRefinement< ? > > refinements ) {
+		List< BasicTypeRefinement< ? super T > > ret = new ArrayList<>();
+		for( BasicTypeRefinement< ? > refinement : refinements )
+			ret.add( (BasicTypeRefinement< ? super T >) refinement );
+		return ret;
+	}
+
+	private static < T > BasicType< T > fromBasicTypeDefinitionInternal( BasicType< T > pureBasicType,
+		List< BasicTypeRefinement< ? > > refinements ) {
+		if( refinements.isEmpty() ) {
 			return pureBasicType;
 		} else {
-			// TODO: enforce strict type checking
-			return new BasicType(
+			return new BasicType<>(
 				pureBasicType.nativeType,
 				pureBasicType.nativeTypePredicate,
-				basicTypeDefinition.refinements(),
+				fromBasicTypeDefinitionRefinements( refinements ),
 				pureBasicType.mapper );
 		}
+	}
+
+	public static BasicType< ? > fromBasicTypeDefinition( BasicTypeDefinition basicTypeDefinition ) {
+		return fromBasicTypeDefinitionInternal( PURE_BASIC_TYPES.get( basicTypeDefinition.nativeType() ),
+			basicTypeDefinition.refinements() );
 	}
 }
