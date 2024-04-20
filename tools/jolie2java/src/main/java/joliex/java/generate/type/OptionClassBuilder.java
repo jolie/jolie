@@ -72,12 +72,13 @@ public final class OptionClassBuilder extends JavaClassBuilder {
     private void appendOverrideMethods() {
         if ( type != Native.VOID )
             builder.newline()
-                .newlineAppend( "public boolean equals( Object obj ) { return obj instanceof " ).append( className ).append( " o && option.equals( o.option() ); }" )
+                .newlineAppend( "public boolean equals( Object obj ) { return obj != null && obj instanceof JolieValue j && option.equals( " )
+                    .append( storedType( type ) instanceof Native ? "j.content().value()" : "j" ).append( " ); }" )
                 .newlineAppend( "public int hashCode() { return option.hashCode(); }" )
                 .newlineAppend( "public String toString() { return option.toString(); }" );
         else
             builder.newline()
-                .newlineAppend( "public boolean equals( Object obj ) { return obj instanceof " ).append( className ).append( " o; }" )
+                .newlineAppend( "public boolean equals( Object obj ) { return obj != null && obj instanceof JolieValue j && j.content() instanceof JolieVoid && j.children().isEmpty(); }" )
                 .newlineAppend( "public int hashCode() { return 0; }" )
                 .newlineAppend( "public String toString() { return \"\"; }" );
     }

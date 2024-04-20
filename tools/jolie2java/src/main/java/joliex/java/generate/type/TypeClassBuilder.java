@@ -30,23 +30,18 @@ public abstract class TypeClassBuilder extends JavaClassBuilder {
             .newlineAppend( "import jolie.runtime.embedding.java.JolieValue;" )
             .newlineAppend( "import jolie.runtime.embedding.java.JolieNative;" )
             .newlineAppend( "import jolie.runtime.embedding.java.JolieNative.*;" )
-            .newlineAppend( "import jolie.runtime.embedding.java.ImmutableStructure;" )
+            .newlineAppend( "import jolie.runtime.embedding.java.TypedStructure;" )
+            .newlineAppend( "import jolie.runtime.embedding.java.UntypedStructure;" )
             .newlineAppend( "import jolie.runtime.embedding.java.TypeValidationException;" )
             .newlineAppend( "import jolie.runtime.embedding.java.util.*;" )
             .newline()
-            .newlineAppend( "import java.util.ArrayList;" )
             .newlineAppend( "import java.util.Map;" )
             .newlineAppend( "import java.util.SequencedCollection;" )
             .newlineAppend( "import java.util.List;" )
             .newlineAppend( "import java.util.Optional;" )
             .newlineAppend( "import java.util.Objects;" )
             .newlineAppend( "import java.util.Set;" )
-            .newlineAppend( "import java.util.function.Function;" )
-            .newlineAppend( "import java.util.function.Predicate;" )
-            .newlineAppend( "import java.util.function.UnaryOperator;" )
-            .newlineAppend( "import java.util.function.BinaryOperator;" )
-            .newlineAppend( "import java.util.stream.Stream;" )
-            .newlineAppend( "import java.util.stream.Collectors;" );
+            .newlineAppend( "import java.util.function.Function;" );
     }
 
     public void appendDefinition() { appendDefinition( false ); }

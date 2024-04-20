@@ -47,7 +47,7 @@ public interface JolieValue extends ValueConverter {
 
     public static ListBuilder constructListFrom( SequencedCollection<? extends JolieValue> c ) { return new ListBuilder( c ); }
     
-    public static JolieValue create( JolieNative<?> content ) { return new ImmutableStructure<>( content, Map.of() ); }
+    public static JolieValue create( JolieNative<?> content ) { return new UntypedStructure<>( content, Map.of() ); }
     public static JolieValue create( Boolean contentValue ) { return create( JolieNative.create( contentValue ) ); }
     public static JolieValue create( Integer contentValue ) { return create( JolieNative.create( contentValue ) ); }
     public static JolieValue create( Long contentValue ) { return create( JolieNative.create( contentValue ) ); }
@@ -59,7 +59,7 @@ public interface JolieValue extends ValueConverter {
     public static JolieValue createFrom( JolieValue j ) { return j; }
 
     public static JolieValue fromValue( Value v ) {
-        return new ImmutableStructure<>(
+        return new UntypedStructure<>(
             JolieNative.contentFromValue( v ), 
             v.children()
                 .entrySet()
@@ -105,7 +105,7 @@ public interface JolieValue extends ValueConverter {
 
         public Builder content( UnaryOperator<JolieNative<?>> contentOperator ) { return content( contentOperator.apply( content ) ); }
 
-        public JolieValue build() { return new ImmutableStructure<>( content == null ? JolieNative.create() : content, children ); }
+        public JolieValue build() { return new UntypedStructure<>( content == null ? JolieNative.create() : content, children ); }
     }
     
     public static class ListBuilder extends AbstractListBuilder<ListBuilder, JolieValue> {

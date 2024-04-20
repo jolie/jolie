@@ -17,8 +17,26 @@ public class UntypedStructureClassBuilder extends StructureClassBuilder {
         } );
     }
 
+    @Override
+    public void appendHeader() {
+        builder.append( "package " ).append( typesPackage ).append( ";" )
+            .newline()
+            .newlineAppend( "import jolie.runtime.Value;" )
+            .newlineAppend( "import jolie.runtime.ByteArray;" )
+            .newlineAppend( "import jolie.runtime.typing.TypeCheckingException;" )
+            .newlineAppend( "import jolie.runtime.embedding.java.JolieValue;" )
+            .newlineAppend( "import jolie.runtime.embedding.java.JolieNative;" )
+            .newlineAppend( "import jolie.runtime.embedding.java.JolieNative.*;" )
+            .newlineAppend( "import jolie.runtime.embedding.java.UntypedStructure;" )
+            .newlineAppend( "import jolie.runtime.embedding.java.TypeValidationException;" )
+            .newlineAppend( "import jolie.runtime.embedding.java.util.*;" )
+            .newline()
+            .newlineAppend( "import java.util.Map;" )
+            .newlineAppend( "import java.util.List;" );
+    }
+
     protected void appendDescriptionDocumentation() {
-        builder.newlineAppend( "this class is an {@link ImmutableStructure} which can be described as follows:" );
+        builder.newlineAppend( "this class is an {@link UntypedStructure} which can be described as follows:" );
     }
 
     protected void appendDefinitionDocumentation() {
@@ -39,7 +57,7 @@ public class UntypedStructureClassBuilder extends StructureClassBuilder {
     }
 
     protected void appendSignature( boolean isInnerClass ) {
-        builder.newlineAppend( "public " ).append( isInnerClass ? "static " : "" ).append( "final class " ).append( className ).append( " extends ImmutableStructure<" ).append( structure.nativeType().wrapperName() ).append( ">" );
+        builder.newlineAppend( "public " ).append( isInnerClass ? "static " : "" ).append( "final class " ).append( className ).append( " extends UntypedStructure<" ).append( structure.nativeType().wrapperName() ).append( ">" );
     }
 
     protected void appendAttributes() {
@@ -115,7 +133,7 @@ public class UntypedStructureClassBuilder extends StructureClassBuilder {
         contentFieldName.ifPresent( 
             n -> builder.newNewlineAppend( "public Builder " ).append( n ).append( "( " ).append( structure.nativeType().valueName() ).append( " " ).append( n ).append( " ) { this." ).append( n ).append( " = " ).append( n ).append( "; return this; }" )
         );
-        builder.newNewlineAppend( "public " ).append( className ).append( " build() { return new " ).append( className ).append( "( " ).append( contentFieldName.map( n -> n + ", " ).orElse( "" ) ).append( "children ); }" );
+        builder.newNewlineAppend( "public " ).append( className ).append( " build() { return new " ).append( className ).append( "( " ).append( switch ( structure.nativeType() ) { case VOID -> ""; case ANY -> "content == null ? new JolieVoid() : content, "; default -> "contentValue, "; } ).append( "children ); }" );
     }
 
     protected void appendTypeClasses() {}

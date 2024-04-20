@@ -7,11 +7,11 @@ import jolie.runtime.typing.TypeCheckingException;
 import jolie.runtime.embedding.java.JolieValue;
 import jolie.runtime.embedding.java.JolieNative;
 import jolie.runtime.embedding.java.JolieNative.*;
-import jolie.runtime.embedding.java.ImmutableStructure;
+import jolie.runtime.embedding.java.TypedStructure;
+import jolie.runtime.embedding.java.UntypedStructure;
 import jolie.runtime.embedding.java.TypeValidationException;
 import jolie.runtime.embedding.java.util.*;
 
-import java.util.ArrayList;
 import java.util.Map;
 import java.util.SequencedCollection;
 import java.util.List;
@@ -19,14 +19,9 @@ import java.util.Optional;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.function.UnaryOperator;
-import java.util.function.BinaryOperator;
-import java.util.stream.Stream;
-import java.util.stream.Collectors;
 
 /**
- * this class is an {@link JolieValue} which can be described as follows:
+ * this class is a {@link TypedStructure} which can be described as follows:
  * <pre>
  * 
  * contentValue: {@link String}
@@ -36,11 +31,12 @@ import java.util.stream.Collectors;
  * @see JolieValue
  * @see JolieNative
  */
-public final class UrlDecodeRequest implements JolieValue {
+public final class UrlDecodeRequest extends TypedStructure {
     
-    private static final Set<String> FIELD_KEYS = Set.of( "charset" );
+    private static final Set<String> FIELD_KEYS = fieldKeys( UrlDecodeRequest.class );
     
     private final String contentValue;
+    @JolieName("charset")
     private final String charset;
     
     public UrlDecodeRequest( String contentValue, String charset ) {
@@ -52,11 +48,6 @@ public final class UrlDecodeRequest implements JolieValue {
     public Optional<String> charset() { return Optional.ofNullable( charset ); }
     
     public JolieString content() { return new JolieString( contentValue ); }
-    public Map<String, List<JolieValue>> children() {
-        return Map.of(
-            "charset", charset == null ? List.of() : List.of( JolieValue.create( charset ) )
-        );
-    }
     
     public static UrlDecodeRequest createFrom( JolieValue j ) {
         return new UrlDecodeRequest(

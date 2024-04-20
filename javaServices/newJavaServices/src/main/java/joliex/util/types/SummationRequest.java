@@ -7,11 +7,11 @@ import jolie.runtime.typing.TypeCheckingException;
 import jolie.runtime.embedding.java.JolieValue;
 import jolie.runtime.embedding.java.JolieNative;
 import jolie.runtime.embedding.java.JolieNative.*;
-import jolie.runtime.embedding.java.ImmutableStructure;
+import jolie.runtime.embedding.java.TypedStructure;
+import jolie.runtime.embedding.java.UntypedStructure;
 import jolie.runtime.embedding.java.TypeValidationException;
 import jolie.runtime.embedding.java.util.*;
 
-import java.util.ArrayList;
 import java.util.Map;
 import java.util.SequencedCollection;
 import java.util.List;
@@ -19,14 +19,9 @@ import java.util.Optional;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.function.UnaryOperator;
-import java.util.function.BinaryOperator;
-import java.util.stream.Stream;
-import java.util.stream.Collectors;
 
 /**
- * this class is an {@link JolieValue} which can be described as follows:
+ * this class is a {@link TypedStructure} which can be described as follows:
  * <pre>
  * from: {@link Integer}
  * to: {@link Integer}
@@ -35,11 +30,13 @@ import java.util.stream.Collectors;
  * @see JolieValue
  * @see JolieNative
  */
-public final class SummationRequest implements JolieValue {
+public final class SummationRequest extends TypedStructure {
     
-    private static final Set<String> FIELD_KEYS = Set.of( "from", "to" );
+    private static final Set<String> FIELD_KEYS = fieldKeys( SummationRequest.class );
     
+    @JolieName("from")
     private final Integer from;
+    @JolieName("to")
     private final Integer to;
     
     public SummationRequest( Integer from, Integer to ) {
@@ -51,12 +48,6 @@ public final class SummationRequest implements JolieValue {
     public Integer to() { return to; }
     
     public JolieVoid content() { return new JolieVoid(); }
-    public Map<String, List<JolieValue>> children() {
-        return Map.of(
-            "from", List.of( JolieValue.create( from ) ),
-            "to", List.of( JolieValue.create( to ) )
-        );
-    }
     
     public static SummationRequest createFrom( JolieValue j ) {
         return new SummationRequest(

@@ -7,11 +7,11 @@ import jolie.runtime.typing.TypeCheckingException;
 import jolie.runtime.embedding.java.JolieValue;
 import jolie.runtime.embedding.java.JolieNative;
 import jolie.runtime.embedding.java.JolieNative.*;
-import jolie.runtime.embedding.java.ImmutableStructure;
+import jolie.runtime.embedding.java.TypedStructure;
+import jolie.runtime.embedding.java.UntypedStructure;
 import jolie.runtime.embedding.java.TypeValidationException;
 import jolie.runtime.embedding.java.util.*;
 
-import java.util.ArrayList;
 import java.util.Map;
 import java.util.SequencedCollection;
 import java.util.List;
@@ -19,14 +19,9 @@ import java.util.Optional;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.function.UnaryOperator;
-import java.util.function.BinaryOperator;
-import java.util.stream.Stream;
-import java.util.stream.Collectors;
 
 /**
- * this class is an {@link JolieValue} which can be described as follows:
+ * this class is a {@link TypedStructure} which can be described as follows:
  * <pre>
  * 
  * contentValue: {@link Long}
@@ -36,11 +31,12 @@ import java.util.stream.Collectors;
  * @see JolieValue
  * @see JolieNative
  */
-public final class GetDateTimeRequest implements JolieValue {
+public final class GetDateTimeRequest extends TypedStructure {
     
-    private static final Set<String> FIELD_KEYS = Set.of( "format" );
+    private static final Set<String> FIELD_KEYS = fieldKeys( GetDateTimeRequest.class );
     
     private final Long contentValue;
+    @JolieName("format")
     private final String format;
     
     public GetDateTimeRequest( Long contentValue, String format ) {
@@ -52,11 +48,6 @@ public final class GetDateTimeRequest implements JolieValue {
     public Optional<String> format() { return Optional.ofNullable( format ); }
     
     public JolieLong content() { return new JolieLong( contentValue ); }
-    public Map<String, List<JolieValue>> children() {
-        return Map.of(
-            "format", format == null ? List.of() : List.of( JolieValue.create( format ) )
-        );
-    }
     
     public static GetDateTimeRequest createFrom( JolieValue j ) {
         return new GetDateTimeRequest(

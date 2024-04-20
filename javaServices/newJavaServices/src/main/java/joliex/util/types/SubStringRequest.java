@@ -7,11 +7,11 @@ import jolie.runtime.typing.TypeCheckingException;
 import jolie.runtime.embedding.java.JolieValue;
 import jolie.runtime.embedding.java.JolieNative;
 import jolie.runtime.embedding.java.JolieNative.*;
-import jolie.runtime.embedding.java.ImmutableStructure;
+import jolie.runtime.embedding.java.TypedStructure;
+import jolie.runtime.embedding.java.UntypedStructure;
 import jolie.runtime.embedding.java.TypeValidationException;
 import jolie.runtime.embedding.java.util.*;
 
-import java.util.ArrayList;
 import java.util.Map;
 import java.util.SequencedCollection;
 import java.util.List;
@@ -19,14 +19,9 @@ import java.util.Optional;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.function.UnaryOperator;
-import java.util.function.BinaryOperator;
-import java.util.stream.Stream;
-import java.util.stream.Collectors;
 
 /**
- * this class is an {@link JolieValue} which can be described as follows:
+ * this class is a {@link TypedStructure} which can be described as follows:
  * <pre>
  * 
  * contentValue: {@link String}
@@ -37,12 +32,14 @@ import java.util.stream.Collectors;
  * @see JolieValue
  * @see JolieNative
  */
-public final class SubStringRequest implements JolieValue {
+public final class SubStringRequest extends TypedStructure {
     
-    private static final Set<String> FIELD_KEYS = Set.of( "end", "begin" );
+    private static final Set<String> FIELD_KEYS = fieldKeys( SubStringRequest.class );
     
     private final String contentValue;
+    @JolieName("end")
     private final Integer end;
+    @JolieName("begin")
     private final Integer begin;
     
     public SubStringRequest( String contentValue, Integer end, Integer begin ) {
@@ -56,12 +53,6 @@ public final class SubStringRequest implements JolieValue {
     public Integer begin() { return begin; }
     
     public JolieString content() { return new JolieString( contentValue ); }
-    public Map<String, List<JolieValue>> children() {
-        return Map.of(
-            "end", end == null ? List.of() : List.of( JolieValue.create( end ) ),
-            "begin", List.of( JolieValue.create( begin ) )
-        );
-    }
     
     public static SubStringRequest createFrom( JolieValue j ) {
         return new SubStringRequest(

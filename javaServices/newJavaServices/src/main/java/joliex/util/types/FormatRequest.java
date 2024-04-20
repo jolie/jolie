@@ -7,11 +7,11 @@ import jolie.runtime.typing.TypeCheckingException;
 import jolie.runtime.embedding.java.JolieValue;
 import jolie.runtime.embedding.java.JolieNative;
 import jolie.runtime.embedding.java.JolieNative.*;
-import jolie.runtime.embedding.java.ImmutableStructure;
+import jolie.runtime.embedding.java.TypedStructure;
+import jolie.runtime.embedding.java.UntypedStructure;
 import jolie.runtime.embedding.java.TypeValidationException;
 import jolie.runtime.embedding.java.util.*;
 
-import java.util.ArrayList;
 import java.util.Map;
 import java.util.SequencedCollection;
 import java.util.List;
@@ -19,11 +19,6 @@ import java.util.Optional;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.function.UnaryOperator;
-import java.util.function.BinaryOperator;
-import java.util.stream.Stream;
-import java.util.stream.Collectors;
 
 /**
  * this class is a choice type which can be described as follows:
@@ -46,7 +41,7 @@ public sealed interface FormatRequest extends JolieValue {
         public Map<String, List<JolieValue>> children() { return option.children(); }
         public Value jolieRepr() { return S1.toValue( option ); }
         
-        public boolean equals( Object obj ) { return obj instanceof C1 o && option.equals( o.option() ); }
+        public boolean equals( Object obj ) { return obj != null && obj instanceof JolieValue j && option.equals( j ); }
         public int hashCode() { return option.hashCode(); }
         public String toString() { return option.toString(); }
         
@@ -65,7 +60,7 @@ public sealed interface FormatRequest extends JolieValue {
         public Map<String, List<JolieValue>> children() { return option.children(); }
         public Value jolieRepr() { return S2.toValue( option ); }
         
-        public boolean equals( Object obj ) { return obj instanceof C2 o && option.equals( o.option() ); }
+        public boolean equals( Object obj ) { return obj != null && obj instanceof JolieValue j && option.equals( j ); }
         public int hashCode() { return option.hashCode(); }
         public String toString() { return option.toString(); }
         
@@ -94,7 +89,7 @@ public sealed interface FormatRequest extends JolieValue {
     
     
     /**
-     * this class is an {@link ImmutableStructure} which can be described as follows:
+     * this class is an {@link UntypedStructure} which can be described as follows:
      * <pre>
      * 
      * contentValue: {@link String}{ ? }
@@ -104,7 +99,7 @@ public sealed interface FormatRequest extends JolieValue {
      * @see JolieNative
      * @see #construct()
      */
-    public static final class S1 extends ImmutableStructure<JolieString> {
+    public static final class S1 extends UntypedStructure<JolieString> {
         
         public S1( String contentValue, Map<String, List<JolieValue>> children ) { super( JolieNative.create( contentValue ), children ); }
         
@@ -159,7 +154,7 @@ public sealed interface FormatRequest extends JolieValue {
     
     
     /**
-     * this class is an {@link JolieValue} which can be described as follows:
+     * this class is a {@link TypedStructure} which can be described as follows:
      * <pre>
      * data: {@link Data}
      * format: {@link String}
@@ -171,12 +166,15 @@ public sealed interface FormatRequest extends JolieValue {
      * @see Data
      * @see #construct()
      */
-    public static final class S2 implements JolieValue {
+    public static final class S2 extends TypedStructure {
         
-        private static final Set<String> FIELD_KEYS = Set.of( "data", "format", "locale" );
+        private static final Set<String> FIELD_KEYS = fieldKeys( S2.class );
         
+        @JolieName("data")
         private final Data data;
+        @JolieName("format")
         private final String format;
+        @JolieName("locale")
         private final String locale;
         
         public S2( Data data, String format, String locale ) {
@@ -190,13 +188,6 @@ public sealed interface FormatRequest extends JolieValue {
         public String locale() { return locale; }
         
         public JolieVoid content() { return new JolieVoid(); }
-        public Map<String, List<JolieValue>> children() {
-            return Map.of(
-                "data", List.<JolieValue>of( data ),
-                "format", List.of( JolieValue.create( format ) ),
-                "locale", List.of( JolieValue.create( locale ) )
-            );
-        }
         
         public static Builder construct() { return new Builder(); }
         public static ListBuilder constructList() { return new ListBuilder(); }
@@ -267,7 +258,7 @@ public sealed interface FormatRequest extends JolieValue {
         
         
         /**
-         * this class is an {@link ImmutableStructure} which can be described as follows:
+         * this class is an {@link UntypedStructure} which can be described as follows:
          * <pre>
          * 
          * content: {@link JolieVoid} { ? }
@@ -277,7 +268,7 @@ public sealed interface FormatRequest extends JolieValue {
          * @see JolieNative
          * @see #construct()
          */
-        public static final class Data extends ImmutableStructure<JolieVoid> {
+        public static final class Data extends UntypedStructure<JolieVoid> {
             
             public Data( Map<String, List<JolieValue>> children ) { super( new JolieVoid(), children ); }
             

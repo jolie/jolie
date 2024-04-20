@@ -6,12 +6,12 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import jolie.runtime.embedding.java.util.ValueManager;
 
-public class ImmutableStructure<T extends JolieNative<?>> implements JolieValue {
+public class UntypedStructure<T extends JolieNative<?>> implements JolieValue {
 
     private final T content;
     private final Map<String, List<JolieValue>> children;
 
-    public ImmutableStructure( T content, Map<String, List<JolieValue>> children ) throws TypeValidationException {
+    public UntypedStructure( T content, Map<String, List<JolieValue>> children ) throws TypeValidationException {
         this.content = ValueManager.validated( "content", content );
         this.children = children == null ? Map.of() : children;
     }
@@ -19,18 +19,20 @@ public class ImmutableStructure<T extends JolieNative<?>> implements JolieValue 
     public T content() { return content; }
     public Map<String, List<JolieValue>> children() { return children; }
 
-    public boolean equals( Object obj ) { return obj instanceof JolieValue j && content.equals( j.content() ) && children.equals( j.children() ); }
+    public boolean equals( Object obj ) { return obj != null && obj instanceof JolieValue j && content.equals( j.content() ) && children.equals( j.children() ); }
     public int hashCode() {
+        if ( children.isEmpty() )
+            return content.hashCode();
+            
         int hash = 7;
-        hash = 31 * hash + (content == null ? 0 : content.hashCode());
-        hash = 31 * hash + (children == null ? 0 : children.hashCode());
+        hash = 31 * hash + content.hashCode();
+        hash = 31 * hash + children.hashCode();
         return hash;
     }
     public String toString() {
-        return (content() instanceof JolieNative.JolieString ? "\"" + content().toString() + "\"" : content().toString())
-            + children()
-                .entrySet()
-                .stream()
+        return (content instanceof JolieNative.JolieString ? "\"" + content.toString() + "\"" : content.toString())
+            + children.entrySet()
+                .parallelStream()
                 .flatMap( e -> {
                     final List<JolieValue> ls = e.getValue();
                     return ls.size() == 1

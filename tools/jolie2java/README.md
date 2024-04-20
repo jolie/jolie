@@ -535,8 +535,9 @@ Jolie provides a lot of freedom when it comes to naming types and fields, with f
 
 1. Type names have to match the regex "[A-Z]\w[\w\d]\*"
 2. Type names cannot match the name of any of the classes used by the generated files, including, but not limited to, `JolieValue`, `JolieNative`, `Boolean`, `Optional`, etc.
-3. Field names have to match the regex "[a-z][\w\d]\*", unless they contain an inline custom type, in which case they must match the regex "[a-z]\w[\w\d]\*" instead.
+3. Field names have to match the regex "[a-z][\w\d]\*".
 4. Field names cannot match any of method names reserved by jolie2java, including `content`, `contentValue`, `children`, `construct`, and `constructList`. Additionally they cannot match any of the reserved keywords from Java, including, but not limited to, `char`, `int`, `class`, etc.
+5. When a field is defined as an inline Custom type, the capitalization of its name must adhere to (1.) and (2.) as well.
 
 Breaking any of the above rules will result in the generation process failing, requiring you to either change the names directly or use the `@JavaName` annotation discussed previously.
 

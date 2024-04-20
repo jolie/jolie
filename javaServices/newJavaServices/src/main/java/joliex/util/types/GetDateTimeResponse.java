@@ -7,11 +7,11 @@ import jolie.runtime.typing.TypeCheckingException;
 import jolie.runtime.embedding.java.JolieValue;
 import jolie.runtime.embedding.java.JolieNative;
 import jolie.runtime.embedding.java.JolieNative.*;
-import jolie.runtime.embedding.java.ImmutableStructure;
+import jolie.runtime.embedding.java.TypedStructure;
+import jolie.runtime.embedding.java.UntypedStructure;
 import jolie.runtime.embedding.java.TypeValidationException;
 import jolie.runtime.embedding.java.util.*;
 
-import java.util.ArrayList;
 import java.util.Map;
 import java.util.SequencedCollection;
 import java.util.List;
@@ -19,14 +19,9 @@ import java.util.Optional;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.function.UnaryOperator;
-import java.util.function.BinaryOperator;
-import java.util.stream.Stream;
-import java.util.stream.Collectors;
 
 /**
- * this class is an {@link JolieValue} which can be described as follows:
+ * this class is a {@link TypedStructure} which can be described as follows:
  * <pre>
  * 
  * contentValue: {@link String}
@@ -42,16 +37,22 @@ import java.util.stream.Collectors;
  * @see JolieNative
  * @see #construct()
  */
-public final class GetDateTimeResponse implements JolieValue {
+public final class GetDateTimeResponse extends TypedStructure {
     
-    private static final Set<String> FIELD_KEYS = Set.of( "month", "hour", "year", "day", "minute", "second" );
+    private static final Set<String> FIELD_KEYS = fieldKeys( GetDateTimeResponse.class );
     
     private final String contentValue;
+    @JolieName("month")
     private final Integer month;
+    @JolieName("hour")
     private final Integer hour;
+    @JolieName("year")
     private final Integer year;
+    @JolieName("day")
     private final Integer day;
+    @JolieName("minute")
     private final Integer minute;
+    @JolieName("second")
     private final Integer second;
     
     public GetDateTimeResponse( String contentValue, Integer month, Integer hour, Integer year, Integer day, Integer minute, Integer second ) {
@@ -73,16 +74,6 @@ public final class GetDateTimeResponse implements JolieValue {
     public Integer second() { return second; }
     
     public JolieString content() { return new JolieString( contentValue ); }
-    public Map<String, List<JolieValue>> children() {
-        return Map.of(
-            "month", List.of( JolieValue.create( month ) ),
-            "hour", List.of( JolieValue.create( hour ) ),
-            "year", List.of( JolieValue.create( year ) ),
-            "day", List.of( JolieValue.create( day ) ),
-            "minute", List.of( JolieValue.create( minute ) ),
-            "second", List.of( JolieValue.create( second ) )
-        );
-    }
     
     public static Builder construct() { return new Builder(); }
     public static ListBuilder constructList() { return new ListBuilder(); }

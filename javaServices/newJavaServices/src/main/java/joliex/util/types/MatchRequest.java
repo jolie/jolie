@@ -7,11 +7,11 @@ import jolie.runtime.typing.TypeCheckingException;
 import jolie.runtime.embedding.java.JolieValue;
 import jolie.runtime.embedding.java.JolieNative;
 import jolie.runtime.embedding.java.JolieNative.*;
-import jolie.runtime.embedding.java.ImmutableStructure;
+import jolie.runtime.embedding.java.TypedStructure;
+import jolie.runtime.embedding.java.UntypedStructure;
 import jolie.runtime.embedding.java.TypeValidationException;
 import jolie.runtime.embedding.java.util.*;
 
-import java.util.ArrayList;
 import java.util.Map;
 import java.util.SequencedCollection;
 import java.util.List;
@@ -19,14 +19,9 @@ import java.util.Optional;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.function.UnaryOperator;
-import java.util.function.BinaryOperator;
-import java.util.stream.Stream;
-import java.util.stream.Collectors;
 
 /**
- * this class is an {@link JolieValue} which can be described as follows:
+ * this class is a {@link TypedStructure} which can be described as follows:
  * <pre>
  * 
  * contentValue: {@link String}
@@ -36,11 +31,12 @@ import java.util.stream.Collectors;
  * @see JolieValue
  * @see JolieNative
  */
-public final class MatchRequest implements JolieValue {
+public final class MatchRequest extends TypedStructure {
     
-    private static final Set<String> FIELD_KEYS = Set.of( "regex" );
+    private static final Set<String> FIELD_KEYS = fieldKeys( MatchRequest.class );
     
     private final String contentValue;
+    @JolieName("regex")
     private final String regex;
     
     public MatchRequest( String contentValue, String regex ) {
@@ -52,11 +48,6 @@ public final class MatchRequest implements JolieValue {
     public String regex() { return regex; }
     
     public JolieString content() { return new JolieString( contentValue ); }
-    public Map<String, List<JolieValue>> children() {
-        return Map.of(
-            "regex", List.of( JolieValue.create( regex ) )
-        );
-    }
     
     public static MatchRequest createFrom( JolieValue j ) {
         return new MatchRequest(

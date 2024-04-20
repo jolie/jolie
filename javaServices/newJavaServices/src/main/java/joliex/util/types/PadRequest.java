@@ -7,11 +7,11 @@ import jolie.runtime.typing.TypeCheckingException;
 import jolie.runtime.embedding.java.JolieValue;
 import jolie.runtime.embedding.java.JolieNative;
 import jolie.runtime.embedding.java.JolieNative.*;
-import jolie.runtime.embedding.java.ImmutableStructure;
+import jolie.runtime.embedding.java.TypedStructure;
+import jolie.runtime.embedding.java.UntypedStructure;
 import jolie.runtime.embedding.java.TypeValidationException;
 import jolie.runtime.embedding.java.util.*;
 
-import java.util.ArrayList;
 import java.util.Map;
 import java.util.SequencedCollection;
 import java.util.List;
@@ -19,14 +19,9 @@ import java.util.Optional;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.function.UnaryOperator;
-import java.util.function.BinaryOperator;
-import java.util.stream.Stream;
-import java.util.stream.Collectors;
 
 /**
- * this class is an {@link JolieValue} which can be described as follows:
+ * this class is a {@link TypedStructure} which can be described as follows:
  * <pre>
  * 
  * contentValue: {@link String}
@@ -37,12 +32,14 @@ import java.util.stream.Collectors;
  * @see JolieValue
  * @see JolieNative
  */
-public final class PadRequest implements JolieValue {
+public final class PadRequest extends TypedStructure {
     
-    private static final Set<String> FIELD_KEYS = Set.of( "length", "char" );
+    private static final Set<String> FIELD_KEYS = fieldKeys( PadRequest.class );
     
     private final String contentValue;
+    @JolieName("length")
     private final Integer length;
+    @JolieName("char")
     private final String chars;
     
     public PadRequest( String contentValue, Integer length, String chars ) {
@@ -56,12 +53,6 @@ public final class PadRequest implements JolieValue {
     public String chars() { return chars; }
     
     public JolieString content() { return new JolieString( contentValue ); }
-    public Map<String, List<JolieValue>> children() {
-        return Map.of(
-            "length", List.of( JolieValue.create( length ) ),
-            "char", List.of( JolieValue.create( chars ) )
-        );
-    }
     
     public static PadRequest createFrom( JolieValue j ) {
         return new PadRequest(

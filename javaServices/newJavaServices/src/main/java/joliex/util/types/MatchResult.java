@@ -7,11 +7,11 @@ import jolie.runtime.typing.TypeCheckingException;
 import jolie.runtime.embedding.java.JolieValue;
 import jolie.runtime.embedding.java.JolieNative;
 import jolie.runtime.embedding.java.JolieNative.*;
-import jolie.runtime.embedding.java.ImmutableStructure;
+import jolie.runtime.embedding.java.TypedStructure;
+import jolie.runtime.embedding.java.UntypedStructure;
 import jolie.runtime.embedding.java.TypeValidationException;
 import jolie.runtime.embedding.java.util.*;
 
-import java.util.ArrayList;
 import java.util.Map;
 import java.util.SequencedCollection;
 import java.util.List;
@@ -19,14 +19,9 @@ import java.util.Optional;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.function.UnaryOperator;
-import java.util.function.BinaryOperator;
-import java.util.stream.Stream;
-import java.util.stream.Collectors;
 
 /**
- * this class is an {@link JolieValue} which can be described as follows:
+ * this class is a {@link TypedStructure} which can be described as follows:
  * <pre>
  * 
  * contentValue: {@link Integer}
@@ -37,11 +32,12 @@ import java.util.stream.Collectors;
  * @see JolieNative
  * @see #construct()
  */
-public final class MatchResult implements JolieValue {
+public final class MatchResult extends TypedStructure {
     
-    private static final Set<String> FIELD_KEYS = Set.of( "group" );
+    private static final Set<String> FIELD_KEYS = fieldKeys( MatchResult.class );
     
     private final Integer contentValue;
+    @JolieName("group")
     private final List<String> group;
     
     public MatchResult( Integer contentValue, SequencedCollection<String> group ) {
@@ -53,11 +49,6 @@ public final class MatchResult implements JolieValue {
     public List<String> group() { return group; }
     
     public JolieInt content() { return new JolieInt( contentValue ); }
-    public Map<String, List<JolieValue>> children() {
-        return Map.of(
-            "group", group.parallelStream().map( JolieValue::create ).toList()
-        );
-    }
     
     public static Builder construct() { return new Builder(); }
     public static ListBuilder constructList() { return new ListBuilder(); }

@@ -11,6 +11,23 @@ public class BasicClassBuilder extends TypeClassBuilder {
         this.basic = basic; 
     }
 
+    @Override
+    public void appendHeader() {
+        builder.append( "package " ).append( typesPackage ).append( ";" )
+            .newline()
+            .newlineAppend( "import jolie.runtime.Value;" )
+            .newlineAppend( "import jolie.runtime.typing.TypeCheckingException;" )
+            .newlineAppend( "import jolie.runtime.embedding.java.JolieValue;" )
+            .newlineAppend( "import jolie.runtime.embedding.java.JolieNative;" )
+            .newlineAppend( "import jolie.runtime.embedding.java.JolieNative.*;" )
+            .newlineAppend( "import jolie.runtime.embedding.java.TypeValidationException;" )
+            .newlineAppend( "import jolie.runtime.embedding.java.util.*;" )
+            .newline()
+            .newlineAppend( "import java.util.Map;" )
+            .newlineAppend( "import java.util.List;" )
+            .newlineAppend( "import java.util.Objects;" );
+    }
+
     protected void appendDescriptionDocumentation() {
         builder.newlineAppend( "this record is a {@link JolieValue} which can be described as follows:" );
     }
@@ -51,7 +68,7 @@ public class BasicClassBuilder extends TypeClassBuilder {
             .newlineAppend( "public " ).append( basic.nativeType().wrapperName() ).append( " content() { return new " ).append( basic.nativeType().wrapperName() ).append("( contentValue ); }" )
             .newlineAppend( "public Map<String, List<JolieValue>> children() { return Map.of(); }" )
             .newline()
-            .newlineAppend( "public boolean equals( Object obj ) { return obj instanceof " ).append( className ).append( " other && contentValue.equals( other.contentValue() ); }" )
+            .newlineAppend( "public boolean equals( Object obj ) { return obj != null && obj instanceof JolieValue j && contentValue.equals( j.content().value() ) && j.children().isEmpty(); }" )
             .newlineAppend( "public int hashCode() { return contentValue.hashCode(); }" )
             .newlineAppend( "public String toString() { return contentValue.toString(); }" );
     }

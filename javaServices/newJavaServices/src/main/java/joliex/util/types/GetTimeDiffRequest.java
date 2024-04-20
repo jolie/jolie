@@ -7,11 +7,11 @@ import jolie.runtime.typing.TypeCheckingException;
 import jolie.runtime.embedding.java.JolieValue;
 import jolie.runtime.embedding.java.JolieNative;
 import jolie.runtime.embedding.java.JolieNative.*;
-import jolie.runtime.embedding.java.ImmutableStructure;
+import jolie.runtime.embedding.java.TypedStructure;
+import jolie.runtime.embedding.java.UntypedStructure;
 import jolie.runtime.embedding.java.TypeValidationException;
 import jolie.runtime.embedding.java.util.*;
 
-import java.util.ArrayList;
 import java.util.Map;
 import java.util.SequencedCollection;
 import java.util.List;
@@ -19,14 +19,9 @@ import java.util.Optional;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.function.UnaryOperator;
-import java.util.function.BinaryOperator;
-import java.util.stream.Stream;
-import java.util.stream.Collectors;
 
 /**
- * this class is an {@link JolieValue} which can be described as follows:
+ * this class is a {@link TypedStructure} which can be described as follows:
  * <pre>
  * time1: {@link String}
  * time2: {@link String}
@@ -35,11 +30,13 @@ import java.util.stream.Collectors;
  * @see JolieValue
  * @see JolieNative
  */
-public final class GetTimeDiffRequest implements JolieValue {
+public final class GetTimeDiffRequest extends TypedStructure {
     
-    private static final Set<String> FIELD_KEYS = Set.of( "time1", "time2" );
+    private static final Set<String> FIELD_KEYS = fieldKeys( GetTimeDiffRequest.class );
     
+    @JolieName("time1")
     private final String time1;
+    @JolieName("time2")
     private final String time2;
     
     public GetTimeDiffRequest( String time1, String time2 ) {
@@ -51,12 +48,6 @@ public final class GetTimeDiffRequest implements JolieValue {
     public String time2() { return time2; }
     
     public JolieVoid content() { return new JolieVoid(); }
-    public Map<String, List<JolieValue>> children() {
-        return Map.of(
-            "time1", List.of( JolieValue.create( time1 ) ),
-            "time2", List.of( JolieValue.create( time2 ) )
-        );
-    }
     
     public static GetTimeDiffRequest createFrom( JolieValue j ) {
         return new GetTimeDiffRequest(
