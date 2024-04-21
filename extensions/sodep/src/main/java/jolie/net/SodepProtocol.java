@@ -60,7 +60,7 @@ public class SodepProtocol extends ConcurrentCommProtocol {
 		return "sodep";
 	}
 
-	private Charset stringCharset = StandardCharsets.UTF_8;
+	private volatile Charset stringCharset = StandardCharsets.UTF_8;
 
 	private String readString( DataInput in )
 		throws IOException {
