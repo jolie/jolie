@@ -28,6 +28,7 @@ import java.io.OutputStream;
 import jolie.cli.CommandLineException;
 import jolie.cli.CommandLineParser;
 import jolie.JolieURLStreamHandlerFactory;
+import jolie.Interpreter.Configuration;
 import jolie.lang.CodeCheckException;
 import jolie.lang.parse.ParserException;
 import jolie.lang.parse.ast.Program;
@@ -39,7 +40,7 @@ import jolie.lang.parse.util.ParsingUtils;
  * @author Fabrizio Montesi
  */
 public class Compiler {
-	private final CommandLineParser cmdParser;
+	private final Configuration cmdConfig;
 
 	static {
 		JolieURLStreamHandlerFactory.registerInVM();
@@ -47,20 +48,21 @@ public class Compiler {
 
 	public Compiler( String[] args )
 		throws CommandLineException, IOException {
-		cmdParser = new CommandLineParser( args, Compiler.class.getClassLoader() );
+		cmdConfig = new CommandLineParser( args, Compiler.class.getClassLoader() )
+			.getInterpreterConfiguration();
 	}
 
 	public void compile( OutputStream ostream )
 		throws IOException, ParserException, CodeCheckException, CommandLineException, ModuleException {
 		Program program = ParsingUtils.parseProgram(
-			cmdParser.getInterpreterConfiguration().inputStream(),
-			cmdParser.getInterpreterConfiguration().programFilepath().toURI(),
-			cmdParser.getInterpreterConfiguration().charset(),
-			cmdParser.getInterpreterConfiguration().includePaths(),
-			cmdParser.getInterpreterConfiguration().packagePaths(),
-			cmdParser.getInterpreterConfiguration().jolieClassLoader(),
-			cmdParser.getInterpreterConfiguration().constants(),
-			cmdParser.getInterpreterConfiguration().executionTarget(),
+			cmdConfig.inputStream(),
+			cmdConfig.programFilepath().toURI(),
+			cmdConfig.charset(),
+			cmdConfig.includePaths(),
+			cmdConfig.packagePaths(),
+			cmdConfig.jolieClassLoader(),
+			cmdConfig.constants(),
+			cmdConfig.executionTarget(),
 			false );
 		// GZIPOutputStream gzipstream = new GZIPOutputStream( ostream );
 		ObjectOutputStream oos = new ObjectOutputStream( ostream );
@@ -72,7 +74,7 @@ public class Compiler {
 	public void compile()
 		throws IOException, ParserException, CodeCheckException, CommandLineException, ModuleException {
 		try( OutputStream os =
-			new FileOutputStream( cmdParser.getInterpreterConfiguration().programFilepath() + "c" ) ) {
+			new FileOutputStream( cmdConfig.programFilepath() + "c" ) ) {
 			compile( os );
 		}
 	}
