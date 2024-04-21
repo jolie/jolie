@@ -931,19 +931,15 @@ public class MetaJolie extends JavaService {
 				}
 			}
 		}
-
-
-
 	}
 
 	@RequestResponse
 	public Value getInputPortMetaData( Value request ) throws FaultException {
 
 		Value response = Value.create();
-		try {
-			String[] args = getArgs( request.getFirstChild( "filename" ).strValue() );
+		String[] args = getArgs( request.getFirstChild( "filename" ).strValue() );
 
-			CommandLineParser cmdParser = new CommandLineParser( args, interpreter().getClassLoader() );
+		try( CommandLineParser cmdParser = new CommandLineParser( args, interpreter().getClassLoader() ) ) {
 			Program program = ParsingUtils.parseProgram(
 				cmdParser.getInterpreterConfiguration().inputStream(),
 				cmdParser.getInterpreterConfiguration().programFilepath().toURI(),
@@ -972,7 +968,6 @@ public class MetaJolie extends JavaService {
 						inputPort, inspector.getOutputPorts() ) );
 				}
 			}
-			cmdParser.close();
 
 		} catch( CommandLineException | IOException e ) {
 			throw new FaultException( "InputPortMetaDataFault", e );
@@ -1008,10 +1003,9 @@ public class MetaJolie extends JavaService {
 	public Value getOutputPortMetaData( Value request ) throws FaultException {
 
 		Value response = Value.create();
-		try {
-			String[] args = getArgs( request.getFirstChild( "filename" ).strValue() );
+		String[] args = getArgs( request.getFirstChild( "filename" ).strValue() );
 
-			CommandLineParser cmdParser = new CommandLineParser( args, interpreter().getClassLoader() );
+		try( CommandLineParser cmdParser = new CommandLineParser( args, interpreter().getClassLoader() ) ) {
 			Program program = ParsingUtils.parseProgram(
 				cmdParser.getInterpreterConfiguration().inputStream(),
 				cmdParser.getInterpreterConfiguration().programFilepath().toURI(),
@@ -1038,7 +1032,6 @@ public class MetaJolie extends JavaService {
 						outputPortInfo ) );
 				}
 			}
-			cmdParser.close();
 
 		} catch( CommandLineException | IOException e ) {
 			throw new FaultException( "OutputPortMetaDataFault", e );
@@ -1102,10 +1095,9 @@ public class MetaJolie extends JavaService {
 
 		List< InterfaceDefinition > interfaces = new ArrayList<>();
 		Value response = Value.create();
-		try {
-			String[] args = getArgs( request.getFirstChild( "filename" ).strValue() );
+		String[] args = getArgs( request.getFirstChild( "filename" ).strValue() );
 
-			CommandLineParser cmdParser = new CommandLineParser( args, MetaJolie.class.getClassLoader() );
+		try( CommandLineParser cmdParser = new CommandLineParser( args, MetaJolie.class.getClassLoader() ) ) {
 			Program program = ParsingUtils.parseProgram(
 				cmdParser.getInterpreterConfiguration().inputStream(),
 				cmdParser.getInterpreterConfiguration().programFilepath().toURI(),
@@ -1119,8 +1111,6 @@ public class MetaJolie extends JavaService {
 			ProgramInspector inspector = ParsingUtils.createInspector( program );
 
 			URI originalFile = program.context().source();
-
-			cmdParser.close();
 
 			// TODO: now the name of the service cannot be retrieved, to be considered during Jolie 2.0
 			// refactoring
@@ -1147,7 +1137,6 @@ public class MetaJolie extends JavaService {
 					// response.getFirstChild( "service" ).getChildren( "input" ).get( ip ).setValue( inputPort.id() );
 				}
 			}
-
 
 			// adding interfaces
 			for( int intf = 0; intf < interfaces.size(); intf++ ) {
