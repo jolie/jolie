@@ -60,7 +60,7 @@ public final class StartsWithRequest extends TypedStructure {
         ValueManager.requireChildren( v, FIELD_KEYS );
         return new StartsWithRequest(
             JolieString.contentFromValue( v ),
-            ValueManager.fieldFrom( v.firstChildOrDefault( "prefix", Function.identity(), null ), JolieString::fieldFromValue )
+            ValueManager.singleFieldFrom( v, "prefix", JolieString::fieldFromValue )
         );
     }
     

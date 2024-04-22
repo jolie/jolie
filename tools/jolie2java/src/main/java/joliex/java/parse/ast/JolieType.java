@@ -45,9 +45,8 @@ public sealed interface JolieType {
     
         public static sealed interface Structure extends Definition {
     
-            public static record Field( String key, String fieldName, CompletableFuture<JolieType> typeFuture, int min, int max ) {
+            public static record Field( String jolieName, String javaName, CompletableFuture<JolieType> typeFuture, int min, int max ) {
                 
-                public Optional<String> possibleName() { return Optional.ofNullable( fieldName ); }
                 public JolieType type() { return typeFuture.join(); }
                 public String typeName() { 
                     return switch( type() ) {

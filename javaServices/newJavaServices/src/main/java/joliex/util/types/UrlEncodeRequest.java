@@ -60,7 +60,7 @@ public final class UrlEncodeRequest extends TypedStructure {
         ValueManager.requireChildren( v, FIELD_KEYS );
         return new UrlEncodeRequest(
             JolieString.contentFromValue( v ),
-            ValueManager.fieldFrom( v.firstChildOrDefault( "charset", Function.identity(), null ), JolieString::fieldFromValue )
+            ValueManager.singleFieldFrom( v, "charset", JolieString::fieldFromValue )
         );
     }
     

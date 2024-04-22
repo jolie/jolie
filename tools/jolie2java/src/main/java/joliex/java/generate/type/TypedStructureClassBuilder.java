@@ -46,7 +46,7 @@ public class TypedStructureClassBuilder extends StructureClassBuilder {
 
     private void appendFieldDocumentation() {
         structure.fields().forEach( field ->
-            builder.newlineAppend( field.possibleName().map( n -> field.key().equals( n ) ? n : n + "(\"" + field.key() + "\")" ).orElse( "\"" + field.key() + "\"" ) ).append( field.min() != 1 || field.max() != 1 ? "[" + field.min() + "," + field.max() + "]" : "" ).append( ": {@link " ).append( field.typeName().replaceAll( "<.*>", "" ) ).append( "}" )
+            builder.newlineAppend( field.javaName() ).append( field.jolieName().equals( field.javaName() ) ? "" : "(\"" + field.jolieName() + "\")" ).append( field.min() != 1 || field.max() != 1 ? "[" + field.min() + "," + field.max() + "]" : "" ).append( ": {@link " ).append( field.typeName().replaceAll( "<.*>", "" ) ).append( "}" )
         );
     }
 
@@ -84,10 +84,10 @@ public class TypedStructureClassBuilder extends StructureClassBuilder {
         builder.newline();
         recordFields.parallelStream()
             .map( f -> new StringBuilder()
-                .append( f.key() == null ? "" : "@JolieName(\"" + f.key() + "\")\n" )
+                .append( f.jolieName() == null ? "" : "@JolieName(\"" + f.jolieName() + "\")\n" )
                 .append( "private final " )
                 .append( f.max() == 1 ? typeName( f.type() ) : "List<" + typeName( f.type() ) + ">" )
-                .append( " " ).append( f.fieldName() ).append( ";" )
+                .append( " " ).append( f.javaName() ).append( ";" )
                 .toString() )
             .forEachOrdered( builder::newlineAppend );
     }
@@ -97,7 +97,7 @@ public class TypedStructureClassBuilder extends StructureClassBuilder {
             .map( f -> new StringBuilder()
                 .append( f.max() == 1 ? typeName( f.type() ) : "SequencedCollection<" + typeName( f.type() ) + ">" )
                 .append( " " )
-                .append( f.fieldName() )
+                .append( f.javaName() )
                 .toString()
             )
             .reduce( (s1, s2) -> s1 + ", " + s2 )
@@ -107,15 +107,15 @@ public class TypedStructureClassBuilder extends StructureClassBuilder {
         builder.newNewlineAppend( "public " ).append( className ).append( parameters ).body( () -> {
             recordFields.parallelStream()
                 .map( f -> {
-                    final StringBuilder result = new StringBuilder().append( "this." ).append( f.fieldName() ).append( " = " );
+                    final StringBuilder result = new StringBuilder().append( "this." ).append( f.javaName() ).append( " = " );
                     final Optional<String> refinement = f.type() instanceof Basic.Inline b 
                         ? Optional.of( b.refinement().createString() ) 
                         : Optional.empty();
 
                     if ( f.max() != 1 )
                         return result.append( "ValueManager.validated( " )
-                            .append( "\"" ).append( f.fieldName() ).append( "\", " )
-                            .append( f.fieldName() ).append( ", " )
+                            .append( "\"" ).append( f.javaName() ).append( "\", " )
+                            .append( f.javaName() ).append( ", " )
                             .append( f.min() ).append( ", " )
                             .append( f.max() )
                             .append( refinement.map( r -> ", " + r ).orElse( "" ) )
@@ -123,11 +123,11 @@ public class TypedStructureClassBuilder extends StructureClassBuilder {
                             .toString();
 
                     if ( f.min() == 0 )
-                        return result.append( refinement.map( r -> "Refinement.validated( " + f.fieldName() + " )" ).orElse( f.fieldName() ) ).append( ";" ).toString();
+                        return result.append( refinement.map( r -> "Refinement.validated( " + f.javaName() + " )" ).orElse( f.javaName() ) ).append( ";" ).toString();
 
                     return result.append( "ValueManager.validated( " )
-                        .append( "\"" ).append( f.fieldName() ).append( "\", " )
-                        .append( f.fieldName() )
+                        .append( "\"" ).append( f.javaName() ).append( "\", " )
+                        .append( f.javaName() )
                         .append( refinement.map( r -> ", " + r ).orElse( "" ) )
                         .append( " );" )
                         .toString();
@@ -140,11 +140,11 @@ public class TypedStructureClassBuilder extends StructureClassBuilder {
         builder.newline();
         recordFields.forEach( f -> {
             if ( f.max() != 1 )
-                builder.newlineAppend( "public List<" ).append( typeName( f.type() ) ).append( "> " ).append( f.fieldName() ).append( "() { return " ).append( f.fieldName() ).append( "; }" );
+                builder.newlineAppend( "public List<" ).append( typeName( f.type() ) ).append( "> " ).append( f.javaName() ).append( "() { return " ).append( f.javaName() ).append( "; }" );
             else if ( f.min() == 0 )
-                builder.newlineAppend( "public Optional<" ).append( typeName( f.type() ) ).append( "> " ).append( f.fieldName() ).append( "() { return Optional.ofNullable( " ).append( f.fieldName() ).append( " ); }" );
+                builder.newlineAppend( "public Optional<" ).append( typeName( f.type() ) ).append( "> " ).append( f.javaName() ).append( "() { return Optional.ofNullable( " ).append( f.javaName() ).append( " ); }" );
             else
-                builder.newlineAppend( "public " ).append( typeName( f.type() ) ).append( " " ).append( f.fieldName() ).append( "() { return " ).append( f.fieldName() ).append( "; }" );
+                builder.newlineAppend( "public " ).append( typeName( f.type() ) ).append( " " ).append( f.javaName() ).append( "() { return " ).append( f.javaName() ).append( "; }" );
         } );
 
         if ( structure.nativeType() != Native.ANY )
@@ -180,21 +180,15 @@ public class TypedStructureClassBuilder extends StructureClassBuilder {
                     structure.fields()
                         .parallelStream()
                         .map( f -> new StringBuilder()
-                            .append( "ValueManager.fieldFrom( " )
-                            .append( f.max() == 1 
-                                ? "v.firstChildOrDefault( \"" + f.key() + "\", Function.identity(), null )" 
-                                : "v.children().getOrDefault( \"" + f.key() + "\", ValueVector.create() )"
-                            )
-                            .append( ", " )
+                            .append( "ValueManager." ).append( f.max() == 1 ? "single" : "vector" )
+                            .append( "FieldFrom( v, \"" ).append( f.jolieName() ).append( "\", " )
                             .append( switch ( storedType( f.type() ) ) {
                                 case Native.ANY -> "JolieNative::fromValue";
                                 case Native.VOID -> "JolieVoid::fromValue";
                                 case Native n -> n.wrapperName() + "::fieldFromValue";
                                 case Definition d -> d.name() + "::fromValue";
-                            } )
-                            .append( " )" )
-                            .toString()
-                        )
+                            } ).append( " )" )
+                            .toString() )
                         .reduce( (s1, s2) -> s1 + ",\n" + s2 )
                         .ifPresent( builder::newlineAppend );
                 } )
@@ -211,18 +205,18 @@ public class TypedStructureClassBuilder extends StructureClassBuilder {
             
             builder.newline();
             structure.fields().forEach( f -> {
-                final String getField = "t." + f.fieldName() + "()";
+                final String getField = "t." + f.javaName() + "()";
                 final UnaryOperator<String> setValue = x -> switch ( storedType( f.type() ) ) {
                     case Native n when n == Native.ANY || n == Native.VOID -> ".setValue( " + x + ".value() )";
                     case Native n -> ".setValue( " + x + " )";
                     case Definition d -> ".deepCopy( " + d.name() + ".toValue( " + x + " ) )";
                 };
                 if ( f.max() != 1 )
-                    builder.newlineAppend( getField ).append( ".forEach( c -> v.getNewChild( \"" ).append( f.key() ).append( "\" )" ).append( setValue.apply( "c" ) ).append( " );" );
+                    builder.newlineAppend( getField ).append( ".forEach( c -> v.getNewChild( \"" ).append( f.jolieName() ).append( "\" )" ).append( setValue.apply( "c" ) ).append( " );" );
                 else if ( f.min() == 0 ) 
-                    builder.newlineAppend( getField ).append( ".ifPresent( c -> v.getFirstChild( \"" ).append( f.key() ).append( "\" )" ).append( setValue.apply( "c" ) ).append( " );" );
+                    builder.newlineAppend( getField ).append( ".ifPresent( c -> v.getFirstChild( \"" ).append( f.jolieName() ).append( "\" )" ).append( setValue.apply( "c" ) ).append( " );" );
                 else
-                    builder.newlineAppend( "v.getFirstChild( \"" ).append( f.key() ).append( "\" )" ).append( setValue.apply( getField ) ).append( ";" );
+                    builder.newlineAppend( "v.getFirstChild( \"" ).append( f.jolieName() ).append( "\" )" ).append( setValue.apply( getField ) ).append( ";" );
             } );
 
             builder.newNewlineAppend( "return v;" );
@@ -244,7 +238,7 @@ public class TypedStructureClassBuilder extends StructureClassBuilder {
                 .append( "private " )
                 .append( f.max() == 1 ? typeName( f.type() ) : "SequencedCollection<" + typeName( f.type() ) + ">" )
                 .append( " " )
-                .append( f.fieldName() )
+                .append( f.javaName() )
                 .append( ";" )
                 .toString()
             )
@@ -262,7 +256,7 @@ public class TypedStructureClassBuilder extends StructureClassBuilder {
             structure.fields()
                 .parallelStream()
                 .map( f -> new StringBuilder()
-                    .append( "this." ).append( f.fieldName() )
+                    .append( "this." ).append( f.javaName() )
                     .append( " = " )
                     .append( fromChildString( f ) )
                     .append( ";" )
@@ -272,26 +266,55 @@ public class TypedStructureClassBuilder extends StructureClassBuilder {
     }
 
     private void appendBuilderMethods() {
-        if ( structure.nativeType() == Native.ANY )
-            builder.newNewlineAppend( "public Builder content( JolieNative<?> content ) { this.content = content; return this; }" );
-        else if ( structure.nativeType() != Native.VOID )
-            builder.newNewlineAppend( "public Builder contentValue( " ).append( structure.nativeType().valueName() ).append( " contentValue ) { this.contentValue = contentValue; return this; }" );
-        else
-            builder.newline();
+        builder.newline();
+
+        if ( structure.nativeType() != Native.VOID )
+            appendFieldSetter( structure.nativeType() == Native.ANY ? "content" : "contentValue", structure.nativeType().valueName() );
         
         structure.fields().forEach( f -> {
-            builder.newlineAppend( "public Builder " ).append( f.fieldName() ).append( "( " ).append( f.max() == 1 ? typeName( f.type() ) : "SequencedCollection<" + typeName( f.type() ) + ">" ).append( " " ).append( f.fieldName() ).append( " ) { this." ).append( f.fieldName() ).append( " = " ).append( f.fieldName() ).append( "; return this; }" );
-            buildingSetterString( f ).ifPresent( builder::newlineAppend );
+            if ( f.max() == 1 ) {
+                appendFieldSetter( f.javaName(), typeName( f.type() ) );
+                switch ( storedType( f.type() ) ) {
+                    case Structure.Undefined u -> appendConstructSetter( f.javaName(), u.name(), "InlineBuilder", u.name(), "construct" );
+                    case Structure s when s.hasBuilder() -> appendConstructSetter( f.javaName(), s.name(), "Builder", s.name(), "construct" );
+                    case Native.ANY -> Native.ANY.valueNames().forEach( n -> appendSetter( f.javaName(), n, "value", () -> builder.append( "return " ).append( f.javaName() ).append( "( JolieNative.create( value ) );" ) ) );
+                    default -> {}
+                }
+            } else {
+                appendFieldSetter( f.javaName(), "SequencedCollection<" + typeName( f.type() ) + ">" );
+                switch ( storedType( f.type() ) ) {
+                    case Structure.Undefined u -> appendConstructSetter( f.javaName(), u.name(), "InlineListBuilder", "List<" + u.name() + ">", "constructList" );
+                    case Structure s when s.hasBuilder() -> appendConstructSetter( f.javaName(), s.name(), "ListBuilder", "List<" + s.name() + ">", "constructList" );
+                    case Native.ANY -> appendConstructSetter( f.javaName(), "JolieNative", "ListBuilder", "List<JolieNative<?>>", "constructList" );
+                    case Native n when n != Native.VOID-> appendSetter( f.javaName(), n.valueName(), "values", () -> builder.append( "return " ).append( f.javaName() ).append( "( List.of( values ) );" ) );
+                    default -> {}
+                }
+            }
         } );
 
         builder.newNewlineAppend( "public " ).append( className ).append( " build()" ).body( () -> 
             recordFields.parallelStream()
-                .map( Structure.Field::fieldName )
+                .map( Structure.Field::javaName )
                 .reduce( (s1, s2) -> s1 + ", " + s2 )
                 .ifPresent( 
                     s -> builder.newlineAppend( "return new " ).append( className ).append( "( " ).append( s ).append( " );" ) 
                 )
         );
+    }
+
+    private void appendFieldSetter( String fieldName, String fieldType ) {
+        appendSetter( fieldName, fieldType, fieldName, () -> builder.append( "this." ).append( fieldName ).append( " = " ).append( fieldName ).append( "; return this;" ) );
+    }
+
+    private void appendConstructSetter( String fieldName, String className, String builderName, String fieldType, String methodName ) {
+        appendSetter( fieldName, 
+            new StringBuilder().append( "Function<" ).append( className ).append( "." ).append( builderName ).append( ", " ).append( fieldType ).append( ">" ).toString(),
+            "b",
+            () -> builder.append( "return " ).append( fieldName ).append( "( b.apply( " ).append( className ).append( "." ).append( methodName ).append( "() ) );" ) );
+    }
+
+    private void appendSetter( String name, String paramType, String paramName, Runnable bodyAppender ) {
+        builder.newlineAppend( "public Builder " ).append( name ).append( "( " ).append( paramType ).append( " " ).append( paramName ).append( " ) { " ).run( bodyAppender ).append( " }" );
     }
 
     protected void appendTypeClasses() {
@@ -303,43 +326,10 @@ public class TypedStructureClassBuilder extends StructureClassBuilder {
             .forEachOrdered( builder::newlineAppend );
     }
 
-    private static Optional<String> buildingSetterString( Structure.Field f ) {
-        return f.max() == 1
-            ? singleBuildingSetterString( f.fieldName(), f.type() )
-            : listBuildingSetterString( f.fieldName(), f.type() );
-    }
-
-    private static Optional<String> singleBuildingSetterString( String fieldName, JolieType fieldType ) {
-        return fieldType instanceof Structure s && s.hasBuilder()
-            ? Optional.of( buildingSetterString( fieldName, s.name(), "Builder", "construct", s.name() ) )
-            : Optional.empty();
-    }
-
-    private static Optional<String> listBuildingSetterString( String fieldName, JolieType fieldType ) {
-        return Optional.ofNullable( switch ( fieldType ) {
-            case Native.ANY -> "JolieNative<?>";
-            case Structure s when s.hasBuilder() -> s.name();
-            default -> null;
-        } ).map( typeName -> buildingSetterString( 
-            fieldName, typeName.replace( "<?>", "" ), 
-            "ListBuilder", "constructList", 
-            "List<" + typeName + ">" 
-        ) );
-    }
-
-    private static String buildingSetterString( String fieldName, String typeName, String builderClass, String constructMethod, String returnType ) {
-        return new StringBuilder()
-            .append( "public Builder " ).append( fieldName )
-            .append( "( Function<" ).append( typeName ).append( "." ).append( builderClass ).append( ", " ).append( returnType ).append( "> b )" )
-            .append( "{ return " ).append( fieldName ).append( "( b.apply( " ).append( typeName ).append( "." ).append( constructMethod ).append( "() ) ); }" )
-            .toString();
-    }
-
     private static String fromChildString( Structure.Field f ) {
-        final String key = "\"" + f.key() + "\"";
         return new StringBuilder()
             .append( "ValueManager.fieldFrom( " )
-            .append( f.max() == 1 ? "j.getFirstChild( " + key + " )" : "j.getChildOrDefault( " + key + ", List.of() )" )
+            .append( f.max() == 1 ? "j.getFirstChild( \"" + f.jolieName() + "\" )" : "j.getChildOrDefault( \"" + f.jolieName() + "\", List.of() )" )
             .append( ", " )
             .append( switch ( storedType( f.type() ) ) {
                 case Native.ANY -> "JolieValue::content";

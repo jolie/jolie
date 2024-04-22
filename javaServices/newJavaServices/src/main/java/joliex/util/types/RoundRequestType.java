@@ -60,7 +60,7 @@ public final class RoundRequestType extends TypedStructure {
         ValueManager.requireChildren( v, FIELD_KEYS );
         return new RoundRequestType(
             JolieDouble.contentFromValue( v ),
-            ValueManager.fieldFrom( v.firstChildOrDefault( "decimals", Function.identity(), null ), JolieInt::fieldFromValue )
+            ValueManager.singleFieldFrom( v, "decimals", JolieInt::fieldFromValue )
         );
     }
     

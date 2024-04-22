@@ -53,7 +53,7 @@ public final class CurrentDateTimeRequestType extends TypedStructure {
     public static CurrentDateTimeRequestType fromValue( Value v ) throws TypeCheckingException {
         ValueManager.requireChildren( v, FIELD_KEYS );
         return new CurrentDateTimeRequestType(
-            ValueManager.fieldFrom( v.firstChildOrDefault( "format", Function.identity(), null ), JolieString::fieldFromValue )
+            ValueManager.singleFieldFrom( v, "format", JolieString::fieldFromValue )
         );
     }
     

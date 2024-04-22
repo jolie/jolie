@@ -60,7 +60,7 @@ public final class IndexOfRequest extends TypedStructure {
         ValueManager.requireChildren( v, FIELD_KEYS );
         return new IndexOfRequest(
             JolieString.contentFromValue( v ),
-            ValueManager.fieldFrom( v.firstChildOrDefault( "word", Function.identity(), null ), JolieString::fieldFromValue )
+            ValueManager.singleFieldFrom( v, "word", JolieString::fieldFromValue )
         );
     }
     

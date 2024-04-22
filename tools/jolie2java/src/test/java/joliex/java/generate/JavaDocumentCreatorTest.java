@@ -85,31 +85,41 @@ public class JavaDocumentCreatorTest {
 	}
 
 	@Test
-	public void testFlatStructure() throws IllegalAccessException, InvocationTargetException, NoSuchMethodException, SecurityException, ClassNotFoundException, TypeCheckingException {
-		performValueTests(
-			ClassManager.getTypeClass( "FlatStructureType" ), 
-			DataManager.getFlatStructureType() );
+	public void testFlatStructures() throws IllegalAccessException, InvocationTargetException, NoSuchMethodException, SecurityException, ClassNotFoundException, TypeCheckingException {
+		final Class<?> single_cls = ClassManager.getTypeClass( "FlatStructureType" );
+		final Value single_v = DataManager.getFlatStructureType();
+		final JolieValue single_j = performFromValueTests( single_cls, single_v );
+		performToValueTests( single_cls, single_v, single_j );
+		assertEquals( "single: The constructed JolieValue doesn't equal the converted JolieValue.", DataManager.constructFlatStructureType(), single_j );
+
+		final Class<?> vector_cls = ClassManager.getTypeClass( "FlatStructureVectorsType" );
+		final Value vector_v = DataManager.getFlatStructureVectorsType();
+		final JolieValue vector_j = performFromValueTests( vector_cls, vector_v );
+		performToValueTests( vector_cls, vector_v, vector_j );
+		assertEquals( "vector: The constructed JolieValue doesn't equal the converted JolieValue.", DataManager.constructFlatStructureVectorsType(), vector_j );
+
+		final Object builder = ValueUtils.invokeConstructFrom( single_cls, vector_j );
+		ValueUtils.invokeSetter( builder, "contentValue", DataManager.TESTSTRING );
+		ValueUtils.invokeSetter( builder, "bfield", DataManager.TESTINT );
+		ValueUtils.invokeSetter( builder, "efield", DataManager.TESTSTRING );
+		assertEquals( single_j, ValueUtils.invokeBuild( builder ) );
 	}
 
 	@Test
-	public void testFlatStructureVectors() throws IllegalAccessException, InvocationTargetException, NoSuchMethodException, SecurityException, ClassNotFoundException, TypeCheckingException {
-		performValueTests(
-			ClassManager.getTypeClass( "FlatStructureVectorsType" ), 
-			DataManager.getFlatStructureVectorsType() );
-	}
+	public void testInlineStructures() throws IllegalAccessException, InvocationTargetException, NoSuchMethodException, SecurityException, ClassNotFoundException, TypeCheckingException {
+		final Class<?> single_cls = ClassManager.getTypeClass( "InLineStructureType" );
+		final Value single_v = DataManager.getInlineStructureType();
+		final JolieValue single_j = performFromValueTests( single_cls, single_v );
+		performToValueTests( single_cls, single_v, single_j );
+		assertEquals( "single: The constructed JolieValue doesn't equal the converted JolieValue.", DataManager.constructInlineStructureType(), single_j );
 
-	@Test
-	public void testInLineStructureType() throws IllegalAccessException, InvocationTargetException, NoSuchMethodException, SecurityException, ClassNotFoundException, TypeCheckingException {
-		performValueTests(
-			ClassManager.getTypeClass( "InLineStructureType" ), 
-			DataManager.getInlineStructureType() );
-	}
+		final Class<?> vector_cls = ClassManager.getTypeClass( "InLineStructureVectorsType" );
+		final Value vector_v = DataManager.getInlineStructureVectorsType();
+		final JolieValue vector_j = performFromValueTests( vector_cls, vector_v );
+		performToValueTests( vector_cls, vector_v, vector_j );
+		assertEquals( "vector: The constructed JolieValue doesn't equal the converted JolieValue.", DataManager.constructInlineStructureVectorsType(), vector_j );
 
-	@Test
-	public void testInLineStructureVectorsType() throws IllegalAccessException, InvocationTargetException, NoSuchMethodException, SecurityException, ClassNotFoundException, TypeCheckingException {
-		performValueTests(
-			ClassManager.getTypeClass( "InLineStructureVectorsType" ), 
-			DataManager.getInlineStructureVectorsType() );
+		assertEquals( single_j, ValueUtils.invokeCreateFrom( single_cls, vector_j ) );
 	}
 
 	@Test

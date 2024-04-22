@@ -66,8 +66,8 @@ public final class SubStringRequest extends TypedStructure {
         ValueManager.requireChildren( v, FIELD_KEYS );
         return new SubStringRequest(
             JolieString.contentFromValue( v ),
-            ValueManager.fieldFrom( v.firstChildOrDefault( "end", Function.identity(), null ), JolieInt::fieldFromValue ),
-            ValueManager.fieldFrom( v.firstChildOrDefault( "begin", Function.identity(), null ), JolieInt::fieldFromValue )
+            ValueManager.singleFieldFrom( v, "end", JolieInt::fieldFromValue ),
+            ValueManager.singleFieldFrom( v, "begin", JolieInt::fieldFromValue )
         );
     }
     

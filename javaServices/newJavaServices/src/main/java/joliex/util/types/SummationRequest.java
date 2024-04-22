@@ -59,8 +59,8 @@ public final class SummationRequest extends TypedStructure {
     public static SummationRequest fromValue( Value v ) throws TypeCheckingException {
         ValueManager.requireChildren( v, FIELD_KEYS );
         return new SummationRequest(
-            ValueManager.fieldFrom( v.firstChildOrDefault( "from", Function.identity(), null ), JolieInt::fieldFromValue ),
-            ValueManager.fieldFrom( v.firstChildOrDefault( "to", Function.identity(), null ), JolieInt::fieldFromValue )
+            ValueManager.singleFieldFrom( v, "from", JolieInt::fieldFromValue ),
+            ValueManager.singleFieldFrom( v, "to", JolieInt::fieldFromValue )
         );
     }
     

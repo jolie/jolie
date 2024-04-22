@@ -53,7 +53,7 @@ public final class SplitResult extends TypedStructure {
     public static SplitResult fromValue( Value v ) throws TypeCheckingException {
         ValueManager.requireChildren( v, FIELD_KEYS );
         return new SplitResult(
-            ValueManager.fieldFrom( v.children().getOrDefault( "result", ValueVector.create() ), JolieString::fieldFromValue )
+            ValueManager.vectorFieldFrom( v, "result", JolieString::fieldFromValue )
         );
     }
     

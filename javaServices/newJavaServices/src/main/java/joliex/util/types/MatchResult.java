@@ -68,7 +68,7 @@ public final class MatchResult extends TypedStructure {
         ValueManager.requireChildren( v, FIELD_KEYS );
         return new MatchResult(
             JolieInt.contentFromValue( v ),
-            ValueManager.fieldFrom( v.children().getOrDefault( "group", ValueVector.create() ), JolieString::fieldFromValue )
+            ValueManager.vectorFieldFrom( v, "group", JolieString::fieldFromValue )
         );
     }
     
@@ -94,6 +94,7 @@ public final class MatchResult extends TypedStructure {
         
         public Builder contentValue( Integer contentValue ) { this.contentValue = contentValue; return this; }
         public Builder group( SequencedCollection<String> group ) { this.group = group; return this; }
+        public Builder group( String values ) { return group( List.of( values ) ); }
         
         public MatchResult build() {
             return new MatchResult( contentValue, group );
@@ -110,5 +111,7 @@ public final class MatchResult extends TypedStructure {
         public ListBuilder add( Function<Builder, MatchResult> b ) { return add( b.apply( construct() ) ); }
         public ListBuilder set( int index, Function<Builder, MatchResult> b ) { return set( index, b.apply( construct() ) ); }
         public ListBuilder reconstruct( int index, Function<Builder, MatchResult> b ) { return replace( index, j -> b.apply( constructFrom( j ) ) ); }
+        
+        public List<MatchResult> build() { return super.build(); }
     }
 }

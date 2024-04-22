@@ -65,9 +65,9 @@ public final class DiffDateRequestType extends TypedStructure {
     public static DiffDateRequestType fromValue( Value v ) throws TypeCheckingException {
         ValueManager.requireChildren( v, FIELD_KEYS );
         return new DiffDateRequestType(
-            ValueManager.fieldFrom( v.firstChildOrDefault( "format", Function.identity(), null ), JolieString::fieldFromValue ),
-            ValueManager.fieldFrom( v.firstChildOrDefault( "date2", Function.identity(), null ), JolieString::fieldFromValue ),
-            ValueManager.fieldFrom( v.firstChildOrDefault( "date1", Function.identity(), null ), JolieString::fieldFromValue )
+            ValueManager.singleFieldFrom( v, "format", JolieString::fieldFromValue ),
+            ValueManager.singleFieldFrom( v, "date2", JolieString::fieldFromValue ),
+            ValueManager.singleFieldFrom( v, "date1", JolieString::fieldFromValue )
         );
     }
     

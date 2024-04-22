@@ -53,7 +53,7 @@ public final class StringItemList extends TypedStructure {
     public static StringItemList fromValue( Value v ) throws TypeCheckingException {
         ValueManager.requireChildren( v, FIELD_KEYS );
         return new StringItemList(
-            ValueManager.fieldFrom( v.children().getOrDefault( "item", ValueVector.create() ), JolieString::fieldFromValue )
+            ValueManager.vectorFieldFrom( v, "item", JolieString::fieldFromValue )
         );
     }
     

@@ -59,8 +59,8 @@ public final class PowRequest extends TypedStructure {
     public static PowRequest fromValue( Value v ) throws TypeCheckingException {
         ValueManager.requireChildren( v, FIELD_KEYS );
         return new PowRequest(
-            ValueManager.fieldFrom( v.firstChildOrDefault( "base", Function.identity(), null ), JolieDouble::fieldFromValue ),
-            ValueManager.fieldFrom( v.firstChildOrDefault( "exponent", Function.identity(), null ), JolieDouble::fieldFromValue )
+            ValueManager.singleFieldFrom( v, "base", JolieDouble::fieldFromValue ),
+            ValueManager.singleFieldFrom( v, "exponent", JolieDouble::fieldFromValue )
         );
     }
     

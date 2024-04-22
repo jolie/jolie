@@ -60,7 +60,7 @@ public final class MatchRequest extends TypedStructure {
         ValueManager.requireChildren( v, FIELD_KEYS );
         return new MatchRequest(
             JolieString.contentFromValue( v ),
-            ValueManager.fieldFrom( v.firstChildOrDefault( "regex", Function.identity(), null ), JolieString::fieldFromValue )
+            ValueManager.singleFieldFrom( v, "regex", JolieString::fieldFromValue )
         );
     }
     

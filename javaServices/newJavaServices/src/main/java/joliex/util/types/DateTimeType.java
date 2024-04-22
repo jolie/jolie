@@ -89,12 +89,12 @@ public final class DateTimeType extends TypedStructure {
     public static DateTimeType fromValue( Value v ) throws TypeCheckingException {
         ValueManager.requireChildren( v, FIELD_KEYS );
         return new DateTimeType(
-            ValueManager.fieldFrom( v.firstChildOrDefault( "month", Function.identity(), null ), JolieInt::fieldFromValue ),
-            ValueManager.fieldFrom( v.firstChildOrDefault( "hour", Function.identity(), null ), JolieInt::fieldFromValue ),
-            ValueManager.fieldFrom( v.firstChildOrDefault( "year", Function.identity(), null ), JolieInt::fieldFromValue ),
-            ValueManager.fieldFrom( v.firstChildOrDefault( "day", Function.identity(), null ), JolieInt::fieldFromValue ),
-            ValueManager.fieldFrom( v.firstChildOrDefault( "minute", Function.identity(), null ), JolieInt::fieldFromValue ),
-            ValueManager.fieldFrom( v.firstChildOrDefault( "second", Function.identity(), null ), JolieInt::fieldFromValue )
+            ValueManager.singleFieldFrom( v, "month", JolieInt::fieldFromValue ),
+            ValueManager.singleFieldFrom( v, "hour", JolieInt::fieldFromValue ),
+            ValueManager.singleFieldFrom( v, "year", JolieInt::fieldFromValue ),
+            ValueManager.singleFieldFrom( v, "day", JolieInt::fieldFromValue ),
+            ValueManager.singleFieldFrom( v, "minute", JolieInt::fieldFromValue ),
+            ValueManager.singleFieldFrom( v, "second", JolieInt::fieldFromValue )
         );
     }
     
@@ -152,5 +152,7 @@ public final class DateTimeType extends TypedStructure {
         public ListBuilder add( Function<Builder, DateTimeType> b ) { return add( b.apply( construct() ) ); }
         public ListBuilder set( int index, Function<Builder, DateTimeType> b ) { return set( index, b.apply( construct() ) ); }
         public ListBuilder reconstruct( int index, Function<Builder, DateTimeType> b ) { return replace( index, j -> b.apply( constructFrom( j ) ) ); }
+        
+        public List<DateTimeType> build() { return super.build(); }
     }
 }

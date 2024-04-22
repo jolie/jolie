@@ -66,8 +66,8 @@ public final class ReplaceRequest extends TypedStructure {
         ValueManager.requireChildren( v, FIELD_KEYS );
         return new ReplaceRequest(
             JolieString.contentFromValue( v ),
-            ValueManager.fieldFrom( v.firstChildOrDefault( "regex", Function.identity(), null ), JolieString::fieldFromValue ),
-            ValueManager.fieldFrom( v.firstChildOrDefault( "replacement", Function.identity(), null ), JolieString::fieldFromValue )
+            ValueManager.singleFieldFrom( v, "regex", JolieString::fieldFromValue ),
+            ValueManager.singleFieldFrom( v, "replacement", JolieString::fieldFromValue )
         );
     }
     

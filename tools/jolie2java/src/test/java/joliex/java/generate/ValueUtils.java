@@ -29,12 +29,28 @@ import jolie.runtime.typing.TypeCheckingException;
 
 public class ValueUtils {
 
-	public static JolieValue invokeFromValue( Class< ? > cls, Value value ) throws TypeCheckingException, IllegalAccessException, InvocationTargetException, NoSuchMethodException, SecurityException {
-		return JolieValue.class.cast( cls.getMethod( "fromValue", Value.class ).invoke( null, value ) );
+	public static JolieValue invokeFromValue( Class< ? > cls, Value v ) throws TypeCheckingException, IllegalAccessException, InvocationTargetException, NoSuchMethodException, SecurityException {
+		return JolieValue.class.cast( cls.getMethod( "fromValue", Value.class ).invoke( null, v ) );
 	}
 
 	public static Value invokeToValue( Class< ? > cls, JolieValue t ) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException, SecurityException {
 		return Value.class.cast( cls.getMethod( "toValue", cls ).invoke( null, t ) );
+	}
+
+	public static JolieValue invokeCreateFrom( Class< ? > cls, JolieValue t ) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException, SecurityException {
+		return JolieValue.class.cast( cls.getMethod( "createFrom", JolieValue.class ).invoke( null, t ) );
+	}
+
+	public static Object invokeConstructFrom( Class< ? > cls, JolieValue t ) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException, SecurityException {
+		return cls.getMethod( "constructFrom", JolieValue.class ).invoke( null, t );
+	}
+
+	public static void invokeSetter( Object builder, String name, Object argument ) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException, SecurityException {
+		builder.getClass().getMethod( name, argument.getClass() ).invoke( builder, argument );
+	}
+
+	public static JolieValue invokeBuild( Object builder ) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException, SecurityException {
+		return JolieValue.class.cast( builder.getClass().getMethod( "build" ).invoke( builder ) );
 	}
 
 	public static void compareValues( Value v1, Value v2 ) throws AssertionError {

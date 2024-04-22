@@ -149,6 +149,8 @@ public sealed interface FormatRequest extends JolieValue {
             public ListBuilder add( Function<Builder, S1> b ) { return add( b.apply( construct() ) ); }
             public ListBuilder set( int index, Function<Builder, S1> b ) { return set( index, b.apply( construct() ) ); }
             public ListBuilder reconstruct( int index, Function<Builder, S1> b ) { return replace( index, j -> b.apply( constructFrom( j ) ) ); }
+            
+            public List<S1> build() { return super.build(); }
         }
     }
     
@@ -205,9 +207,9 @@ public sealed interface FormatRequest extends JolieValue {
         public static S2 fromValue( Value v ) throws TypeCheckingException {
             ValueManager.requireChildren( v, FIELD_KEYS );
             return new S2(
-                ValueManager.fieldFrom( v.firstChildOrDefault( "data", Function.identity(), null ), Data::fromValue ),
-                ValueManager.fieldFrom( v.firstChildOrDefault( "format", Function.identity(), null ), JolieString::fieldFromValue ),
-                ValueManager.fieldFrom( v.firstChildOrDefault( "locale", Function.identity(), null ), JolieString::fieldFromValue )
+                ValueManager.singleFieldFrom( v, "data", Data::fromValue ),
+                ValueManager.singleFieldFrom( v, "format", JolieString::fieldFromValue ),
+                ValueManager.singleFieldFrom( v, "locale", JolieString::fieldFromValue )
             );
         }
         
@@ -235,7 +237,7 @@ public sealed interface FormatRequest extends JolieValue {
             }
             
             public Builder data( Data data ) { this.data = data; return this; }
-            public Builder data( Function<Data.Builder, Data> b ){ return data( b.apply( Data.construct() ) ); }
+            public Builder data( Function<Data.Builder, Data> b ) { return data( b.apply( Data.construct() ) ); }
             public Builder format( String format ) { this.format = format; return this; }
             public Builder locale( String locale ) { this.locale = locale; return this; }
             
@@ -254,6 +256,8 @@ public sealed interface FormatRequest extends JolieValue {
             public ListBuilder add( Function<Builder, S2> b ) { return add( b.apply( construct() ) ); }
             public ListBuilder set( int index, Function<Builder, S2> b ) { return set( index, b.apply( construct() ) ); }
             public ListBuilder reconstruct( int index, Function<Builder, S2> b ) { return replace( index, j -> b.apply( constructFrom( j ) ) ); }
+            
+            public List<S2> build() { return super.build(); }
         }
         
         
@@ -308,6 +312,8 @@ public sealed interface FormatRequest extends JolieValue {
                 public ListBuilder add( Function<Builder, Data> b ) { return add( b.apply( construct() ) ); }
                 public ListBuilder set( int index, Function<Builder, Data> b ) { return set( index, b.apply( construct() ) ); }
                 public ListBuilder reconstruct( int index, Function<Builder, Data> b ) { return replace( index, j -> b.apply( constructFrom( j ) ) ); }
+                
+                public List<Data> build() { return super.build(); }
             }
         }
     }

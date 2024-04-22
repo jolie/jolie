@@ -72,9 +72,9 @@ public final class ScheduleTimeOutRequest extends TypedStructure {
         ValueManager.requireChildren( v, FIELD_KEYS );
         return new ScheduleTimeOutRequest(
             JolieInt.contentFromValue( v ),
-            ValueManager.fieldFrom( v.firstChildOrDefault( "message", Function.identity(), null ), JolieValue::fromValue ),
-            ValueManager.fieldFrom( v.firstChildOrDefault( "operation", Function.identity(), null ), JolieString::fieldFromValue ),
-            ValueManager.fieldFrom( v.firstChildOrDefault( "timeunit", Function.identity(), null ), JolieString::fieldFromValue )
+            ValueManager.singleFieldFrom( v, "message", JolieValue::fromValue ),
+            ValueManager.singleFieldFrom( v, "operation", JolieString::fieldFromValue ),
+            ValueManager.singleFieldFrom( v, "timeunit", JolieString::fieldFromValue )
         );
     }
     

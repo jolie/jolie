@@ -60,7 +60,7 @@ public final class SplitByLengthRequest extends TypedStructure {
         ValueManager.requireChildren( v, FIELD_KEYS );
         return new SplitByLengthRequest(
             JolieString.contentFromValue( v ),
-            ValueManager.fieldFrom( v.firstChildOrDefault( "length", Function.identity(), null ), JolieInt::fieldFromValue )
+            ValueManager.singleFieldFrom( v, "length", JolieInt::fieldFromValue )
         );
     }
     

@@ -159,7 +159,7 @@ public interface JolieValue {
 }
 ```
 
-where `content()` returns the data stored directly by the type and `children()` returns a map of all the fields of the type. Note that all generated classes used to represent custom types inherit from `JolieValue`, so while the generated classes will provide better, type safe, ways of accessing its data, you can always use these methods, which can be relevant if e.g. a field has a name which conflicts with some reserved keyword (see the [Naming Conflicts](#naming-conflicts) section for more details).
+where `content()` returns the data stored directly by the type and `children()` returns a map of all the fields of the type. Note that all generated classes used to represent custom types inherit from `JolieValue`, so while the generated classes will provide better, type safe, ways of accessing its data, you can always use these methods.
 
 #### Structural Equivalence
 
@@ -195,7 +195,7 @@ As an example of a type categorized as an Untyped Structure, let's consider the 
 This type will prompt the generation of the following class:
 
 ```java
-public final class MyUntypedStructure extends ImmutableStructure<JolieInt> {...}
+public final class MyUntypedStructure extends UntypedStructure<JolieInt> {...}
 ```
 
 ##### Typed Structure Classes
@@ -212,7 +212,7 @@ As an example of a type categorized as Structure, let's consider the following J
 This type will prompt the generation of the following class:
 
 ```java
-public final class MyStructure implements JolieValue {
+public final class MyStructure extends TypedStructure {
 
     ...
 
@@ -242,7 +242,7 @@ public final class MyStructure implements JolieValue {
     
     ...
 
-    public static final class UntypedField extends ImmutableStructure<JolieBool> {...}
+    public static final class UntypedField extends UntypedStructure<JolieBool> {...}
 
     public static sealed interface PossibleChoice extends JolieValue {...}
 
@@ -293,7 +293,7 @@ public sealed interface MyChoice extends JolieValue {
     
     ...
 
-    public static final class S1 extends ImmutableStructure<JolieBool> {...}
+    public static final class S1 extends UntypedStructure<JolieBool> {...}
 }
 ```
 
@@ -312,19 +312,19 @@ Builder classes are generated as inner classes of type classes, and are used to 
 this will prompt the generation of the following classes being generated:
 
 ```java
-public final class BuildableStructure implements JolieValue {
+public final class BuildableStructure extends TypedStructure {
     ...
 
     public static class Builder {
         ...
 
-        public Builder choiceVector( List<MyChoice> choiceVector ) {...}
+        public Builder choiceVector( SequencedCollection<MyChoice> choiceVector ) {...}
         public Builder choiceVector( Function<MyChoice.ListBuilder, List<MyChoice>> b ) {...}
 
-        public Builder structureField( List<MyStructure> structureField ) {...}
+        public Builder structureField( SequencedCollection<MyStructure> structureField ) {...}
         public Builder structureField( Function<MyStructure.Builder, MyStructure> b ) {...}
 
-        public Builder untypedVector( List<UntypedVector> untypedVector ) {...}
+        public Builder untypedVector( SequencedCollection<UntypedVector> untypedVector ) {...}
         public Builder untypedVector( Function<UntypedVector.ListBuilder, List<UntypedVector>> b ) {...}
 
         public Builder basicField( Boolean basicField ) {...}
@@ -345,6 +345,8 @@ public final class BuildableStructure implements JolieValue {
 
 As can be seen, the `Builder` class is useful for instantiating instances of the given class, whereas the `ListBuilder` is used by other `Builder` classes to more easily instantiate multiple instances of a given class.
 
+##### AbstractListBuilder
+
 Note that the `AbstractListBuilder<T>` class which the `ListBuilder` class inherits from is simply a convenience class to make generating these classes easier while giving them access to bunch of common convenience methods, including, but not limited to, the following:
 
 ```java
@@ -362,6 +364,31 @@ public abstract class AbstractListBuilder<B,E> {
 }
 ```
 
+##### Nested Builder Classes
+
+One exception to the rule of having at most a `Builder` and a `ListBuilder` class is `JolieValue`, as it has an inline and nested variant of each. The inline variants are the same as those generated for custom types, but the nested variants are there to allow you to do something like the following:
+
+```java
+public JolieValue some_rr( JolieValue request ) {
+    return JolieValue.construct() // InlineBuilder
+        .constructAs( "a" ) // NestedBuilder<InlineBuilder>
+            .content( true ) // NestedBuilder<InlineBuilder>
+            .put( "b", List.of( 1L, 4L ) ) // NestedBuilder<InlineBuilder>
+            .construct( "c" ) // NestedListBuilder<NestedBuilder<...>>
+                .add( 0.25 ) // NestedListBuilder<NestedBuilder<...>>
+                .constructAndAdd() // NestedBuilder<NestedListBuilder<...>>
+                    .put( "d", 12 ) // NestedBuilder<NestedListBuilder<...>>
+                    .done() // NestedListBuilder<NestedBuilder<...>>
+                .done() // NestedBuilder<InlineBuilder>
+            .done() // InlineBuilder
+        .construct( "aa" ) // NestedListBuilder<InlineBuilder>
+            .constructFromAndAdd( request ) // NestedBuilder<...>
+                .putAs( "c", "some string" ) // NestedBuilder<...>
+                .done() // NestedListBuilder<InlineBuilder>
+            .done() // InlineBuilder
+        .build(); // JolieValue
+}
+```
 
 #### Fault Classes
 
@@ -460,7 +487,7 @@ public final class GeneratedService extends JavaService implements MyInterface {
     }
 
     public SomeBasic my_rr3() {
-        return SomeBasic.create( null ) /* TODO: replace with actual value */
+        return new SomeBasic( null ) /* TODO: replace with actual value */
     }
 }
 ```
@@ -547,7 +574,7 @@ There are certain types of naming conflicts which currently aren't being enforce
 
 The Jolie type:
 
-    type MyType: int { myType: long { myType: double } }
+    type MyType: int { myType: long { myType: double {?} } }
 
 gets translated to:
 

@@ -60,7 +60,7 @@ public final class EndsWithRequest extends TypedStructure {
         ValueManager.requireChildren( v, FIELD_KEYS );
         return new EndsWithRequest(
             JolieString.contentFromValue( v ),
-            ValueManager.fieldFrom( v.firstChildOrDefault( "suffix", Function.identity(), null ), JolieString::fieldFromValue )
+            ValueManager.singleFieldFrom( v, "suffix", JolieString::fieldFromValue )
         );
     }
     

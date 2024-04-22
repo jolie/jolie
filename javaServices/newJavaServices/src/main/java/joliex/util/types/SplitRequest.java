@@ -66,8 +66,8 @@ public final class SplitRequest extends TypedStructure {
         ValueManager.requireChildren( v, FIELD_KEYS );
         return new SplitRequest(
             JolieString.contentFromValue( v ),
-            ValueManager.fieldFrom( v.firstChildOrDefault( "regex", Function.identity(), null ), JolieString::fieldFromValue ),
-            ValueManager.fieldFrom( v.firstChildOrDefault( "limit", Function.identity(), null ), JolieInt::fieldFromValue )
+            ValueManager.singleFieldFrom( v, "regex", JolieString::fieldFromValue ),
+            ValueManager.singleFieldFrom( v, "limit", JolieInt::fieldFromValue )
         );
     }
     

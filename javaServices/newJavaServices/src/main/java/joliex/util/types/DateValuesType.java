@@ -71,9 +71,9 @@ public final class DateValuesType extends TypedStructure {
     public static DateValuesType fromValue( Value v ) throws TypeCheckingException {
         ValueManager.requireChildren( v, FIELD_KEYS );
         return new DateValuesType(
-            ValueManager.fieldFrom( v.firstChildOrDefault( "month", Function.identity(), null ), JolieInt::fieldFromValue ),
-            ValueManager.fieldFrom( v.firstChildOrDefault( "year", Function.identity(), null ), JolieInt::fieldFromValue ),
-            ValueManager.fieldFrom( v.firstChildOrDefault( "day", Function.identity(), null ), JolieInt::fieldFromValue )
+            ValueManager.singleFieldFrom( v, "month", JolieInt::fieldFromValue ),
+            ValueManager.singleFieldFrom( v, "year", JolieInt::fieldFromValue ),
+            ValueManager.singleFieldFrom( v, "day", JolieInt::fieldFromValue )
         );
     }
     
@@ -119,5 +119,7 @@ public final class DateValuesType extends TypedStructure {
         public ListBuilder add( Function<Builder, DateValuesType> b ) { return add( b.apply( construct() ) ); }
         public ListBuilder set( int index, Function<Builder, DateValuesType> b ) { return set( index, b.apply( construct() ) ); }
         public ListBuilder reconstruct( int index, Function<Builder, DateValuesType> b ) { return replace( index, j -> b.apply( constructFrom( j ) ) ); }
+        
+        public List<DateValuesType> build() { return super.build(); }
     }
 }

@@ -53,12 +53,15 @@ public abstract class TypedStructure implements JolieValue {
 		Map<String,List<JolieValue>> c = children.get();
 		if ( c == null ) {
 			c = Arrays.stream( this.getClass().getDeclaredFields() )
-				.map( f -> Optional.ofNullable( f.getAnnotation( JolieName.class ) ).map( JolieName::value ).map( n -> Pair.of( n, f ) ) )
+				.map( f -> Optional.ofNullable( f.getAnnotation( JolieName.class ) )
+					.map( JolieName::value )
+					.map( n -> Pair.of( n, fromField( f ) ) ) )
 				.filter( Optional::isPresent )
 				.map( Optional::get )
+				.filter( p -> !p.value().isEmpty() )
 				.collect( Collectors.toUnmodifiableMap(
 					Pair::key, 
-					p -> fromField( p.value() ) ) );
+					Pair::value ) );
 			children = new SoftReference<>( c );
 		}
 		return c;

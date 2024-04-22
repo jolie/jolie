@@ -60,7 +60,7 @@ public final class DateValuesRequestType extends TypedStructure {
         ValueManager.requireChildren( v, FIELD_KEYS );
         return new DateValuesRequestType(
             JolieString.contentFromValue( v ),
-            ValueManager.fieldFrom( v.firstChildOrDefault( "format", Function.identity(), null ), JolieString::fieldFromValue )
+            ValueManager.singleFieldFrom( v, "format", JolieString::fieldFromValue )
         );
     }
     

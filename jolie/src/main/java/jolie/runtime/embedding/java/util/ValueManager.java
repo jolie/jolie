@@ -58,16 +58,25 @@ public class ValueManager {
 		return firstChild.map( mapper::tryApply ).orElse( null );
 	}
 
-	public static <T> List<T> fieldFrom( ValueVector child, ConversionFunction<Value, T> mapper ) throws TypeCheckingException {
-		return child.stream()
-			.parallel()
-			.map( mapper::tryApply )
-			.filter( Objects::nonNull )
-			.toList();
+	public static <T> List<T> vectorFieldFrom( Value v, String k, ConversionFunction<Value, T> mapper ) throws TypeCheckingException {
+		return v.hasChildren( k ) 
+			? v.getChildren( k )
+				.stream().parallel()
+				.map( mapper::tryApply )
+				.filter( Objects::nonNull )
+				.toList()
+			: List.of();
 	}
 
-	public static <T> T fieldFrom( Value firstChild, ConversionFunction<Value, T> mapper ) throws TypeCheckingException {
-		return Optional.ofNullable( firstChild ).map( mapper::tryApply ).orElse( null );
+	public static <T> T singleFieldFrom( Value v, String k, ConversionFunction<Value, T> mapper ) throws TypeCheckingException {
+		final ValueVector child;
+		if ( !v.hasChildren( k ) || (child = v.getChildren(k)).size() == 0 )
+			return null;
+
+		if ( child.size() == 1 )
+			return mapper.apply( child.first() );
+			
+		throw new TypeCheckingException( "Expected child \"" + k + "\" to contain at most 1 element, but found " + child.size() + " elements." );
 	}
 
 	public static <T> T choiceFrom( JolieValue j, SequencedCollection<ConversionFunction<JolieValue, T>> fs ) throws TypeValidationException {

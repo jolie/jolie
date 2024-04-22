@@ -59,8 +59,8 @@ public final class JoinRequest extends TypedStructure {
     public static JoinRequest fromValue( Value v ) throws TypeCheckingException {
         ValueManager.requireChildren( v, FIELD_KEYS );
         return new JoinRequest(
-            ValueManager.fieldFrom( v.children().getOrDefault( "piece", ValueVector.create() ), JolieString::fieldFromValue ),
-            ValueManager.fieldFrom( v.firstChildOrDefault( "delimiter", Function.identity(), null ), JolieString::fieldFromValue )
+            ValueManager.vectorFieldFrom( v, "piece", JolieString::fieldFromValue ),
+            ValueManager.singleFieldFrom( v, "delimiter", JolieString::fieldFromValue )
         );
     }
     

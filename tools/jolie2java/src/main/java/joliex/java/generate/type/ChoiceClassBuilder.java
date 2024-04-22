@@ -130,6 +130,8 @@ public class ChoiceClassBuilder extends TypeClassBuilder {
                         .newlineAppend( "public ListBuilder add" ).append( i ).append( "( Function<" ).append( s.name() ).append( ".Builder, " ).append( s.name() ).append( "> b ) { return add" ).append( i ).append( "( b.apply( " ).append( s.name() ).append( ".construct() ) ); }" )
                         .newlineAppend( "public ListBuilder set" ).append( i ).append( "( int index, Function<" ).append( s.name() ).append( ".Builder, " ).append( s.name() ).append( "> b ) { return set" ).append( i ).append( "( index, b.apply( " ).append( s.name() ).append( ".construct() ) ); }" );
             } );
+            
+            builder.newNewlineAppend( "public List<" ).append( className ).append( "> build() { return super.build(); }" );
         } );
     }
 

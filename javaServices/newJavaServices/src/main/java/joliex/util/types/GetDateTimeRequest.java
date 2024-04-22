@@ -60,7 +60,7 @@ public final class GetDateTimeRequest extends TypedStructure {
         ValueManager.requireChildren( v, FIELD_KEYS );
         return new GetDateTimeRequest(
             JolieLong.contentFromValue( v ),
-            ValueManager.fieldFrom( v.firstChildOrDefault( "format", Function.identity(), null ), JolieString::fieldFromValue )
+            ValueManager.singleFieldFrom( v, "format", JolieString::fieldFromValue )
         );
     }
     

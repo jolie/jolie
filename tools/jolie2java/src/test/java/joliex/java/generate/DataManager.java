@@ -1,17 +1,19 @@
 package joliex.java.generate;
 
+import java.util.Collections;
 import jolie.runtime.ByteArray;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
+import jolie.runtime.embedding.java.JolieValue;
 
 public class DataManager {
 
-	private static final Boolean TESTBOOL = true;
-	private static final Integer TESTINT = 1;
-	private static final Long TESTLONG = 2L;
-	private static final Double TESTDOUBLE = 1.1;
-	private static final String TESTSTRING = "test";
-	private static final ByteArray TESTRAW = new ByteArray(
+	public static final Boolean TESTBOOL = true;
+	public static final Integer TESTINT = 1;
+	public static final Long TESTLONG = 2L;
+	public static final Double TESTDOUBLE = 1.1;
+	public static final String TESTSTRING = "test";
+	public static final ByteArray TESTRAW = new ByteArray(
 		new byte[] { (byte) 0xe0, 0x4f, (byte) 0xd0, 0x20, (byte) 0xea, 0x3a, 0x69, 0x10, (byte) 0xa2 } );
 
 	private static final Value BOOLVALUE = Value.create( TESTBOOL );
@@ -111,136 +113,91 @@ public class DataManager {
 		return returnValue;
 	}
 
+	private static Value makeUndefinedValue() {
+		Value returnValue = Value.create();
+		returnValue.getFirstChild( "a" ).setValue( TESTBOOL );
+		returnValue.getFirstChild( "a" ).getFirstChild( "b" ).setValue( TESTSTRING );
+		returnValue.getFirstChild( "a" ).getFirstChild( "b" ).getFirstChild( "c" ).setValue( TESTDOUBLE );
+		return returnValue;
+	}
+
+	private static JolieValue constructUndefinedValue() {
+		return JolieValue.construct()
+			.constructAs( "a", TESTBOOL )
+				.constructAs( "b", TESTSTRING )
+					.putAs( "c", TESTDOUBLE )
+					.done()
+				.done()
+			.build();
+	}
+
 	private static Value makeExceptionValue() {
 		Value v = Value.create();
 		v.setFirstChild( "zzzzzz", TESTBOOL );
 		return v;
 	}
 
-	private static Value makeNewType() {
-		Value testValue = Value.create();
-		testValue.setFirstChild( "a", TESTSTRING );
-		ValueVector b = testValue.getChildren( "b" );
-		for( int i = 0; i < 100; i++ ) {
-			b.get( i ).setValue( TESTINT );
-			Value c = b.get( i ).getFirstChild( "c" );
-			c.setValue( TESTLONG );
-			c.setFirstChild( "d", TESTRAW );
-			c.getChildren( "e" ).add( getFlatStructureType() );
-		}
-		return testValue;
-	}
-
-	private static Value makeLinkedChoiceStructureType() {
-		final Value testValue = Value.create();
-		ValueVector vv;
-		
-		vv = testValue.getChildren( "a" );
-		vv.add( Value.create( TESTDOUBLE ) );
-		vv.add( Value.create( TESTSTRING ) );
-
-		vv = testValue.getChildren( "b" );
-		vv.add( getChoiceInlineType2() );
-		vv.add( getChoiceInlineType1() );
-		vv.add( Value.create( TESTINT ) );
-		vv.add( getChoiceInlineType3() );
-
-		vv = testValue.getChildren( "c" );
-		vv.add( Value.create( TESTINT ) );
-		vv.add( getInlineStructureType() );
-		vv.add( getFlatStructureVectorsType() );
-
-		return testValue;
-	}
-
-	private static Value makeInlineChoiceStructureType() {
-		final Value testValue = Value.create( TESTRAW );
-		testValue.setFirstChild( "a", TESTLONG );
-		testValue.getChildren( "b" ).add( getFlatStructureType() );
-		testValue.getChildren( "c" ).add( getChoiceInlineType3() );
-		
-		final Value d = testValue.getFirstChild( "d" );
-		d.setValue( TESTBOOL );
-		d.setFirstChild( "a", TESTDOUBLE );
-		d.setFirstChild( "b", TESTBOOL );
-		d.getFirstChild( "c" );
-		d.getFirstChild( "d" );
-
-		return testValue;
-	}
-
-	private static Value makeInlinedLinkStructureType() {
-		final Value v = Value.create();
-		v.setFirstChild( "inlinedString", "World" );
-		v.setFirstChild( "inlinedLink", "!" );
-		v.setFirstChild( "inlinedLinkString", "Hello" );
-		return v;
-	}
-
-	private static Value makeChoiceInlineType1() {
-		Value testValue = Value.create();
-		Value a = testValue.getFirstChild( "a" );
-		a.setValue( TESTSTRING );
-		Value b = a.getFirstChild( "b" );
-		b.setValue( TESTSTRING );
-		Value c = b.getFirstChild( "c" );
-		c.setValue( TESTSTRING );
-		return testValue;
-	}
-
-	private static Value makeChoiceInlineType2() {
+	private static Value makeFlatStructureType() {
 		Value testValue = Value.create( TESTSTRING );
-		ValueVector d = testValue.getChildren( "d" );
-		for( int i = 0; i < 20; i++ ) {
-			d.get( i ).setValue( TESTINT );
-			ValueVector e = d.get( i ).getChildren( "e" );
-			for( int y = 0; y < 5; y++ ) {
-				e.get( y ).setValue( TESTDOUBLE );
-				e.get( y ).getFirstChild( "f" ).setValue( TESTRAW );
-			}
-		}
+		testValue.getFirstChild( "afield" ).setValue( TESTSTRING );
+		testValue.getFirstChild( "bfield" ).setValue( TESTINT );
+		testValue.getFirstChild( "cfield" ).setValue( TESTDOUBLE );
+		testValue.getFirstChild( "dfield" ).setValue( TESTRAW );
+		testValue.getFirstChild( "efield" ).setValue( TESTSTRING );
+		testValue.getFirstChild( "ffield" ).setValue( TESTBOOL );
+		testValue.getChildren( "gfield" ).add( getUndefinedValue() );
+		testValue.getFirstChild( "hfield" ).setValue( TESTLONG );
 		return testValue;
 	}
 
-	private static Value makeChoiceInlineType3() {
-		Value testValue = Value.create();
-		testValue.getFirstChild( "g" ).setValue( TESTSTRING );
-		testValue.getFirstChild( "m" ).setValue( TESTINT );
-		return testValue;
+	public static JolieValue constructFlatStructureType() {
+		return JolieValue.construct( TESTSTRING )
+			.putAs( "afield", TESTSTRING )
+			.putAs( "bfield", TESTINT )
+			.putAs( "cfield", TESTDOUBLE )
+			.putAs( "dfield", TESTRAW )
+			.putAs( "efield", TESTSTRING )
+			.putAs( "ffield", TESTBOOL )
+			.putAs( "gfield", constructUndefinedValue() )
+			.putAs( "hfield", TESTLONG )
+			.build();
 	}
 
-	private static Value makeLinkedTypeStructureType() {
+	private static Value makeFlatStructureVectorsType() {
 		Value testValue = Value.create();
-
-		testValue.getChildren( "a" ).add( getInlineStructureType() );
-		testValue.getChildren( "b" ).add( getInlineStructureVectorsType() );
-		testValue.getChildren( "c" ).add( getFlatStructureType() );
-		testValue.getChildren( "d" ).add( getNewType() );
-		testValue.getChildren( "e" ).add( getInlinedLinkStructureType() );
-
-		return testValue;
-	}
-
-	private static Value makeLinkedTypeStructureVectorsType() {
-		Value testValue = Value.create();
-		ValueVector a = testValue.getChildren( "a" );
 		for( int i = 0; i < 50; i++ ) {
-			a.add( getInlineStructureType() );
+			testValue.getNewChild( "afield" ).setValue( TESTSTRING );
 		}
-		Value b = testValue.getFirstChild( "b" );
-		ValueVector bb = b.getChildren( "bb" );
+		// bfield is missing for testing 0 occurencies
 		for( int i = 0; i < 10; i++ ) {
-			bb.add( getInlineStructureVectorsType() );
+			testValue.getNewChild( "cfield" ).setValue( TESTDOUBLE );
 		}
-		ValueVector c = testValue.getChildren( "c" );
-		for( int i = 0; i < 7; i++ ) {
-			c.add( getFlatStructureType() );
+		for( int i = 0; i < 100; i++ ) {
+			testValue.getNewChild( "dfield" ).setValue( TESTRAW );
 		}
-		ValueVector d = testValue.getChildren( "d" );
-		for( int i = 0; i < 50; i++ ) {
-			d.add( getNewType() );
+		// efield is missing for testing 0 occurencies
+		for( int i = 0; i < 10; i++ ) {
+			testValue.getNewChild( "ffield" ).setValue( TESTBOOL );
+		}
+		ValueVector gfield = testValue.getChildren( "gfield" );
+		for( int i = 0; i < 4; i++ ) {
+			gfield.add( getUndefinedValue() );
+		}
+		for( int i = 0; i < 2; i++ ) {
+			testValue.getNewChild( "hfield" ).setValue( TESTLONG );
 		}
 		return testValue;
+	}
+
+	public static JolieValue constructFlatStructureVectorsType() {
+		return JolieValue.construct()
+			.put( "afield", Collections.nCopies( 50, JolieValue.create( TESTSTRING ) ) )
+			.put( "cfield", Collections.nCopies( 10, JolieValue.create( TESTDOUBLE ) ) )
+			.put( "dfield", Collections.nCopies( 100, JolieValue.create( TESTRAW ) ) )
+			.put( "ffield", Collections.nCopies( 10, JolieValue.create( TESTBOOL ) ) )
+			.put( "gfield", Collections.nCopies( 4, constructUndefinedValue() ) )
+			.put( "hfield", Collections.nCopies( 2, JolieValue.create( TESTLONG ) ) )
+			.build();
 	}
 
 	private static Value makeInlineStructureType() {
@@ -263,6 +220,31 @@ public class DataManager {
 		aa.getFirstChild( "c" ).setValue( TESTDOUBLE );
 		aa.getFirstChild( "f" ).getFirstChild( "rm" ).setValue( TESTSTRING );
 		return testValue;
+	}
+
+	public static JolieValue constructInlineStructureType() {
+		return JolieValue.construct()
+			.constructAs( "a" )
+				.putAs( "b", TESTSTRING )
+				.putAs( "c", TESTINT )
+				.putAs( "f", TESTDOUBLE )
+				.constructAs( "e", TESTSTRING )
+					.putAs( "ab", TESTRAW )
+					.putAs( "bc", TESTSTRING )
+					.constructAs( "fh", TESTSTRING )
+						.putAs( "abc", TESTSTRING )
+						.putAs( "def", TESTLONG )
+						.done()
+					.done()
+				.done()
+			.constructAs( "aa", TESTSTRING )
+				.putAs( "z", TESTINT )
+				.putAs( "c", TESTDOUBLE )
+				.constructAs( "f" )
+					.putAs( "rm", TESTSTRING )
+					.done()
+				.done()
+			.build();
 	}
 
 	private static Value makeInlineStructureVectorsType() {
@@ -309,50 +291,168 @@ public class DataManager {
 		return testValue;
 	}
 
-	private static Value makeFlatStructureType() {
-		Value testValue = Value.create( TESTSTRING );
-		testValue.getFirstChild( "afield" ).setValue( TESTSTRING );
-		testValue.getFirstChild( "bfield" ).setValue( TESTINT );
-		testValue.getFirstChild( "cfield" ).setValue( TESTDOUBLE );
-		testValue.getFirstChild( "dfield" ).setValue( TESTRAW );
-		testValue.getFirstChild( "efield" ).setValue( TESTSTRING );
-		testValue.getFirstChild( "ffield" ).setValue( TESTBOOL );
-		testValue.getChildren( "gfield" ).add( getUndefinedValue() );
-		testValue.getFirstChild( "hfield" ).setValue( TESTLONG );
-		return testValue;
+	public static JolieValue constructInlineStructureVectorsType() {
+		return JolieValue.construct()
+			.construct( "a" ).chain( alb -> {
+				for ( int x = 0; x < 10; x++ )
+					alb.constructAndAdd()
+						.put( "b", Collections.nCopies( 10, JolieValue.create( TESTSTRING ) ) )
+						.putAs( "c", TESTINT )
+						.put( "f", Collections.nCopies( 9, JolieValue.create( TESTDOUBLE ) ) )
+						.construct( "e" ).chain( elb -> {
+							for( int y = 0; y < 8; y++ )
+								elb.constructAndAdd( TESTSTRING )
+									.putAs( "ab", TESTRAW )
+									.put( "bc", Collections.nCopies( 4, JolieValue.create( TESTSTRING ) ) )
+									.construct( "fh" ).chain( fhlb -> {
+										for( int z = 0; z < 100; z++ )
+											fhlb.constructAndAdd( TESTSTRING )
+												.put( "abc", Collections.nCopies( 2, JolieValue.create( TESTSTRING ) ) )
+												.putAs( "def", TESTLONG )
+												.done();
+										return fhlb.done();
+									} )
+									.done();
+							return elb.done();
+						} )
+						.done();
+				return alb.done();
+			} )
+			.constructAs( "aa", TESTSTRING )
+				.put( "z", Collections.nCopies( 5, JolieValue.create( TESTINT ) ) )
+				.put( "c", Collections.nCopies( 3, JolieValue.create( TESTDOUBLE ) ) )
+				.construct( "f" ).chain( flb -> {
+					for ( int i = 0; i < 100; i++ )
+						flb.constructAndAdd().putAs( "rm", TESTSTRING ).done();
+					return flb.done();
+				} )
+				.done()
+			.build();
 	}
 
-	private static Value makeFlatStructureVectorsType() {
+	private static Value makeChoiceInlineType1() {
 		Value testValue = Value.create();
-		for( int i = 0; i < 50; i++ ) {
-			testValue.getNewChild( "afield" ).setValue( TESTSTRING );
-		}
-		// bfield is missing for testing 0 occurencies
-		for( int i = 0; i < 10; i++ ) {
-			testValue.getNewChild( "cfield" ).setValue( TESTDOUBLE );
-		}
-		for( int i = 0; i < 100; i++ ) {
-			testValue.getNewChild( "dfield" ).setValue( TESTRAW );
-		}
-		// efield is missing for testing 0 occurencies
-		for( int i = 0; i < 10; i++ ) {
-			testValue.getNewChild( "ffield" ).setValue( TESTBOOL );
-		}
-		ValueVector gfield = testValue.getChildren( "gfield" );
-		for( int i = 0; i < 4; i++ ) {
-			gfield.add( getUndefinedValue() );
-		}
-		for( int i = 0; i < 2; i++ ) {
-			testValue.getNewChild( "hfield" ).setValue( TESTLONG );
+		Value a = testValue.getFirstChild( "a" );
+		a.setValue( TESTSTRING );
+		Value b = a.getFirstChild( "b" );
+		b.setValue( TESTSTRING );
+		Value c = b.getFirstChild( "c" );
+		c.setValue( TESTSTRING );
+		return testValue;
+	}
+
+	private static Value makeChoiceInlineType2() {
+		Value testValue = Value.create( TESTSTRING );
+		ValueVector d = testValue.getChildren( "d" );
+		for( int i = 0; i < 20; i++ ) {
+			d.get( i ).setValue( TESTINT );
+			ValueVector e = d.get( i ).getChildren( "e" );
+			for( int y = 0; y < 5; y++ ) {
+				e.get( y ).setValue( TESTDOUBLE );
+				e.get( y ).getFirstChild( "f" ).setValue( TESTRAW );
+			}
 		}
 		return testValue;
 	}
 
-	private static Value makeUndefinedValue() {
-		Value returnValue = Value.create();
-		returnValue.getFirstChild( "a" ).setValue( TESTBOOL );
-		returnValue.getFirstChild( "a" ).getFirstChild( "b" ).setValue( TESTSTRING );
-		returnValue.getFirstChild( "a" ).getFirstChild( "b" ).getFirstChild( "c" ).setValue( TESTDOUBLE );
-		return returnValue;
+	private static Value makeChoiceInlineType3() {
+		Value testValue = Value.create();
+		testValue.getFirstChild( "g" ).setValue( TESTSTRING );
+		testValue.getFirstChild( "m" ).setValue( TESTINT );
+		return testValue;
+	}
+
+	private static Value makeInlineChoiceStructureType() {
+		final Value testValue = Value.create( TESTRAW );
+		testValue.setFirstChild( "a", TESTLONG );
+		testValue.getChildren( "b" ).add( getFlatStructureType() );
+		testValue.getChildren( "c" ).add( getChoiceInlineType3() );
+		
+		final Value d = testValue.getFirstChild( "d" );
+		d.setValue( TESTBOOL );
+		d.setFirstChild( "a", TESTDOUBLE );
+		d.setFirstChild( "b", TESTBOOL );
+		d.getFirstChild( "c" );
+		d.getFirstChild( "d" );
+
+		return testValue;
+	}
+
+	private static Value makeInlinedLinkStructureType() {
+		final Value v = Value.create();
+		v.setFirstChild( "inlinedString", "World" );
+		v.setFirstChild( "inlinedLink", "!" );
+		v.setFirstChild( "inlinedLinkString", "Hello" );
+		return v;
+	}
+
+	private static Value makeNewType() {
+		Value testValue = Value.create();
+		testValue.setFirstChild( "a", TESTSTRING );
+		ValueVector b = testValue.getChildren( "b" );
+		for( int i = 0; i < 100; i++ ) {
+			b.get( i ).setValue( TESTINT );
+			Value c = b.get( i ).getFirstChild( "c" );
+			c.setValue( TESTLONG );
+			c.setFirstChild( "d", TESTRAW );
+			c.getChildren( "e" ).add( getFlatStructureType() );
+		}
+		return testValue;
+	}
+
+	private static Value makeLinkedTypeStructureType() {
+		Value testValue = Value.create();
+
+		testValue.getChildren( "a" ).add( getInlineStructureType() );
+		testValue.getChildren( "b" ).add( getInlineStructureVectorsType() );
+		testValue.getChildren( "c" ).add( getFlatStructureType() );
+		testValue.getChildren( "d" ).add( getNewType() );
+		testValue.getChildren( "e" ).add( getInlinedLinkStructureType() );
+
+		return testValue;
+	}
+
+	private static Value makeLinkedTypeStructureVectorsType() {
+		Value testValue = Value.create();
+		ValueVector a = testValue.getChildren( "a" );
+		for( int i = 0; i < 50; i++ ) {
+			a.add( getInlineStructureType() );
+		}
+		Value b = testValue.getFirstChild( "b" );
+		ValueVector bb = b.getChildren( "bb" );
+		for( int i = 0; i < 10; i++ ) {
+			bb.add( getInlineStructureVectorsType() );
+		}
+		ValueVector c = testValue.getChildren( "c" );
+		for( int i = 0; i < 7; i++ ) {
+			c.add( getFlatStructureType() );
+		}
+		ValueVector d = testValue.getChildren( "d" );
+		for( int i = 0; i < 50; i++ ) {
+			d.add( getNewType() );
+		}
+		return testValue;
+	}
+
+	private static Value makeLinkedChoiceStructureType() {
+		final Value testValue = Value.create();
+		ValueVector vv;
+		
+		vv = testValue.getChildren( "a" );
+		vv.add( Value.create( TESTDOUBLE ) );
+		vv.add( Value.create( TESTSTRING ) );
+
+		vv = testValue.getChildren( "b" );
+		vv.add( getChoiceInlineType2() );
+		vv.add( getChoiceInlineType1() );
+		vv.add( Value.create( TESTINT ) );
+		vv.add( getChoiceInlineType3() );
+
+		vv = testValue.getChildren( "c" );
+		vv.add( Value.create( TESTINT ) );
+		vv.add( getInlineStructureType() );
+		vv.add( getFlatStructureVectorsType() );
+
+		return testValue;
 	}
 }

@@ -66,8 +66,8 @@ public final class GetTimestampFromStringRequest extends TypedStructure {
         ValueManager.requireChildren( v, FIELD_KEYS );
         return new GetTimestampFromStringRequest(
             JolieString.contentFromValue( v ),
-            ValueManager.fieldFrom( v.firstChildOrDefault( "format", Function.identity(), null ), JolieString::fieldFromValue ),
-            ValueManager.fieldFrom( v.firstChildOrDefault( "language", Function.identity(), null ), JolieString::fieldFromValue )
+            ValueManager.singleFieldFrom( v, "format", JolieString::fieldFromValue ),
+            ValueManager.singleFieldFrom( v, "language", JolieString::fieldFromValue )
         );
     }
     

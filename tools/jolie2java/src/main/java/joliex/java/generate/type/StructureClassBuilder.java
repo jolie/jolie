@@ -61,7 +61,9 @@ public abstract class StructureClassBuilder extends TypeClassBuilder {
             	.newline()
             	.newlineAppend( "public ListBuilder add( Function<Builder, " ).append( className ).append( "> b ) { return add( b.apply( construct() ) ); }" )
             	.newlineAppend( "public ListBuilder set( int index, Function<Builder, " ).append( className ).append( "> b ) { return set( index, b.apply( construct() ) ); }" )
-            	.newlineAppend( "public ListBuilder reconstruct( int index, Function<Builder, " ).append( className ).append( "> b ) { return replace( index, j -> b.apply( constructFrom( j ) ) ); }" ) );
+            	.newlineAppend( "public ListBuilder reconstruct( int index, Function<Builder, " ).append( className ).append( "> b ) { return replace( index, j -> b.apply( constructFrom( j ) ) ); }" )
+				.newline()
+				.newlineAppend( "public List<" ).append( className ).append( "> build() { return super.build(); }" ) );
     }
 
 	protected abstract void appendAttributes();

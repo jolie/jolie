@@ -14,7 +14,7 @@ public sealed interface JolieNative<T> extends ValueConverter {
 
     default T value() { return null; }
 
-    // TODO: make JolieVoid into a singleton
+    // TODO: should JolieVoid be a singleton?
     public static record JolieVoid() implements JolieNative<Void> {
         
         public Value jolieRepr() { return Value.create(); }

@@ -60,7 +60,7 @@ public final class ContainsRequest extends TypedStructure {
         ValueManager.requireChildren( v, FIELD_KEYS );
         return new ContainsRequest(
             JolieString.contentFromValue( v ),
-            ValueManager.fieldFrom( v.firstChildOrDefault( "substring", Function.identity(), null ), JolieString::fieldFromValue )
+            ValueManager.singleFieldFrom( v, "substring", JolieString::fieldFromValue )
         );
     }
     

@@ -66,8 +66,8 @@ public final class PadRequest extends TypedStructure {
         ValueManager.requireChildren( v, FIELD_KEYS );
         return new PadRequest(
             JolieString.contentFromValue( v ),
-            ValueManager.fieldFrom( v.firstChildOrDefault( "length", Function.identity(), null ), JolieInt::fieldFromValue ),
-            ValueManager.fieldFrom( v.firstChildOrDefault( "char", Function.identity(), null ), JolieString::fieldFromValue )
+            ValueManager.singleFieldFrom( v, "length", JolieInt::fieldFromValue ),
+            ValueManager.singleFieldFrom( v, "char", JolieString::fieldFromValue )
         );
     }
     

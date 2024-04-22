@@ -23,6 +23,8 @@ public abstract class AbstractListBuilder<B,E> {
 
 	protected abstract B self();
 
+	protected final E get( int index ) { return elements.get( index ); }
+
 	/**
 	 * Convenience method meant to make certain operations easier.
 	 * 
@@ -57,5 +59,5 @@ public abstract class AbstractListBuilder<B,E> {
 	public final B removeLast() { elements.removeLast(); return self(); }
 	public final B removeIf( Predicate<? super E> filter ) { elements.removeIf( filter ); return self(); }
 
-	public final List<E> build() { return elements; }
+	protected List<E> build() { return elements; }
 }

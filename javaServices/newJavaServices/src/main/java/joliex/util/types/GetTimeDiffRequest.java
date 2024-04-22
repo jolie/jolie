@@ -59,8 +59,8 @@ public final class GetTimeDiffRequest extends TypedStructure {
     public static GetTimeDiffRequest fromValue( Value v ) throws TypeCheckingException {
         ValueManager.requireChildren( v, FIELD_KEYS );
         return new GetTimeDiffRequest(
-            ValueManager.fieldFrom( v.firstChildOrDefault( "time1", Function.identity(), null ), JolieString::fieldFromValue ),
-            ValueManager.fieldFrom( v.firstChildOrDefault( "time2", Function.identity(), null ), JolieString::fieldFromValue )
+            ValueManager.singleFieldFrom( v, "time1", JolieString::fieldFromValue ),
+            ValueManager.singleFieldFrom( v, "time2", JolieString::fieldFromValue )
         );
     }
     
