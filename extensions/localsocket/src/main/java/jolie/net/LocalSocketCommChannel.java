@@ -22,6 +22,7 @@
 package jolie.net;
 
 import cx.ath.matthew.unix.UnixSocket;
+import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -41,7 +42,7 @@ public class LocalSocketCommChannel extends StreamingCommChannel implements Poll
 
 		this.socket = socket;
 		this.socketInputStream = socket.getInputStream();
-		this.socketOutputStream = socket.getOutputStream();
+		this.socketOutputStream = new BufferedOutputStream( socket.getOutputStream() );
 		this.bufferedInputStream = new PreBufferedInputStream( socketInputStream );
 
 		setToBeClosed( false ); // LocalSocket connections are kept open by default
