@@ -17,6 +17,7 @@ public sealed interface JolieType {
     public static sealed interface Definition extends JolieType {
 
         String name();
+        default boolean isLink() { return false; }
 
         public static sealed interface Basic extends Definition {
 
@@ -37,6 +38,8 @@ public sealed interface JolieType {
                 public String name() { return definition.name(); }
                 public Native nativeType() { return definition.nativeType(); }
                 public NativeRefinement refinement() { return definition.refinement(); }
+                
+                public boolean isLink() { return true; }
     
                 public boolean equals( Object obj ) { return definition.equals( obj ); }
                 public int hashCode() { return definition.hashCode(); }
@@ -45,28 +48,20 @@ public sealed interface JolieType {
     
         public static sealed interface Structure extends Definition {
     
-            public static record Field( String jolieName, String javaName, CompletableFuture<JolieType> typeFuture, int min, int max ) {
-                
-                public JolieType type() { return typeFuture.join(); }
-                public String typeName() { 
-                    return switch( type() ) {
-                        case Definition d -> d.name();
-                        case Native n -> n.valueName();
-                    };
-                }
-            }
+            public static record Field( String jolieName, String javaName, int min, int max, JolieType type ) {}
     
             Native nativeType();
             NativeRefinement nativeRefinement();
             List<Field> fields();
             default boolean hasBuilder() { return true; }
-    
             default Optional<NativeRefinement> possibleRefinement() { return Optional.ofNullable( nativeRefinement() ); }
     
             public static sealed interface Inline extends Structure {
 
-                public static record Typed( String name, Native nativeType, NativeRefinement nativeRefinement, List<Field> fields, boolean hasBuilder ) implements Inline {
+                public static record Typed( String name, Native nativeType, NativeRefinement nativeRefinement, CompletableFuture<List<Field>> fieldsFuture, boolean hasBuilder ) implements Inline {
                     
+                    public List<Field> fields() { return fieldsFuture.join(); }
+
                     public boolean equals( Object obj ) { return obj != null && obj instanceof Structure other && name.equals( other.name() ); }
                     public int hashCode() { return name.hashCode(); }
                 }
@@ -87,6 +82,8 @@ public sealed interface JolieType {
                 public NativeRefinement nativeRefinement() { return definition.nativeRefinement(); }
                 public List<Field> fields() { return definition.fields(); }
                 public boolean hasBuilder() { return definition.hasBuilder(); }
+                
+                public boolean isLink() { return true; }
     
                 public boolean equals( Object obj ) { return definition.equals( obj ); }
                 public int hashCode() { return definition.hashCode(); }
@@ -109,19 +106,15 @@ public sealed interface JolieType {
     
         public static sealed interface Choice extends Definition {
     
-            public static record Option( CompletableFuture<JolieType> typeFuture ) {
-    
-                public JolieType type() { return typeFuture.join(); }
-            }
-    
-            List<Option> options();
+            List<JolieType> options();
             boolean hasBuilder();
             default EntryStream<Integer, JolieType> numberedOptions() {
-                return EntryStream.of( options() ).mapKeys( i -> ++i ).mapValues( Option::type );
+                return EntryStream.of( options() ).mapKeys( i -> ++i );
             }
     
-            public static record Inline( String name, List<Option> options, boolean hasBuilder ) implements Choice {
+            public static record Inline( String name, CompletableFuture<List<JolieType>> optionsFuture, boolean hasBuilder ) implements Choice {
                 
+                public List<JolieType> options() { return optionsFuture.join(); }
                 public boolean equals( Object obj ) { return obj != null && obj instanceof Choice other && name.equals( other.name() ); }
                 public int hashCode() { return name.hashCode(); } 
             }
@@ -129,8 +122,10 @@ public sealed interface JolieType {
             public static record Link( Inline definition ) implements Choice {
     
                 public String name() { return definition.name(); }
-                public List<Option> options() { return definition.options(); }
+                public List<JolieType> options() { return definition.options(); }
                 public boolean hasBuilder() { return definition.hasBuilder(); }
+                
+                public boolean isLink() { return true; }
     
                 public boolean equals( Object obj ) { return definition.equals( obj ); }
                 public int hashCode() { return definition.hashCode(); }

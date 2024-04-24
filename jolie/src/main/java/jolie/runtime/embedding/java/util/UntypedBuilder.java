@@ -36,36 +36,34 @@ public abstract class UntypedBuilder<B> {
 
         return self();
     }
-    public final B putAs( String name, JolieNative<?> contentEntry ) { return putAs( name, JolieValue.create( contentEntry ) ); }
-    public final B putAs( String name, Boolean valueEntry ) { return putAs( name, JolieNative.create( valueEntry ) ); }
-    public final B putAs( String name, Integer valueEntry ) { return putAs( name, JolieNative.create( valueEntry ) ); }
-    public final B putAs( String name, Long valueEntry ) { return putAs( name, JolieNative.create( valueEntry ) ); }
-    public final B putAs( String name, Double valueEntry ) { return putAs( name, JolieNative.create( valueEntry ) ); }
-    public final B putAs( String name, String valueEntry ) { return putAs( name, JolieNative.create( valueEntry ) ); }
-    public final B putAs( String name, ByteArray valueEntry ) { return putAs( name, JolieNative.create( valueEntry ) ); }
+    public final B putAs( String name, JolieNative<?> contentEntry ) { return putAs( name, JolieValue.of( contentEntry ) ); }
+    public final B putAs( String name, Boolean valueEntry ) { return putAs( name, JolieNative.of( valueEntry ) ); }
+    public final B putAs( String name, Integer valueEntry ) { return putAs( name, JolieNative.of( valueEntry ) ); }
+    public final B putAs( String name, Long valueEntry ) { return putAs( name, JolieNative.of( valueEntry ) ); }
+    public final B putAs( String name, Double valueEntry ) { return putAs( name, JolieNative.of( valueEntry ) ); }
+    public final B putAs( String name, String valueEntry ) { return putAs( name, JolieNative.of( valueEntry ) ); }
+    public final B putAs( String name, ByteArray valueEntry ) { return putAs( name, JolieNative.of( valueEntry ) ); }
 
-    public final JolieValue.NestedListBuilder<B> construct( String name ) { return JolieValue.constructNestedList( ls -> put( name, ls ) ); }
+    public final JolieValue.NestedListBuilder<B> listBuilder( String name ) { return JolieValue.nestedListBuilder( ls -> put( name, ls ) ); }
+    public final JolieValue.NestedListBuilder<B> listBuilder( String name, SequencedCollection<? extends JolieValue> from ) { return JolieValue.nestedListBuilder( from, ls -> put( name, ls ) ); }
 
-    public final JolieValue.NestedBuilder<B> constructAs( String name ) { return JolieValue.constructNested( e -> putAs( name, e ) ); }
-    public final JolieValue.NestedBuilder<B> constructAs( String name, JolieNative<?> content ) { return constructAs( name ).content( content ); }
-    public final JolieValue.NestedBuilder<B> constructAs( String name, Boolean contentValue ) { return constructAs( name, JolieNative.create( contentValue ) ); }
-    public final JolieValue.NestedBuilder<B> constructAs( String name, Integer contentValue ) { return constructAs( name, JolieNative.create( contentValue ) ); }
-    public final JolieValue.NestedBuilder<B> constructAs( String name, Long contentValue ) { return constructAs( name, JolieNative.create( contentValue ) ); }
-    public final JolieValue.NestedBuilder<B> constructAs( String name, Double contentValue ) { return constructAs( name, JolieNative.create( contentValue ) ); }
-    public final JolieValue.NestedBuilder<B> constructAs( String name, String contentValue ) { return constructAs( name, JolieNative.create( contentValue ) ); }
-    public final JolieValue.NestedBuilder<B> constructAs( String name, ByteArray contentValue ) { return constructAs( name, JolieNative.create( contentValue ) ); }
+    public final JolieValue.NestedBuilder<B> builder( String name ) { return JolieValue.nestedBuilder( e -> putAs( name, e ) ); }
+    public final JolieValue.NestedBuilder<B> builder( String name, JolieNative<?> content ) { return builder( name ).content( content ); }
+    public final JolieValue.NestedBuilder<B> builder( String name, Boolean contentValue ) { return builder( name, JolieNative.of( contentValue ) ); }
+    public final JolieValue.NestedBuilder<B> builder( String name, Integer contentValue ) { return builder( name, JolieNative.of( contentValue ) ); }
+    public final JolieValue.NestedBuilder<B> builder( String name, Long contentValue ) { return builder( name, JolieNative.of( contentValue ) ); }
+    public final JolieValue.NestedBuilder<B> builder( String name, Double contentValue ) { return builder( name, JolieNative.of( contentValue ) ); }
+    public final JolieValue.NestedBuilder<B> builder( String name, String contentValue ) { return builder( name, JolieNative.of( contentValue ) ); }
+    public final JolieValue.NestedBuilder<B> builder( String name, ByteArray contentValue ) { return builder( name, JolieNative.of( contentValue ) ); }
+    public final JolieValue.NestedBuilder<B> builder( String name, JolieValue from ) { return JolieValue.nestedBuilder( from, e -> putAs( name, e ) ); }
 
-    public final JolieValue.NestedListBuilder<B> constructFrom( String name, SequencedCollection<? extends JolieValue> c ) { return JolieValue.constructNestedListFrom( c, ls -> put( name, ls ) ); }
+    public final JolieValue.NestedListBuilder<B> listRebuilder( String name ) { return listBuilder( name, children.getOrDefault( name, List.of() ) ); }
 
-    public final JolieValue.NestedBuilder<B> constructAsFrom( String name, JolieValue j ) { return JolieValue.constructNestedFrom( j, e -> putAs( name, e ) ); }
-
-    public final JolieValue.NestedListBuilder<B> reconstruct( String name ) { return constructFrom( name, children.getOrDefault( name, List.of() ) ); }
-
-    public final JolieValue.NestedBuilder<B> reconstructAs( String name ) { 
+    public final JolieValue.NestedBuilder<B> rebuilder( String name ) { 
         return Optional.ofNullable( children.getOrDefault( name, null ) )
             .map( c -> c.isEmpty() ? null : c.getFirst() )
-            .map( e -> constructAsFrom( name, e ) )
-            .orElse( constructAs( name ) );
+            .map( e -> builder( name, e ) )
+            .orElse( builder( name ) );
     }
 
     public final B compute( String name, BiFunction<? super String, ? super List<JolieValue>, ? extends SequencedCollection<? extends JolieValue>> remappingFunction ) {

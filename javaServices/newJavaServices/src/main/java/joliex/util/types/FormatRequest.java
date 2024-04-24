@@ -12,6 +12,7 @@ import jolie.runtime.embedding.java.UntypedStructure;
 import jolie.runtime.embedding.java.TypeValidationException;
 import jolie.runtime.embedding.java.util.*;
 
+import java.util.Arrays;
 import java.util.Map;
 import java.util.SequencedCollection;
 import java.util.List;
@@ -28,6 +29,10 @@ import java.util.function.Function;
  * 
  * @see JolieValue
  * @see JolieNative
+ * @see S1
+ * @see S2
+ * @see #of1(S1)
+ * @see #of2(S2)
  */
 public sealed interface FormatRequest extends JolieValue {
     
@@ -45,7 +50,7 @@ public sealed interface FormatRequest extends JolieValue {
         public int hashCode() { return option.hashCode(); }
         public String toString() { return option.toString(); }
         
-        public static C1 createFrom( JolieValue j ) throws TypeValidationException { return new C1( S1.createFrom( j ) ); }
+        public static C1 from( JolieValue j ) throws TypeValidationException { return new C1( S1.from( j ) ); }
         
         public static C1 fromValue( Value v ) throws TypeCheckingException { return new C1( S1.fromValue( v ) ); }
         
@@ -64,21 +69,21 @@ public sealed interface FormatRequest extends JolieValue {
         public int hashCode() { return option.hashCode(); }
         public String toString() { return option.toString(); }
         
-        public static C2 createFrom( JolieValue j ) throws TypeValidationException { return new C2( S2.createFrom( j ) ); }
+        public static C2 from( JolieValue j ) throws TypeValidationException { return new C2( S2.from( j ) ); }
         
         public static C2 fromValue( Value v ) throws TypeCheckingException { return new C2( S2.fromValue( v ) ); }
         
         public static Value toValue( C2 t ) { return t.jolieRepr(); }
     }
     
-    public static FormatRequest create1( S1 option ) { return new C1( option ); }
-    public static FormatRequest create1( Function<S1.Builder, S1> b ) { return create1( b.apply( S1.construct() ) ); }
+    public static FormatRequest of1( S1 option ) { return new C1( option ); }
+    public static FormatRequest of1( Function<S1.Builder, S1> f ) { return of1( f.apply( S1.builder() ) ); }
     
-    public static FormatRequest create2( S2 option ) { return new C2( option ); }
-    public static FormatRequest create2( Function<S2.Builder, S2> b ) { return create2( b.apply( S2.construct() ) ); }
+    public static FormatRequest of2( S2 option ) { return new C2( option ); }
+    public static FormatRequest of2( Function<S2.Builder, S2> f ) { return of2( f.apply( S2.builder() ) ); }
     
-    public static FormatRequest createFrom( JolieValue j ) throws TypeValidationException {
-        return ValueManager.choiceFrom( j, List.of( ValueManager.castFunc( C1::createFrom ), ValueManager.castFunc( C2::createFrom ) ) );
+    public static FormatRequest from( JolieValue j ) throws TypeValidationException {
+        return ValueManager.choiceFrom( j, List.of( ValueManager.castFunc( C1::from ), ValueManager.castFunc( C2::from ) ) );
     }
     
     public static FormatRequest fromValue( Value v ) throws TypeCheckingException {
@@ -97,26 +102,28 @@ public sealed interface FormatRequest extends JolieValue {
      * 
      * @see JolieValue
      * @see JolieNative
-     * @see #construct()
+     * @see #builder()
      */
     public static final class S1 extends UntypedStructure<JolieString> {
         
-        public S1( String contentValue, Map<String, List<JolieValue>> children ) { super( JolieNative.create( contentValue ), children ); }
+        public S1( String contentValue, Map<String, List<JolieValue>> children ) { super( JolieNative.of( contentValue ), children ); }
         
         public String contentValue() { return content().value(); }
         
-        public static Builder construct() { return new Builder(); }
-        public static ListBuilder constructList() { return new ListBuilder(); }
-        public static Builder constructFrom( JolieValue j ) { return new Builder( j ); }
-        public static ListBuilder constructListFrom( SequencedCollection<? extends JolieValue> c ) { return new ListBuilder( c ); }
-        
-        public static Builder construct( String contentValue ) { return construct().contentValue( contentValue ); }
-        
-        public static S1 createFrom( JolieValue j ) throws TypeValidationException {
-            return new S1( JolieString.createFrom( j ).value(), j.children() );
+        public static Builder builder() { return new Builder(); }
+        public static Builder builder( JolieValue from ) { return new Builder( from ); }
+        public static StructureListBuilder<S1,Builder> listBuilder() { return new StructureListBuilder<>( S1::builder, S1::builder ); }
+        public static StructureListBuilder<S1,Builder> listBuilder( SequencedCollection<? extends JolieValue> from ) {
+            return new StructureListBuilder<>( from, S1::from, S1::builder, S1::builder );
         }
         
-        public static S1 fromValue( Value v ) throws TypeCheckingException { return createFrom( JolieValue.fromValue( v ) ); }
+        public static Builder builder( String contentValue ) { return builder().contentValue( contentValue ); }
+        
+        public static S1 from( JolieValue j ) throws TypeValidationException {
+            return new S1( JolieString.from( j ).value(), j.children() );
+        }
+        
+        public static S1 fromValue( Value v ) throws TypeCheckingException { return from( JolieValue.fromValue( v ) ); }
         
         public static Value toValue( S1 t ) { return JolieValue.toValue( t ); }
         
@@ -138,20 +145,6 @@ public sealed interface FormatRequest extends JolieValue {
             
             public S1 build() { return new S1( contentValue, children ); }
         }
-        
-        public static class ListBuilder extends AbstractListBuilder<ListBuilder, S1> {
-            
-            private ListBuilder() {}
-            private ListBuilder( SequencedCollection<? extends JolieValue> c ) { super( c, S1::createFrom ); }
-            
-            protected ListBuilder self() { return this; }
-            
-            public ListBuilder add( Function<Builder, S1> b ) { return add( b.apply( construct() ) ); }
-            public ListBuilder set( int index, Function<Builder, S1> b ) { return set( index, b.apply( construct() ) ); }
-            public ListBuilder reconstruct( int index, Function<Builder, S1> b ) { return replace( index, j -> b.apply( constructFrom( j ) ) ); }
-            
-            public List<S1> build() { return super.build(); }
-        }
     }
     
     
@@ -166,7 +159,7 @@ public sealed interface FormatRequest extends JolieValue {
      * @see JolieValue
      * @see JolieNative
      * @see Data
-     * @see #construct()
+     * @see #builder()
      */
     public static final class S2 extends TypedStructure {
         
@@ -191,14 +184,16 @@ public sealed interface FormatRequest extends JolieValue {
         
         public JolieVoid content() { return new JolieVoid(); }
         
-        public static Builder construct() { return new Builder(); }
-        public static ListBuilder constructList() { return new ListBuilder(); }
-        public static Builder constructFrom( JolieValue j ) { return new Builder( j ); }
-        public static ListBuilder constructListFrom( SequencedCollection<? extends JolieValue> c ) { return new ListBuilder( c ); }
+        public static Builder builder() { return new Builder(); }
+        public static Builder builder( JolieValue from ) { return new Builder( from ); }
+        public static StructureListBuilder<S2,Builder> listBuilder() { return new StructureListBuilder<>( S2::builder, S2::builder ); }
+        public static StructureListBuilder<S2,Builder> listBuilder( SequencedCollection<? extends JolieValue> from ) {
+            return new StructureListBuilder<>( from, S2::from, S2::builder, S2::builder );
+        }
         
-        public static S2 createFrom( JolieValue j ) {
+        public static S2 from( JolieValue j ) {
             return new S2(
-                ValueManager.fieldFrom( j.getFirstChild( "data" ), Data::createFrom ),
+                ValueManager.fieldFrom( j.getFirstChild( "data" ), Data::from ),
                 ValueManager.fieldFrom( j.getFirstChild( "format" ), c -> c.content() instanceof JolieString content ? content.value() : null ),
                 ValueManager.fieldFrom( j.getFirstChild( "locale" ), c -> c.content() instanceof JolieString content ? content.value() : null )
             );
@@ -231,33 +226,19 @@ public sealed interface FormatRequest extends JolieValue {
             
             private Builder() {}
             private Builder( JolieValue j ) {
-                this.data = ValueManager.fieldFrom( j.getFirstChild( "data" ), Data::createFrom );
+                this.data = ValueManager.fieldFrom( j.getFirstChild( "data" ), Data::from );
                 this.format = ValueManager.fieldFrom( j.getFirstChild( "format" ), c -> c.content() instanceof JolieString content ? content.value() : null );
                 this.locale = ValueManager.fieldFrom( j.getFirstChild( "locale" ), c -> c.content() instanceof JolieString content ? content.value() : null );
             }
             
             public Builder data( Data data ) { this.data = data; return this; }
-            public Builder data( Function<Data.Builder, Data> b ) { return data( b.apply( Data.construct() ) ); }
+            public Builder data( Function<Data.Builder,Data> f ) { return data( f.apply( Data.builder() ) ); }
             public Builder format( String format ) { this.format = format; return this; }
             public Builder locale( String locale ) { this.locale = locale; return this; }
             
             public S2 build() {
                 return new S2( data, format, locale );
             }
-        }
-        
-        public static class ListBuilder extends AbstractListBuilder<ListBuilder, S2> {
-            
-            private ListBuilder() {}
-            private ListBuilder( SequencedCollection<? extends JolieValue> c ) { super( c, S2::createFrom ); }
-            
-            protected ListBuilder self() { return this; }
-            
-            public ListBuilder add( Function<Builder, S2> b ) { return add( b.apply( construct() ) ); }
-            public ListBuilder set( int index, Function<Builder, S2> b ) { return set( index, b.apply( construct() ) ); }
-            public ListBuilder reconstruct( int index, Function<Builder, S2> b ) { return replace( index, j -> b.apply( constructFrom( j ) ) ); }
-            
-            public List<S2> build() { return super.build(); }
         }
         
         
@@ -270,22 +251,24 @@ public sealed interface FormatRequest extends JolieValue {
          * 
          * @see JolieValue
          * @see JolieNative
-         * @see #construct()
+         * @see #builder()
          */
         public static final class Data extends UntypedStructure<JolieVoid> {
             
             public Data( Map<String, List<JolieValue>> children ) { super( new JolieVoid(), children ); }
             
-            public static Builder construct() { return new Builder(); }
-            public static ListBuilder constructList() { return new ListBuilder(); }
-            public static Builder constructFrom( JolieValue j ) { return new Builder( j ); }
-            public static ListBuilder constructListFrom( SequencedCollection<? extends JolieValue> c ) { return new ListBuilder( c ); }
+            public static Builder builder() { return new Builder(); }
+            public static Builder builder( JolieValue from ) { return new Builder( from ); }
+            public static StructureListBuilder<Data,Builder> listBuilder() { return new StructureListBuilder<>( Data::builder, Data::builder ); }
+            public static StructureListBuilder<Data,Builder> listBuilder( SequencedCollection<? extends JolieValue> from ) {
+                return new StructureListBuilder<>( from, Data::from, Data::builder, Data::builder );
+            }
             
-            public static Data createFrom( JolieValue j ) throws TypeValidationException {
+            public static Data from( JolieValue j ) throws TypeValidationException {
                 return new Data( j.children() );
             }
             
-            public static Data fromValue( Value v ) throws TypeCheckingException { return createFrom( JolieValue.fromValue( v ) ); }
+            public static Data fromValue( Value v ) throws TypeCheckingException { return from( JolieValue.fromValue( v ) ); }
             
             public static Value toValue( Data t ) { return JolieValue.toValue( t ); }
             
@@ -300,20 +283,6 @@ public sealed interface FormatRequest extends JolieValue {
                 protected Builder self() { return this; }
                 
                 public Data build() { return new Data( children ); }
-            }
-            
-            public static class ListBuilder extends AbstractListBuilder<ListBuilder, Data> {
-                
-                private ListBuilder() {}
-                private ListBuilder( SequencedCollection<? extends JolieValue> c ) { super( c, Data::createFrom ); }
-                
-                protected ListBuilder self() { return this; }
-                
-                public ListBuilder add( Function<Builder, Data> b ) { return add( b.apply( construct() ) ); }
-                public ListBuilder set( int index, Function<Builder, Data> b ) { return set( index, b.apply( construct() ) ); }
-                public ListBuilder reconstruct( int index, Function<Builder, Data> b ) { return replace( index, j -> b.apply( constructFrom( j ) ) ); }
-                
-                public List<Data> build() { return super.build(); }
             }
         }
     }

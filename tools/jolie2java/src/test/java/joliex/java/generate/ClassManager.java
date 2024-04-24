@@ -43,7 +43,7 @@ public class ClassManager {
 
 		final JavaDocumentCreator jdc = new JavaDocumentCreator( 
 			PACKAGENAME, TYPEPACKAGE, FAULTPACKAGE, INTERFACEPACKAGE, 
-			OUTPUTDIRECTORY.toString(), true, null );
+			OUTPUTDIRECTORY.toString(), null, true );
 
 		jdc.generateClasses( inspector );
 	}

@@ -3,6 +3,7 @@ package joliex.java.parse;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
@@ -90,7 +91,7 @@ public class OperationFactory {
                                         case Undefined u -> "Undefined";
                                         case Definition d -> d.name();
                                     });
-                                    return new Fault( name, type, NameFormatter.requireValidClassName( className ) );
+                                    return new Fault( name, type, NameFormatter.requireValidClassName( className, Set.of() ) );
                                 } ) );
                     } ) ) );
     }

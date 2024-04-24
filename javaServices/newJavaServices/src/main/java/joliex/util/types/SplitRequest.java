@@ -12,6 +12,7 @@ import jolie.runtime.embedding.java.UntypedStructure;
 import jolie.runtime.embedding.java.TypeValidationException;
 import jolie.runtime.embedding.java.util.*;
 
+import java.util.Arrays;
 import java.util.Map;
 import java.util.SequencedCollection;
 import java.util.List;
@@ -54,9 +55,9 @@ public final class SplitRequest extends TypedStructure {
     
     public JolieString content() { return new JolieString( contentValue ); }
     
-    public static SplitRequest createFrom( JolieValue j ) {
+    public static SplitRequest from( JolieValue j ) {
         return new SplitRequest(
-            JolieString.createFrom( j ).value(),
+            JolieString.from( j ).value(),
             ValueManager.fieldFrom( j.getFirstChild( "regex" ), c -> c.content() instanceof JolieString content ? content.value() : null ),
             ValueManager.fieldFrom( j.getFirstChild( "limit" ), c -> c.content() instanceof JolieInt content ? content.value() : null )
         );

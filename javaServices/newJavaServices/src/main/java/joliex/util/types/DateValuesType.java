@@ -12,6 +12,7 @@ import jolie.runtime.embedding.java.UntypedStructure;
 import jolie.runtime.embedding.java.TypeValidationException;
 import jolie.runtime.embedding.java.util.*;
 
+import java.util.Arrays;
 import java.util.Map;
 import java.util.SequencedCollection;
 import java.util.List;
@@ -30,7 +31,7 @@ import java.util.function.Function;
  * 
  * @see JolieValue
  * @see JolieNative
- * @see #construct()
+ * @see #builder()
  */
 public final class DateValuesType extends TypedStructure {
     
@@ -55,12 +56,14 @@ public final class DateValuesType extends TypedStructure {
     
     public JolieVoid content() { return new JolieVoid(); }
     
-    public static Builder construct() { return new Builder(); }
-    public static ListBuilder constructList() { return new ListBuilder(); }
-    public static Builder constructFrom( JolieValue j ) { return new Builder( j ); }
-    public static ListBuilder constructListFrom( SequencedCollection<? extends JolieValue> c ) { return new ListBuilder( c ); }
+    public static Builder builder() { return new Builder(); }
+    public static Builder builder( JolieValue from ) { return new Builder( from ); }
+    public static StructureListBuilder<DateValuesType,Builder> listBuilder() { return new StructureListBuilder<>( DateValuesType::builder, DateValuesType::builder ); }
+    public static StructureListBuilder<DateValuesType,Builder> listBuilder( SequencedCollection<? extends JolieValue> from ) {
+        return new StructureListBuilder<>( from, DateValuesType::from, DateValuesType::builder, DateValuesType::builder );
+    }
     
-    public static DateValuesType createFrom( JolieValue j ) {
+    public static DateValuesType from( JolieValue j ) {
         return new DateValuesType(
             ValueManager.fieldFrom( j.getFirstChild( "month" ), c -> c.content() instanceof JolieInt content ? content.value() : null ),
             ValueManager.fieldFrom( j.getFirstChild( "year" ), c -> c.content() instanceof JolieInt content ? content.value() : null ),
@@ -107,19 +110,5 @@ public final class DateValuesType extends TypedStructure {
         public DateValuesType build() {
             return new DateValuesType( month, year, day );
         }
-    }
-    
-    public static class ListBuilder extends AbstractListBuilder<ListBuilder, DateValuesType> {
-        
-        private ListBuilder() {}
-        private ListBuilder( SequencedCollection<? extends JolieValue> c ) { super( c, DateValuesType::createFrom ); }
-        
-        protected ListBuilder self() { return this; }
-        
-        public ListBuilder add( Function<Builder, DateValuesType> b ) { return add( b.apply( construct() ) ); }
-        public ListBuilder set( int index, Function<Builder, DateValuesType> b ) { return set( index, b.apply( construct() ) ); }
-        public ListBuilder reconstruct( int index, Function<Builder, DateValuesType> b ) { return replace( index, j -> b.apply( constructFrom( j ) ) ); }
-        
-        public List<DateValuesType> build() { return super.build(); }
     }
 }

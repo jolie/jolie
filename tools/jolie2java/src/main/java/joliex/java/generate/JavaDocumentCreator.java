@@ -34,10 +34,10 @@ public class JavaDocumentCreator {
     private final Path faultsDirectory;
     private final String interfacesPackage;
     private final Path interfacesDirectory;
-    private final boolean generateService;
     private final String serviceName;
+    private final boolean overrideService;
 
-    public JavaDocumentCreator( String packageName, String typesPackage, String faultsPackage, String interfacesPackage, String outputDirectory, boolean generateService, String serviceName ) {
+    public JavaDocumentCreator( String packageName, String typesPackage, String faultsPackage, String interfacesPackage, String outputDirectory, String serviceName, boolean overrideService ) {
         final Path outputPath = Path.of( outputDirectory == null ? DEFAULT_OUTPUT_DIRECTORY : outputDirectory );
 
         this.packageName = formatPackageName( packageName );
@@ -52,8 +52,8 @@ public class JavaDocumentCreator {
         this.interfacesPackage = getPackage( this.packageName, interfacesPackage == null ? DEFAULT_INTERFACE_PACKAGE : interfacesPackage );
         interfacesDirectory = getPackagePath( outputPath, this.interfacesPackage );
 
-        this.generateService = generateService;
         this.serviceName = serviceName == null ? DEFAULT_SERVICE_NAME : serviceName;
+        this.overrideService = overrideService;
     }
 
     public void generateClasses( ProgramInspector inspector ) {
@@ -68,7 +68,7 @@ public class JavaDocumentCreator {
         generateExceptionClasses( operationsMap );
         generateInterfaceClasses( operationsMap );
 
-        if ( generateService && !operationsMap.isEmpty() )
+        if ( !operationsMap.isEmpty() )
             generateServiceClass( operationsMap );
     }
 
@@ -76,7 +76,7 @@ public class JavaDocumentCreator {
         typeDefinitions.parallel()
             .map( definition -> TypeClassBuilder.create( definition, typesPackage ) )
             .filter( Objects::nonNull )
-            .forEach( builder -> JavaClassDirector.writeClass( typesDirectory, builder ) );
+            .forEach( builder -> JavaClassDirector.writeClass( typesDirectory, builder, true ) );
     }
 
     private void generateExceptionClasses( Map<String, Collection<JolieOperation>> operationsMap ) {
@@ -87,7 +87,7 @@ public class JavaDocumentCreator {
             .flatMap( Collection::stream )
             .distinct()
             .map( fault -> new ExceptionClassBuilder( fault, faultsPackage, typesPackage ) )
-            .forEach( builder -> JavaClassDirector.writeClass( faultsDirectory, builder ) );
+            .forEach( builder -> JavaClassDirector.writeClass( faultsDirectory, builder, true ) );
     }
 
     private void generateInterfaceClasses( Map<String, Collection<JolieOperation>> operationsMap ) {
@@ -98,17 +98,20 @@ public class JavaDocumentCreator {
                 operations, 
                 interfacesPackage,
                 Files.exists( typesDirectory ) ? typesPackage : null ) )
-            .forEach( builder -> JavaClassDirector.writeClass( interfacesDirectory, builder ) );
+            .forEach( builder -> JavaClassDirector.writeClass( interfacesDirectory, builder, true ) );
     }
 
     private void generateServiceClass( Map<String, Collection<JolieOperation>> operationsMap ) {
-        JavaClassDirector.writeClass( packageDirectory, new ServiceClassBuilder( 
-            serviceName, 
-            operationsMap,
-            packageName,
-            Files.exists( typesDirectory ) ? typesPackage : null, 
-            Files.exists( faultsDirectory ) ? faultsPackage : null, 
-            Files.exists( interfacesDirectory ) ? interfacesPackage : null ) );
+        JavaClassDirector.writeClass( 
+            packageDirectory, 
+            new ServiceClassBuilder( 
+                serviceName, 
+                operationsMap,
+                packageName,
+                Files.exists( typesDirectory ) ? typesPackage : null, 
+                Files.exists( faultsDirectory ) ? faultsPackage : null, 
+                Files.exists( interfacesDirectory ) ? interfacesPackage : null ),
+            overrideService );
     }
 
     private static String formatPackageName( String name ) {

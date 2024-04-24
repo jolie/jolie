@@ -12,6 +12,7 @@ import jolie.runtime.embedding.java.UntypedStructure;
 import jolie.runtime.embedding.java.TypeValidationException;
 import jolie.runtime.embedding.java.util.*;
 
+import java.util.Arrays;
 import java.util.Map;
 import java.util.SequencedCollection;
 import java.util.List;
@@ -49,7 +50,7 @@ public final class GetTimeDiffRequest extends TypedStructure {
     
     public JolieVoid content() { return new JolieVoid(); }
     
-    public static GetTimeDiffRequest createFrom( JolieValue j ) {
+    public static GetTimeDiffRequest from( JolieValue j ) {
         return new GetTimeDiffRequest(
             ValueManager.fieldFrom( j.getFirstChild( "time1" ), c -> c.content() instanceof JolieString content ? content.value() : null ),
             ValueManager.fieldFrom( j.getFirstChild( "time2" ), c -> c.content() instanceof JolieString content ? content.value() : null )

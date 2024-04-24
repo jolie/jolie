@@ -74,9 +74,9 @@ public class BasicClassBuilder extends TypeClassBuilder {
     }
 
     private void appendStaticMethods() {
-        // createFrom() method
-        builder.newNewlineAppend( "public static " ).append( className ).append( " createFrom( JolieValue j ) throws TypeValidationException" ).body( () -> {
-            builder.newlineAppend( "return new " ).append( className ).append( "( " ).append( basic.nativeType().wrapperName() ).append( ".createFrom( j ).value() );" );
+        // from() method
+        builder.newNewlineAppend( "public static " ).append( className ).append( " from( JolieValue j ) throws TypeValidationException" ).body( () -> {
+            builder.newlineAppend( "return new " ).append( className ).append( "( " ).append( basic.nativeType().wrapperName() ).append( ".from( j ).value() );" );
         } );
         // fromValue() method
         builder.newNewlineAppend( "public static " ).append( className ).append( " fromValue( Value v ) throws TypeCheckingException" ).body( () -> {

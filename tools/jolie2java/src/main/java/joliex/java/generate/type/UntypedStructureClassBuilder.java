@@ -53,7 +53,7 @@ public class UntypedStructureClassBuilder extends StructureClassBuilder {
         builder.newline()
             .newlineAppend( "@see JolieValue" )
             .newlineAppend( "@see JolieNative" )
-            .newlineAppend( "@see #construct()" );
+            .newlineAppend( "@see #builder()" );
     }
 
     protected void appendSignature( boolean isInnerClass ) {
@@ -70,7 +70,7 @@ public class UntypedStructureClassBuilder extends StructureClassBuilder {
         switch ( structure.nativeType() ) {
             case ANY    -> builder.newNewlineAppend( "public " ).append( className ).append( "( " ).append( structure.nativeType().wrapperName() ).append( " content, Map<String, List<JolieValue>> children ) { super( content, children ); }" );
             case VOID   -> builder.newNewlineAppend( "public " ).append( className ).append( "( Map<String, List<JolieValue>> children ) { super( new JolieVoid(), children ); }" );
-            default     -> builder.newNewlineAppend( "public " ).append( className ).append( "( " ).append( structure.nativeType().valueName() ).append( " contentValue, Map<String, List<JolieValue>> children ) { super( JolieNative.create( " ).append( structure.possibleRefinement().map( r -> "Refinement.validated( contentValue, REFINEMENTS )" ).orElse( "contentValue" ) ).append( " ), children ); }" );
+            default     -> builder.newNewlineAppend( "public " ).append( className ).append( "( " ).append( structure.nativeType().valueName() ).append( " contentValue, Map<String, List<JolieValue>> children ) { super( JolieNative.of( " ).append( structure.possibleRefinement().map( r -> "Refinement.validated( contentValue, REFINEMENTS )" ).orElse( "contentValue" ) ).append( " ), children ); }" );
         }
     }
 
@@ -81,20 +81,20 @@ public class UntypedStructureClassBuilder extends StructureClassBuilder {
         } );
     }
 
-    protected void appendCreateFromMethod() {
-        builder.newNewlineAppend( "public static " ).append( className ).append( " createFrom( JolieValue j ) throws TypeValidationException" ).body( () -> 
+    protected void appendFromMethod() {
+        builder.newNewlineAppend( "public static " ).append( className ).append( " from( JolieValue j ) throws TypeValidationException" ).body( () -> 
             builder.newlineAppend( "return new " ).append( className ).append( "( " )
                 .append( switch ( structure.nativeType() ) {
                     case Native.VOID -> "";
                     case Native.ANY -> "j.content(), ";
-                    default -> structure.nativeType().wrapperName() + ".createFrom( j ).value(), ";
+                    default -> structure.nativeType().wrapperName() + ".from( j ).value(), ";
                 } )
                 .append( "j.children() );" ) );
     }
 
     protected void appendFromValueMethod() {
         // TODO: make this more efficient
-        builder.newNewlineAppend( "public static " ).append( className ).append( " fromValue( Value v ) throws TypeCheckingException { return createFrom( JolieValue.fromValue( v ) ); }" );
+        builder.newNewlineAppend( "public static " ).append( className ).append( " fromValue( Value v ) throws TypeCheckingException { return from( JolieValue.fromValue( v ) ); }" );
     }
 
     protected void appendToValueMethod() {

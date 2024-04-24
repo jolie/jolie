@@ -12,6 +12,7 @@ import jolie.runtime.embedding.java.UntypedStructure;
 import jolie.runtime.embedding.java.TypeValidationException;
 import jolie.runtime.embedding.java.util.*;
 
+import java.util.Arrays;
 import java.util.Map;
 import java.util.SequencedCollection;
 import java.util.List;
@@ -54,9 +55,9 @@ public final class ReplaceRequest extends TypedStructure {
     
     public JolieString content() { return new JolieString( contentValue ); }
     
-    public static ReplaceRequest createFrom( JolieValue j ) {
+    public static ReplaceRequest from( JolieValue j ) {
         return new ReplaceRequest(
-            JolieString.createFrom( j ).value(),
+            JolieString.from( j ).value(),
             ValueManager.fieldFrom( j.getFirstChild( "regex" ), c -> c.content() instanceof JolieString content ? content.value() : null ),
             ValueManager.fieldFrom( j.getFirstChild( "replacement" ), c -> c.content() instanceof JolieString content ? content.value() : null )
         );

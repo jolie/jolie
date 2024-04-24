@@ -12,6 +12,7 @@ import jolie.runtime.embedding.java.UntypedStructure;
 import jolie.runtime.embedding.java.TypeValidationException;
 import jolie.runtime.embedding.java.util.*;
 
+import java.util.Arrays;
 import java.util.Map;
 import java.util.SequencedCollection;
 import java.util.List;
@@ -54,9 +55,9 @@ public final class SubStringRequest extends TypedStructure {
     
     public JolieString content() { return new JolieString( contentValue ); }
     
-    public static SubStringRequest createFrom( JolieValue j ) {
+    public static SubStringRequest from( JolieValue j ) {
         return new SubStringRequest(
-            JolieString.createFrom( j ).value(),
+            JolieString.from( j ).value(),
             ValueManager.fieldFrom( j.getFirstChild( "end" ), c -> c.content() instanceof JolieInt content ? content.value() : null ),
             ValueManager.fieldFrom( j.getFirstChild( "begin" ), c -> c.content() instanceof JolieInt content ? content.value() : null )
         );

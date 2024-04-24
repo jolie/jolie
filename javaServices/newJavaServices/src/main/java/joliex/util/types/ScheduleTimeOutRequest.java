@@ -12,6 +12,7 @@ import jolie.runtime.embedding.java.UntypedStructure;
 import jolie.runtime.embedding.java.TypeValidationException;
 import jolie.runtime.embedding.java.util.*;
 
+import java.util.Arrays;
 import java.util.Map;
 import java.util.SequencedCollection;
 import java.util.List;
@@ -59,10 +60,10 @@ public final class ScheduleTimeOutRequest extends TypedStructure {
     
     public JolieInt content() { return new JolieInt( contentValue ); }
     
-    public static ScheduleTimeOutRequest createFrom( JolieValue j ) {
+    public static ScheduleTimeOutRequest from( JolieValue j ) {
         return new ScheduleTimeOutRequest(
-            JolieInt.createFrom( j ).value(),
-            ValueManager.fieldFrom( j.getFirstChild( "message" ), JolieValue::createFrom ),
+            JolieInt.from( j ).value(),
+            ValueManager.fieldFrom( j.getFirstChild( "message" ), JolieValue::from ),
             ValueManager.fieldFrom( j.getFirstChild( "operation" ), c -> c.content() instanceof JolieString content ? content.value() : null ),
             ValueManager.fieldFrom( j.getFirstChild( "timeunit" ), c -> c.content() instanceof JolieString content ? content.value() : null )
         );

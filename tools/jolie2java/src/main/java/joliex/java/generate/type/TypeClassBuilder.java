@@ -35,6 +35,7 @@ public abstract class TypeClassBuilder extends JavaClassBuilder {
             .newlineAppend( "import jolie.runtime.embedding.java.TypeValidationException;" )
             .newlineAppend( "import jolie.runtime.embedding.java.util.*;" )
             .newline()
+            .newlineAppend( "import java.util.Arrays;" )
             .newlineAppend( "import java.util.Map;" )
             .newlineAppend( "import java.util.SequencedCollection;" )
             .newlineAppend( "import java.util.List;" )
@@ -52,7 +53,7 @@ public abstract class TypeClassBuilder extends JavaClassBuilder {
         builder.body( this::appendBody );
     }
 
-    private void appendDocumentation() {
+    protected void appendDocumentation() {
 		builder.newline().commentBlock( () -> {
 			appendDescriptionDocumentation();
 			builder.codeBlock( this::appendDefinitionDocumentation );
@@ -75,23 +76,22 @@ public abstract class TypeClassBuilder extends JavaClassBuilder {
             default -> null;
         };
     }
-    
-    protected static TypeClassBuilder create( JolieType type ) { return create( type, null ); }
+
+    protected String qualifiedName( Definition d ) {
+        return d.isLink() ? typesPackage + "." + d.name() : d.name(); 
+    }
+
+    protected String typeName( JolieType t ) {
+        return switch( storedType( t ) ) {
+            case Native n -> n == Native.VOID ? n.wrapperName() : n.valueName();
+            case Definition d -> qualifiedName( d );
+        };
+    }
 
     /*
      * Convenience method to handle the fact that Basic.Inline and Native are stored in the same way.
      */
     protected static JolieType storedType( JolieType t ) {
         return t instanceof Basic.Inline b ? b.nativeType() : t;
-    }
-
-    /*
-     * Convenience method to handle the fact that Basic.Inline and Native are stored in the same way.
-     */
-    protected static String typeName( JolieType t ) {
-        return switch( storedType( t ) ) {
-            case Native n -> n == Native.VOID ? n.wrapperName() : n.valueName();
-            case Definition d -> d.name();
-        };
     }
 }

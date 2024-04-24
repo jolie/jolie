@@ -86,7 +86,7 @@ public final class NewStringUtils extends JavaService implements StringUtilsInte
 	public MatchResult match( MatchRequest request ) {
 		Matcher m = Pattern.compile( request.regex() ).matcher( request.content().value() );
 		return m.matches()
-			? MatchResult.construct()
+			? MatchResult.builder()
 				.contentValue( 1 )
 				.group(
 					IntStream.rangeClosed( 1, m.groupCount() )
@@ -95,7 +95,7 @@ public final class NewStringUtils extends JavaService implements StringUtilsInte
 						.map( s -> s == null ? "" : s )
 						.toList() )
 				.build()
-			: MatchResult.construct().contentValue( 0 ).build();
+			: MatchResult.builder().contentValue( 0 ).build();
 	}
 
 	// TODO: is it on purpose that this is the same as match in the actual StringUtils.java?

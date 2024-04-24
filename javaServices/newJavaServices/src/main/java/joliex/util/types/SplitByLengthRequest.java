@@ -12,6 +12,7 @@ import jolie.runtime.embedding.java.UntypedStructure;
 import jolie.runtime.embedding.java.TypeValidationException;
 import jolie.runtime.embedding.java.util.*;
 
+import java.util.Arrays;
 import java.util.Map;
 import java.util.SequencedCollection;
 import java.util.List;
@@ -49,9 +50,9 @@ public final class SplitByLengthRequest extends TypedStructure {
     
     public JolieString content() { return new JolieString( contentValue ); }
     
-    public static SplitByLengthRequest createFrom( JolieValue j ) {
+    public static SplitByLengthRequest from( JolieValue j ) {
         return new SplitByLengthRequest(
-            JolieString.createFrom( j ).value(),
+            JolieString.from( j ).value(),
             ValueManager.fieldFrom( j.getFirstChild( "length" ), c -> c.content() instanceof JolieInt content ? content.value() : null )
         );
     }

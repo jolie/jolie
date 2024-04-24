@@ -37,16 +37,16 @@ public class ValueUtils {
 		return Value.class.cast( cls.getMethod( "toValue", cls ).invoke( null, t ) );
 	}
 
-	public static JolieValue invokeCreateFrom( Class< ? > cls, JolieValue t ) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException, SecurityException {
-		return JolieValue.class.cast( cls.getMethod( "createFrom", JolieValue.class ).invoke( null, t ) );
+	public static JolieValue invokeFrom( Class< ? > cls, JolieValue t ) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException, SecurityException {
+		return JolieValue.class.cast( cls.getMethod( "from", JolieValue.class ).invoke( null, t ) );
 	}
 
-	public static Object invokeConstructFrom( Class< ? > cls, JolieValue t ) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException, SecurityException {
-		return cls.getMethod( "constructFrom", JolieValue.class ).invoke( null, t );
+	public static Object invokeBuilder( Class< ? > cls, JolieValue t ) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException, SecurityException {
+		return cls.getMethod( "builder", JolieValue.class ).invoke( null, t );
 	}
 
-	public static void invokeSetter( Object builder, String name, Object argument ) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException, SecurityException {
-		builder.getClass().getMethod( name, argument.getClass() ).invoke( builder, argument );
+	public static void invokeSetter( Object builder, String field, Object argument ) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException, SecurityException {
+		builder.getClass().getMethod( field, argument.getClass() ).invoke( builder, argument );
 	}
 
 	public static JolieValue invokeBuild( Object builder ) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException, SecurityException {

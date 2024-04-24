@@ -31,7 +31,7 @@ public sealed interface JolieOperation {
 
     public static record OneWay( String name, JolieType request, String documentation ) implements JolieOperation {
         
-        public JolieType response() { return null; }
+        public JolieType response() { return Native.VOID; }
         public Optional<String> responseType() { return Optional.empty(); }
 
         public Optional<String> possibleDocumentation() { return Optional.ofNullable( documentation ); }

@@ -12,6 +12,7 @@ import jolie.runtime.embedding.java.UntypedStructure;
 import jolie.runtime.embedding.java.TypeValidationException;
 import jolie.runtime.embedding.java.util.*;
 
+import java.util.Arrays;
 import java.util.Map;
 import java.util.SequencedCollection;
 import java.util.List;
@@ -49,7 +50,7 @@ public final class SummationRequest extends TypedStructure {
     
     public JolieVoid content() { return new JolieVoid(); }
     
-    public static SummationRequest createFrom( JolieValue j ) {
+    public static SummationRequest from( JolieValue j ) {
         return new SummationRequest(
             ValueManager.fieldFrom( j.getFirstChild( "from" ), c -> c.content() instanceof JolieInt content ? content.value() : null ),
             ValueManager.fieldFrom( j.getFirstChild( "to" ), c -> c.content() instanceof JolieInt content ? content.value() : null )

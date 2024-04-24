@@ -24,10 +24,13 @@ public class JavaClassDirector {
         return builder.getResult();
     }
 
-    public static void writeClass( Path dir, JavaClassBuilder builder ) {
+    public static void writeClass( Path dir, JavaClassBuilder builder, boolean override ) {
         try {
-            Files.createDirectories( dir );
-            Files.writeString( dir.resolve( builder.className() + ".java" ), constructClass( builder ) );
+            final Path file = dir.resolve( builder.className() + ".java" );
+            if ( override || Files.notExists( file ) ) {
+                Files.createDirectories( dir );
+                Files.writeString( file, constructClass( builder ) );
+            }
         } catch( IOException ex ) {
             Logger.getLogger( JavaClassDirector.class.getName() ).log( Level.SEVERE, null, ex );
         } catch ( ClassBuilderException ex ) {

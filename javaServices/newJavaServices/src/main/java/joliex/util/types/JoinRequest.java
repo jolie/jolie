@@ -12,6 +12,7 @@ import jolie.runtime.embedding.java.UntypedStructure;
 import jolie.runtime.embedding.java.TypeValidationException;
 import jolie.runtime.embedding.java.util.*;
 
+import java.util.Arrays;
 import java.util.Map;
 import java.util.SequencedCollection;
 import java.util.List;
@@ -49,7 +50,7 @@ public final class JoinRequest extends TypedStructure {
     
     public JolieVoid content() { return new JolieVoid(); }
     
-    public static JoinRequest createFrom( JolieValue j ) {
+    public static JoinRequest from( JolieValue j ) {
         return new JoinRequest(
             ValueManager.fieldFrom( j.getChildOrDefault( "piece", List.of() ), c -> c.content() instanceof JolieString content ? content.value() : null ),
             ValueManager.fieldFrom( j.getFirstChild( "delimiter" ), c -> c.content() instanceof JolieString content ? content.value() : null )

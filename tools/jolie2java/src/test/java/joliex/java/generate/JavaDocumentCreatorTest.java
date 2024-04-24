@@ -43,7 +43,7 @@ import static org.junit.Assert.assertTrue;
  */
 public class JavaDocumentCreatorTest {
 
-	private static final Boolean DELETE_AFTER_TEST = true;
+	private static final Boolean DELETE_AFTER_TEST = false;
 
 	@BeforeClass
 	public static void setUpClass() throws IOException, ParserException, CodeCheckException, CommandLineException, ModuleException {
@@ -90,15 +90,15 @@ public class JavaDocumentCreatorTest {
 		final Value single_v = DataManager.getFlatStructureType();
 		final JolieValue single_j = performFromValueTests( single_cls, single_v );
 		performToValueTests( single_cls, single_v, single_j );
-		assertEquals( "single: The constructed JolieValue doesn't equal the converted JolieValue.", DataManager.constructFlatStructureType(), single_j );
+		assertEquals( "single: The constructed JolieValue doesn't equal the converted JolieValue.", DataManager.buildFlatStructureType(), single_j );
 
 		final Class<?> vector_cls = ClassManager.getTypeClass( "FlatStructureVectorsType" );
 		final Value vector_v = DataManager.getFlatStructureVectorsType();
 		final JolieValue vector_j = performFromValueTests( vector_cls, vector_v );
 		performToValueTests( vector_cls, vector_v, vector_j );
-		assertEquals( "vector: The constructed JolieValue doesn't equal the converted JolieValue.", DataManager.constructFlatStructureVectorsType(), vector_j );
+		assertEquals( "vector: The constructed JolieValue doesn't equal the converted JolieValue.", DataManager.buildFlatStructureVectorsType(), vector_j );
 
-		final Object builder = ValueUtils.invokeConstructFrom( single_cls, vector_j );
+		final Object builder = ValueUtils.invokeBuilder( single_cls, vector_j );
 		ValueUtils.invokeSetter( builder, "contentValue", DataManager.TESTSTRING );
 		ValueUtils.invokeSetter( builder, "bfield", DataManager.TESTINT );
 		ValueUtils.invokeSetter( builder, "efield", DataManager.TESTSTRING );
@@ -111,15 +111,15 @@ public class JavaDocumentCreatorTest {
 		final Value single_v = DataManager.getInlineStructureType();
 		final JolieValue single_j = performFromValueTests( single_cls, single_v );
 		performToValueTests( single_cls, single_v, single_j );
-		assertEquals( "single: The constructed JolieValue doesn't equal the converted JolieValue.", DataManager.constructInlineStructureType(), single_j );
+		assertEquals( "single: The constructed JolieValue doesn't equal the converted JolieValue.", DataManager.buildInlineStructureType(), single_j );
 
 		final Class<?> vector_cls = ClassManager.getTypeClass( "InLineStructureVectorsType" );
 		final Value vector_v = DataManager.getInlineStructureVectorsType();
 		final JolieValue vector_j = performFromValueTests( vector_cls, vector_v );
 		performToValueTests( vector_cls, vector_v, vector_j );
-		assertEquals( "vector: The constructed JolieValue doesn't equal the converted JolieValue.", DataManager.constructInlineStructureVectorsType(), vector_j );
+		assertEquals( "vector: The constructed JolieValue doesn't equal the converted JolieValue.", DataManager.buildInlineStructureVectorsType(), vector_j );
 
-		assertEquals( single_j, ValueUtils.invokeCreateFrom( single_cls, vector_j ) );
+		assertEquals( single_j, ValueUtils.invokeFrom( single_cls, vector_j ) );
 	}
 
 	@Test

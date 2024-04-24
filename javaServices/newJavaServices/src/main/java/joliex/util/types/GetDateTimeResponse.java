@@ -12,6 +12,7 @@ import jolie.runtime.embedding.java.UntypedStructure;
 import jolie.runtime.embedding.java.TypeValidationException;
 import jolie.runtime.embedding.java.util.*;
 
+import java.util.Arrays;
 import java.util.Map;
 import java.util.SequencedCollection;
 import java.util.List;
@@ -35,7 +36,7 @@ import java.util.function.Function;
  * 
  * @see JolieValue
  * @see JolieNative
- * @see #construct()
+ * @see #builder()
  */
 public final class GetDateTimeResponse extends TypedStructure {
     
@@ -75,16 +76,18 @@ public final class GetDateTimeResponse extends TypedStructure {
     
     public JolieString content() { return new JolieString( contentValue ); }
     
-    public static Builder construct() { return new Builder(); }
-    public static ListBuilder constructList() { return new ListBuilder(); }
-    public static Builder constructFrom( JolieValue j ) { return new Builder( j ); }
-    public static ListBuilder constructListFrom( SequencedCollection<? extends JolieValue> c ) { return new ListBuilder( c ); }
+    public static Builder builder() { return new Builder(); }
+    public static Builder builder( JolieValue from ) { return new Builder( from ); }
+    public static StructureListBuilder<GetDateTimeResponse,Builder> listBuilder() { return new StructureListBuilder<>( GetDateTimeResponse::builder, GetDateTimeResponse::builder ); }
+    public static StructureListBuilder<GetDateTimeResponse,Builder> listBuilder( SequencedCollection<? extends JolieValue> from ) {
+        return new StructureListBuilder<>( from, GetDateTimeResponse::from, GetDateTimeResponse::builder, GetDateTimeResponse::builder );
+    }
     
-    public static Builder construct( String contentValue ) { return construct().contentValue( contentValue ); }
+    public static Builder builder( String contentValue ) { return builder().contentValue( contentValue ); }
     
-    public static GetDateTimeResponse createFrom( JolieValue j ) {
+    public static GetDateTimeResponse from( JolieValue j ) {
         return new GetDateTimeResponse(
-            JolieString.createFrom( j ).value(),
+            JolieString.from( j ).value(),
             ValueManager.fieldFrom( j.getFirstChild( "month" ), c -> c.content() instanceof JolieInt content ? content.value() : null ),
             ValueManager.fieldFrom( j.getFirstChild( "hour" ), c -> c.content() instanceof JolieInt content ? content.value() : null ),
             ValueManager.fieldFrom( j.getFirstChild( "year" ), c -> c.content() instanceof JolieInt content ? content.value() : null ),
@@ -153,19 +156,5 @@ public final class GetDateTimeResponse extends TypedStructure {
         public GetDateTimeResponse build() {
             return new GetDateTimeResponse( contentValue, month, hour, year, day, minute, second );
         }
-    }
-    
-    public static class ListBuilder extends AbstractListBuilder<ListBuilder, GetDateTimeResponse> {
-        
-        private ListBuilder() {}
-        private ListBuilder( SequencedCollection<? extends JolieValue> c ) { super( c, GetDateTimeResponse::createFrom ); }
-        
-        protected ListBuilder self() { return this; }
-        
-        public ListBuilder add( Function<Builder, GetDateTimeResponse> b ) { return add( b.apply( construct() ) ); }
-        public ListBuilder set( int index, Function<Builder, GetDateTimeResponse> b ) { return set( index, b.apply( construct() ) ); }
-        public ListBuilder reconstruct( int index, Function<Builder, GetDateTimeResponse> b ) { return replace( index, j -> b.apply( constructFrom( j ) ) ); }
-        
-        public List<GetDateTimeResponse> build() { return super.build(); }
     }
 }

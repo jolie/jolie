@@ -23,7 +23,7 @@ public sealed interface JolieNative<T> extends ValueConverter {
         public int hashCode() { return 0; }
         public String toString() { return ""; }
 
-        public static JolieVoid createFrom( JolieValue j ) { return new JolieVoid(); }
+        public static JolieVoid from( JolieValue j ) { return new JolieVoid(); }
 
         public static Value requireVoid( Value v ) throws TypeCheckingException {
             if ( v.isDefined() )
@@ -47,7 +47,7 @@ public sealed interface JolieNative<T> extends ValueConverter {
         public int hashCode() { return value.hashCode(); }
         public String toString() { return value.toString(); }
 
-        public static JolieBool createFrom( JolieValue j ) throws TypeValidationException { 
+        public static JolieBool from( JolieValue j ) throws TypeValidationException { 
             if ( j.content() instanceof JolieBool content )
                 return content;
             
@@ -80,7 +80,7 @@ public sealed interface JolieNative<T> extends ValueConverter {
         public int hashCode() { return value.hashCode(); }
         public String toString() { return value.toString(); }
 
-        public static JolieInt createFrom( JolieValue j ) throws TypeValidationException { 
+        public static JolieInt from( JolieValue j ) throws TypeValidationException { 
             if ( j.content() instanceof JolieInt content )
                 return content;
             
@@ -113,7 +113,7 @@ public sealed interface JolieNative<T> extends ValueConverter {
         public int hashCode() { return value.hashCode(); }
         public String toString() { return value.toString(); }
 
-        public static JolieLong createFrom( JolieValue j ) throws TypeValidationException {
+        public static JolieLong from( JolieValue j ) throws TypeValidationException {
             if ( j.content() instanceof JolieLong content )
                 return content;
             
@@ -146,7 +146,7 @@ public sealed interface JolieNative<T> extends ValueConverter {
         public int hashCode() { return value.hashCode(); }
         public String toString() { return value.toString(); }
 
-        public static JolieDouble createFrom( JolieValue j ) throws TypeValidationException { 
+        public static JolieDouble from( JolieValue j ) throws TypeValidationException { 
             if ( j.content() instanceof JolieDouble content )
                 return content;
             
@@ -179,7 +179,7 @@ public sealed interface JolieNative<T> extends ValueConverter {
         public int hashCode() { return value.hashCode(); }
         public String toString() { return value; }
 
-        public static JolieString createFrom( JolieValue j ) throws TypeValidationException {
+        public static JolieString from( JolieValue j ) throws TypeValidationException {
             if ( j.content() instanceof JolieString content )
                 return content;
             
@@ -212,7 +212,7 @@ public sealed interface JolieNative<T> extends ValueConverter {
         public int hashCode() { return value.hashCode(); }
         public String toString() { return value.toString(); }
 
-        public static JolieRaw createFrom( JolieValue j ) throws TypeValidationException {
+        public static JolieRaw from( JolieValue j ) throws TypeValidationException {
             if ( j.content() instanceof JolieRaw content )
                 return content;
             
@@ -237,19 +237,18 @@ public sealed interface JolieNative<T> extends ValueConverter {
         public static Value toValue( JolieRaw t ) { return t.jolieRepr(); }
     }
 
-    public static JolieVoid create() { return new JolieVoid(); }
-    public static JolieBool create( Boolean value ) { return Optional.ofNullable( value ).map( JolieBool::new ).orElse( null ); }
-    public static JolieInt create( Integer value ) { return Optional.ofNullable( value ).map( JolieInt::new ).orElse( null ); }
-    public static JolieLong create( Long value ) { return Optional.ofNullable( value ).map( JolieLong::new ).orElse( null ); }
-    public static JolieDouble create( Double value ) { return Optional.ofNullable( value ).map( JolieDouble::new ).orElse( null ); }
-    public static JolieString create( String value ) { return Optional.ofNullable( value ).map( JolieString::new ).orElse( null ); }
-    public static JolieRaw create( ByteArray value ) { return Optional.ofNullable( value ).map( JolieRaw::new ).orElse( null ); }
+    public static JolieVoid of() { return new JolieVoid(); }
+    public static JolieBool of( Boolean value ) { return Optional.ofNullable( value ).map( JolieBool::new ).orElse( null ); }
+    public static JolieInt of( Integer value ) { return Optional.ofNullable( value ).map( JolieInt::new ).orElse( null ); }
+    public static JolieLong of( Long value ) { return Optional.ofNullable( value ).map( JolieLong::new ).orElse( null ); }
+    public static JolieDouble of( Double value ) { return Optional.ofNullable( value ).map( JolieDouble::new ).orElse( null ); }
+    public static JolieString of( String value ) { return Optional.ofNullable( value ).map( JolieString::new ).orElse( null ); }
+    public static JolieRaw of( ByteArray value ) { return Optional.ofNullable( value ).map( JolieRaw::new ).orElse( null ); }
 
-    public static JolieNative<?> createFrom( JolieValue j ) { return j.content(); }
+    public static JolieNative<?> from( JolieValue j ) { return j.content(); }
 
-    public static ListBuilder constructList() { return new ListBuilder(); }
-
-    public static ListBuilder constructListFrom( SequencedCollection<? extends JolieValue> c ) { return new ListBuilder( c ); }
+    public static ListBuilder listBuilder() { return new ListBuilder(); }
+    public static ListBuilder listBuilder( SequencedCollection<? extends JolieValue> c ) { return new ListBuilder( c ); }
     
     public static JolieNative<?> contentFromValue( Value v ) {
         if ( v.valueObject() instanceof Boolean n )
@@ -283,22 +282,22 @@ public sealed interface JolieNative<T> extends ValueConverter {
     public static class ListBuilder extends AbstractListBuilder<ListBuilder, JolieNative<?>> {
 
         private ListBuilder() {}
-        private ListBuilder( SequencedCollection<? extends JolieValue> c ) { super( c, JolieNative::createFrom ); }
+        private ListBuilder( SequencedCollection<? extends JolieValue> c ) { super( c, JolieNative::from ); }
 
         protected ListBuilder self() { return this; }
 
-        public ListBuilder add( Boolean value ) { return add( create( value ) ); }
-        public ListBuilder add( Integer value ) { return add( create( value ) ); }
-        public ListBuilder add( Long value ) { return add( create( value ) ); }
-        public ListBuilder add( Double value ) { return add( create( value ) ); }
-        public ListBuilder add( String value ) { return add( create( value ) ); }
-        public ListBuilder add( ByteArray value ) { return add( create( value ) ); }
+        public ListBuilder add( Boolean value ) { return add( of( value ) ); }
+        public ListBuilder add( Integer value ) { return add( of( value ) ); }
+        public ListBuilder add( Long value ) { return add( of( value ) ); }
+        public ListBuilder add( Double value ) { return add( of( value ) ); }
+        public ListBuilder add( String value ) { return add( of( value ) ); }
+        public ListBuilder add( ByteArray value ) { return add( of( value ) ); }
 
-        public ListBuilder set( int index, Boolean value ) { return set( index, create( value ) ); }
-        public ListBuilder set( int index, Integer value ) { return set( index, create( value ) ); }
-        public ListBuilder set( int index, Long value ) { return set( index, create( value ) ); }
-        public ListBuilder set( int index, Double value ) { return set( index, create( value ) ); }
-        public ListBuilder set( int index, String value ) { return set( index, create( value ) ); }
-        public ListBuilder set( int index, ByteArray value ) { return set( index, create( value ) ); }
+        public ListBuilder set( int index, Boolean value ) { return set( index, of( value ) ); }
+        public ListBuilder set( int index, Integer value ) { return set( index, of( value ) ); }
+        public ListBuilder set( int index, Long value ) { return set( index, of( value ) ); }
+        public ListBuilder set( int index, Double value ) { return set( index, of( value ) ); }
+        public ListBuilder set( int index, String value ) { return set( index, of( value ) ); }
+        public ListBuilder set( int index, ByteArray value ) { return set( index, of( value ) ); }
     }
 }

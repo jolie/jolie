@@ -14,7 +14,7 @@ public class Jolie2JavaCommandLineParser extends CommandLineParser {
     private final String faultsPackage;
     private final String interfacesPackage;
     private final String outputDirectory;
-    private final boolean generateService;
+    private final boolean overrideService;
     private final String serviceName;
 
     public String packageName() { return packageName; }
@@ -22,7 +22,7 @@ public class Jolie2JavaCommandLineParser extends CommandLineParser {
     public String faultsPackage() { return faultsPackage; }
     public String interfacesPackage() { return interfacesPackage; }
     public String outputDirectory() { return outputDirectory; }
-    public boolean generateService() { return generateService; }
+    public boolean overrideService() { return overrideService; }
     public String serviceName() { return serviceName; }
 
     private static class JolieDummyArgumentHandler implements CommandLineParser.ArgumentHandler {
@@ -32,8 +32,8 @@ public class Jolie2JavaCommandLineParser extends CommandLineParser {
         private String faultsPackage = null;
         private String interfacesPackage = null;
         private String outputDirectory = null;
-        private boolean generateService = true;
         private String serviceName = null;
+        private boolean overrideService = false;
 
         public int onUnrecognizedArgument( List<String> argumentsList, int index ) throws CommandLineException {
             
@@ -43,11 +43,11 @@ public class Jolie2JavaCommandLineParser extends CommandLineParser {
                 case "--faultsPackage" -> { index++; faultsPackage = argumentsList.get( index ); }
                 case "--interfacesPackage" -> { index++; interfacesPackage = argumentsList.get( index ); }
                 case "--outputDirectory" -> { index++; outputDirectory = argumentsList.get( index ); }
-                case "--generateService" -> { index++; generateService = Boolean.valueOf( argumentsList.get( index ) ); }
                 case "--serviceName" -> { index++; serviceName = argumentsList.get( index ); }
+                case "--overrideService" -> { index++; overrideService = Boolean.valueOf( argumentsList.get( index ) ); }
                 
                 /* deprecated flags */
-                case "--javaservice" -> { index++; generateService = Boolean.valueOf( argumentsList.get( index ) ); }
+                case "--javaservice" -> { index++; }
                 case "--addSource" -> { index++; }
                 case "--format" -> { index++; }
                 case "--buildXml" -> { index++; }
@@ -74,7 +74,7 @@ public class Jolie2JavaCommandLineParser extends CommandLineParser {
         faultsPackage = argHandler.faultsPackage;
         interfacesPackage = argHandler.interfacesPackage;
         outputDirectory = argHandler.outputDirectory;
-        generateService = argHandler.generateService;
+        overrideService = argHandler.overrideService;
         serviceName = argHandler.serviceName;
     }
 
@@ -86,8 +86,8 @@ public class Jolie2JavaCommandLineParser extends CommandLineParser {
             .append( "                  [ --faultsPackage <package> (default=\"" ).append( JavaDocumentCreator.DEFAULT_FAULT_PACKAGE ).append( "\") ]" ).append( "\n" )
             .append( "                  [ --interfacesPackage <package> (default=\"" ).append( JavaDocumentCreator.DEFAULT_INTERFACE_PACKAGE ).append( "\") ]" ).append( "\n" )
             .append( "                  [ --outputDirectory <path> (default=\"" ).append( JavaDocumentCreator.DEFAULT_OUTPUT_DIRECTORY ).append( "\") ]" ).append( "\n" )
-            .append( "                  [ --generateService <true|false> (default=true) ]" ).append( "\n" )
             .append( "                  [ --serviceName <name> (default=\"" ).append( JavaDocumentCreator.DEFAULT_SERVICE_NAME ).append( "\") ]" ).append( "\n" )
+            .append( "                  [ --overrideService <true|false> (default=false) ]" ).append( "\n" )
             .append( "                  <file>" ).toString();
     }
 }

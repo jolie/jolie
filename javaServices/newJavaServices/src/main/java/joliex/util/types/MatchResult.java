@@ -12,6 +12,7 @@ import jolie.runtime.embedding.java.UntypedStructure;
 import jolie.runtime.embedding.java.TypeValidationException;
 import jolie.runtime.embedding.java.util.*;
 
+import java.util.Arrays;
 import java.util.Map;
 import java.util.SequencedCollection;
 import java.util.List;
@@ -30,7 +31,7 @@ import java.util.function.Function;
  * 
  * @see JolieValue
  * @see JolieNative
- * @see #construct()
+ * @see #builder()
  */
 public final class MatchResult extends TypedStructure {
     
@@ -50,16 +51,18 @@ public final class MatchResult extends TypedStructure {
     
     public JolieInt content() { return new JolieInt( contentValue ); }
     
-    public static Builder construct() { return new Builder(); }
-    public static ListBuilder constructList() { return new ListBuilder(); }
-    public static Builder constructFrom( JolieValue j ) { return new Builder( j ); }
-    public static ListBuilder constructListFrom( SequencedCollection<? extends JolieValue> c ) { return new ListBuilder( c ); }
+    public static Builder builder() { return new Builder(); }
+    public static Builder builder( JolieValue from ) { return new Builder( from ); }
+    public static StructureListBuilder<MatchResult,Builder> listBuilder() { return new StructureListBuilder<>( MatchResult::builder, MatchResult::builder ); }
+    public static StructureListBuilder<MatchResult,Builder> listBuilder( SequencedCollection<? extends JolieValue> from ) {
+        return new StructureListBuilder<>( from, MatchResult::from, MatchResult::builder, MatchResult::builder );
+    }
     
-    public static Builder construct( Integer contentValue ) { return construct().contentValue( contentValue ); }
+    public static Builder builder( Integer contentValue ) { return builder().contentValue( contentValue ); }
     
-    public static MatchResult createFrom( JolieValue j ) {
+    public static MatchResult from( JolieValue j ) {
         return new MatchResult(
-            JolieInt.createFrom( j ).value(),
+            JolieInt.from( j ).value(),
             ValueManager.fieldFrom( j.getChildOrDefault( "group", List.of() ), c -> c.content() instanceof JolieString content ? content.value() : null )
         );
     }
@@ -94,24 +97,10 @@ public final class MatchResult extends TypedStructure {
         
         public Builder contentValue( Integer contentValue ) { this.contentValue = contentValue; return this; }
         public Builder group( SequencedCollection<String> group ) { this.group = group; return this; }
-        public Builder group( String values ) { return group( List.of( values ) ); }
+        public Builder group( String... values ) { return group( List.of( values ) ); }
         
         public MatchResult build() {
             return new MatchResult( contentValue, group );
         }
-    }
-    
-    public static class ListBuilder extends AbstractListBuilder<ListBuilder, MatchResult> {
-        
-        private ListBuilder() {}
-        private ListBuilder( SequencedCollection<? extends JolieValue> c ) { super( c, MatchResult::createFrom ); }
-        
-        protected ListBuilder self() { return this; }
-        
-        public ListBuilder add( Function<Builder, MatchResult> b ) { return add( b.apply( construct() ) ); }
-        public ListBuilder set( int index, Function<Builder, MatchResult> b ) { return set( index, b.apply( construct() ) ); }
-        public ListBuilder reconstruct( int index, Function<Builder, MatchResult> b ) { return replace( index, j -> b.apply( constructFrom( j ) ) ); }
-        
-        public List<MatchResult> build() { return super.build(); }
     }
 }

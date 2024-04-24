@@ -23,54 +23,38 @@ public abstract class StructureClassBuilder extends TypeClassBuilder {
 	private void appendStaticMethods() {
 		if ( structure.hasBuilder() )
 			appendConstructMethods();
-		appendCreateFromMethod();
+		appendFromMethod();
 		appendFromValueMethod();
 		appendToValueMethod();
 	}
 
 	private void appendConstructMethods() {
 		builder.newline()
-			.newlineAppend( "public static Builder construct() { return new Builder(); }" )
-			.newlineAppend( "public static ListBuilder constructList() { return new ListBuilder(); }" )
-        	.newlineAppend( "public static Builder constructFrom( JolieValue j ) { return new Builder( j ); }" )
-        	.newlineAppend( "public static ListBuilder constructListFrom( SequencedCollection<? extends JolieValue> c ) { return new ListBuilder( c ); }" );
+			.newlineAppend( "public static Builder builder() { return new Builder(); }" )
+        	.newlineAppend( "public static Builder builder( JolieValue from ) { return new Builder( from ); }" )
+			.newlineAppend( "public static StructureListBuilder<" ).append( className ).append( ",Builder> listBuilder() { return new StructureListBuilder<>( " ).append( className ).append( "::builder, " ).append( className ).append( "::builder ); }" )
+        	.newlineAppend( "public static StructureListBuilder<" ).append( className ).append( ",Builder> listBuilder( SequencedCollection<? extends JolieValue> from )" ).body( () -> 
+				builder.newlineAppend( "return new StructureListBuilder<>( from, " ).append( className ).append( "::from, " ).append( className ).append( "::builder, " ).append( className ).append( "::builder );" ) );
 		
 		if ( structure.nativeType() == Native.ANY ) {
-			builder.newNewlineAppend( "public static Builder construct( JolieNative<?> content ) { return construct().content( content ); }" );
+			builder.newNewlineAppend( "public static Builder builder( JolieNative<?> content ) { return builder().content( content ); }" );
 			structure.nativeType().valueNames().forEach( n ->
-				builder.newlineAppend( "public static Builder construct( " ).append( n ).append( " contentValue ) { return construct().content( JolieNative.create( contentValue ) ); }" ) );
+				builder.newlineAppend( "public static Builder builder( " ).append( n ).append( " contentValue ) { return builder().content( JolieNative.of( contentValue ) ); }" ) );
 		} else if ( structure.nativeType() != Native.VOID )
-			builder.newNewlineAppend( "public static Builder construct( " ).append( structure.nativeType().valueName() ).append( " contentValue ) { return construct().contentValue( contentValue ); }" );
+			builder.newNewlineAppend( "public static Builder builder( " ).append( structure.nativeType().valueName() ).append( " contentValue ) { return builder().contentValue( contentValue ); }" );
 	}
 
 	private final void appendInnerClasses() {
-		if ( structure.hasBuilder() ) {
+		if ( structure.hasBuilder() )
 			appendBuilder();
-			appendListBuilder();
-		}
 		appendTypeClasses();
 	}	
-
-    private void appendListBuilder() {
-        builder.newNewlineAppend( "public static class ListBuilder extends AbstractListBuilder<ListBuilder, " ).append( className ).append( ">" ).body( () ->
-			builder.newline()
-				.newlineAppend( "private ListBuilder() {}" )
-				.newlineAppend( "private ListBuilder( SequencedCollection<? extends JolieValue> c ) { super( c, " ).append( className ).append( "::createFrom ); }" )
-				.newline()
-				.newlineAppend( "protected ListBuilder self() { return this; }" )
-            	.newline()
-            	.newlineAppend( "public ListBuilder add( Function<Builder, " ).append( className ).append( "> b ) { return add( b.apply( construct() ) ); }" )
-            	.newlineAppend( "public ListBuilder set( int index, Function<Builder, " ).append( className ).append( "> b ) { return set( index, b.apply( construct() ) ); }" )
-            	.newlineAppend( "public ListBuilder reconstruct( int index, Function<Builder, " ).append( className ).append( "> b ) { return replace( index, j -> b.apply( constructFrom( j ) ) ); }" )
-				.newline()
-				.newlineAppend( "public List<" ).append( className ).append( "> build() { return super.build(); }" ) );
-    }
 
 	protected abstract void appendAttributes();
 	protected abstract void appendConstructors();
 	protected abstract void appendMethods();
 
-	protected abstract void appendCreateFromMethod();
+	protected abstract void appendFromMethod();
 	protected abstract void appendFromValueMethod();
 	protected abstract void appendToValueMethod();
 

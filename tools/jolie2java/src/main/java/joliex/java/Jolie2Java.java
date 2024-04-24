@@ -35,8 +35,8 @@ public class Jolie2Java {
 				cmdParser.faultsPackage(),
 				cmdParser.interfacesPackage(),
 				cmdParser.outputDirectory(),
-				cmdParser.generateService(),
-				cmdParser.serviceName()
+				cmdParser.serviceName(),
+				cmdParser.overrideService()
 			);
 			
 			jdc.generateClasses( inspector );

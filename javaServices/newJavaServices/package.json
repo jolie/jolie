@@ -7,7 +7,8 @@
   "author": "jolie",
   "license": "ISC",
   "scripts": {
-    "test": "jot jot.json"
+    "test": "jot jot.json",
+    "generate": "jolie2java --packageName \"joliex.util\" --outputDirectory \"./src/main/java\" --serviceName \"NewStringUtils\" \"./packages/string-utils.ol\" && jolie2java --packageName \"joliex.util\" --outputDirectory \"./src/main/java\" --serviceName \"NewMathService\" \"./packages/math.ol\" && jolie2java --packageName \"joliex.util\" --outputDirectory \"./src/main/java\" --serviceName \"NewTimeService\" \"./packages/time.ol\""
   },
   "devDependencies": {
     "@jolie/jot": "*"

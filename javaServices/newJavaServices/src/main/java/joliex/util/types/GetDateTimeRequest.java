@@ -12,6 +12,7 @@ import jolie.runtime.embedding.java.UntypedStructure;
 import jolie.runtime.embedding.java.TypeValidationException;
 import jolie.runtime.embedding.java.util.*;
 
+import java.util.Arrays;
 import java.util.Map;
 import java.util.SequencedCollection;
 import java.util.List;
@@ -49,9 +50,9 @@ public final class GetDateTimeRequest extends TypedStructure {
     
     public JolieLong content() { return new JolieLong( contentValue ); }
     
-    public static GetDateTimeRequest createFrom( JolieValue j ) {
+    public static GetDateTimeRequest from( JolieValue j ) {
         return new GetDateTimeRequest(
-            JolieLong.createFrom( j ).value(),
+            JolieLong.from( j ).value(),
             ValueManager.fieldFrom( j.getFirstChild( "format" ), c -> c.content() instanceof JolieString content ? content.value() : null )
         );
     }

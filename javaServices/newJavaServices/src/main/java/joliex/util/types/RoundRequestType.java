@@ -12,6 +12,7 @@ import jolie.runtime.embedding.java.UntypedStructure;
 import jolie.runtime.embedding.java.TypeValidationException;
 import jolie.runtime.embedding.java.util.*;
 
+import java.util.Arrays;
 import java.util.Map;
 import java.util.SequencedCollection;
 import java.util.List;
@@ -49,9 +50,9 @@ public final class RoundRequestType extends TypedStructure {
     
     public JolieDouble content() { return new JolieDouble( contentValue ); }
     
-    public static RoundRequestType createFrom( JolieValue j ) {
+    public static RoundRequestType from( JolieValue j ) {
         return new RoundRequestType(
-            JolieDouble.createFrom( j ).value(),
+            JolieDouble.from( j ).value(),
             ValueManager.fieldFrom( j.getFirstChild( "decimals" ), c -> c.content() instanceof JolieInt content ? content.value() : null )
         );
     }

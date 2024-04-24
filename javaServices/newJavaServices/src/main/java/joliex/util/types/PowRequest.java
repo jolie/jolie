@@ -12,6 +12,7 @@ import jolie.runtime.embedding.java.UntypedStructure;
 import jolie.runtime.embedding.java.TypeValidationException;
 import jolie.runtime.embedding.java.util.*;
 
+import java.util.Arrays;
 import java.util.Map;
 import java.util.SequencedCollection;
 import java.util.List;
@@ -49,7 +50,7 @@ public final class PowRequest extends TypedStructure {
     
     public JolieVoid content() { return new JolieVoid(); }
     
-    public static PowRequest createFrom( JolieValue j ) {
+    public static PowRequest from( JolieValue j ) {
         return new PowRequest(
             ValueManager.fieldFrom( j.getFirstChild( "base" ), c -> c.content() instanceof JolieDouble content ? content.value() : null ),
             ValueManager.fieldFrom( j.getFirstChild( "exponent" ), c -> c.content() instanceof JolieDouble content ? content.value() : null )

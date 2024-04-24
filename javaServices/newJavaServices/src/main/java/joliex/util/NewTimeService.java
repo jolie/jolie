@@ -176,7 +176,7 @@ public final class NewTimeService extends JavaService implements TimeInterface {
 			final Date timestamp = new Date( tm );
 			GregorianCalendar cal = new GregorianCalendar();
 			cal.setTimeInMillis( timestamp.getTime() );
-			return GetDateTimeResponse.construct()
+			return GetDateTimeResponse.builder()
 				.contentValue( sdf.format( timestamp ) )
 				.day( cal.get( Calendar.DAY_OF_MONTH ) )
 				.month( cal.get( Calendar.MONTH ) + 1 )
@@ -197,7 +197,7 @@ public final class NewTimeService extends JavaService implements TimeInterface {
 	public DateValuesType getCurrentDateValues() {
 		GregorianCalendar cal = new GregorianCalendar();
 		cal.setTimeInMillis( new Date().getTime() );
-		return DateValuesType.construct()
+		return DateValuesType.builder()
 			.day( cal.get( Calendar.DAY_OF_MONTH ) )
 			.month( cal.get( Calendar.MONTH ) + 1 )
 			.year( cal.get( Calendar.YEAR ) )
@@ -217,13 +217,13 @@ public final class NewTimeService extends JavaService implements TimeInterface {
 			GregorianCalendar cal = new GregorianCalendar();
 			final Date dt = sdf.parse( request.content().value() );
 			cal.setTimeInMillis( dt.getTime() );
-			return DateValuesType.construct()
+			return DateValuesType.builder()
 				.day( cal.get( Calendar.DAY_OF_MONTH ) )
 				.month( cal.get( Calendar.MONTH ) + 1 )
 				.year( cal.get( Calendar.YEAR ) )
 				.build();
 		} catch( ParseException pe ) {
-			throw new InvalidDate( JolieValue.create( pe.getMessage() ) );
+			throw new InvalidDate( JolieValue.of( pe.getMessage() ) );
 		}
 	}
 
@@ -250,7 +250,7 @@ public final class NewTimeService extends JavaService implements TimeInterface {
 			GregorianCalendar cal = new GregorianCalendar();
 			final Date dt = sdf.parse( request.content().value() );
 			cal.setTimeInMillis( dt.getTime() );
-			return DateTimeType.construct()
+			return DateTimeType.builder()
 				.day( cal.get( Calendar.DAY_OF_MONTH ) )
 				.month( cal.get( Calendar.MONTH ) + 1 )
 				.year( cal.get( Calendar.YEAR ) )
@@ -259,7 +259,7 @@ public final class NewTimeService extends JavaService implements TimeInterface {
 				.second( cal.get( Calendar.SECOND ) )
 				.build();
 		} catch( ParseException pe ) {
-			throw new InvalidDate( JolieValue.create( pe.getMessage() ) );
+			throw new InvalidDate( JolieValue.of( pe.getMessage() ) );
 		}
 	}
 
@@ -274,7 +274,7 @@ public final class NewTimeService extends JavaService implements TimeInterface {
 			Date date = sdf.parse( request );
 			Calendar calendar = Calendar.getInstance();
 			calendar.setTimeInMillis( date.getTime() );
-			return TimeValuesType.construct()
+			return TimeValuesType.builder()
 				.hour( calendar.get( Calendar.HOUR_OF_DAY ) )
 				.minute( calendar.get( Calendar.MINUTE ) )
 				.second( calendar.get( Calendar.SECOND ) )
@@ -319,7 +319,7 @@ public final class NewTimeService extends JavaService implements TimeInterface {
 		TimeZone timeZone = TimeZone.getTimeZone( "GMT" );
 		Calendar calendar = Calendar.getInstance( timeZone );
 		calendar.setTimeInMillis( request );
-		return TimeValuesType.construct()
+		return TimeValuesType.builder()
 			.hour( calendar.get( Calendar.HOUR_OF_DAY ) )
 			.minute( calendar.get( Calendar.MINUTE ) )
 			.second( calendar.get( Calendar.SECOND ) )
@@ -334,7 +334,7 @@ public final class NewTimeService extends JavaService implements TimeInterface {
 			final Date dt = sdf.parse( request.content().value() );
 			return dt.getTime();
 		} catch( ParseException pe ) {
-			throw new InvalidTimestamp( JolieValue.create( pe.getMessage() ) );
+			throw new InvalidTimestamp( JolieValue.of( pe.getMessage() ) );
 		}
 	}
 
@@ -348,7 +348,7 @@ public final class NewTimeService extends JavaService implements TimeInterface {
 				.orElse( TimeUnit.MILLISECONDS );
 
 		} catch( Exception e ) {
-			throw new InvalidTimeUnit( JolieValue.create( e.getMessage() ) );
+			throw new InvalidTimeUnit( JolieValue.of( e.getMessage() ) );
 		}
 
 		ScheduledFuture< ? > scheduledFuture = executor.schedule( () -> sendMessage( CommMessage.createRequest(

@@ -12,6 +12,7 @@ import jolie.runtime.embedding.java.UntypedStructure;
 import jolie.runtime.embedding.java.TypeValidationException;
 import jolie.runtime.embedding.java.util.*;
 
+import java.util.Arrays;
 import java.util.Map;
 import java.util.SequencedCollection;
 import java.util.List;
@@ -44,7 +45,7 @@ public final class StringItemList extends TypedStructure {
     
     public JolieVoid content() { return new JolieVoid(); }
     
-    public static StringItemList createFrom( JolieValue j ) {
+    public static StringItemList from( JolieValue j ) {
         return new StringItemList(
             ValueManager.fieldFrom( j.getChildOrDefault( "item", List.of() ), c -> c.content() instanceof JolieString content ? content.value() : null )
         );

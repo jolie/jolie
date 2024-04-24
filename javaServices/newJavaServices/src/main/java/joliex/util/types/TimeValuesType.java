@@ -12,6 +12,7 @@ import jolie.runtime.embedding.java.UntypedStructure;
 import jolie.runtime.embedding.java.TypeValidationException;
 import jolie.runtime.embedding.java.util.*;
 
+import java.util.Arrays;
 import java.util.Map;
 import java.util.SequencedCollection;
 import java.util.List;
@@ -30,7 +31,7 @@ import java.util.function.Function;
  * 
  * @see JolieValue
  * @see JolieNative
- * @see #construct()
+ * @see #builder()
  */
 public final class TimeValuesType extends TypedStructure {
     
@@ -55,12 +56,14 @@ public final class TimeValuesType extends TypedStructure {
     
     public JolieVoid content() { return new JolieVoid(); }
     
-    public static Builder construct() { return new Builder(); }
-    public static ListBuilder constructList() { return new ListBuilder(); }
-    public static Builder constructFrom( JolieValue j ) { return new Builder( j ); }
-    public static ListBuilder constructListFrom( SequencedCollection<? extends JolieValue> c ) { return new ListBuilder( c ); }
+    public static Builder builder() { return new Builder(); }
+    public static Builder builder( JolieValue from ) { return new Builder( from ); }
+    public static StructureListBuilder<TimeValuesType,Builder> listBuilder() { return new StructureListBuilder<>( TimeValuesType::builder, TimeValuesType::builder ); }
+    public static StructureListBuilder<TimeValuesType,Builder> listBuilder( SequencedCollection<? extends JolieValue> from ) {
+        return new StructureListBuilder<>( from, TimeValuesType::from, TimeValuesType::builder, TimeValuesType::builder );
+    }
     
-    public static TimeValuesType createFrom( JolieValue j ) {
+    public static TimeValuesType from( JolieValue j ) {
         return new TimeValuesType(
             ValueManager.fieldFrom( j.getFirstChild( "hour" ), c -> c.content() instanceof JolieInt content ? content.value() : null ),
             ValueManager.fieldFrom( j.getFirstChild( "minute" ), c -> c.content() instanceof JolieInt content ? content.value() : null ),
@@ -107,19 +110,5 @@ public final class TimeValuesType extends TypedStructure {
         public TimeValuesType build() {
             return new TimeValuesType( hour, minute, second );
         }
-    }
-    
-    public static class ListBuilder extends AbstractListBuilder<ListBuilder, TimeValuesType> {
-        
-        private ListBuilder() {}
-        private ListBuilder( SequencedCollection<? extends JolieValue> c ) { super( c, TimeValuesType::createFrom ); }
-        
-        protected ListBuilder self() { return this; }
-        
-        public ListBuilder add( Function<Builder, TimeValuesType> b ) { return add( b.apply( construct() ) ); }
-        public ListBuilder set( int index, Function<Builder, TimeValuesType> b ) { return set( index, b.apply( construct() ) ); }
-        public ListBuilder reconstruct( int index, Function<Builder, TimeValuesType> b ) { return replace( index, j -> b.apply( constructFrom( j ) ) ); }
-        
-        public List<TimeValuesType> build() { return super.build(); }
     }
 }

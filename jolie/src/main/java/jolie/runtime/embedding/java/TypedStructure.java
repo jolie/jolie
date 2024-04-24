@@ -97,13 +97,13 @@ public abstract class TypedStructure implements JolieValue {
 		return switch ( obj ) {
 			case null -> null;
 			case JolieValue j -> j;
-			case JolieNative<?> n -> JolieValue.create( n );
-			case Boolean v -> JolieValue.create( v );
-			case Integer v -> JolieValue.create( v );
-			case Long v -> JolieValue.create( v );
-			case Double v -> JolieValue.create( v );
-			case String v -> JolieValue.create( v );
-			case ByteArray v -> JolieValue.create( v );
+			case JolieNative<?> n -> JolieValue.of( n );
+			case Boolean v -> JolieValue.of( v );
+			case Integer v -> JolieValue.of( v );
+			case Long v -> JolieValue.of( v );
+			case Double v -> JolieValue.of( v );
+			case String v -> JolieValue.of( v );
+			case ByteArray v -> JolieValue.of( v );
 			default -> null;
 		};
 	}

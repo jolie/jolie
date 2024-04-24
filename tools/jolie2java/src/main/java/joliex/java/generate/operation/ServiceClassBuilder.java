@@ -100,21 +100,20 @@ public class ServiceClassBuilder extends JavaClassBuilder {
     }
 
     private void appendDefaultResponse( JolieOperation operation ) {
-        if ( operation.responseType().isEmpty() )
-            builder.newlineAppend( "/* developer code */" );
-        else
-            switch( operation.response() ) {
+        switch( operation.response() ) {
 
-                case Native.ANY -> builder.newlineAppend( "return " ).append( "JolieNative.create( /* TODO: create with actual value */ );" );
+            case Native.VOID -> builder.newlineAppend( "/* developer code */" );
 
-                case Basic b -> builder.newlineAppend( "return new " ).append( b.name() ).append( "( null ); /* TODO: create with actual value */" );
-                
-                case Structure s when s.hasBuilder() -> builder
-                    .newlineAppend( "return " ).append( s.name() ).append( s.nativeType() == Native.VOID ? ".construct()" : ".construct( /* content */ )" )
-                    .indentedNewlineAppend( "/* children */" )
-                    .indentedNewlineAppend( ".build();" );
+            case Native.ANY -> builder.newlineAppend( "return JolieNative.of( /* TODO: create with actual value */ );" );
+            
+            case Basic b -> builder.newlineAppend( "return new " ).append( b.name() ).append( "( null ); /* TODO: create with actual value */" );
+            
+            case Structure s when s.hasBuilder() -> builder
+                .newlineAppend( "return " ).append( s.name() ).append( s.nativeType() == Native.VOID ? ".builder()" : ".builder( /* content */ )" )
+                .indentedNewlineAppend( "/* children */" )
+                .indentedNewlineAppend( ".build();" );
 
-                default -> builder.newlineAppend( "return null; /* TODO: return actual value */" );
-            }
+            default -> builder.newlineAppend( "return null; /* TODO: return actual value */" );
+        }
     }
 }

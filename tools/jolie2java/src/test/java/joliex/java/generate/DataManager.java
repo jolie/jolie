@@ -121,10 +121,10 @@ public class DataManager {
 		return returnValue;
 	}
 
-	private static JolieValue constructUndefinedValue() {
-		return JolieValue.construct()
-			.constructAs( "a", TESTBOOL )
-				.constructAs( "b", TESTSTRING )
+	private static JolieValue buildUndefinedValue() {
+		return JolieValue.builder()
+			.builder( "a", TESTBOOL )
+				.builder( "b", TESTSTRING )
 					.putAs( "c", TESTDOUBLE )
 					.done()
 				.done()
@@ -150,15 +150,15 @@ public class DataManager {
 		return testValue;
 	}
 
-	public static JolieValue constructFlatStructureType() {
-		return JolieValue.construct( TESTSTRING )
+	public static JolieValue buildFlatStructureType() {
+		return JolieValue.builder( TESTSTRING )
 			.putAs( "afield", TESTSTRING )
 			.putAs( "bfield", TESTINT )
 			.putAs( "cfield", TESTDOUBLE )
 			.putAs( "dfield", TESTRAW )
 			.putAs( "efield", TESTSTRING )
 			.putAs( "ffield", TESTBOOL )
-			.putAs( "gfield", constructUndefinedValue() )
+			.putAs( "gfield", buildUndefinedValue() )
 			.putAs( "hfield", TESTLONG )
 			.build();
 	}
@@ -189,14 +189,14 @@ public class DataManager {
 		return testValue;
 	}
 
-	public static JolieValue constructFlatStructureVectorsType() {
-		return JolieValue.construct()
-			.put( "afield", Collections.nCopies( 50, JolieValue.create( TESTSTRING ) ) )
-			.put( "cfield", Collections.nCopies( 10, JolieValue.create( TESTDOUBLE ) ) )
-			.put( "dfield", Collections.nCopies( 100, JolieValue.create( TESTRAW ) ) )
-			.put( "ffield", Collections.nCopies( 10, JolieValue.create( TESTBOOL ) ) )
-			.put( "gfield", Collections.nCopies( 4, constructUndefinedValue() ) )
-			.put( "hfield", Collections.nCopies( 2, JolieValue.create( TESTLONG ) ) )
+	public static JolieValue buildFlatStructureVectorsType() {
+		return JolieValue.builder()
+			.put( "afield", Collections.nCopies( 50, JolieValue.of( TESTSTRING ) ) )
+			.put( "cfield", Collections.nCopies( 10, JolieValue.of( TESTDOUBLE ) ) )
+			.put( "dfield", Collections.nCopies( 100, JolieValue.of( TESTRAW ) ) )
+			.put( "ffield", Collections.nCopies( 10, JolieValue.of( TESTBOOL ) ) )
+			.put( "gfield", Collections.nCopies( 4, buildUndefinedValue() ) )
+			.put( "hfield", Collections.nCopies( 2, JolieValue.of( TESTLONG ) ) )
 			.build();
 	}
 
@@ -222,25 +222,25 @@ public class DataManager {
 		return testValue;
 	}
 
-	public static JolieValue constructInlineStructureType() {
-		return JolieValue.construct()
-			.constructAs( "a" )
+	public static JolieValue buildInlineStructureType() {
+		return JolieValue.builder()
+			.builder( "a" )
 				.putAs( "b", TESTSTRING )
 				.putAs( "c", TESTINT )
 				.putAs( "f", TESTDOUBLE )
-				.constructAs( "e", TESTSTRING )
+				.builder( "e", TESTSTRING )
 					.putAs( "ab", TESTRAW )
 					.putAs( "bc", TESTSTRING )
-					.constructAs( "fh", TESTSTRING )
+					.builder( "fh", TESTSTRING )
 						.putAs( "abc", TESTSTRING )
 						.putAs( "def", TESTLONG )
 						.done()
 					.done()
 				.done()
-			.constructAs( "aa", TESTSTRING )
+			.builder( "aa", TESTSTRING )
 				.putAs( "z", TESTINT )
 				.putAs( "c", TESTDOUBLE )
-				.constructAs( "f" )
+				.builder( "f" )
 					.putAs( "rm", TESTSTRING )
 					.done()
 				.done()
@@ -291,23 +291,23 @@ public class DataManager {
 		return testValue;
 	}
 
-	public static JolieValue constructInlineStructureVectorsType() {
-		return JolieValue.construct()
-			.construct( "a" ).chain( alb -> {
+	public static JolieValue buildInlineStructureVectorsType() {
+		return JolieValue.builder()
+			.listBuilder( "a" ).chain( alb -> {
 				for ( int x = 0; x < 10; x++ )
-					alb.constructAndAdd()
-						.put( "b", Collections.nCopies( 10, JolieValue.create( TESTSTRING ) ) )
+					alb.builder()
+						.put( "b", Collections.nCopies( 10, JolieValue.of( TESTSTRING ) ) )
 						.putAs( "c", TESTINT )
-						.put( "f", Collections.nCopies( 9, JolieValue.create( TESTDOUBLE ) ) )
-						.construct( "e" ).chain( elb -> {
+						.put( "f", Collections.nCopies( 9, JolieValue.of( TESTDOUBLE ) ) )
+						.listBuilder( "e" ).chain( elb -> {
 							for( int y = 0; y < 8; y++ )
-								elb.constructAndAdd( TESTSTRING )
+								elb.builder( TESTSTRING )
 									.putAs( "ab", TESTRAW )
-									.put( "bc", Collections.nCopies( 4, JolieValue.create( TESTSTRING ) ) )
-									.construct( "fh" ).chain( fhlb -> {
+									.put( "bc", Collections.nCopies( 4, JolieValue.of( TESTSTRING ) ) )
+									.listBuilder( "fh" ).chain( fhlb -> {
 										for( int z = 0; z < 100; z++ )
-											fhlb.constructAndAdd( TESTSTRING )
-												.put( "abc", Collections.nCopies( 2, JolieValue.create( TESTSTRING ) ) )
+											fhlb.builder( TESTSTRING )
+												.put( "abc", Collections.nCopies( 2, JolieValue.of( TESTSTRING ) ) )
 												.putAs( "def", TESTLONG )
 												.done();
 										return fhlb.done();
@@ -318,12 +318,12 @@ public class DataManager {
 						.done();
 				return alb.done();
 			} )
-			.constructAs( "aa", TESTSTRING )
-				.put( "z", Collections.nCopies( 5, JolieValue.create( TESTINT ) ) )
-				.put( "c", Collections.nCopies( 3, JolieValue.create( TESTDOUBLE ) ) )
-				.construct( "f" ).chain( flb -> {
+			.builder( "aa", TESTSTRING )
+				.put( "z", Collections.nCopies( 5, JolieValue.of( TESTINT ) ) )
+				.put( "c", Collections.nCopies( 3, JolieValue.of( TESTDOUBLE ) ) )
+				.listBuilder( "f" ).chain( flb -> {
 					for ( int i = 0; i < 100; i++ )
-						flb.constructAndAdd().putAs( "rm", TESTSTRING ).done();
+						flb.builder().putAs( "rm", TESTSTRING ).done();
 					return flb.done();
 				} )
 				.done()
