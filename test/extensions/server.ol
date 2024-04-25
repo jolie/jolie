@@ -30,8 +30,8 @@ Protocol: sodep
 Interfaces: ServerInterface
 }
 
-outputPort SODEPSServer {
-Location: Location_SODEPSServer
+outputPort SODEPsServer {
+Location: Location_SODEPsServer
 Protocol: sodeps {
 	.ssl.trustStore = "extensions/private/truststore.jks";
 	.ssl.trustStorePassword = KeystorePassword
@@ -48,11 +48,33 @@ Protocol: soap {
 Interfaces: ServerInterface
 }
 
+outputPort SOAPsServer {
+Location: Location_SOAPsServer
+Protocol: soaps {
+	.compression -> compression;
+	.requestCompression -> requestCompression;
+	.ssl.trustStore = "extensions/private/truststore.jks";
+	.ssl.trustStorePassword = KeystorePassword
+}
+Interfaces: ServerInterface
+}
+
 outputPort JSONRPCServer {
 Location: Location_JSONRPCServer
 Protocol: jsonrpc {
 	.compression -> compression;
 	.requestCompression -> requestCompression
+}
+Interfaces: ServerInterface
+}
+
+outputPort JSONRPCsServer {
+Location: Location_JSONRPCsServer
+Protocol: jsonrpcs {
+	.compression -> compression;
+	.requestCompression -> requestCompression;
+	.ssl.trustStore = "extensions/private/truststore.jks";
+	.ssl.trustStorePassword = KeystorePassword
 }
 Interfaces: ServerInterface
 }
@@ -69,8 +91,8 @@ Protocol: http {
 Interfaces: ServerInterface
 }
 
-outputPort HTTPSServer {
-Location: Location_HTTPSServer
+outputPort HTTPsServer {
+Location: Location_HTTPsServer
 Protocol: https {
 	.method -> method;
 	.method.queryFormat = "json";
@@ -86,11 +108,9 @@ Interfaces: ServerInterface
 embedded {
 Jolie:
 	"private/sodep_server.ol",
-	"private/sodeps_server.ol",
 	"private/soap_server.ol",
 	"private/jsonrpc_server.ol",
 	"private/http_server2.ol",
-	"private/https_server.ol"
 }
 
 define checkResponse
@@ -136,10 +156,10 @@ define test
 	consume@SODEPServer( reqVal )( );
 	consume2@SODEPServer( reqVal );
 	checkResponse;
-	echoPerson@SODEPSServer( person )( response );
-	identity@SODEPSServer( reqVal )( response2 );
-	consume@SODEPSServer( reqVal )( );
-	consume2@SODEPSServer( reqVal );
+	echoPerson@SODEPsServer( person )( response );
+	identity@SODEPsServer( reqVal )( response2 );
+	consume@SODEPsServer( reqVal )( );
+	consume2@SODEPsServer( reqVal );
 	checkResponse;
 
 	echoPerson@SOAPServer( person )( response );
@@ -147,11 +167,21 @@ define test
 	consume@SOAPServer( reqVal )( );
 	consume2@SOAPServer( reqVal );
 	checkResponse;
+	echoPerson@SOAPsServer( person )( response );
+	identity@SOAPsServer( reqVal )( response2 );
+	consume@SOAPsServer( reqVal )( );
+	consume2@SOAPsServer( reqVal );
+	checkResponse;
 
 	echoPerson@JSONRPCServer( person )( response );
 	identity@JSONRPCServer( reqVal )( response2 );
 	consume@JSONRPCServer( reqVal )( );
 	consume2@JSONRPCServer( reqVal );
+	checkResponse;
+	echoPerson@JSONRPCsServer( person )( response );
+	identity@JSONRPCsServer( reqVal )( response2 );
+	consume@JSONRPCsServer( reqVal )( );
+	consume2@JSONRPCsServer( reqVal );
 	checkResponse;
 
 	method = "post";
@@ -161,10 +191,10 @@ define test
 	consume@HTTPServer( reqVal )( );
 	consume2@HTTPServer( reqVal );
 	checkResponse;
-	echoPerson@HTTPSServer( person )( response );
-	identity@HTTPSServer( reqVal )( response2 );
-	consume@HTTPSServer( reqVal )( );
-	consume2@HTTPSServer( reqVal );
+	echoPerson@HTTPsServer( person )( response );
+	identity@HTTPsServer( reqVal )( response2 );
+	consume@HTTPsServer( reqVal )( );
+	consume2@HTTPsServer( reqVal );
 	checkResponse;
 	format = "json";
 	echoPerson@HTTPServer( person )( response );
@@ -172,8 +202,8 @@ define test
 	consume@HTTPServer( reqVal )( );
 	consume2@HTTPServer( reqVal );
 	checkResponse;
-	echoPerson@HTTPSServer( person )( response );
-	identity@HTTPSServer( reqVal )( response2 );
+	echoPerson@HTTPsServer( person )( response );
+	identity@HTTPsServer( reqVal )( response2 );
 	checkResponse;
 	method = "get"; // JSON-ified
 	echoPerson@HTTPServer( person )( response );
@@ -181,10 +211,10 @@ define test
 	consume@HTTPServer( reqVal )( );
 	consume2@HTTPServer( reqVal );
 	checkResponse;
-	echoPerson@HTTPSServer( person )( response );
-	identity@HTTPSServer( reqVal )( response2 );
-	consume@HTTPSServer( reqVal )( );
-	consume2@HTTPSServer( reqVal );
+	echoPerson@HTTPsServer( person )( response );
+	identity@HTTPsServer( reqVal )( response2 );
+	consume@HTTPsServer( reqVal )( );
+	consume2@HTTPsServer( reqVal );
 	checkResponse
 }
 
@@ -192,15 +222,11 @@ define shutdown
 {
 	shutdown@SODEPServer()
 	|
-	shutdown@SODEPSServer()
-	|
 	shutdown@SOAPServer()
 	|
 	shutdown@JSONRPCServer()
 	|
 	shutdown@HTTPServer()
-	|
-	shutdown@HTTPSServer()
 }
 
 define doTest

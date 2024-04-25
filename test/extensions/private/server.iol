@@ -21,11 +21,13 @@
 
 constants {
 	Location_SODEPServer = "socket://localhost:10101",
-	Location_SODEPSServer = "socket://localhost:10102",
+	Location_SODEPsServer = "socket://localhost:10102",
 	Location_SOAPServer = "socket://localhost:10103",
-	Location_JSONRPCServer = "socket://localhost:10104",
-	Location_HTTPServer = "socket://localhost:10105",
-	Location_HTTPSServer = "socket://localhost:10106",
+	Location_SOAPsServer = "socket://localhost:10104",
+	Location_JSONRPCServer = "socket://localhost:10105",
+	Location_JSONRPCsServer = "socket://localhost:10106",
+	Location_HTTPServer = "socket://localhost:10107",
+	Location_HTTPsServer = "socket://localhost:10108",
 
 	KeystorePassword = "superjolie"
 }

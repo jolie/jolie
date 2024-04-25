@@ -30,6 +30,15 @@ Protocol: jsonrpc
 Interfaces: ServerInterface
 }
 
+inputPort ServerInputS {
+Location: Location_JSONRPCsServer
+Protocol: jsonrpcs {
+	.ssl.keyStore = "extensions/private/keystore.jks";
+	.ssl.keyStorePassword = KeystorePassword
+}
+Interfaces: ServerInterface
+}
+
 main
 {
 	provide

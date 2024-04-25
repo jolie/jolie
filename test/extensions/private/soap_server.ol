@@ -30,6 +30,15 @@ Protocol: soap
 Interfaces: ServerInterface
 }
 
+inputPort ServerInputS {
+Location: Location_SOAPsServer
+Protocol: soaps {
+	.ssl.keyStore = "extensions/private/keystore.jks";
+	.ssl.keyStorePassword = KeystorePassword
+}
+Interfaces: ServerInterface
+}
+
 main
 {
 	provide

@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2015 by Matthias Dieter Wallnöfer                       *
+ *   Copyright (C) 2018 by Claudio Guidi <cguidi@italianasoftware.com>     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -18,32 +18,42 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
+package jolie.net;
 
-constants {
-	Location_XMLRPCServer = "socket://localhost:10101",
-	Location_XMLRPCsServer = "socket://localhost:10102",
+import java.io.IOException;
+import java.net.URI;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.TransformerConfigurationException;
+import jolie.net.ext.CommProtocolFactory;
+import jolie.net.protocols.CommProtocol;
+import jolie.net.ssl.SSLProtocol;
+import jolie.runtime.AndJarDeps;
+import jolie.runtime.VariablePath;
 
-	KeystorePassword = "superjolie"
-}
+@AndJarDeps( { "jolie-ssl.jar" } )
+public class XmlRpcsProtocolFactory extends CommProtocolFactory {
+	public XmlRpcsProtocolFactory( CommCore commCore )
+		throws ParserConfigurationException, TransformerConfigurationException {
+		super( commCore );
+	}
 
-type SumRequest:void {
-	.param*:undefined
-}
-type SumResponse:void {
-	.param:int
-}
+	@Override
+	public CommProtocol createOutputProtocol( VariablePath configurationPath, URI location )
+		throws IOException {
+		return new SSLProtocol(
+			configurationPath,
+			location,
+			commCore().createOutputCommProtocol( "xmlrpc", configurationPath, location ),
+			true );
+	}
 
-type IdentityRequest:void {
-	.param:any
-}
-type IdentityResponse:void {
-	.param:any
-}
-
-interface ServerInterface {
-OneWay:
-	shutdown(void)
-RequestResponse:
-	sum(SumRequest)(SumResponse),
-	identity(IdentityRequest)(IdentityResponse)
+	@Override
+	public CommProtocol createInputProtocol( VariablePath configurationPath, URI location )
+		throws IOException {
+		return new SSLProtocol(
+			configurationPath,
+			location,
+			commCore().createInputCommProtocol( "xmlrpc", configurationPath, location ),
+			false );
+	}
 }

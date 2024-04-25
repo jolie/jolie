@@ -43,6 +43,7 @@
 		<module>extensions/javascript</module>
 		<module>extensions/jolie-embedding-legacy</module>
 		<module>extensions/jsonrpc</module>
+		<module>extensions/jsonrpcs</module>
 		<module>extensions/local</module>
 		<module>extensions/localsocket</module>
 		<module>extensions/rmi</module>
@@ -50,6 +51,7 @@
 		<module>extensions/soaps</module>
 		<module>extensions/sodeps</module>
 		<module>extensions/xmlrpc</module>
+		<module>extensions/xmlrpcs</module>
 		<module>tools/jolie2java</module>
 		<module>tools/jolie2plasma</module>
 		<module>tools/jolie2surface</module>
