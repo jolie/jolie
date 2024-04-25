@@ -30,6 +30,15 @@ Protocol: sodep
 Interfaces: ServerInterface
 }
 
+inputPort ServerInputS {
+Location: Location_SODEPsServer
+Protocol: sodeps {
+	.ssl.keyStore = "extensions/private/keystore.jks";
+	.ssl.keyStorePassword = KeystorePassword
+}
+Interfaces: ServerInterface
+}
+
 main
 {
 	provide

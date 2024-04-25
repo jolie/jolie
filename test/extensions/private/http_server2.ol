@@ -30,6 +30,15 @@ Protocol: http
 Interfaces: ServerInterface
 }
 
+inputPort ServerInputS {
+Location: Location_HTTPsServer
+Protocol: https {
+	.ssl.keyStore = "extensions/private/keystore.jks";
+	.ssl.keyStorePassword = KeystorePassword
+}
+Interfaces: ServerInterface
+}
+
 main
 {
 	provide

@@ -29,6 +29,15 @@ Protocol: xmlrpc
 Interfaces: ServerInterface
 }
 
+inputPort ServerInputS {
+Location: Location_XMLRPCsServer
+Protocol: xmlrpcs {
+	.ssl.keyStore = "extensions/private/keystore.jks";
+	.ssl.keyStorePassword = KeystorePassword
+}
+Interfaces: ServerInterface
+}
+
 main
 {
 	provide

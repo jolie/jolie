@@ -33,6 +33,17 @@ Protocol: xmlrpc {
 Interfaces: ServerInterface
 }
 
+outputPort ServerS {
+Location: Location_XMLRPCsServer
+Protocol: xmlrpcs {
+	.compression -> compression;
+	.requestCompression -> requestCompression;
+	.ssl.trustStore = "extensions/private/truststore.jks";
+	.ssl.trustStorePassword = KeystorePassword
+}
+Interfaces: ServerInterface
+}
+
 embedded {
 Jolie:
 	"private/xmlrpc_server.ol"
@@ -50,9 +61,17 @@ define test
 	if ( response.param != 6 ) {
 		throw ( TestFailed, "Wrong result" )
 	};
+	sum@ServerS( request )( response );
+	if ( response.param != 6 ) {
+		throw ( TestFailed, "Wrong result" )
+	};
 
 	req2.param = true; // bool
 	identity@Server( req2 )( response );
+	if ( req2.param != response.param ) {
+		throw ( TestFailed, "Wrong result" )
+	};
+	identity@ServerS( req2 )( response );
 	if ( req2.param != response.param ) {
 		throw ( TestFailed, "Wrong result" )
 	};
@@ -62,9 +81,17 @@ define test
 	if ( req2.param != response.param ) {
 		throw ( TestFailed, "Wrong result" )
 	};
+	identity@ServerS( req2 )( response );
+	if ( req2.param != response.param ) {
+		throw ( TestFailed, "Wrong result" )
+	};
 
 	req2.param = 10.0; // double
 	identity@Server( req2 )( response );
+	if ( req2.param != response.param ) {
+		throw ( TestFailed, "Wrong result" )
+	};
+	identity@ServerS( req2 )( response );
 	if ( req2.param != response.param ) {
 		throw ( TestFailed, "Wrong result" )
 	};
@@ -74,10 +101,18 @@ define test
 	if ( req2.param != response.param ) {
 		throw ( TestFailed, "Wrong result" )
 	};
+	identity@ServerS( req2 )( response );
+	if ( req2.param != response.param ) {
+		throw ( TestFailed, "Wrong result" )
+	};
 
 	secReq.size = 50; // raw
 	secureRandom@SecurityUtils( secReq )( req2.param );
 	identity@Server( req2 )( response );
+	if ( req2.param != response.param ) {
+		throw ( TestFailed, "Wrong result" )
+	}
+	identity@ServerS( req2 )( response );
 	if ( req2.param != response.param ) {
 		throw ( TestFailed, "Wrong result" )
 	}
