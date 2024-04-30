@@ -40,16 +40,16 @@ public interface JolieValue extends ValueConverter {
     public static InlineBuilder builder( Double contentValue ) { return builder( JolieNative.of( contentValue ) ); }
     public static InlineBuilder builder( String contentValue ) { return builder( JolieNative.of( contentValue ) ); }
     public static InlineBuilder builder( ByteArray contentValue ) { return builder( JolieNative.of( contentValue ) ); }
-    public static InlineBuilder builder( JolieValue j ) { return new InlineBuilder( Objects.requireNonNull( j ) ); }
+    public static InlineBuilder builder( JolieValue from ) { return new InlineBuilder( Objects.requireNonNull( from ) ); }
 
     static <R> NestedBuilder<R> nestedBuilder( Function<JolieValue,R> doneFunction ) { return new NestedBuilder<>( doneFunction ); }
-    static <R> NestedBuilder<R> nestedBuilder( JolieValue j, Function<JolieValue,R> doneFunction ) { return new NestedBuilder<>( j, doneFunction ); }
+    static <R> NestedBuilder<R> nestedBuilder( JolieValue from, Function<JolieValue,R> doneFunction ) { return new NestedBuilder<>( from, doneFunction ); }
 
     public static InlineListBuilder listBuilder() { return new InlineListBuilder(); }
-    public static InlineListBuilder listBuilder( SequencedCollection<? extends JolieValue> c ) { return new InlineListBuilder( c ); }
+    public static InlineListBuilder listBuilder( SequencedCollection<? extends JolieValue> from ) { return new InlineListBuilder( from ); }
 
     static <R> NestedListBuilder<R> nestedListBuilder( Function<List<JolieValue>,R> doneFunction ) { return new NestedListBuilder<>( doneFunction ); }
-    static <R> NestedListBuilder<R> nestedListBuilder( SequencedCollection<? extends JolieValue> c, Function<List<JolieValue>,R> doneFunction ) { return new NestedListBuilder<>( c, doneFunction ); }
+    static <R> NestedListBuilder<R> nestedListBuilder( SequencedCollection<? extends JolieValue> from, Function<List<JolieValue>,R> doneFunction ) { return new NestedListBuilder<>( from, doneFunction ); }
     
     public static JolieValue of( JolieNative<?> content ) { return new UntypedStructure<>( content, Map.of() ); }
     public static JolieValue of( Boolean contentValue ) { return of( JolieNative.of( contentValue ) ); }

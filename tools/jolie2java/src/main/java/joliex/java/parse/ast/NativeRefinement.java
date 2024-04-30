@@ -15,18 +15,17 @@ import jolie.lang.parse.ast.types.refinements.BasicTypeRefinementStringRegex;
 
 public sealed interface NativeRefinement {
 
-    String createString();
+    Collection<? extends Constraint> constraints();
     String definitionString();
 
-    public static record NumberRefinement( Collection<Constraint.Range> constraints ) implements NativeRefinement {
+    default String createString() {
+        return constraints().parallelStream()
+            .map( Constraint::createString )
+            .reduce( (s1, s2) -> s1 + ".or( " + s2 + " )" )
+            .orElseThrow();
+    }
 
-        public String createString() {
-            return constraints.parallelStream()
-                .map( Constraint::createString )
-                .reduce( (s1, s2) -> s1 + ", " + s2 )
-                .map( s -> "List.of( " + s + " )" )
-                .orElseThrow();
-        }
+    public static record NumberRefinement( Collection<Constraint.Range> constraints ) implements NativeRefinement {
 
         public String definitionString() {
             return constraints.parallelStream()
@@ -42,14 +41,6 @@ public sealed interface NativeRefinement {
     }
 
     public static record StringRefinement( Collection<Constraint.StringRestriction> constraints ) implements NativeRefinement {
-
-        public String createString() {
-            return constraints.parallelStream()
-                .map( Constraint::createString )
-                .reduce( (s1, s2) -> s1 + ", " + s2 )
-                .map( s -> "List.of( " + s + " )" )
-                .orElseThrow();
-        }
 
         public String definitionString() {
             return constraints.parallelStream()
@@ -112,7 +103,7 @@ public sealed interface NativeRefinement {
             private String minString() { return min + (min instanceof Long ? "L" : ""); }
             private String maxString() { return max + (max instanceof Long ? "L" : ""); }
     
-            public String createString() { return "Refinement.createRange( " + minString() + ", " + maxString() + " )"; }
+            public String createString() { return "Refinement.range( " + minString() + ", " + maxString() + " )"; }
             public String definitionString() { return "[" + minString() + ", " + maxString() + "]"; }
     
             public boolean equals( Object obj ) {
@@ -125,7 +116,7 @@ public sealed interface NativeRefinement {
             public static record Length( int min, int max ) implements StringRestriction {
 
                 public String createString() {
-                    return "Refinement.createLength( " + min + ", " + max + " )";
+                    return "Refinement.length( " + min + ", " + max + " )";
                 }
         
                 public String definitionString() {
@@ -140,7 +131,7 @@ public sealed interface NativeRefinement {
             public static record Enumeration( Collection<String> values ) implements StringRestriction {
         
                 public String createString() {
-                    return "Refinement.createEnum( " + values.stream().map( s -> "\"" + s + "\"" ).reduce( (s1, s2) -> s1 + ", " + s2 ).orElseThrow() + " )";
+                    return "Refinement.enumeration( " + values.stream().map( s -> "\"" + s + "\"" ).reduce( (s1, s2) -> s1 + ", " + s2 ).orElseThrow() + " )";
                 }
         
                 public String definitionString() {
@@ -155,7 +146,7 @@ public sealed interface NativeRefinement {
             public static record Regex( String regex ) implements StringRestriction {
         
                 public String createString() {
-                    return "Refinement.createRegex( \"" + regex + "\" )";
+                    return "Refinement.regex( \"" + regex + "\" )";
                 }
         
                 public String definitionString() {

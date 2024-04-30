@@ -49,16 +49,16 @@ public class JavaDocumentCreatorTest {
 	public static void setUpClass() throws IOException, ParserException, CodeCheckException, CommandLineException, ModuleException {
 		ClassManager.generateClasses();
 
-		final Path packagePath = Path.of( ClassManager.OUTPUTDIRECTORY.toString(), ClassManager.PACKAGENAME.split( "\\." ) );
+		final Path servicePackage = Path.of( ClassManager.OUTPUTDIRECTORY.toString(), ClassManager.SERVICEPACKAGE.split( "\\." ) );
 		assertEquals( 
 			"The number of generated package files/directories is wrong", 
-			4L, Files.list( packagePath ).count() );
+			4L, Files.list( servicePackage ).count() );
 		assertEquals( 
 			"The number of generated type files is wrong", 
-			26L, Files.list( Path.of( packagePath.toString(), ClassManager.TYPEPACKAGE.split( "\\." ) ) ).count() );
+			27L, Files.list( Path.of( ClassManager.OUTPUTDIRECTORY.toString(), ClassManager.TYPEPACKAGE.split( "\\." ) ) ).count() );
 		assertEquals( 
 			"The number of generated fault files is wrong", 
-			11L, Files.list( Path.of( packagePath.toString(), ClassManager.FAULTPACKAGE.split( "\\." ) ) ).count() );
+			11L, Files.list( Path.of( ClassManager.OUTPUTDIRECTORY.toString(), ClassManager.FAULTPACKAGE.split( "\\." ) ) ).count() );
 
 		ClassManager.compileClasses();
 	}
@@ -78,7 +78,7 @@ public class JavaDocumentCreatorTest {
 
 	@Test
 	public void testInterface() throws ClassNotFoundException {
-		final Class< ? > cls = ClassManager.getClass( ".TestInterface" );
+		final Class< ? > cls = ClassManager.getInterfaceClass( "TestInterface" );
 		assertEquals(
 			"Number of generated methods does not correspond", 34L,
 			Arrays.stream( cls.getMethods() ).filter( m -> m.getName().startsWith( "test" ) ).count() );

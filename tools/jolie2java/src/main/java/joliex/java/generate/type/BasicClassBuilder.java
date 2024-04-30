@@ -47,19 +47,14 @@ public class BasicClassBuilder extends TypeClassBuilder {
     }
 
     protected void appendBody() {
-        appendAttributes();
         appendConstructors();
         appendMethods();
         appendStaticMethods();
     }
 
-    private void appendAttributes() {
-        builder.newNewlineAppend( "private static final List<Refinement<" ).append( basic.nativeType().valueName() ).append( ">> refinements = " ).append( basic.refinement().createString() ).append( ";" );
-    }
-
     private void appendConstructors() {
         builder.newNewlineAppend( "public " ).append( className ).append( "( " ).append( basic.nativeType().valueName() ).append( " contentValue )" ).body( () -> 
-            builder.newlineAppend( "this.contentValue = Refinement.validated( Objects.requireNonNull( contentValue ), refinements );" ) 
+            builder.newlineAppend( "this.contentValue = ValueManager.validated( \"contentValue\", contentValue, " ).append( basic.refinement().createString() ).append( " );" )
         );
     }
 

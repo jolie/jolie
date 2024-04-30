@@ -25,7 +25,6 @@ public final class OptionClassBuilder extends TypeClassBuilder {
         builder.body( this::appendBody );
     }
 
-    
     protected void appendDocumentation() {}
     protected void appendDescriptionDocumentation() {}
     protected void appendDefinitionDocumentation() {}
@@ -38,7 +37,7 @@ public final class OptionClassBuilder extends TypeClassBuilder {
 
     protected void appendBody() {
         appendConstructors();
-        switch ( type ) {
+        switch ( storedType( type ) ) {
             case Native n -> appendMethods( n );
             case Definition d -> appendMethods( d );
         }
@@ -46,7 +45,7 @@ public final class OptionClassBuilder extends TypeClassBuilder {
 
     private void appendConstructors() {
         if ( type != Native.VOID )
-            builder.newNewlineAppend( "public " ).append( className ).append( "( " ).append( typeName( type ) ).append( " option ) { this.option = Objects.requireNonNull( option ); }" );
+            builder.newNewlineAppend( "public " ).append( className ).append( "( " ).append( typeName( type ) ).append( " option ) { this.option = ValueManager.validated( \"option\", option" ).append( type instanceof Basic.Inline b ? ", " + b.refinement().createString() : "" ).append( " ); }" );
     }
 
     private void appendMethods( Native n ) {

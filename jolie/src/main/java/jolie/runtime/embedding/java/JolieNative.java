@@ -237,6 +237,9 @@ public sealed interface JolieNative<T> extends ValueConverter {
         public static Value toValue( JolieRaw t ) { return t.jolieRepr(); }
     }
 
+    public static ListBuilder listBuilder() { return new ListBuilder(); }
+    public static ListBuilder listBuilder( SequencedCollection<? extends JolieValue> c ) { return new ListBuilder( c ); }
+
     public static JolieVoid of() { return new JolieVoid(); }
     public static JolieBool of( Boolean value ) { return Optional.ofNullable( value ).map( JolieBool::new ).orElse( null ); }
     public static JolieInt of( Integer value ) { return Optional.ofNullable( value ).map( JolieInt::new ).orElse( null ); }
@@ -246,9 +249,6 @@ public sealed interface JolieNative<T> extends ValueConverter {
     public static JolieRaw of( ByteArray value ) { return Optional.ofNullable( value ).map( JolieRaw::new ).orElse( null ); }
 
     public static JolieNative<?> from( JolieValue j ) { return j.content(); }
-
-    public static ListBuilder listBuilder() { return new ListBuilder(); }
-    public static ListBuilder listBuilder( SequencedCollection<? extends JolieValue> c ) { return new ListBuilder( c ); }
     
     public static JolieNative<?> contentFromValue( Value v ) {
         if ( v.valueObject() instanceof Boolean n )

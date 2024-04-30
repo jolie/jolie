@@ -90,8 +90,11 @@ public class ChoiceClassBuilder extends TypeClassBuilder {
             else {
                 builder.newNewlineAppend( "public static " ).append( className ).append( " of" ).append( i ).append( "( " ).append( typeName( t ) ).append( " option ) { return new C" ).append( i ).append( "( option ); }" );
 
-                if ( t instanceof Structure s && s.hasBuilder() )
-                    builder.newlineAppend( "public static " ).append( className ).append( " of" ).append( i ).append( "( Function<" ).append( qualifiedName( s ) ).append( ".Builder, " ).append( qualifiedName( s ) ).append( "> f ) { return of" ).append( i ).append( "( f.apply( " ).append( qualifiedName( s ) ).append( ".builder() ) ); }" );
+                switch ( storedType( t ) ) {
+                    case Basic b -> builder.newlineAppend( "public static " ).append( className ).append( " of" ).append( i ).append( "( " ).append( b.nativeType().valueName() ).append( " value ) { return of" ).append( i ).append( "( new " ).append( b.name() ).append( "( value ) ); }" );
+                    case Structure s when s.hasBuilder() -> builder.newlineAppend( "public static " ).append( className ).append( " of" ).append( i ).append( "( Function<" ).append( qualifiedName( s ) ).append( ".Builder, " ).append( qualifiedName( s ) ).append( "> f ) { return of" ).append( i ).append( "( f.apply( " ).append( qualifiedName( s ) ).append( ".builder() ) ); }" );
+                    default -> {}
+                }
             }
         } );
         // from() method

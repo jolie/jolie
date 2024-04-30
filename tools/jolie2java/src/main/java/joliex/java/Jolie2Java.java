@@ -23,18 +23,19 @@ public class Jolie2Java {
 		try {
 			final Jolie2JavaCommandLineParser cmdParser = Jolie2JavaCommandLineParser.create( args, Jolie2Java.class.getClassLoader() );
 
-			if ( cmdParser.packageName() == null ) {
-				System.out.print( cmdParser.getHelpString() );
+			if ( cmdParser.outputDirectory() == null ) {
+				System.out.println( cmdParser.getHelpString() );
 				return;
 			}
 
 			final ProgramInspector inspector = getInspector( cmdParser );
 			final JavaDocumentCreator jdc = new JavaDocumentCreator(
-				cmdParser.packageName(),
-				cmdParser.typesPackage(),
-				cmdParser.faultsPackage(),
-				cmdParser.interfacesPackage(),
 				cmdParser.outputDirectory(),
+				cmdParser.typePackage(),
+				cmdParser.faultPackage(),
+				cmdParser.interfacePackage(),
+				cmdParser.serviceDirectory(),
+				cmdParser.servicePackage(),
 				cmdParser.serviceName(),
 				cmdParser.overrideService()
 			);

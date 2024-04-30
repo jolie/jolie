@@ -2,9 +2,8 @@ package joliex.util;
 
 import jolie.runtime.JavaService;
 import java.math.BigDecimal;
-
-import joliex.util.types.*;
-import joliex.util.interfaces.*;
+import interfaces.*;
+import types.*;
 
 /**
  * JavaService offering various math related functionalities.

@@ -9,44 +9,49 @@ import joliex.java.generate.JavaDocumentCreator;
 
 public class Jolie2JavaCommandLineParser extends CommandLineParser {
     
-    private final String packageName;
-    private final String typesPackage;
-    private final String faultsPackage;
-    private final String interfacesPackage;
     private final String outputDirectory;
-    private final boolean overrideService;
+    private final String typePackage;
+    private final String faultPackage;
+    private final String interfacePackage;
+    private final String serviceDirectory;
+    private final String servicePackage;
     private final String serviceName;
+    private final boolean overrideService;
 
-    public String packageName() { return packageName; }
-    public String typesPackage() { return typesPackage; }
-    public String faultsPackage() { return faultsPackage; }
-    public String interfacesPackage() { return interfacesPackage; }
     public String outputDirectory() { return outputDirectory; }
-    public boolean overrideService() { return overrideService; }
+    public String typePackage() { return typePackage; }
+    public String faultPackage() { return faultPackage; }
+    public String interfacePackage() { return interfacePackage; }
+    public String serviceDirectory() { return serviceDirectory; }
+    public String servicePackage() { return servicePackage; }
     public String serviceName() { return serviceName; }
+    public boolean overrideService() { return overrideService; }
 
     private static class JolieDummyArgumentHandler implements CommandLineParser.ArgumentHandler {
 
-        private String packageName = null;
-        private String typesPackage = null;
-        private String faultsPackage = null;
-        private String interfacesPackage = null;
         private String outputDirectory = null;
+        private String typePackage = null;
+        private String faultPackage = null;
+        private String interfacePackage = null;
+        private String serviceDirectory = null;
+        private String servicePackage = null;
         private String serviceName = null;
         private boolean overrideService = false;
 
         public int onUnrecognizedArgument( List<String> argumentsList, int index ) throws CommandLineException {
             
             switch( argumentsList.get( index ) ) {
-                case "--packageName" -> { index++; packageName = argumentsList.get( index ); }
-                case "--typesPackage" -> { index++; typesPackage = argumentsList.get( index ); }
-                case "--faultsPackage" -> { index++; faultsPackage = argumentsList.get( index ); }
-                case "--interfacesPackage" -> { index++; interfacesPackage = argumentsList.get( index ); }
                 case "--outputDirectory" -> { index++; outputDirectory = argumentsList.get( index ); }
+                case "--typePackage" -> { index++; typePackage = argumentsList.get( index ); }
+                case "--faultPackage" -> { index++; faultPackage = argumentsList.get( index ); }
+                case "--interfacePackage" -> { index++; interfacePackage = argumentsList.get( index ); }
+                case "--serviceDirectory" -> { index++; serviceDirectory = argumentsList.get( index ); }
+                case "--servicePackage" -> { index++; servicePackage = argumentsList.get( index ); }
                 case "--serviceName" -> { index++; serviceName = argumentsList.get( index ); }
                 case "--overrideService" -> { index++; overrideService = Boolean.valueOf( argumentsList.get( index ) ); }
                 
                 /* deprecated flags */
+                case "--packageName" -> { index++; }
                 case "--javaservice" -> { index++; }
                 case "--addSource" -> { index++; }
                 case "--format" -> { index++; }
@@ -69,24 +74,26 @@ public class Jolie2JavaCommandLineParser extends CommandLineParser {
     throws CommandLineException, IOException {
         super( args, parentClassLoader, argHandler );
 
-        packageName = argHandler.packageName;
-        typesPackage = argHandler.typesPackage;
-        faultsPackage = argHandler.faultsPackage;
-        interfacesPackage = argHandler.interfacesPackage;
         outputDirectory = argHandler.outputDirectory;
-        overrideService = argHandler.overrideService;
+        typePackage = argHandler.typePackage;
+        faultPackage = argHandler.faultPackage;
+        interfacePackage = argHandler.interfacePackage;
+        serviceDirectory = argHandler.serviceDirectory;
+        servicePackage = argHandler.servicePackage;
         serviceName = argHandler.serviceName;
+        overrideService = argHandler.overrideService;
     }
 
     @Override
     protected String getHelpString() {
         return new StringBuilder()
-            .append( "Usage: jolie2java --packageName <package>" ).append( "\n" )
-            .append( "                  [ --typesPackage <package> (default=\"" ).append( JavaDocumentCreator.DEFAULT_TYPE_PACKAGE ).append( "\") ]" ).append( "\n" )
-            .append( "                  [ --faultsPackage <package> (default=\"" ).append( JavaDocumentCreator.DEFAULT_FAULT_PACKAGE ).append( "\") ]" ).append( "\n" )
-            .append( "                  [ --interfacesPackage <package> (default=\"" ).append( JavaDocumentCreator.DEFAULT_INTERFACE_PACKAGE ).append( "\") ]" ).append( "\n" )
-            .append( "                  [ --outputDirectory <path> (default=\"" ).append( JavaDocumentCreator.DEFAULT_OUTPUT_DIRECTORY ).append( "\") ]" ).append( "\n" )
-            .append( "                  [ --serviceName <name> (default=\"" ).append( JavaDocumentCreator.DEFAULT_SERVICE_NAME ).append( "\") ]" ).append( "\n" )
+            .append( "Usage: jolie2java --outputDirectory <path>" ).append( "\n" )
+            .append( "                  [ --typePackage <package> (default=\"" ).append( JavaDocumentCreator.DEFAULT_PACKAGE_TYPE ).append( "\") ]" ).append( "\n" )
+            .append( "                  [ --faultPackage <package> (default=\"" ).append( JavaDocumentCreator.DEFAULT_PACKAGE_FAULT ).append( "\") ]" ).append( "\n" )
+            .append( "                  [ --interfacePackage <package> (default=\"" ).append( JavaDocumentCreator.DEFAULT_PACKAGE_INTERFACE ).append( "\") ]" ).append( "\n" )
+            .append( "                  [ --serviceDirectory <path> (default=\"" ).append( JavaDocumentCreator.DEFAULT_DIRECTORY_SERVICE ).append( "\") ]" ).append( "\n" )
+            .append( "                  [ --servicePackage <package> (default=\"" ).append( JavaDocumentCreator.DEFAULT_PACKAGE_SERVICE ).append( "\") ]" ).append( "\n" )
+            .append( "                  [ --serviceName <name> (default=\"" ).append( JavaDocumentCreator.DEFAULT_NAME_SERVICE ).append( "\") ]" ).append( "\n" )
             .append( "                  [ --overrideService <true|false> (default=false) ]" ).append( "\n" )
             .append( "                  <file>" ).toString();
     }

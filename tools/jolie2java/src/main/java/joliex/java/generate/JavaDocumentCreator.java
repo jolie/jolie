@@ -21,38 +21,39 @@ import one.util.streamex.EntryStream;
 
 public class JavaDocumentCreator {
 
-    public static final String DEFAULT_OUTPUT_DIRECTORY = "./generated";
-    public static final String DEFAULT_SERVICE_NAME = "MainService";
-    public static final String DEFAULT_TYPE_PACKAGE = ".types";
-    public static final String DEFAULT_FAULT_PACKAGE = ".faults";
-    public static final String DEFAULT_INTERFACE_PACKAGE = ".interfaces";
-    private final String packageName;
-    private final Path packageDirectory;
-    private final String typesPackage;
-    private final Path typesDirectory;
-    private final String faultsPackage;
-    private final Path faultsDirectory;
-    private final String interfacesPackage;
-    private final Path interfacesDirectory;
+    public static final String DEFAULT_PACKAGE_TYPE = "types";
+    public static final String DEFAULT_PACKAGE_FAULT = "faults";
+    public static final String DEFAULT_PACKAGE_INTERFACE = "interfaces";
+    public static final String DEFAULT_DIRECTORY_SERVICE = "./src/main/java";
+    public static final String DEFAULT_PACKAGE_SERVICE = "joliex";
+    public static final String DEFAULT_NAME_SERVICE = "MainService";
+
+    private final String typePackage;
+    private final Path typeDirectory;
+    private final String faultPackage;
+    private final Path faultDirectory;
+    private final String interfacePackage;
+    private final Path interfaceDirectory;
+    private final String servicePackage;
+    private final Path serviceDirectory;
     private final String serviceName;
     private final boolean overrideService;
 
-    public JavaDocumentCreator( String packageName, String typesPackage, String faultsPackage, String interfacesPackage, String outputDirectory, String serviceName, boolean overrideService ) {
-        final Path outputPath = Path.of( outputDirectory == null ? DEFAULT_OUTPUT_DIRECTORY : outputDirectory );
+    public JavaDocumentCreator( String outputDirectory, String typePackage, String faultPackage, String interfacePackage, String serviceDirectory, String servicePackage, String serviceName, boolean overrideService ) {
+        final Path od = Path.of( outputDirectory );
+        
+        this.typePackage = formatPackageName( typePackage == null ? DEFAULT_PACKAGE_TYPE : typePackage );
+        typeDirectory = getPackagePath( od, this.typePackage );
 
-        this.packageName = formatPackageName( packageName );
-        packageDirectory = getPackagePath( outputPath, this.packageName );
+        this.faultPackage = formatPackageName( faultPackage == null ? DEFAULT_PACKAGE_FAULT : faultPackage );
+        faultDirectory = getPackagePath( od, this.faultPackage );
 
-        this.typesPackage = getPackage( this.packageName, typesPackage == null ? DEFAULT_TYPE_PACKAGE : typesPackage );
-        typesDirectory = getPackagePath( outputPath, this.typesPackage );
+        this.interfacePackage = formatPackageName( interfacePackage == null ? DEFAULT_PACKAGE_INTERFACE : interfacePackage );
+        interfaceDirectory = getPackagePath( od, this.interfacePackage );
 
-        this.faultsPackage = getPackage( this.packageName, faultsPackage == null ? DEFAULT_FAULT_PACKAGE : faultsPackage );
-        faultsDirectory = getPackagePath( outputPath, this.faultsPackage );
-
-        this.interfacesPackage = getPackage( this.packageName, interfacesPackage == null ? DEFAULT_INTERFACE_PACKAGE : interfacesPackage );
-        interfacesDirectory = getPackagePath( outputPath, this.interfacesPackage );
-
-        this.serviceName = serviceName == null ? DEFAULT_SERVICE_NAME : serviceName;
+        this.servicePackage = formatPackageName( servicePackage == null ? DEFAULT_PACKAGE_SERVICE : servicePackage );
+        this.serviceDirectory = getPackagePath( Path.of( serviceDirectory == null ? DEFAULT_DIRECTORY_SERVICE : serviceDirectory ), this.servicePackage );
+        this.serviceName = serviceName == null ? DEFAULT_NAME_SERVICE : serviceName;
         this.overrideService = overrideService;
     }
 
@@ -74,9 +75,9 @@ public class JavaDocumentCreator {
 
     private void generateTypeClasses( Stream<JolieType> typeDefinitions ) {
         typeDefinitions.parallel()
-            .map( definition -> TypeClassBuilder.create( definition, typesPackage ) )
+            .map( definition -> TypeClassBuilder.create( definition, typePackage ) )
             .filter( Objects::nonNull )
-            .forEach( builder -> JavaClassDirector.writeClass( typesDirectory, builder, true ) );
+            .forEach( builder -> JavaClassDirector.writeClass( typeDirectory, builder, true ) );
     }
 
     private void generateExceptionClasses( Map<String, Collection<JolieOperation>> operationsMap ) {
@@ -86,8 +87,8 @@ public class JavaDocumentCreator {
             .map( JolieOperation::faults )
             .flatMap( Collection::stream )
             .distinct()
-            .map( fault -> new ExceptionClassBuilder( fault, faultsPackage, typesPackage ) )
-            .forEach( builder -> JavaClassDirector.writeClass( faultsDirectory, builder, true ) );
+            .map( fault -> new ExceptionClassBuilder( fault, faultPackage, typePackage ) )
+            .forEach( builder -> JavaClassDirector.writeClass( faultDirectory, builder, true ) );
     }
 
     private void generateInterfaceClasses( Map<String, Collection<JolieOperation>> operationsMap ) {
@@ -96,32 +97,26 @@ public class JavaDocumentCreator {
             .mapKeyValue( (name, operations) -> new InterfaceClassBuilder( 
                 name, 
                 operations, 
-                interfacesPackage,
-                Files.exists( typesDirectory ) ? typesPackage : null ) )
-            .forEach( builder -> JavaClassDirector.writeClass( interfacesDirectory, builder, true ) );
+                interfacePackage,
+                Files.exists( typeDirectory ) ? typePackage : null ) )
+            .forEach( builder -> JavaClassDirector.writeClass( interfaceDirectory, builder, true ) );
     }
 
     private void generateServiceClass( Map<String, Collection<JolieOperation>> operationsMap ) {
         JavaClassDirector.writeClass( 
-            packageDirectory, 
+            serviceDirectory, 
             new ServiceClassBuilder( 
                 serviceName, 
                 operationsMap,
-                packageName,
-                Files.exists( typesDirectory ) ? typesPackage : null, 
-                Files.exists( faultsDirectory ) ? faultsPackage : null, 
-                Files.exists( interfacesDirectory ) ? interfacesPackage : null ),
+                servicePackage,
+                Files.exists( typeDirectory ) ? typePackage : null, 
+                Files.exists( faultDirectory ) ? faultPackage : null, 
+                Files.exists( interfaceDirectory ) ? interfacePackage : null ),
             overrideService );
     }
 
     private static String formatPackageName( String name ) {
         return name.replaceAll( "-", "_" );
-    }
-
-    private static String getPackage( String basePackage, String packageName ) {
-        if ( packageName.startsWith( "." ) )
-            return packageName.length() == 1 ? basePackage : basePackage + formatPackageName( packageName );
-        return formatPackageName( packageName );
     }
 
     private static Path getPackagePath( Path dir, String packagePath ) {

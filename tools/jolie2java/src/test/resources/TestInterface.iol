@@ -160,9 +160,11 @@ type LinkedChoiceStructureType: void {
   .c*: ChoiceLinkedType
 }
 
+type RefinedLongType: long( ranges( [2L, 5L], [7L, 12L] ) )
+
 type InlineChoiceStructureType: any {
   ///@JavaName("afield")
-  .a: int | long | double
+  .a: int( ranges( [0,10], [100,1000], [10000,*] ) ) | RefinedLongType | double( ranges( [1.1,1.1] ) )
   ///@JavaName("bfield")
   .b: FlatStructureType | InLineStructureType | bool {?}
   ///@JavaName("cfield")

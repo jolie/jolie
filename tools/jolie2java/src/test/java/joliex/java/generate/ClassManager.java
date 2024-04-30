@@ -20,10 +20,10 @@ import joliex.java.Jolie2JavaCommandLineParser;
 
 public class ClassManager {
 
-	public static final String PACKAGENAME = "com.test";
-	public static final String TYPEPACKAGE = ".types";
-	public static final String FAULTPACKAGE = ".faults";
-	public static final String INTERFACEPACKAGE = ".";
+	public static final String TYPEPACKAGE = "com.test.types";
+	public static final String FAULTPACKAGE = "com.test.faults";
+	public static final String INTERFACEPACKAGE = "com.test";
+	public static final String SERVICEPACKAGE = "com.test";
 	public static final Path OUTPUTDIRECTORY = Path.of( "./target", "generated-test-sources" );
 	private static final URLClassLoader CLASSLOADER;
 
@@ -41,9 +41,9 @@ public class ClassManager {
 
 		final ProgramInspector inspector = Jolie2Java.getInspector( cmdParser );
 
-		final JavaDocumentCreator jdc = new JavaDocumentCreator( 
-			PACKAGENAME, TYPEPACKAGE, FAULTPACKAGE, INTERFACEPACKAGE, 
-			OUTPUTDIRECTORY.toString(), null, true );
+		final JavaDocumentCreator jdc = new JavaDocumentCreator(
+			OUTPUTDIRECTORY.toString(), TYPEPACKAGE, FAULTPACKAGE, INTERFACEPACKAGE, 
+			OUTPUTDIRECTORY.toString(), SERVICEPACKAGE, null, true );
 
 		jdc.generateClasses( inspector );
 	}
@@ -96,11 +96,15 @@ public class ClassManager {
 		} );
 	}
 
-	public static Class<?> getClass( String relativePath ) throws ClassNotFoundException {
-		return Class.forName( PACKAGENAME + relativePath, true, CLASSLOADER );
+	public static Class<?> getClass( String packageName, String className ) throws ClassNotFoundException {
+		return Class.forName( packageName + "." + className, true, CLASSLOADER );
 	}
 
 	public static Class<?> getTypeClass( String className ) throws ClassNotFoundException {
-		return getClass( TYPEPACKAGE + "." + className );
+		return getClass( TYPEPACKAGE, className );
+	}
+
+	public static Class<?> getInterfaceClass( String className ) throws ClassNotFoundException {
+		return getClass( INTERFACEPACKAGE, className );
 	}
 }
