@@ -79,7 +79,7 @@ type QueryRequest:string { ? } | void {
 
 type UpdateRequest:string { ? } | void { 
     txHandle: TxHandle 
-    query: string { ? } 
+    update: string { ? } 
 }
 
 interface DatabaseInterface {
@@ -166,7 +166,7 @@ RequestResponse:
 	 * 	To execute the updateRequest above in an open transaction with txHandle 42, we can call update in the following way:
 	 *	updateDatabase@Database( {
 	 *		txHandle = 42
-	 * 		query = updateRequest	
+	 * 		update = updateRequest	
 	 *	} )( ret )
 	 * 
 	 */

@@ -251,8 +251,8 @@ public class DatabaseService extends JavaService {
 			long txHandle = request.getFirstChild( "txHandle" ).longValue();
 			Connection tx = _getOpenTransaction( txHandle );
 
-			try( PreparedStatement stm = new NamedStatementParser( tx, request.getFirstChild( "query" ).strValue(),
-				request.getFirstChild( "query" ) )
+			try( PreparedStatement stm = new NamedStatementParser( tx, request.getFirstChild( "update" ).strValue(),
+				request.getFirstChild( "update" ) )
 					.getPreparedStatement(); ) {
 				resultValue.setValue( stm.executeUpdate() );
 				openTxs.put( txHandle, tx );
@@ -600,8 +600,8 @@ public class DatabaseService extends JavaService {
 
 	private void _closeTransaction( Connection con ) throws FaultException {
 		try {
-			con.setAutoCommit( true );
 			con.rollback();
+			con.setAutoCommit( true );
 			con.close();
 		} catch( SQLException e ) {
 			try {
