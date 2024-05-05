@@ -621,16 +621,25 @@ public class Interpreter {
 	}
 
 	private String buildLogMessage( String message ) {
-		return '[' + logPrefix + "] " + message;
+		return String.format( "[%s] %s", logPrefix, message );
 	}
 
 	/**
 	 * Logs an information message using the logger of this interpreter.
-	 * 
+	 *
 	 * @param message the message to logLevel
 	 */
 	public void logInfo( String message ) {
 		LOGGER.log( buildLogRecord( Level.INFO, buildLogMessage( message ) ) );
+	}
+
+	/**
+	 * Logs an information message using the logger of this interpreter.
+	 *
+	 * @param message the message to logLevel
+	 */
+	public void logInfo( StringBuilder message ) {
+		LOGGER.log( buildLogRecord( Level.INFO, buildLogMessage( message.toString() ) ) );
 	}
 
 	/**
