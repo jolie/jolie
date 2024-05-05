@@ -383,7 +383,7 @@ public class XmlRpcProtocol extends SequentialCommProtocol implements HttpUtils.
 		}
 		ByteArray content = new ByteArray( tmpStream.toByteArray() );
 
-		StringBuilder httpMessage = new StringBuilder();
+		final StringBuilder httpMessage = new StringBuilder();
 
 		if( received ) {
 			// We're responding to a request
@@ -401,8 +401,8 @@ public class XmlRpcProtocol extends SequentialCommProtocol implements HttpUtils.
 				.append( "User-Agent: Jolie" ).append( HttpUtils.CRLF )
 				.append( "Host: " ).append( uri.getHost() ).append( HttpUtils.CRLF );
 
-			if( checkBooleanParameter( "compression", true ) ) {
-				String requestCompression = getStringParameter( "requestCompression" );
+			if( checkBooleanParameter( HttpUtils.Parameters.COMPRESSION, true ) ) {
+				String requestCompression = getStringParameter( HttpUtils.Parameters.REQUEST_COMPRESSION );
 				if( requestCompression.equals( "gzip" ) || requestCompression.equals( "deflate" ) ) {
 					encoding = requestCompression;
 					httpMessage.append( "Accept-Encoding: " ).append( encoding ).append( HttpUtils.CRLF );
@@ -412,21 +412,22 @@ public class XmlRpcProtocol extends SequentialCommProtocol implements HttpUtils.
 			}
 		}
 
-		if( getParameterVector( "keepAlive" ).first().intValue() != 1 ) {
-			if( received )
+		if( !checkBooleanParameter( HttpUtils.Parameters.KEEP_ALIVE, true ) ) {
+			if( inInputPort && received )
 				channel().setToBeClosed( true ); // we may do this only in input (server) mode
 			httpMessage.append( "Connection: close" ).append( HttpUtils.CRLF );
 		}
 
-		if( encoding != null && checkBooleanParameter( "compression", true ) ) {
+		if( encoding != null && checkBooleanParameter( HttpUtils.Parameters.COMPRESSION, true ) ) {
 			content = HttpUtils.encode( encoding, content, httpMessage );
 		}
 
 		httpMessage.append( "Content-Type: text/xml; charset=utf-8" ).append( HttpUtils.CRLF )
 			.append( "Content-Length: " ).append( content.size() ).append( HttpUtils.CRLF ).append( HttpUtils.CRLF );
 
-		if( getParameterVector( "debug" ).first().intValue() > 0 ) {
-			interpreter.logInfo( "[XMLRPC debug] Sending:\n" + httpMessage.toString() + content.toString( "utf-8" ) );
+		if( checkBooleanParameter( HttpUtils.Parameters.DEBUG ) ) {
+			interpreter.logInfo( new StringBuilder( "[XMLRPC debug] Sending:\n" ).append( httpMessage.toString() )
+				.append( content.toString( "utf-8" ) ) );
 		}
 
 		ostream.write( httpMessage.toString().getBytes( HttpUtils.URL_DECODER_ENC ) );
@@ -459,8 +460,9 @@ public class XmlRpcProtocol extends SequentialCommProtocol implements HttpUtils.
 		encoding = message.getProperty( "accept-encoding" );
 
 		if( message.size() > 0 ) {
-			if( getParameterVector( "debug" ).first().intValue() > 0 ) {
-				interpreter.logInfo( "[XMLRPC debug] Receiving:\n" + new String( message.content(), charset ) );
+			if( checkBooleanParameter( HttpUtils.Parameters.DEBUG ) ) {
+				interpreter.logInfo( new StringBuilder( "[XMLRPC debug] Receiving:\n" )
+					.append( HttpUtils.getHttpBody( message, charset ) ) );
 			}
 
 			try {
