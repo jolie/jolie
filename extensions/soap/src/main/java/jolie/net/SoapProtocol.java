@@ -150,7 +150,6 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Pr
 	private Port wsdlPort = null;
 	private final TransformerFactory transformerFactory;
 	private final Map< String, String > namespacePrefixMap = new HashMap<>();
-	private boolean received = false;
 	private String encoding;
 	private final WSDLCache wsdlCache;
 
@@ -577,14 +576,14 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Pr
 	@SuppressWarnings( "unchecked" )
 	private String getOutputMessageRootElementName( String operationName )
 		throws IOException {
-		String elementName = operationName + ((received) ? "Response" : "");
+		String elementName = operationName + ((inInputPort) ? "Response" : "");
 		Port port = getWSDLPort();
 		if( port != null ) {
 			try {
 				Operation operation = port.getBinding().getPortType().getOperation( operationName, null, null );
 				List< ExtensibilityElement > listExt;
 				Message soapMessage;
-				if( received ) {
+				if( inInputPort ) {
 					// We are sending a response
 					soapMessage = operation.getOutput().getMessage();
 					listExt = getWSDLPort().getBinding().getBindingOperation( operationName, null, null )
@@ -629,7 +628,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Pr
 			Operation operation = port.getBinding().getPortType().getOperation( operationName, null, null );
 			List< ExtensibilityElement > listExt;
 			Message soapMessage;
-			if( received ) {
+			if( inInputPort ) {
 				// We are sending a response
 				if( operation.getStyle().equals( OperationType.ONE_WAY ) ) {
 					soapMessage = operation.getInput().getMessage();
@@ -713,7 +712,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Pr
 			inputId = message.operationName();
 			String messageNamespace = getOutputMessageNamespace( message.operationName() );
 
-			if( received ) {
+			if( inInputPort ) {
 				// We're responding to a request
 				inputId += "Response";
 			}
@@ -754,7 +753,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Pr
 				Name messageIdName =
 					soapEnvelope.createName( "MessageID", "wsa", "http://schemas.xmlsoap.org/ws/2004/03/addressing" );
 				SOAPHeaderElement messageIdElement = soapHeader.addHeaderElement( messageIdName );
-				if( received ) {
+				if( inInputPort ) {
 					// TODO: remove this after we implement a mechanism for being sure message.id() is the one received
 					// before.
 					messageIdElement.setValue( "uuid:1" );
@@ -855,7 +854,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Pr
 					SOAPElement opBody = soapBody;
 					if( wrapped ) {
 						List< ExtensibilityElement > listExt;
-						if( received ) {
+						if( inInputPort ) {
 							listExt =
 								getWSDLPort().getBinding().getBindingOperation( message.operationName(), null, null )
 									.getBindingOutput().getExtensibilityElements();
@@ -930,7 +929,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Pr
 					// getWSDLPort().getBinding().getPortType().getOperation( message.operationName(), null, null );
 					// Message wsdlMessage;
 					List< ExtensibilityElement > listExt;
-					if( received ) {
+					if( inInputPort ) {
 						// We are sending a response
 						// wsdlMessage = operation.getOutput().getMessage();
 						listExt = getWSDLPort().getBinding().getBindingOperation( message.operationName(), null, null )
@@ -978,7 +977,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Pr
 
 			String soapAction = null;
 
-			if( received ) {
+			if( inInputPort ) {
 				// We're responding to a request
 				if( message.isFault() ) {
 					httpMessage.append( "HTTP/1.1 500 Internal Server Error" ).append( HttpUtils.CRLF );
@@ -986,7 +985,6 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Pr
 					httpMessage.append( "HTTP/1.1 200 OK" ).append( HttpUtils.CRLF );
 				}
 				httpMessage.append( "Server: Jolie" ).append( HttpUtils.CRLF );
-				received = false;
 			} else {
 				// We're sending a notification or a solicit
 				String path = uri.getRawPath(); // TODO: fix this to consider resourcePaths
@@ -1020,7 +1018,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Pr
 			}
 
 			if( !checkBooleanParameter( HttpUtils.Parameters.KEEP_ALIVE, true ) ) {
-				if( inInputPort && received )
+				if( inInputPort )
 					channel().setToBeClosed( true ); // we may do this only in input (server) mode
 				httpMessage.append( "Connection: close" ).append( HttpUtils.CRLF );
 			}
@@ -1071,7 +1069,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Pr
 
 			inputId = message.operationName();
 		} catch( Exception e ) {
-			if( received ) {
+			if( inInputPort ) {
 				httpMessage.setLength( 0 );
 
 				try {
@@ -1360,8 +1358,6 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Pr
 			retVal = new CommMessage( CommMessage.GENERIC_REQUEST_ID, messageId, "/", value,
 				new FaultException( "TypeMismatch", e ) );
 		}
-
-		received = true;
 
 		if( retVal != null && "/".equals( retVal.resourcePath() ) && channel().parentPort() != null
 			&& channel().parentPort().getInterface().containsOperation( retVal.operationName() ) ) {
