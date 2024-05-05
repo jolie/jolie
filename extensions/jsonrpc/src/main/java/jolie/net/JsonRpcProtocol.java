@@ -98,7 +98,7 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 	public void send_internal( OutputStream ostream, CommMessage message, InputStream istream )
 		throws IOException {
 		if( inInputPort ) // we may do this only in input (server) mode
-			channel().setToBeClosed( !checkBooleanParameter( "keepAlive", true ) );
+			channel().setToBeClosed( !checkBooleanParameter( HttpUtils.Parameters.KEEP_ALIVE, true ) );
 
 		boolean isLsp = checkStringParameter( Parameters.TRANSPORT, LSP );
 
@@ -217,7 +217,7 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 		Type fullMessageType =
 			Type.create( BasicType.fromBasicTypeDefinition( BasicTypeDefinition.of( NativeType.VOID ) ),
 				new Range( 1, 1 ), false, subTypes );
-		StringBuilder json = new StringBuilder();
+		final StringBuilder json = new StringBuilder();
 		JsUtils.valueToJsonString( value, true, fullMessageType, json );
 		String jsonMessage = json.toString();
 
@@ -249,7 +249,7 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 		if( checkStringParameter( Parameters.TRANSPORT, LSP ) ) {
 			String lspHeaders = "Content-Length: " + content.size() + HttpUtils.CRLF + HttpUtils.CRLF;
 
-			if( checkBooleanParameter( "debug", false ) ) {
+			if( checkBooleanParameter( HttpUtils.Parameters.DEBUG, false ) ) {
 				interpreter.logInfo( "[JSON-RPC debug] Sending:\n" + lspHeaders + content.toString( "utf-8" ) );
 			}
 
@@ -271,8 +271,8 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 					.append( "User-Agent: Jolie" ).append( HttpUtils.CRLF )
 					.append( "Host: " ).append( uri.getHost() ).append( HttpUtils.CRLF );
 
-				if( checkBooleanParameter( "compression", true ) ) {
-					String requestCompression = getStringParameter( "requestCompression" );
+				if( checkBooleanParameter( HttpUtils.Parameters.COMPRESSION, true ) ) {
+					String requestCompression = getStringParameter( HttpUtils.Parameters.REQUEST_COMPRESSION );
 					if( requestCompression.equals( "gzip" ) || requestCompression.equals( "deflate" ) ) {
 						encoding = requestCompression;
 						httpMessage.append( "Accept-Encoding: " ).append( encoding ).append( HttpUtils.CRLF );
@@ -282,11 +282,11 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 				}
 			}
 
-			if( !checkBooleanParameter( "keepAlive", true ) ) {
+			if( !checkBooleanParameter( HttpUtils.Parameters.KEEP_ALIVE, true ) ) {
 				httpMessage.append( "Connection: close" ).append( HttpUtils.CRLF );
 			}
 
-			if( encoding != null && checkBooleanParameter( "compression", true ) ) {
+			if( encoding != null && checkBooleanParameter( HttpUtils.Parameters.COMPRESSION, true ) ) {
 				content = HttpUtils.encode( encoding, content, httpMessage );
 			}
 
@@ -295,9 +295,10 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 				.append( "Content-Length: " ).append( content.size() ).append( HttpUtils.CRLF )
 				.append( HttpUtils.CRLF );
 
-			if( checkBooleanParameter( "debug", false ) ) {
+			if( checkBooleanParameter( HttpUtils.Parameters.DEBUG ) ) {
 				interpreter
-					.logInfo( "[JSON-RPC debug] Sending:\n" + httpMessage.toString() + content.toString( "utf-8" ) );
+					.logInfo( new StringBuilder( "[JSON-RPC debug] Sending:\n" ).append( httpMessage.toString() )
+						.append( content.toString( "utf-8" ) ) );
 			}
 
 			ostream.write( httpMessage.toString().getBytes( HttpUtils.URL_DECODER_ENC ) );
@@ -357,7 +358,7 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 		if( messageContent.length == 0 )
 			return null; // error situation
 
-		if( checkBooleanParameter( "debug" ) ) {
+		if( checkBooleanParameter( HttpUtils.Parameters.DEBUG ) ) {
 			interpreter.logInfo(
 				new StringBuilder( "[JSON-RPC debug] Receiving:\n" ).append( new String( messageContent, charset ) ) );
 		}

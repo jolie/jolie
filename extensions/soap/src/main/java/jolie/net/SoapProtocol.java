@@ -706,7 +706,6 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Pr
 	@SuppressWarnings( "unchecked" )
 	public void send_internal( OutputStream ostream, CommMessage message, InputStream istream )
 		throws IOException {
-
 		final StringBuilder httpMessage = new StringBuilder();
 		ByteArray content = null;
 
@@ -971,9 +970,11 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Pr
 				soapEnvelope.getHeader().detachNode();
 			}
 
-			ByteArrayOutputStream tmpStream = new ByteArrayOutputStream();
-			soapMessage.writeTo( tmpStream );
-			content = new ByteArray( tmpStream.toByteArray() );
+			{
+				ByteArrayOutputStream tmpStream = new ByteArrayOutputStream();
+				soapMessage.writeTo( tmpStream );
+				content = new ByteArray( tmpStream.toByteArray() );
+			}
 
 			String soapAction = null;
 
@@ -1007,8 +1008,8 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Pr
 				soapAction =
 					"SOAPAction: \"" + getSoapActionForOperation( message.operationName() ) + '\"' + HttpUtils.CRLF;
 
-				if( checkBooleanParameter( "compression", true ) ) {
-					String requestCompression = getStringParameter( "requestCompression" );
+				if( checkBooleanParameter( HttpUtils.Parameters.COMPRESSION, true ) ) {
+					String requestCompression = getStringParameter( HttpUtils.Parameters.REQUEST_COMPRESSION );
 					if( requestCompression.equals( "gzip" ) || requestCompression.equals( "deflate" ) ) {
 						encoding = requestCompression;
 						httpMessage.append( "Accept-Encoding: " ).append( encoding ).append( HttpUtils.CRLF );
@@ -1018,15 +1019,15 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Pr
 				}
 			}
 
-			if( getParameterVector( "keepAlive" ).first().intValue() != 1 ) {
-				if( received )
+			if( !checkBooleanParameter( HttpUtils.Parameters.KEEP_ALIVE, true ) ) {
+				if( inInputPort && received )
 					channel().setToBeClosed( true ); // we may do this only in input (server) mode
 				httpMessage.append( "Connection: close" ).append( HttpUtils.CRLF );
 			}
 
 			ByteArray plainTextContent = content;
 
-			if( encoding != null && checkBooleanParameter( "compression", true ) ) {
+			if( encoding != null && checkBooleanParameter( HttpUtils.Parameters.COMPRESSION, true ) ) {
 				content = HttpUtils.encode( encoding, content, httpMessage );
 			}
 
@@ -1038,23 +1039,24 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Pr
 			}
 			httpMessage.append( HttpUtils.CRLF );
 
-			if( getParameterVector( "debug" ).first().intValue() > 0 ) {
+			if( checkBooleanParameter( HttpUtils.Parameters.DEBUG ) ) {
 				interpreter.logInfo(
-					"[SOAP debug] Sending:\n" + httpMessage.toString() + plainTextContent.toString( "utf-8" ) );
+					new StringBuilder( "[SOAP debug] Sending:\n" ).append( httpMessage.toString() )
+						.append( plainTextContent.toString( "utf-8" ) ) );
 			}
 
 			interpreter.tracer().trace( () -> {
 				try {
-					final String traceMessage = httpMessage.toString() + plainTextContent.toString( "utf-8" );
+					final StringBuilder traceMessage =
+						new StringBuilder( httpMessage ).append( plainTextContent.toString( "utf-8" ) );
 					return new ProtocolTraceAction( ProtocolTraceAction.Type.SOAP, "SOAP MESSAGE SENT",
-						message.operationName(), traceMessage, null );
+						message.operationName(), traceMessage.toString(), null );
 
 				} catch( UnsupportedEncodingException e ) {
 					return new ProtocolTraceAction( ProtocolTraceAction.Type.SOAP, "SOAP MESSAGE SENT",
 						message.operationName(), e.getMessage(), null );
 
 				}
-
 			} );
 
 			if( Interpreter.getInstance().isMonitoring() ) {
@@ -1082,9 +1084,11 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Pr
 					SOAPFault soapFault = soapBody.addFault();
 					soapFault.setFaultCode( soapEnvelope.createQName( "Server", soapEnvelope.getPrefix() ) );
 					soapFault.setFaultString( "Error found in SOAP/XML format" );
-					ByteArrayOutputStream tmpStream = new ByteArrayOutputStream();
-					soapMessage.writeTo( tmpStream );
-					content = new ByteArray( tmpStream.toByteArray() );
+					{
+						ByteArrayOutputStream tmpStream = new ByteArrayOutputStream();
+						soapMessage.writeTo( tmpStream );
+						content = new ByteArray( tmpStream.toByteArray() );
+					}
 
 					httpMessage.append( "HTTP/1.1 500 Internal Server Error" ).append( HttpUtils.CRLF )
 						.append( "Server: Jolie" ).append( HttpUtils.CRLF )
@@ -1236,8 +1240,9 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Pr
 
 		try {
 			if( message.size() > 0 ) {
-				if( checkBooleanParameter( "debug" ) ) {
-					interpreter.logInfo( "[SOAP debug] Receiving:\n" + new String( message.content(), charset ) );
+				if( checkBooleanParameter( HttpUtils.Parameters.DEBUG ) ) {
+					interpreter.logInfo( new StringBuilder( "[SOAP debug] Receiving:\n" )
+						.append( HttpUtils.getHttpBody( message, charset ) ) );
 				}
 
 
@@ -1269,7 +1274,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Pr
 						String[] soapAction =
 							message.getPropertyOrEmptyString( "soapaction" ).replaceAll( "\"", "" ).split( "/" );
 						messageId = soapAction[ soapAction.length - 1 ];
-						if( checkBooleanParameter( "debug" ) ) {
+						if( checkBooleanParameter( HttpUtils.Parameters.DEBUG ) ) {
 							interpreter.logInfo( "Operation from SoapAction:" + messageId );
 						}
 					}
@@ -1327,28 +1332,22 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Pr
 
 			final String mId = messageId;
 			interpreter.tracer().trace( () -> {
-				final StringBuilder traceMessage = new StringBuilder();
+				final StringBuilder traceMessage = new StringBuilder( getHeadersFromHttpMessage( message ) );
 				try {
-					traceMessage.append( getHeadersFromHttpMessage( message ) ).append( "\n" )
-						.append( new String( message.content(), charset ) );
+					traceMessage.append( new String( message.content(), charset ) );
 					return new ProtocolTraceAction( ProtocolTraceAction.Type.SOAP, "SOAP MESSAGE RECEIVED", mId,
 						traceMessage.toString(), null );
 				} catch( UnsupportedEncodingException e ) {
 					return new ProtocolTraceAction( ProtocolTraceAction.Type.SOAP, "SOAP MESSAGE RECEIVED", mId,
 						e.getMessage(), null );
 				}
-
 			} );
 
 			if( Interpreter.getInstance().isMonitoring() ) {
-				final StringBuilder headerMonitor = new StringBuilder();
-
-				headerMonitor.append( getHeadersFromHttpMessage( message ) ).append( "\n" );
-
 				Interpreter.getInstance().fireMonitorEvent(
 					new ProtocolMessageEvent(
 						new String( message.content(), charset ),
-						headerMonitor.toString(),
+						getHeadersFromHttpMessage( message ),
 						"",
 						Long.toString( retVal.id() ),
 						ProtocolMessageEvent.Protocol.SOAP ) );
@@ -1411,9 +1410,9 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Pr
 		return ret;
 	}
 
-	private String getHeadersFromHttpMessage( HttpMessage message ) {
-		StringBuilder headers = new StringBuilder();
-		headers.append( "HTTP Code: " ).append( message.statusCode() ).append( "\n" ).append( "Resource: " )
+	private static String getHeadersFromHttpMessage( HttpMessage message ) {
+		final StringBuilder headers = new StringBuilder( "HTTP Code: " );
+		headers.append( message.statusCode() ).append( "\n" ).append( "Resource: " )
 			.append( message.requestPath() ).append( "\n" );
 		for( Entry< String, String > entry : message.properties() ) {
 			headers.append( '\t' ).append( entry.getKey() ).append( ": " ).append( entry.getValue() ).append( '\n' );
@@ -1426,6 +1425,6 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Pr
 				.append( '\n' );
 		}
 
-		return headers.toString();
+		return headers.append( '\n' ).toString();
 	}
 }
