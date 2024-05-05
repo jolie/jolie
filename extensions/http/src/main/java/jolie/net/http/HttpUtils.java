@@ -469,8 +469,7 @@ public class HttpUtils {
 	public static String prepareSendDebugString( CharSequence header, EncodedContent encodedContent, String charset,
 		boolean showContent )
 		throws UnsupportedEncodingException {
-		StringBuilder debugSB = new StringBuilder();
-		debugSB.append( "[HTTP debug] Sending:\n" )
+		final StringBuilder debugSB = new StringBuilder( "[HTTP debug] Sending:\n" )
 			.append( header );
 		if( showContent && encodedContent != null && encodedContent.content != null ) {
 			debugSB.append( encodedContent.content.toString( charset ) );
@@ -483,8 +482,8 @@ public class HttpUtils {
 	 */
 	public static String getDebugMessage( HttpMessage message, String charset, boolean showContent )
 		throws IOException {
-		StringBuilder debugSB = new StringBuilder();
-		debugSB.append( "\n[HTTP debug] Receiving:\n" ).append( getHttpHeader( message ) );
+		final StringBuilder debugSB =
+			new StringBuilder( "\n[HTTP debug] Receiving:\n" ).append( getHttpHeader( message ) );
 		if( showContent ) {
 			debugSB.append( "--> Message content\n" )
 				.append( getHttpBody( message, charset ) );
@@ -497,8 +496,7 @@ public class HttpUtils {
 	 */
 	public static String getHttpHeader( HttpMessage message )
 		throws IOException {
-		StringBuilder headerStr = new StringBuilder();
-		headerStr.append( "HTTP Code: " ).append( message.statusCode() )
+		final StringBuilder headerStr = new StringBuilder( "HTTP Code: " ).append( message.statusCode() )
 			.append( "\n" ).append( "HTTP Method: " ).append( message.type().name() ).append( "\n" )
 			.append( "Resource: " ).append( message.requestPath() ).append( "\n" )
 			.append( "--> Header properties\n" );
@@ -520,9 +518,7 @@ public class HttpUtils {
 	 */
 	public static String getHttpBody( HttpMessage message, String charset )
 		throws IOException {
-		StringBuilder bodyStr = new StringBuilder();
-		bodyStr.append( new String( message.content(), charset ) );
-		return bodyStr.toString();
+		return new String( message.content(), charset );
 	}
 
 	public static FaultException recv_mapHttpStatusCodeFault( HttpMessage message, Value httpStatusValue,
