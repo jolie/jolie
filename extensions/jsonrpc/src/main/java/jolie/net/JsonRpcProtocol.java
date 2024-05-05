@@ -335,7 +335,7 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 			// LSP supports only utf-8 encoding
 			String charset = "utf-8";
 			// encoding = message.getProperty( "accept-encoding" )
-			return recv_createCommMessage( message.size(), message.content(), charset );
+			return recv_createCommMessage( message.content(), charset );
 		} else {
 			HttpParser parser = new HttpParser( istream );
 			HttpMessage message = parser.parse();
@@ -348,66 +348,67 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 
 			encoding = message.getProperty( "accept-encoding" );
 
-			return recv_createCommMessage( message.size(), message.content(), charset );
+			return recv_createCommMessage( message.content(), charset );
 		}
 	}
 
-	private CommMessage recv_createCommMessage( int messageSize, byte[] messageContent, String charset )
+	private CommMessage recv_createCommMessage( byte[] messageContent, String charset )
 		throws IOException {
+		if( messageContent.length == 0 )
+			return null; // error situation
+
+		if( checkBooleanParameter( "debug" ) ) {
+			interpreter.logInfo(
+				new StringBuilder( "[JSON-RPC debug] Receiving:\n" ).append( new String( messageContent, charset ) ) );
+		}
+
 		Value value = Value.create();
-		if( messageSize > 0 ) {
-			if( checkBooleanParameter( "debug", false ) ) {
-				interpreter.logInfo( "[JSON-RPC debug] Receiving:\n" + new String( messageContent, charset ) );
-			}
+		JsUtils.parseJsonIntoValue( new InputStreamReader( new ByteArrayInputStream( messageContent ), charset ),
+			value, false );
 
-			JsUtils.parseJsonIntoValue( new InputStreamReader( new ByteArrayInputStream( messageContent ), charset ),
-				value, false );
+		String operation = value.getFirstChild( "method" ).strValue();
 
-			String operation = value.getFirstChild( "method" ).strValue();
-
-			// Resolving aliases
-			if( hasParameter( Parameters.OSC ) ) {
-				Value osc = getParameterFirstValue( Parameters.OSC );
-				for( Entry< String, ValueVector > ev : osc.children().entrySet() ) {
-					Value v = ev.getValue().get( 0 );
-					if( v.hasChildren( Parameters.ALIAS ) ) {
-						if( v.getFirstChild( Parameters.ALIAS ).strValue().equals( operation ) ) {
-							operation = ev.getKey();
-						}
+		// Resolving aliases
+		if( hasParameter( Parameters.OSC ) ) {
+			Value osc = getParameterFirstValue( Parameters.OSC );
+			for( Entry< String, ValueVector > ev : osc.children().entrySet() ) {
+				Value v = ev.getValue().get( 0 );
+				if( v.hasChildren( Parameters.ALIAS ) ) {
+					if( v.getFirstChild( Parameters.ALIAS ).strValue().equals( operation ) ) {
+						operation = ev.getKey();
 					}
 				}
 			}
-
-			if( !value.hasChildren( "id" ) ) {
-				// JSON-RPC notification mechanism (method call with dropped result)
-				if( !inInputPort ) {
-					throw new IOException(
-						"A JSON-RPC notification (message without \"id\") needs to be a request, not a response!" );
-				}
-				return new CommMessage( CommMessage.GENERIC_REQUEST_ID, operation,
-					"/", value.getFirstChild( "params" ), null );
-			}
-			String jsonRpcId = value.getFirstChild( "id" ).strValue();
-			if( inInputPort ) {
-				jsonRpcIdMap.put( (long) jsonRpcId.hashCode(), jsonRpcId );
-				return new CommMessage(
-					jsonRpcId.hashCode(), operation,
-					"/", value.getFirstChild( "params" ), null );
-			} else if( value.hasChildren( "error" ) ) {
-				long id = value.getFirstChild( "id" ).longValue();
-				String operationName = jsonRpcOpMap.get( jsonRpcId );
-				return new CommMessage( id, operationName, "/", null,
-					new FaultException(
-						value.getFirstChild( "error" ).getFirstChild( "message" ).strValue(),
-						value.getFirstChild( "error" ).getFirstChild( "data" ) ) );
-			} else {
-				// Certain implementations do not provide a result if it is "void"
-				long id = value.getFirstChild( "id" ).longValue();
-				String operationName = jsonRpcOpMap.get( jsonRpcId );
-				return new CommMessage( id, operationName, "/", value.getFirstChild( "result" ), null );
-			}
 		}
-		return null; // error situation
+
+		if( !value.hasChildren( "id" ) ) {
+			// JSON-RPC notification mechanism (method call with dropped result)
+			if( !inInputPort ) {
+				throw new IOException(
+					"A JSON-RPC notification (message without \"id\") needs to be a request, not a response!" );
+			}
+			return new CommMessage( CommMessage.GENERIC_REQUEST_ID, operation,
+				"/", value.getFirstChild( "params" ), null );
+		}
+		String jsonRpcId = value.getFirstChild( "id" ).strValue();
+		if( inInputPort ) {
+			jsonRpcIdMap.put( (long) jsonRpcId.hashCode(), jsonRpcId );
+			return new CommMessage(
+				jsonRpcId.hashCode(), operation,
+				"/", value.getFirstChild( "params" ), null );
+		} else if( value.hasChildren( "error" ) ) {
+			long id = value.getFirstChild( "id" ).longValue();
+			String operationName = jsonRpcOpMap.get( jsonRpcId );
+			return new CommMessage( id, operationName, "/", null,
+				new FaultException(
+					value.getFirstChild( "error" ).getFirstChild( "message" ).strValue(),
+					value.getFirstChild( "error" ).getFirstChild( "data" ) ) );
+		} else {
+			// Certain implementations do not provide a result if it is "void"
+			long id = value.getFirstChild( "id" ).longValue();
+			String operationName = jsonRpcOpMap.get( jsonRpcId );
+			return new CommMessage( id, operationName, "/", value.getFirstChild( "result" ), null );
+		}
 	}
 
 	private void setChannelInterface() {
