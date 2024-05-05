@@ -89,7 +89,6 @@ public class XmlRpcProtocol extends SequentialCommProtocol implements HttpUtils.
 	final private DocumentBuilder docBuilder;
 	final private URI uri;
 	private final boolean inInputPort;
-	private boolean received = false;
 	private String encoding;
 
 	/**
@@ -305,7 +304,7 @@ public class XmlRpcProtocol extends SequentialCommProtocol implements HttpUtils.
 		Document doc = docBuilder.newDocument();
 		// root element <methodCall>
 		String rootName = "methodCall";
-		if( received ) {
+		if( inInputPort ) {
 			// We're responding to a request
 			rootName = "methodResponse";
 		}
@@ -313,7 +312,7 @@ public class XmlRpcProtocol extends SequentialCommProtocol implements HttpUtils.
 		Element root = doc.createElement( rootName );
 		doc.appendChild( root );
 
-		if( !received ) {
+		if( !inInputPort ) {
 			// element <methodName>
 			Element methodName;
 			methodName = doc.createElement( "methodName" );
@@ -385,12 +384,10 @@ public class XmlRpcProtocol extends SequentialCommProtocol implements HttpUtils.
 
 		final StringBuilder httpMessage = new StringBuilder();
 
-		if( received ) {
+		if( inInputPort ) {
 			// We're responding to a request
 			httpMessage.append( "HTTP/1.1 200 OK" ).append( HttpUtils.CRLF )
 				.append( "Server: Jolie" ).append( HttpUtils.CRLF );
-
-			received = false;
 		} else {
 			// We're sending a notification or a solicit
 			String path = uri.getRawPath();
@@ -413,7 +410,7 @@ public class XmlRpcProtocol extends SequentialCommProtocol implements HttpUtils.
 		}
 
 		if( !checkBooleanParameter( HttpUtils.Parameters.KEEP_ALIVE, true ) ) {
-			if( inInputPort && received )
+			if( inInputPort )
 				channel().setToBeClosed( true ); // we may do this only in input (server) mode
 			httpMessage.append( "Connection: close" ).append( HttpUtils.CRLF );
 		}
@@ -506,7 +503,6 @@ public class XmlRpcProtocol extends SequentialCommProtocol implements HttpUtils.
 			}
 		}
 
-		received = true;
 		return retVal;
 	}
 
