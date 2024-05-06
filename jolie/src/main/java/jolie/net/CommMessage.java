@@ -29,6 +29,8 @@ import jolie.Interpreter;
 import jolie.lang.Constants;
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
+import jolie.util.Lazy;
+import jolie.util.metadata.Metadata;
 
 /**
  * A <code>CommMessage</code> represents a generic communication message. A message is composed by
@@ -65,6 +67,7 @@ public class CommMessage implements Serializable {
 	private final Value value;
 	private final FaultException fault;
 	private final long id;
+	private final Lazy< Metadata > metadata = new Lazy<>( Metadata::new );
 
 	/**
 	 * Returns the resource path of this message.
@@ -217,5 +220,10 @@ public class CommMessage implements Serializable {
 	 */
 	public FaultException fault() {
 		return fault;
+	}
+
+	/** Returns the metadata for this message. */
+	public Metadata metadata() {
+		return metadata.get();
 	}
 }
