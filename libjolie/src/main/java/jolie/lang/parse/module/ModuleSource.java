@@ -96,7 +96,7 @@ class JapSource implements ModuleSource {
 	private final JarFile japFile;
 	private final URI uri;
 	private final String filePath;
-	private final String parentPath;
+	private final Path parentPath;
 	private final ZipEntry moduleEntry;
 
 	public JapSource( Path f ) throws IOException {
@@ -107,7 +107,7 @@ class JapSource implements ModuleSource {
 		if( manifest != null ) { // See if a main program is defined through a Manifest attribute
 			Attributes attrs = manifest.getMainAttributes();
 			this.filePath = attrs.getValue( Constants.Manifest.MAIN_PROGRAM );
-			this.parentPath = Paths.get( this.filePath ).getParent().toString();
+			this.parentPath = Paths.get( this.filePath ).getParent();
 			moduleEntry = japFile.getEntry( this.filePath );
 			if( moduleEntry == null ) {
 				throw new IOException();
@@ -126,7 +126,7 @@ class JapSource implements ModuleSource {
 			throw new FileNotFoundException(
 				this.filePath + " in " + f.toString() );
 		}
-		this.parentPath = Paths.get( this.filePath ).getParent().toString();
+		this.parentPath = Paths.get( this.filePath ).getParent();
 	}
 
 	/**
@@ -135,7 +135,8 @@ class JapSource implements ModuleSource {
 	 */
 	@Override
 	public Optional< String > includePath() {
-		return Optional.of( "jap:" + this.uri.toString() + "!/" + this.parentPath );
+		return Optional
+			.of( "jap:" + this.uri.toString() + "!/" + (this.parentPath != null ? this.parentPath.toString() : "") );
 	}
 
 	@Override
