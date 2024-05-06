@@ -24,6 +24,7 @@ from .private.imports.namespace import *
 from .private.imports.namespace import n1 as asN1, n2 as asN2
 from .private.imports.@pkg import mainDefaultType
 from twice.twice.main import TwiceAPI
+from twice.main import TwiceAPI as TwiceFake
 from .packages.t import test
 from .packages.bar.foo import type_foo, type_bar, type_bar_package
 from .packages.service import serviceA
