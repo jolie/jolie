@@ -2,5 +2,6 @@
 
 (
 	cd test/primitives/private/jap_src &&
-	zip -r ../twice.jap META-INF twice -x '*/.*'
+	zip -r ../twice.jap META-INF twice main.ol -x '*/.*' &&
+	zip -r ../../lib/twice.jap META-INF twice main.ol -x '*/.*'
 )
