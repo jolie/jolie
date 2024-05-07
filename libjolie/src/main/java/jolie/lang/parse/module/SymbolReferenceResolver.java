@@ -436,12 +436,13 @@ public class SymbolReferenceResolver {
 					error( buildSymbolNotFoundError( iface, iface.name() ) );
 					return;
 				}
-				if( !(symbol.get().node() instanceof InterfaceDefinition) ) {
+				OLSyntaxNode syntaxNode = symbol.get().node();
+				if( !(syntaxNode instanceof InterfaceDefinition) ) {
 					error( buildSymbolTypeMismatchError( iface, iface.name(), "InterfaceDefinition",
-						symbol.get().node().getClass().getSimpleName() ) );
+						syntaxNode != null ? syntaxNode.getClass().getSimpleName() : null ) );
 					return;
 				}
-				InterfaceDefinition ifaceDeclFromSymbol = (InterfaceDefinition) symbol.get().node();
+				InterfaceDefinition ifaceDeclFromSymbol = (InterfaceDefinition) syntaxNode;
 				ifaceDeclFromSymbol.operationsMap().values().forEach( op -> {
 					iface.addOperation( op );
 					n.addOperation( op );
