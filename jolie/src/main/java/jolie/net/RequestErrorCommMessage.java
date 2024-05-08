@@ -36,7 +36,7 @@ public class RequestErrorCommMessage extends CommMessage {
 	 */
 	public RequestErrorCommMessage( long requestId, String operationName, String resourcePath, Value value,
 		FaultException fault, String template ) {
-		super( requestId, operationName, resourcePath, value, fault );
+		super( requestId, operationName, resourcePath, value, fault, null );
 		this.template = template;
 	}
 

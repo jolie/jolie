@@ -45,7 +45,7 @@ public class InternalLink extends AbstractIdentifiableObject {
 
 	public InternalLink( String id ) {
 		super( id );
-		linkMessage = new CommMessage( CommMessage.GENERIC_REQUEST_ID, id, "/", Value.UNDEFINED_VALUE, null );
+		linkMessage = new CommMessage( CommMessage.GENERIC_REQUEST_ID, id, "/", Value.UNDEFINED_VALUE, null, null );
 	}
 
 	public synchronized void recvMessage( CommChannel channel, CommMessage message ) {

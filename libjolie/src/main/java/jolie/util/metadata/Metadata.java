@@ -31,23 +31,23 @@ import java.util.Objects;
 public final class Metadata {
 	private final Map< MetadataKey< ? >, Object > data = new HashMap<>();
 
-    public < T > void put( MetadataKey< T > key, T value ) {
+	public < T > void put( MetadataKey< T > key, T value ) {
 		Objects.requireNonNull( value );
-        if( !key.typeClass().isInstance( value ) ) {
-            throw new IllegalArgumentException( "Value " + value + " is not of type " + key.typeClass() );
-        }
-        data.put(key, value);
-    }
+		if( !key.typeClass().isInstance( value ) ) {
+			throw new IllegalArgumentException( "Value " + value + " is not of type " + key.typeClass() );
+		}
+		data.put( key, value );
+	}
 
-    public < T > T get( MetadataKey< T > key ) {
-        return key.typeClass().cast( data.get( key ) );
-    }
+	public < T > T get( MetadataKey< T > key ) {
+		return key.typeClass().cast( data.get( key ) );
+	}
 
-    public boolean containsKey( MetadataKey< ? > key ) {
-        return data.containsKey( key );
-    }
+	public boolean containsKey( MetadataKey< ? > key ) {
+		return data.containsKey( key );
+	}
 
-    public < T > T remove( MetadataKey< T > key ) {
+	public < T > T remove( MetadataKey< T > key ) {
 		return key.typeClass().cast( data.remove( key ) );
-    }
+	}
 }

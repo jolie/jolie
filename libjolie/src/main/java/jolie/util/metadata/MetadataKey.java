@@ -49,21 +49,21 @@ public final class MetadataKey< T > {
 	}
 
 	@Override
-    public int hashCode() {
-    	return Objects.hash( name, typeClass );
-    }
+	public int hashCode() {
+		return Objects.hash( name, typeClass );
+	}
 
-    @Override
-    public boolean equals( Object obj ) {
-        if( this == obj )
+	@Override
+	public boolean equals( Object obj ) {
+		if( this == obj )
 			return true;
-        
+
 		if( obj == null || getClass() != obj.getClass() )
 			return false;
-        
-		MetadataKey<?> other = (MetadataKey<?>) obj;
-        return Objects.equals( name, other.name ) && Objects.equals( typeClass, other.typeClass );
-    }
+
+		MetadataKey< ? > other = (MetadataKey< ? >) obj;
+		return Objects.equals( name, other.name ) && Objects.equals( typeClass, other.typeClass );
+	}
 
 	public static < T > MetadataKey< T > register( String name, Class< T > typeClass ) {
 		synchronized( REGISTRY ) {
