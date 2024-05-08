@@ -26,6 +26,7 @@ package jolie.net;
 import java.io.Serializable;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
+
 import jolie.Interpreter;
 import jolie.lang.Constants;
 import jolie.runtime.FaultException;
@@ -169,6 +170,7 @@ public class CommMessage implements Serializable {
 	 * @param resourcePath the resource path for this message
 	 * @param value the message data to equip the message with
 	 * @param fault the fault to equip the message with
+	 * @param originalRequest the original request that this message is a response for
 	 */
 	public CommMessage( long requestId, String operationName, String resourcePath, Value value, FaultException fault,
 		CommMessage originalRequest ) {
@@ -179,6 +181,19 @@ public class CommMessage implements Serializable {
 		this.fault = fault;
 		this.id = ID_COUNTER.getAndIncrement();
 		this.originalRequest = originalRequest;
+	}
+
+	/**
+	 * Constructor
+	 * 
+	 * @param requestId the identifier for the request
+	 * @param operationName the operation name for this message
+	 * @param resourcePath the resource path for this message
+	 * @param value the message data to equip the message with
+	 * @param fault the fault to equip the message with
+	 */
+	public CommMessage( long requestId, String operationName, String resourcePath, Value value, FaultException fault ) {
+		this( requestId, operationName, resourcePath, value, fault, null );
 	}
 
 	/**

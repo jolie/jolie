@@ -105,7 +105,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.Protocol {
 	}
 
 	private static final MetadataKey< ExchangeContext > HTTP_METADATA_KEY =
-		MetadataKey.register( "http", ExchangeContext.class );
+		MetadataKey.of( "http", ExchangeContext.class );
 
 	private final URI uri;
 	private final boolean inInputPort;
@@ -293,17 +293,17 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.Protocol {
 		return format;
 	}
 
-	private String send_getCharset( String operationName ) {
+	private String send_getCharset( CommMessage message ) {
+		String operationName = message.operationName();
 		String charset = null;
 		if( hasOperationSpecificParameter( operationName, HttpUtils.Parameters.CHARSET ) ) {
 			charset = getOperationSpecificStringParameter( operationName, HttpUtils.Parameters.CHARSET );
 		} else if( hasParameter( HttpUtils.Parameters.CHARSET ) ) {
 			charset = getStringParameter( HttpUtils.Parameters.CHARSET );
-		} else if( inInputPort && exchangeContext.requestCharset != null ) {
+		} else if( inInputPort && message.originalRequest().isPresent() ) {
 			// if we are on the server side and have no "charset" parameter specified we apply content type
 			// negotiation according to RFC9110 section 12.5ff
-			charset = exchangeContext.requestCharset;
-			exchangeContext.requestCharset = null;
+			charset = getHttpMetadata( message.originalRequest().get() ).requestCharset;
 		}
 		if( charset == null || charset.isEmpty() )
 			charset = HttpUtils.DEFAULT_CONTENT_CHARSET; // fall back to the default
@@ -869,7 +869,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.Protocol {
 	public void send_internal( OutputStream ostream, CommMessage message, InputStream istream )
 		throws IOException {
 		Method method = send_getRequestMethod( message );
-		String charset = send_getCharset( message.operationName() );
+		String charset = send_getCharset( message );
 		String format = send_getFormat( message );
 		String contentType = null;
 		Type sendType = getSendType( message );
@@ -1337,7 +1337,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.Protocol {
 		}
 
 		messageMetadata.requestFormat = HttpUtils.getRequestFormat( message );
-		exchangeContext.requestCharset = HttpUtils.getRequestCharset( message );
+		messageMetadata.requestCharset = HttpUtils.getRequestCharset( message );
 		if( !message.isResponse() ) {
 			if( hasParameter( CommProtocol.Parameters.OPERATION_SPECIFIC_CONFIGURATION ) ) {
 				recv_templatedOperation( message, decodedMessage );

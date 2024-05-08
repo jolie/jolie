@@ -27,8 +27,10 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
+
 import javax.script.Invocable;
 import javax.script.ScriptException;
+
 import jolie.Interpreter;
 import jolie.js.JsUtils;
 import jolie.net.CommChannel;
@@ -96,6 +98,7 @@ public class JavaScriptCommChannel extends CommChannel implements PollableCommCh
 				message.operationName(),
 				message.resourcePath(),
 				value,
+				null,
 				null );
 		} else {
 			response = CommMessage.createEmptyResponse( message );

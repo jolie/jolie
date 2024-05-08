@@ -19,9 +19,7 @@
 
 package jolie.util.metadata;
 
-import java.util.HashSet;
 import java.util.Objects;
-import java.util.Set;
 
 /**
  * A metadata key.
@@ -30,7 +28,7 @@ import java.util.Set;
  * @param <T> the type of values associated to this metadata key
  */
 public final class MetadataKey< T > {
-	private final static Set< String > REGISTRY = new HashSet<>();
+	// private final static Map< String, MetadataKey< ? > > REGISTRY = new ConcurrentHashMap<>();
 
 	private final String name;
 	private final Class< T > typeClass;
@@ -65,14 +63,27 @@ public final class MetadataKey< T > {
 		return Objects.equals( name, other.name ) && Objects.equals( typeClass, other.typeClass );
 	}
 
-	public static < T > MetadataKey< T > register( String name, Class< T > typeClass ) {
-		synchronized( REGISTRY ) {
-			if( REGISTRY.contains( name ) ) {
-				throw new IllegalStateException( "Metadata key with name " + name + " has already been registered." );
-			}
+	// public static < T > MetadataKey< T > registerUnique( String name, Class< T > typeClass ) {
+	// REGISTRY.computeIfAbsent(name, mappingFunction)
 
-			REGISTRY.add( name );
-		}
+	// synchronized( REGISTRY ) {
+	// if( REGISTRY.contains( name ) ) {
+	// throw new IllegalStateException( "Metadata key with name " + name + " has already been
+	// registered." );
+	// }
+
+	// REGISTRY.add( name );
+	// }
+	// return new MetadataKey<>( name, typeClass );
+	// }
+
+	// @SuppressWarnings( "unchecked" )
+	// public static < T > MetadataKey< T > of( String name, Class< T > typeClass ) {
+	// return (MetadataKey< T >) REGISTRY.computeIfAbsent( name, n -> new MetadataKey< T >( name,
+	// typeClass ) );
+	// }
+
+	public static < T > MetadataKey< T > of( String name, Class< T > typeClass ) {
 		return new MetadataKey<>( name, typeClass );
 	}
 }
