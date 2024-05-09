@@ -27,16 +27,16 @@ in the main directory of the repository in order to ensure that not only jolie2j
 
 In order to easily access the tool it is recommended to work in the devcontainer provided by the repository, from within which the tool can be used with the following command:
 
-    jolie2java --packageName <package>
-               [ --typesPackage <package> (default=".types" ) ]
-               [ --faultsPackage <package> (default=".faults" ) ]
-               [ --interfacesPackage <package> (default=".interfaces" ) ]
-               [ --outputDirectory <path> (default="./generated" ) ]
-               [ --generateService <true|false> (default=true) ]
-               [ --serviceName <name> (default="MainService") ] 
+    jolie2java --outputDirectory <path>
+               [ --packageName <package> (default="joliex") ]
+               [ --typePackage <package> (default=".spec.types") ]
+               [ --faultPackage <package> (default=".spec.faults") ]
+               [ --interfacePackage <package> (default=".spec.interfaces") ]
+               [ --serviceName <name> (default="MainService") ]
+               [ --generateService <0:if absent | 1:always | 2:never> (default=0) ]
                <file>
 
-where **file** should be either a .ol or .iol file. Alternatively, if you aren't using the devcontainer, you can access the tool by replacing **jolie2java** with the path to the appropriate executable in the **launchers** directory of the repository in the above example.
+where **file** should be either a .ol or .iol file. Alternatively, if you aren't using the devcontainer, you can access the tool by replacing **jolie2java**, in the above example, with the path to the appropriate executable in the **launchers** directory of the repository.
 
 
 ## Documentation
@@ -245,8 +245,6 @@ public final class MyStructure extends TypedStructure {
     public static final class UntypedField extends UntypedStructure<JolieBool> {...}
 
     public static sealed interface PossibleChoice extends JolieValue {...}
-
-    public static record BasicVector( Double contentValue ) implements JolieValue {...}
 }
 ```
 
@@ -561,73 +559,24 @@ then it will result in the class for `OtherStructure` generating an inner class,
 Jolie provides a lot of freedom when it comes to naming types and fields, with fields allowing you to use arbitrary strings, Java on the other hand is not as lenient, so in order to avoid conflicts jolie2java imposes the following rules:
 
 1. Type names have to match the regex "[A-Z]\w[\w\d]\*"
-2. Type names cannot match the name of any of the classes used by the generated files, including, but not limited to, `JolieValue`, `JolieNative`, `Boolean`, `Optional`, etc.
+2. Type names cannot match the name of any of the classes used by the generated files, including `JolieValue`, `JolieNative`, `Boolean`, `Optional`, etc.
 3. Field names have to match the regex "[a-z][\w\d]\*".
-4. Field names cannot match any of method names reserved by jolie2java, including `content`, `contentValue`, `children`, `construct`, and `constructList`. Additionally they cannot match any of the reserved keywords from Java, including, but not limited to, `char`, `int`, `class`, etc.
-5. When a field is defined as an inline Custom type, the capitalization of its name must adhere to (1.) and (2.) as well.
+4. Field names cannot match any method names reserved by jolie2java, including `content`, `contentValue`, `children`, `builder`, and `listBuilder`. Additionally they cannot match any of the reserved keywords from Java, including `char`, `int`, `class`, etc.
+5. When a field is defined as an inline Structure or Choice type, the capitalization of its name must adhere to (1.) and (2.) as well.
+6. When a field is defined as an inline Structure or Choice type, the capitalization of its name must not match that of the type or any of the fields which it is a subfield of.
 
 Breaking any of the above rules will result in the generation process failing, requiring you to either change the names directly or use the `@JavaName` annotation discussed previously.
 
-There are certain types of naming conflicts which currently aren't being enforced, and therefore can result in the generated files being unable to compile, those being discussed in the following subsections.
-
-#### Inner Class Hiding Enclosing Class
-
-The Jolie type:
-
-    type MyType: int { myType: long { myType: double {?} } }
-
-gets translated to:
-
-```java
-public final class MyType ... {
-    ...
-
-    public static final class MyType ... {
-        ...
-
-        public static final class MyType ... {...}
-    }
-}
-```
-
-where each inner `MyType` class is hiding the enclosing `MyType` class.
-
-##### Inner Class Hiding Other Class
-
-The Jolie types:
-
-    type MyType: void {?}
-    type OtherType: int { myType: bool { field: MyType } }
-
-gets translated to:
-
-```java
-public final class MyType ... {...}
-
-public final class OtherType ... {
-    ...
-
-    public static final class MyType {
-
-        public MyType field() {...}
-        
-        ...
-    }
-}
-```
-
-where the type returned by `field()` is `OtherType.MyType` rather than `MyType`.
-
 #### Fault Names
 
-In Jolie it's entirely valid to declare an API like the following:
+In Jolie it is currently possible to define faults which share names but have different types like the following:
 
     my_rr( undefined )( undefined ) 
         throws  MyFault( int ) 
                 MyFault( long ) 
                 MyFault( SomeType )
 
-Which is handled by, whenever faults with matching names but distinct types are detected, appending the name of the type to the name of the fault, so the given declaration would prompt the generation of the classes:
+This is currently handled by, whenever faults with matching names but distinct types are detected, appending the name of the type to the name of the fault, so the given declaration would prompt the generation of the classes:
 
 ```java
 public class MyFaultInt extends FaultException {...}
@@ -635,7 +584,7 @@ public class MyFaultLong extends FaultException {...}
 public class MyFaultSomeType extends FaultException {...}
 ```
 
-Ensuring that there are no conflicts with the new names and any other faults however is not supported, and is left up to the developer, as an example if we changed the previous API to instead be the following:
+As this feature is currently planned to be outphased, there are no guarantees that this will not result in naming conflicts, as an example if we changed the previous operation to instead be the following:
 
     my_rr( undefined )( undefined ) 
         throws  MyFault( int ) 

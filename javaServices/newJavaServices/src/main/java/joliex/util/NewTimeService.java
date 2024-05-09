@@ -23,9 +23,9 @@ import jolie.net.CommMessage;
 import jolie.runtime.FaultException;
 import jolie.runtime.embedding.RequestResponse;
 import jolie.runtime.embedding.java.JolieValue;
-import interfaces.*;
-import faults.*;
-import types.*;
+import joliex.util.spec.interfaces.*;
+import joliex.util.spec.faults.*;
+import joliex.util.spec.types.*;
 
 public final class NewTimeService extends JavaService implements TimeInterface {
 

@@ -21,40 +21,40 @@ import one.util.streamex.EntryStream;
 
 public class JavaDocumentCreator {
 
-    public static final String DEFAULT_PACKAGE_TYPE = "types";
-    public static final String DEFAULT_PACKAGE_FAULT = "faults";
-    public static final String DEFAULT_PACKAGE_INTERFACE = "interfaces";
-    public static final String DEFAULT_DIRECTORY_SERVICE = "./src/main/java";
     public static final String DEFAULT_PACKAGE_SERVICE = "joliex";
+    public static final String DEFAULT_PACKAGE_TYPE = ".spec.types";
+    public static final String DEFAULT_PACKAGE_FAULT = ".spec.faults";
+    public static final String DEFAULT_PACKAGE_INTERFACE = ".spec.interfaces";
     public static final String DEFAULT_NAME_SERVICE = "MainService";
 
+    private final String servicePackage;
+    private final Path serviceDirectory;
     private final String typePackage;
     private final Path typeDirectory;
     private final String faultPackage;
     private final Path faultDirectory;
     private final String interfacePackage;
     private final Path interfaceDirectory;
-    private final String servicePackage;
-    private final Path serviceDirectory;
     private final String serviceName;
-    private final boolean overrideService;
+    private final GenerateService generateService;
 
-    public JavaDocumentCreator( String outputDirectory, String typePackage, String faultPackage, String interfacePackage, String serviceDirectory, String servicePackage, String serviceName, boolean overrideService ) {
+    public JavaDocumentCreator( String outputDirectory, String packageName, String typePackage, String faultPackage, String interfacePackage, String serviceName, GenerateService generateService ) {
         final Path od = Path.of( outputDirectory );
+
+        servicePackage = getPackageName( packageName, DEFAULT_PACKAGE_SERVICE );
+        serviceDirectory = getPackagePath( od, servicePackage );
         
-        this.typePackage = formatPackageName( typePackage == null ? DEFAULT_PACKAGE_TYPE : typePackage );
+        this.typePackage = getPackageName( servicePackage, typePackage, DEFAULT_PACKAGE_TYPE );
         typeDirectory = getPackagePath( od, this.typePackage );
 
-        this.faultPackage = formatPackageName( faultPackage == null ? DEFAULT_PACKAGE_FAULT : faultPackage );
+        this.faultPackage = getPackageName( servicePackage, faultPackage, DEFAULT_PACKAGE_FAULT );
         faultDirectory = getPackagePath( od, this.faultPackage );
 
-        this.interfacePackage = formatPackageName( interfacePackage == null ? DEFAULT_PACKAGE_INTERFACE : interfacePackage );
+        this.interfacePackage = getPackageName( servicePackage, interfacePackage, DEFAULT_PACKAGE_INTERFACE );
         interfaceDirectory = getPackagePath( od, this.interfacePackage );
 
-        this.servicePackage = formatPackageName( servicePackage == null ? DEFAULT_PACKAGE_SERVICE : servicePackage );
-        this.serviceDirectory = getPackagePath( Path.of( serviceDirectory == null ? DEFAULT_DIRECTORY_SERVICE : serviceDirectory ), this.servicePackage );
         this.serviceName = serviceName == null ? DEFAULT_NAME_SERVICE : serviceName;
-        this.overrideService = overrideService;
+        this.generateService = generateService;
     }
 
     public void generateClasses( ProgramInspector inspector ) {
@@ -69,7 +69,7 @@ public class JavaDocumentCreator {
         generateExceptionClasses( operationsMap );
         generateInterfaceClasses( operationsMap );
 
-        if ( !operationsMap.isEmpty() )
+        if ( !operationsMap.isEmpty() && generateService != GenerateService.NEVER )
             generateServiceClass( operationsMap );
     }
 
@@ -112,11 +112,27 @@ public class JavaDocumentCreator {
                 Files.exists( typeDirectory ) ? typePackage : null, 
                 Files.exists( faultDirectory ) ? faultPackage : null, 
                 Files.exists( interfaceDirectory ) ? interfacePackage : null ),
-            overrideService );
+            generateService == GenerateService.ALWAYS );
     }
 
-    private static String formatPackageName( String name ) {
-        return name.replaceAll( "-", "_" );
+    private static String getPackageName( String packageName, String defaultName ) {
+        return packageName == null
+            ? defaultName
+            : packageName.replaceAll( "-", "_" );
+    }
+
+    private static String getPackageName( String packageBase, String packageName, String defaultName ) {
+        final String name = getPackageName( packageName, defaultName );
+
+        if ( !name.startsWith(".") )
+            return name;
+
+        if ( packageBase.isBlank() )
+            return name.substring( 1 );
+
+        return name.length() == 1
+            ? packageBase
+            : packageBase + name;
     }
 
     private static Path getPackagePath( Path dir, String packagePath ) {

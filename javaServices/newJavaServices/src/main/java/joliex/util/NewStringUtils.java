@@ -23,8 +23,8 @@ import java.util.stream.IntStream;
 import org.apache.commons.text.StringSubstitutor;
 import org.apache.commons.text.lookup.StringLookup;
 
-import interfaces.StringUtilsInterface;
-import types.*;
+import joliex.util.spec.interfaces.StringUtilsInterface;
+import joliex.util.spec.types.*;
 
 public final class NewStringUtils extends JavaService implements StringUtilsInterface {
 

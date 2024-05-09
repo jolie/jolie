@@ -43,19 +43,19 @@ import static org.junit.Assert.assertTrue;
  */
 public class JavaDocumentCreatorTest {
 
-	private static final Boolean DELETE_AFTER_TEST = false;
+	private static final Boolean DELETE_AFTER_TEST = true;
 
 	@BeforeClass
 	public static void setUpClass() throws IOException, ParserException, CodeCheckException, CommandLineException, ModuleException {
 		ClassManager.generateClasses();
 
-		final Path servicePackage = Path.of( ClassManager.OUTPUTDIRECTORY.toString(), ClassManager.SERVICEPACKAGE.split( "\\." ) );
+		final Path packageDirectory = Path.of( ClassManager.OUTPUTDIRECTORY.toString(), ClassManager.PACKAGENAME.split( "\\." ) );
 		assertEquals( 
 			"The number of generated package files/directories is wrong", 
-			4L, Files.list( servicePackage ).count() );
+			4L, Files.list( packageDirectory ).count() );
 		assertEquals( 
 			"The number of generated type files is wrong", 
-			27L, Files.list( Path.of( ClassManager.OUTPUTDIRECTORY.toString(), ClassManager.TYPEPACKAGE.split( "\\." ) ) ).count() );
+			27L, Files.list( Path.of( packageDirectory.toString(), ClassManager.TYPEPACKAGE.split( "\\." ) ) ).count() );
 		assertEquals( 
 			"The number of generated fault files is wrong", 
 			11L, Files.list( Path.of( ClassManager.OUTPUTDIRECTORY.toString(), ClassManager.FAULTPACKAGE.split( "\\." ) ) ).count() );

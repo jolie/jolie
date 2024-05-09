@@ -10,8 +10,8 @@ public class NameFormatter {
         "content",
         "contentValue",
         "children",
-        "construct",
-        "constructList"
+        "builder",
+        "listBuilder"
     );
 
     private static final Set<String> RESERVED_CLASS_NAMES = Set.of(

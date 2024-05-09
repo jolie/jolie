@@ -10,7 +10,7 @@ import jolie.lang.parse.SemanticVerifier;
 import jolie.lang.parse.ast.Program;
 import jolie.lang.parse.util.ParsingUtils;
 import jolie.lang.parse.util.ProgramInspector;
-
+import joliex.java.generate.GenerateService;
 import joliex.java.generate.JavaDocumentCreator;
 
 public class Jolie2Java {
@@ -31,13 +31,12 @@ public class Jolie2Java {
 			final ProgramInspector inspector = getInspector( cmdParser );
 			final JavaDocumentCreator jdc = new JavaDocumentCreator(
 				cmdParser.outputDirectory(),
+				cmdParser.packageName(),
 				cmdParser.typePackage(),
 				cmdParser.faultPackage(),
 				cmdParser.interfacePackage(),
-				cmdParser.serviceDirectory(),
-				cmdParser.servicePackage(),
 				cmdParser.serviceName(),
-				cmdParser.overrideService()
+				GenerateService.create( cmdParser.generateService() )
 			);
 			
 			jdc.generateClasses( inspector );
