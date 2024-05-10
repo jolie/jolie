@@ -28,8 +28,6 @@ import java.util.Objects;
  * @param <T> the type of values associated to this metadata key
  */
 public final class MetadataKey< T > {
-	// private final static Map< String, MetadataKey< ? > > REGISTRY = new ConcurrentHashMap<>();
-
 	private final String name;
 	private final Class< T > typeClass;
 
@@ -62,26 +60,6 @@ public final class MetadataKey< T > {
 		MetadataKey< ? > other = (MetadataKey< ? >) obj;
 		return Objects.equals( name, other.name ) && Objects.equals( typeClass, other.typeClass );
 	}
-
-	// public static < T > MetadataKey< T > registerUnique( String name, Class< T > typeClass ) {
-	// REGISTRY.computeIfAbsent(name, mappingFunction)
-
-	// synchronized( REGISTRY ) {
-	// if( REGISTRY.contains( name ) ) {
-	// throw new IllegalStateException( "Metadata key with name " + name + " has already been
-	// registered." );
-	// }
-
-	// REGISTRY.add( name );
-	// }
-	// return new MetadataKey<>( name, typeClass );
-	// }
-
-	// @SuppressWarnings( "unchecked" )
-	// public static < T > MetadataKey< T > of( String name, Class< T > typeClass ) {
-	// return (MetadataKey< T >) REGISTRY.computeIfAbsent( name, n -> new MetadataKey< T >( name,
-	// typeClass ) );
-	// }
 
 	public static < T > MetadataKey< T > of( String name, Class< T > typeClass ) {
 		return new MetadataKey<>( name, typeClass );
