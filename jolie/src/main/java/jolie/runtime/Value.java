@@ -44,6 +44,11 @@ import jolie.runtime.typing.TypeCastingException;
 class ValueLink extends Value {
 	private final VariablePath linkPath;
 
+	protected ValueLink( VariablePath path ) {
+		assert (path != null);
+		linkPath = path;
+	}
+
 	private Value getLinkedValue() {
 		return linkPath.getValue( this );
 	}
@@ -52,11 +57,6 @@ class ValueLink extends Value {
 	public ValueVector getChildren( String childId ) {
 		return getLinkedValue().getChildren( childId );
 	}
-
-	/*
-	 * private void writeObject( ObjectOutputStream out ) throws IOException { out.writeObject(
-	 * getLinkedValue() ); }
-	 */
 
 	@Override
 	public final Value evaluate() {
@@ -108,11 +108,6 @@ class ValueLink extends Value {
 		return getLinkedValue().valueObject();
 	}
 
-	public ValueLink( VariablePath path ) {
-		assert (path != null);
-		linkPath = path;
-	}
-
 	@Override
 	public boolean isLink() {
 		return true;
@@ -126,10 +121,20 @@ class ValueLink extends Value {
 
 
 class ValueImpl extends Value implements Serializable {
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = Constants.serialVersionUID();
 
 	private volatile Object valueObject = null;
 	private final AtomicReference< Map< String, ValueVector > > children = new AtomicReference<>();
+
+	protected ValueImpl() {}
+
+	protected ValueImpl( Object object ) {
+		valueObject = object;
+	}
+
+	protected ValueImpl( Value val ) {
+		valueObject = val.valueObject();
+	}
 
 	@Override
 	public void setValueObject( Object object ) {
@@ -165,8 +170,6 @@ class ValueImpl extends Value implements Serializable {
 		children.set( null );
 	}
 
-	protected ValueImpl() {}
-
 	@Override
 	public boolean isLink() {
 		return false;
@@ -191,57 +194,20 @@ class ValueImpl extends Value implements Serializable {
 		 */
 		assignValue( value );
 
-		if( value.hasChildren() ) {
-			int i;
-			ValueImpl newValue;
-			Map< String, ValueVector > myChildren = children();
-			for( Entry< String, ValueVector > entry : value.children().entrySet() ) {
-				if( copyLinks && entry.getValue().isLink() ) {
-					myChildren.put( entry.getKey(), ValueVector.createClone( entry.getValue() ) );
-				} else {
-					List< Value > otherVector = entry.getValue().valuesCopy();
-					ValueVector vec = getChildren( entry.getKey(), myChildren );
-					i = 0;
-					for( Value v : otherVector ) {
-						if( copyLinks && v.isLink() ) {
-							vec.set( i, ((ValueLink) v).clone() );
-						} else {
-							newValue = (v.isUsedInCorrelation() ? new CSetValue() : new ValueImpl());
-							newValue._deepCopy( v, copyLinks );
-							vec.set( i, newValue );
-						}
-						i++;
-					}
-				}
-			}
-		}
+		RootValueImpl._deepCopyInternal( value, copyLinks, children() );
 	}
-
-	private static ValueVector getChildren( String childId, Map< String, ValueVector > children ) {
-		return children.computeIfAbsent( childId, k -> ValueVector.create() );
-	}
-
-	private final static int INITIAL_CAPACITY = 8;
-	private final static float LOAD_FACTOR = 0.75f;
 
 	@Override
 	public Map< String, ValueVector > children() {
 		// Create the map if not present
-		children.getAndUpdate( v -> v == null ? new ConcurrentHashMap<>( INITIAL_CAPACITY, LOAD_FACTOR ) : v );
+		children.getAndUpdate(
+			v -> v == null ? new ConcurrentHashMap<>( RootValueImpl.INITIAL_CAPACITY, RootValueImpl.LOAD_FACTOR ) : v );
 		return children.get();
 	}
 
 	@Override
 	public Object valueObject() {
 		return valueObject;
-	}
-
-	protected ValueImpl( Object object ) {
-		valueObject = object;
-	}
-
-	public ValueImpl( Value val ) {
-		valueObject = val.valueObject();
 	}
 
 	@Override
@@ -251,13 +217,15 @@ class ValueImpl extends Value implements Serializable {
 }
 
 
-/** TODO: remove code duplication from ValueImpl */
-class RootValueImpl extends Value {
-	private final static int INITIAL_CAPACITY = 8;
-	private final static float LOAD_FACTOR = 0.75f;
+class RootValueImpl extends Value implements Serializable {
+	private static final long serialVersionUID = Constants.serialVersionUID();
+	protected final static int INITIAL_CAPACITY = 8;
+	protected final static float LOAD_FACTOR = 0.75f;
 
 	private final Map< String, ValueVector > children =
 		new ConcurrentHashMap<>( INITIAL_CAPACITY, LOAD_FACTOR );
+
+	protected RootValueImpl() {}
 
 	@Override
 	public RootValueImpl clone() {
@@ -293,7 +261,7 @@ class RootValueImpl extends Value {
 	}
 
 	@Override
-	public final Map< String, ValueVector > children() {
+	public Map< String, ValueVector > children() {
 		return children;
 	}
 
@@ -307,23 +275,20 @@ class RootValueImpl extends Value {
 		return children.containsKey( childId );
 	}
 
-	@Override
-	protected void _deepCopy( Value value, boolean copyLinks ) {
+	protected static void _deepCopyInternal( Value value, boolean copyLinks, Map< String, ValueVector > children ) {
 		if( value.hasChildren() ) {
-			int i;
-			ValueImpl newValue;
 			for( Entry< String, ValueVector > entry : value.children().entrySet() ) {
 				if( copyLinks && entry.getValue().isLink() ) {
 					children.put( entry.getKey(), ValueVector.createClone( entry.getValue() ) );
 				} else {
 					List< Value > otherVector = entry.getValue().valuesCopy();
-					ValueVector vec = getChildren( entry.getKey(), children );
-					i = 0;
+					ValueVector vec = children.computeIfAbsent( entry.getKey(), k -> ValueVector.create() );
+					int i = 0;
 					for( Value v : otherVector ) {
 						if( copyLinks && v.isLink() ) {
 							vec.set( i, ((ValueLink) v).clone() );
 						} else {
-							newValue = (v.isUsedInCorrelation() ? new CSetValue() : new ValueImpl());
+							ValueImpl newValue = (v.isUsedInCorrelation() ? new CSetValue() : new ValueImpl());
 							newValue._deepCopy( v, copyLinks );
 							vec.set( i, newValue );
 						}
@@ -334,8 +299,9 @@ class RootValueImpl extends Value {
 		}
 	}
 
-	private static ValueVector getChildren( String childId, Map< String, ValueVector > children ) {
-		return children.computeIfAbsent( childId, k -> ValueVector.create() );
+	@Override
+	protected void _deepCopy( Value value, boolean copyLinks ) {
+		_deepCopyInternal( value, copyLinks, children );
 	}
 
 	@Override
@@ -351,17 +317,7 @@ class RootValueImpl extends Value {
 
 
 class CSetValue extends ValueImpl {
-	private static final long serialVersionUID = Constants.serialVersionUID();
-
-	// @Override
-	// public void setValueObject( Object object ) {
-	// // CommCore commCore = Interpreter.getInstance().commCore();
-	// // synchronized( commCore.correlationLock() )
-	// // removeFromRadixTree();
-	// super.setValueObject( object );
-	// // addToRadixTree();
-	// // }
-	// }
+	protected CSetValue() {}
 
 	@Override
 	public CSetValue clone() {
@@ -384,9 +340,9 @@ class CSetValue extends ValueImpl {
  *         Montesi: new system for internal value storing
  */
 public abstract class Value implements Expression, Cloneable {
-	public abstract boolean isLink();
-
 	public static final Value UNDEFINED_VALUE = Value.create();
+
+	public abstract boolean isLink();
 
 	public boolean isUsedInCorrelation() {
 		return false;
