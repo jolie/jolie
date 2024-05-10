@@ -39,8 +39,16 @@ public class ByteArray {
 		return buffer;
 	}
 
-	public boolean equals( ByteArray other ) {
-		return Arrays.equals( buffer, other.buffer );
+	@Override
+	public boolean equals( Object other ) {
+		if( other == null || !(other instanceof ByteArray) )
+			return false;
+		return Arrays.equals( buffer, ((ByteArray) other).buffer );
+	}
+
+	@Override
+	public int hashCode() {
+		return Arrays.hashCode( buffer );
 	}
 
 	@Override
