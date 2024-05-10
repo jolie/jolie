@@ -30,6 +30,7 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
@@ -549,7 +550,12 @@ public abstract class Value implements Expression, Cloneable {
 		setValueObject( object );
 	}
 
-	public final synchronized boolean equals( Value val ) {
+	@Override
+	public final synchronized boolean equals( Object obj ) {
+		if( obj == null || !(obj instanceof Value) )
+			return false;
+		final Value val = (Value) obj;
+
 		boolean r = false;
 		if( val.isDefined() ) {
 			if( isByteArray() || val.isByteArray() ) {
@@ -572,6 +578,13 @@ public abstract class Value implements Expression, Cloneable {
 			r = !isDefined();
 		}
 		return r;
+	}
+
+	@Override
+	public int hashCode() {
+		return isLink() ? super.hashCode()
+			: Objects.requireNonNullElse( valueObject(),
+				UNDEFINED_VALUE ).hashCode();
 	}
 
 	public final boolean isInt() {
