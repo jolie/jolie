@@ -95,7 +95,6 @@ import jolie.xml.XmlUtils;
  */
 public class HttpProtocol extends CommProtocol implements HttpUtils.Protocol {
 	private static class ExchangeContext {
-		private String inputId = null;
 		private MultiPartFormDataParser multiPartFormDataParser = null;
 		private String encoding = null;
 		private String requestFormat = null;
@@ -111,6 +110,8 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.Protocol {
 
 	private final Transformer transformer;
 	private final DocumentBuilder docBuilder;
+
+	private String inputId = null;
 
 	@Override
 	public String name() {
@@ -270,7 +271,12 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.Protocol {
 	}
 
 	private static ExchangeContext getHttpMetadata( CommMessage message ) {
-		return message.metadata().get( HTTP_METADATA_KEY );
+		ExchangeContext context = message.metadata().get( HTTP_METADATA_KEY );
+		if( context == null ) {
+			context = new ExchangeContext();
+			message.metadata().put( HTTP_METADATA_KEY, context );
+		}
+		return context;
 	}
 
 	private String send_getFormat( CommMessage message ) {
@@ -783,9 +789,14 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.Protocol {
 		if( checkBooleanParameter( HttpUtils.Parameters.CONCURRENT, true ) ) {
 			headerBuilder.append( HttpUtils.Headers.JOLIE_MESSAGE_ID ).append( ": " ).append( message.requestId() )
 				.append( HttpUtils.CRLF );
+		} else {
+			// Remember the operation name for later
+			inputId = message.operationName();
 		}
 
-		headerBuilder.append( HttpUtils.Headers.JOLIE_RESOURCE_PATH ).append( ": " ).append( message.resourcePath() )
+		headerBuilder.append( HttpUtils.Headers.JOLIE_OPERATION ).append( ": " )
+			.append( message.operationName() ).append( HttpUtils.CRLF )
+			.append( HttpUtils.Headers.JOLIE_RESOURCE_PATH ).append( ": " ).append( message.resourcePath() )
 			.append( HttpUtils.CRLF );
 
 		String contentType = getStringParameter( HttpUtils.Parameters.CONTENT_TYPE );
@@ -938,9 +949,6 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.Protocol {
 					message.resourcePath(), e.getMessage(), null );
 			}
 		} );
-
-		final ExchangeContext messageMetadata = getHttpMetadata( message );
-		messageMetadata.inputId = message.operationName();
 
 		ostream.write( headerBuilder.toString().getBytes( HttpUtils.URL_DECODER_ENC ) );
 		if( encodedContent.content != null && !headRequestResponse ) {
@@ -1110,9 +1118,17 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.Protocol {
 	}
 
 	private void recv_parseMessage( HttpMessage message, HttpUtils.DecodedMessage decodedMessage, String type,
-		String charset, String inputId, ExchangeContext messageMetadata )
+		String charset, ExchangeContext messageMetadata )
 		throws IOException {
-		final String operationName = message.isResponse() ? inputId : decodedMessage.operationName;
+		final String operationName;
+		if( decodedMessage.operationName != null ) {
+			operationName = decodedMessage.operationName;
+		} else if( message.isResponse() ) {
+			operationName = inputId;
+		} else {
+			operationName = null;
+		}
+
 		if( getOperationSpecificStringParameter( operationName, HttpUtils.Parameters.FORCE_CONTENT_DECODING )
 			.equals( NativeType.STRING.id() ) ) {
 			decodedMessage.value.setValue( new String( message.content(), charset ) );
@@ -1296,6 +1312,21 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.Protocol {
 		}
 	}
 
+	private void recv_readJolieHeaders( HttpMessage message, HttpUtils.DecodedMessage decodedMessage ) {
+		String messageId = message.getProperty( HttpUtils.Headers.JOLIE_MESSAGE_ID );
+		if( messageId != null ) {
+			try {
+				decodedMessage.id = Long.parseLong( messageId );
+			} catch( NumberFormatException e ) {
+			}
+		}
+
+		String operationName = message.getProperty( HttpUtils.Headers.JOLIE_OPERATION );
+		if( operationName != null ) {
+			decodedMessage.operationName = operationName;
+		}
+	}
+
 	@Override
 	public CommMessage recv_internal( InputStream istream, OutputStream ostream )
 		throws IOException {
@@ -1310,6 +1341,8 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.Protocol {
 				: HttpUtils.getResponseCharset( message );
 
 		HttpUtils.recv_checkForChannelClosing( message, channel() );
+
+		recv_readJolieHeaders( message, decodedMessage );
 
 		if( checkBooleanParameter( HttpUtils.Parameters.DEBUG ) ) {
 			boolean showContent = false;
@@ -1365,11 +1398,9 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.Protocol {
 
 		/* https://tools.ietf.org/html/rfc7231#section-4.3 */
 		if( !message.isGet() && !message.isHead() ) {
-			String inputId = null; // TODO: Where to get this one?
-
 			// body parsing
 			if( message.size() > 0 ) {
-				recv_parseMessage( message, decodedMessage, contentType, charset, inputId, messageMetadata );
+				recv_parseMessage( message, decodedMessage, contentType, charset, messageMetadata );
 			}
 		}
 
@@ -1377,32 +1408,21 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.Protocol {
 			recv_checkDefaultOp( message, decodedMessage );
 		}
 
-		if( checkBooleanParameter( HttpUtils.Parameters.CONCURRENT ) ) {
-			String messageId = message.getProperty( HttpUtils.Headers.JOLIE_MESSAGE_ID );
-			if( messageId != null ) {
-				try {
-					decodedMessage.id = Long.parseLong( messageId );
-				} catch( NumberFormatException e ) {
-				}
-			}
-		}
-
 		if( message.isResponse() ) {
-			String inputId = null; // TODO: Where to get this one?
-
+			final String operationName = decodedMessage.operationName != null ? decodedMessage.operationName : inputId;
 			FaultException faultException = null;
-			if( hasOperationSpecificParameter( inputId, HttpUtils.Parameters.STATUS_CODES ) ) {
+			if( hasOperationSpecificParameter( operationName, HttpUtils.Parameters.STATUS_CODES ) ) {
 				faultException = HttpUtils.recv_mapHttpStatusCodeFault( message,
-					getOperationSpecificParameterFirstValue( inputId,
+					getOperationSpecificParameterFirstValue( operationName,
 						HttpUtils.Parameters.STATUS_CODES ),
 					decodedMessage.value );
 			}
 			String responseHeader;
 			if( hasParameter( HttpUtils.Parameters.RESPONSE_HEADER )
-				|| hasOperationSpecificParameter( inputId, HttpUtils.Parameters.RESPONSE_HEADER ) ) {
-				if( hasOperationSpecificParameter( inputId, HttpUtils.Parameters.RESPONSE_HEADER ) ) {
+				|| hasOperationSpecificParameter( operationName, HttpUtils.Parameters.RESPONSE_HEADER ) ) {
+				if( hasOperationSpecificParameter( operationName, HttpUtils.Parameters.RESPONSE_HEADER ) ) {
 					responseHeader =
-						getOperationSpecificStringParameter( inputId,
+						getOperationSpecificStringParameter( operationName,
 							HttpUtils.Parameters.RESPONSE_HEADER );
 				} else {
 					responseHeader = getStringParameter( HttpUtils.Parameters.RESPONSE_HEADER );
@@ -1417,7 +1437,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.Protocol {
 
 			recv_checkForSetCookie( message, decodedMessage.value );
 			retVal =
-				new CommMessage( decodedMessage.id, inputId, decodedMessage.resourcePath,
+				new CommMessage( decodedMessage.id, operationName, decodedMessage.resourcePath,
 					decodedMessage.value,
 					faultException, null );
 		} else {
