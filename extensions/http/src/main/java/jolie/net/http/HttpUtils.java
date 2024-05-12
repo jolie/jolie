@@ -111,6 +111,7 @@ public class HttpUtils {
 		public static final String CONTENT_TYPE = "Content-Type";
 		public static final String JOLIE_MESSAGE_ID = "X-Jolie-MessageID";
 		public static final String JOLIE_RESOURCE_PATH = "X-Jolie-ServicePath";
+		public static final String JOLIE_OPERATION = "X-Jolie-Operation";
 	}
 
 	public static class ContentTypes {

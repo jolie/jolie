@@ -138,7 +138,8 @@ public abstract class AbstractCommChannel extends CommChannel {
 						response.operationName(),
 						response.resourcePath(),
 						response.value(),
-						response.fault() ) );
+						response.fault(),
+						null ) );
 			}
 		}
 
@@ -158,7 +159,8 @@ public abstract class AbstractCommChannel extends CommChannel {
 					"",
 					Constants.ROOT_RESOURCE_PATH,
 					Value.create(),
-					new FaultException( "IOException", e ) ) );
+					new FaultException( "IOException", e ),
+					null ) );
 			}
 			parent.waiters.clear();
 		}

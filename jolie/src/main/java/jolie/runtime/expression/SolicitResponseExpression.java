@@ -126,7 +126,7 @@ public class SolicitResponseExpression implements Expression {
 					Value tmpValue = Value.create();
 					tmpValue.setValue( e.getMessage() );
 					log( "TYPE MISMATCH", new CommMessage( message.requestId(), message.operationName(),
-						message.resourcePath(), tmpValue, null ) );
+						message.resourcePath(), tmpValue, null, null ) );
 					if( Interpreter.getInstance().isMonitoring() ) {
 						Interpreter.getInstance().fireMonitorEvent(
 							new OperationCallEvent( operationId, ExecutionThread.currentThread().getSessionId(),

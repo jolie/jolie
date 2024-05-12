@@ -28,6 +28,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
+
 import jolie.Interpreter;
 import jolie.lang.Constants;
 import jolie.net.ChannelCache;
@@ -171,7 +172,8 @@ public class OutputPort extends AbstractIdentifiableObject implements Port {
 			message.operationName(),
 			getResourcePath(),
 			message.value(),
-			message.fault() );
+			message.fault(),
+			null );
 	}
 
 	@Override

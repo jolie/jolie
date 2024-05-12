@@ -24,11 +24,15 @@ package jolie.net;
 
 
 import java.io.Serializable;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
+
 import jolie.Interpreter;
 import jolie.lang.Constants;
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
+import jolie.util.Lazy;
+import jolie.util.metadata.Metadata;
 
 /**
  * A <code>CommMessage</code> represents a generic communication message. A message is composed by
@@ -57,7 +61,7 @@ public class CommMessage implements Serializable {
 
 	public static final long GENERIC_REQUEST_ID = 0L;
 	public static final CommMessage UNDEFINED_MESSAGE =
-		new CommMessage( GENERIC_REQUEST_ID, "", Constants.ROOT_RESOURCE_PATH, Value.UNDEFINED_VALUE, null );
+		new CommMessage( GENERIC_REQUEST_ID, "", Constants.ROOT_RESOURCE_PATH, Value.UNDEFINED_VALUE, null, null );
 
 	private final long requestId;
 	private final String operationName;
@@ -65,6 +69,8 @@ public class CommMessage implements Serializable {
 	private final Value value;
 	private final FaultException fault;
 	private final long id;
+	private final Lazy< Metadata > metadata = new Lazy<>( Metadata::new );
+	private final CommMessage originalRequest;
 
 	/**
 	 * Returns the resource path of this message.
@@ -117,7 +123,8 @@ public class CommMessage implements Serializable {
 	 * @return a request message as per specified by the parameters
 	 */
 	public static CommMessage createRequest( String operationName, String resourcePath, Value value ) {
-		return new CommMessage( getNewRequestId(), operationName, resourcePath, Value.createDeepCopy( value ), null );
+		return new CommMessage( getNewRequestId(), operationName, resourcePath, Value.createDeepCopy( value ), null,
+			null );
 	}
 
 	/**
@@ -139,7 +146,8 @@ public class CommMessage implements Serializable {
 	 */
 	public static CommMessage createResponse( CommMessage request, Value value ) {
 		// TODO support resourcePath
-		return new CommMessage( request.requestId, request.operationName, "/", Value.createDeepCopy( value ), null );
+		return new CommMessage( request.requestId, request.operationName, "/", Value.createDeepCopy( value ), null,
+			request );
 	}
 
 	/**
@@ -151,7 +159,28 @@ public class CommMessage implements Serializable {
 	 */
 	public static CommMessage createFaultResponse( CommMessage request, FaultException fault ) {
 		// TODO support resourcePath
-		return new CommMessage( request.requestId, request.operationName, "/", Value.create(), fault );
+		return new CommMessage( request.requestId, request.operationName, "/", Value.create(), fault, request );
+	}
+
+	/**
+	 * Constructor
+	 * 
+	 * @param requestId the identifier for the request
+	 * @param operationName the operation name for this message
+	 * @param resourcePath the resource path for this message
+	 * @param value the message data to equip the message with
+	 * @param fault the fault to equip the message with
+	 * @param originalRequest the original request that this message is a response for
+	 */
+	public CommMessage( long requestId, String operationName, String resourcePath, Value value, FaultException fault,
+		CommMessage originalRequest ) {
+		this.requestId = requestId;
+		this.operationName = operationName;
+		this.resourcePath = resourcePath;
+		this.value = value;
+		this.fault = fault;
+		this.id = ID_COUNTER.getAndIncrement();
+		this.originalRequest = originalRequest;
 	}
 
 	/**
@@ -164,12 +193,7 @@ public class CommMessage implements Serializable {
 	 * @param fault the fault to equip the message with
 	 */
 	public CommMessage( long requestId, String operationName, String resourcePath, Value value, FaultException fault ) {
-		this.requestId = requestId;
-		this.operationName = operationName;
-		this.resourcePath = resourcePath;
-		this.value = value;
-		this.fault = fault;
-		this.id = ID_COUNTER.getAndIncrement();
+		this( requestId, operationName, resourcePath, value, fault, null );
 	}
 
 	/**
@@ -217,5 +241,14 @@ public class CommMessage implements Serializable {
 	 */
 	public FaultException fault() {
 		return fault;
+	}
+
+	/** Returns the metadata for this message. */
+	public Metadata metadata() {
+		return metadata.get();
+	}
+
+	public Optional< CommMessage > originalRequest() {
+		return Optional.ofNullable( originalRequest );
 	}
 }

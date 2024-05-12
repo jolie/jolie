@@ -322,7 +322,8 @@ public class CommCore {
 				message.operationName(),
 				message.resourcePath(),
 				message.value(),
-				message.fault() );
+				message.fault(),
+				message.originalRequest().orElse( null ) );
 			try {
 				try {
 					channel.redirectionChannel().send( message );
@@ -371,7 +372,8 @@ public class CommCore {
 						message.operationName(),
 						rPath,
 						message.value(),
-						message.fault() );
+						message.fault(),
+						null );
 				oChannel.setRedirectionChannel( channel );
 				oChannel.setRedirectionMessageId( rMessage.requestId() );
 				oChannel.send( rMessage );
@@ -494,7 +496,7 @@ public class CommCore {
 					} finally {
 						if( response == null ) {
 							response = new CommMessage( channel.redirectionMessageId(), "", "/", Value.UNDEFINED_VALUE,
-								new FaultException( "IOException", "Internal server error" ) );
+								new FaultException( "IOException", "Internal server error" ), null );
 						}
 						forwardResponse( response );
 					}

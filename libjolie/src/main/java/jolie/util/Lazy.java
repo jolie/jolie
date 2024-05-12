@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Balint Maschio <bmaschio@italianasoftware.com>
+ * Copyright (C) 2024 Fabrizio Montesi <famontesi@gmail.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -17,30 +17,36 @@
  * MA 02110-1301  USA
  */
 
-package jolie.net;
+package jolie.util;
 
-import jolie.runtime.FaultException;
-import jolie.runtime.Value;
+import java.util.function.Supplier;
 
-public class RequestErrorCommMessage extends CommMessage {
-
-	private final String template;
+/**
+ * Utility class to store lazily-instantiated values.
+ * 
+ * @author Fabrizio Montesi
+ * @param <T> the type of the stored value
+ */
+public class Lazy< T > {
+	private Supplier< T > contentSupplier;
 
 	/**
 	 * Constructor
-	 *
-	 * @param requestId the identifier for the request
-	 * @param operationName the operation name for this message
-	 * @param value the message data to equip the message with
-	 * @param fault the fault to equip the message with
+	 * 
+	 * @param initSupplier code for initialising the value the first time it is requested
 	 */
-	public RequestErrorCommMessage( long requestId, String operationName, String resourcePath, Value value,
-		FaultException fault, String template ) {
-		super( requestId, operationName, resourcePath, value, fault, null );
-		this.template = template;
+	public Lazy( Supplier< T > initSupplier ) {
+		contentSupplier = () -> {
+			T content = initSupplier.get();
+			contentSupplier = () -> content;
+			return content;
+		};
 	}
 
-	public String getTemplate() {
-		return this.template;
+	/**
+	 * Get the present value, or initialise a new one if not already present
+	 */
+	public T get() {
+		return contentSupplier.get();
 	}
 }

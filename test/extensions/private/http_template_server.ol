@@ -57,6 +57,10 @@ service HttpTemplateServer{
         }
     }
 
+    init {
+        install( Unauthorized => nullProcess )
+    }
+
     main{
         [getOrder(request)(response){
            validateToken
