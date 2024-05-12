@@ -1321,9 +1321,11 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.Protocol {
 			}
 		}
 
-		String operationName = message.getProperty( HttpUtils.Headers.JOLIE_OPERATION );
-		if( operationName != null ) {
-			decodedMessage.operationName = operationName;
+		if( message.isResponse() ) {
+			String operationName = message.getProperty( HttpUtils.Headers.JOLIE_OPERATION );
+			if( operationName != null ) {
+				decodedMessage.operationName = operationName;
+			}
 		}
 	}
 
