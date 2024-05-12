@@ -38,6 +38,7 @@ Interfaces: HTTPInterface
 
 main
 {
+	install( NotFound => nullProcess )
 	default( )( ) {
 		nullProcess
 	};
