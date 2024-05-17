@@ -786,7 +786,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.Protocol {
 				channel().setToBeClosed( true );
 			headerBuilder.append( "Connection: close" ).append( HttpUtils.CRLF );
 		}
-		if( checkBooleanParameter( HttpUtils.Parameters.CONCURRENT, true ) ) {
+		if( checkBooleanParameter( HttpUtils.Parameters.CONCURRENT ) ) {
 			headerBuilder.append( HttpUtils.Headers.JOLIE_MESSAGE_ID ).append( ": " ).append( message.requestId() )
 				.append( HttpUtils.CRLF );
 		} else {
