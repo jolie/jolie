@@ -30,6 +30,7 @@ include "console.iol"
 outputPort Server {
 Location: Location_HTTPServer
 Protocol: http {
+	.concurrent = true;
 	.method = "post";
 	.addHeader.header[0] -> header;
 	.statusCode -> statusCode;

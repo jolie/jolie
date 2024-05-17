@@ -33,6 +33,18 @@ RequestResponse:
 outputPort Server {
 Location:  "socket://localhost:10101"
 Protocol: http {
+	.concurrent = true
+	.responseHeaders="@header"
+}
+Interfaces: HTTPInterface
+}
+
+outputPort ServerExternal {
+Location: "socket://api.restful-api.dev:443/objects"
+Protocol: https {
+	.method = "get"
+	.osc.default.alias = ""
+	.osc.default.outHeaders.("Accept")= "accept"
 	.responseHeaders="@header"
 }
 Interfaces: HTTPInterface
@@ -55,5 +67,10 @@ define doTest
 	default@Server()( response ); // second call: 404 Not Found
 	if ( response.( "@header" ).statusCode != "404" ) {
 		throw( TestFailed, "Status code 404 expected: " + response.( "@header" ).statusCode )
+	}
+
+	default@ServerExternal({ accept = "application/json" })( response ) // third call to the outside: should not crash
+	if ( response.( "@header" ).statusCode != "200" ) {
+		throw( TestFailed, "Status code 200/204 expected: " + response.( "@header" ).statusCode )
 	}
 }

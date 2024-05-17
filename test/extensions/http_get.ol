@@ -27,6 +27,7 @@ include "private/http_server.iol"
 outputPort Server {
 Location: Location_HTTPServer
 Protocol: http {
+	.concurrent = true;
 	.method = "get";
 	.method.queryFormat -> queryFormat;
 	.compression -> compression;
