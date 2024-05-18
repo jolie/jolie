@@ -19,6 +19,7 @@
 
 package jolie.util;
 
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
 
 /**
@@ -27,8 +28,8 @@ import java.util.function.Supplier;
  * @author Fabrizio Montesi
  * @param <T> the type of the stored value
  */
-public class Lazy< T > {
-	private Supplier< T > contentSupplier;
+public class Lazy< T > implements Supplier< T > {
+	private volatile Supplier< T > contentSupplier;
 
 	/**
 	 * Constructor
@@ -36,16 +37,29 @@ public class Lazy< T > {
 	 * @param initSupplier code for initialising the value the first time it is requested
 	 */
 	public Lazy( Supplier< T > initSupplier ) {
-		contentSupplier = () -> {
-			T content = initSupplier.get();
-			contentSupplier = () -> content;
-			return content;
+		contentSupplier = new Supplier<>() {
+			private final ReentrantLock lock = new ReentrantLock();
+
+			@Override
+			public T get() {
+				lock.lock();
+				try {
+					if( contentSupplier == this ) {
+						T content = initSupplier.get();
+						contentSupplier = () -> content;
+					}
+				} finally {
+					lock.unlock();
+				}
+				return contentSupplier.get();
+			}
 		};
 	}
 
 	/**
 	 * Get the present value, or initialise a new one if not already present
 	 */
+	@Override
 	public T get() {
 		return contentSupplier.get();
 	}
