@@ -397,8 +397,18 @@ main {
             } else {
 
                         if ( #request.schema.properties == 0 ) {
-                            nt.type = request.schema.type;
-                            getJolieNativeTypeFromOpenApiNativeType@MySelf( nt )( native_type );
+                            if ( is_defined ( request.schema.anyOf ) ) {
+                                if ( is_defined ( request.schema.anyOf.type ) ) {
+                                    nt.type = request.schema.anyOf.type
+                                    getJolieNativeTypeFromOpenApiNativeType@MySelf( nt )( native_type )
+                                } else {
+                                    // FIXME: here we would need to parse all possible types ($ref), for now just generate "undefined"
+                                    native_type = "undefined"
+                                }
+                            } else {
+                                nt.type = request.schema.type
+                                getJolieNativeTypeFromOpenApiNativeType@MySelf( nt )( native_type )
+                            }
                             response = native_type + "\n"
                         } else {
                             rq_obj << {
