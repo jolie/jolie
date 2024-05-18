@@ -172,7 +172,7 @@ main {
 
 
         /* create interface file */
-        interface_file = interface_file + "interface " + outputPort.interface + "{\n";
+        interface_file = interface_file + "\ninterface " + outputPort.interface + " {\n";
         interface_file = interface_file + "RequestResponse:\n";
         for( o = 0, o < #outputPort.interface.operation, o++ ) {
             interface_file = interface_file + "\t" + outputPort.interface.operation[ o ]
@@ -241,7 +241,7 @@ main {
         client_file =  client_file + "\n}\n\n";
 
 
-        client_file = client_file + "execution{ concurrent }\n\n";
+        client_file = client_file + "execution { concurrent }\n\n";
 
         endsWith@StringUtils( outputPort.location { .suffix = "/" } )( ends_with_slash )
         split@StringUtils( outputPort.location { .regex = "/" } )( spl_loc )
@@ -265,29 +265,29 @@ main {
             }
         }
 
-        client_file = client_file + "outputPort " + outputPort.name + "{\n";
+        client_file = client_file + "outputPort " + outputPort.name + " {\n";
         client_file = client_file + "Location: \"" + outputPort.location + "\"\n";
-        client_file = client_file + "Protocol: " + outputPort.protocol + "{\n";
+        client_file = client_file + "Protocol: " + outputPort.protocol + " {\n";
         if ( protocol == "https" ) { 
             client_file = client_file + ".ssl.protocol = \"TLSv1.1\";"
         };
-        client_file = client_file + ".format = \"json\";"
-        client_file = client_file + ".responseHeaders=\"@header\";"
+        client_file = client_file + "\t.format = \"json\";\n"
+        client_file = client_file + "\t.responseHeaders=\"@header\";\n"
         for( o = 0, o < #outputPort.interface.operation, o++ ) {
             
-            client_file = client_file + ".osc." + outputPort.interface.operation[ o ]
+            client_file = client_file + "\t.osc." + outputPort.interface.operation[ o ]
                             + ".alias-> alias;\n";
-            client_file = client_file + ".osc." + outputPort.interface.operation[ o ]
+            client_file = client_file + "\t.osc." + outputPort.interface.operation[ o ]
                             + ".method=\"" + outputPort.interface.operation[ o ].method + "\"";
             if ( o < (#outputPort.interface.operation - 1) ) {
                 client_file = client_file + ";\n"
             }
         };
-        client_file = client_file + "}\n";
+        client_file = client_file + "\n}\n";
 
         client_file = client_file + "Interfaces: " + outputPort.interface + "HTTP\n}\n\n";
 
-        client_file = client_file + "inputPort " + port_name + "{\n";
+        client_file = client_file + "inputPort " + port_name + " {\n";
         client_file = client_file + "Location:\"local\"\n";
         client_file = client_file + "Protocol: sodep\n";
         client_file = client_file + "Interfaces: " + outputPort.interface + "\n}\n\n";
@@ -325,11 +325,11 @@ main {
                 if ( is_path || is_query ) {
                     requestToAPI.( f ) = request.( f )
                 } else {
-					// it is a body parameter the name must be skipped
-					foreach( sf : request.( f ) ) {
-						requestToAPI.( sf ) << request.( f ).( sf )
-					}
-				}
+                    // it is a body parameter the name must be skipped
+                    foreach( sf : request.( f ) ) {
+                        requestToAPI.( sf ) << request.( f ).( sf )
+                    }
+		}
                 if ( is_query ) {
                     if ( !query_parameter_is_present ) { alias = alias + \"?\" }
                     else { 
@@ -340,9 +340,7 @@ main {
                     substring@StringUtils( f { begin = 2, end = field_length } )( real_query_parameter_name )
                     alias = alias + real_query_parameter_name + \"=%!{\" + f + \"}\"
                 }
-
-            }\n"
-
+            }\n\n"
 
             client_file = client_file + "\t\t" + outputPort.interface.operation[ o ] + "@" + outputPort.name + "( requestToAPI )( response )\n";
             if ( is_defined( outputPort.interface.operation[ o ].faults ) ) {
