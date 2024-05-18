@@ -323,32 +323,7 @@ main {
     }]
 
     [ getJolieTransformationFromSchema( request )( response ) {
-            if ( is_defined( request.schema.oneOf ) ) {
-
-                    for( _of = 0, _of < #request.schema.oneOf, _of++ ) {
-                        branch -> request.schema.oneOf[ _of ]
-                        if ( _of == 0 ) {
-                            branch_st = ""
-                        } else {
-                            branch_st = "\n| "
-                        }
-                        if ( is_defined( branch.type ) ) {
-                            rq_obj.definition -> branch; rq_obj.indentation = request.indentation;
-                            rq_obj.array_def_list -> request.array_def_list
-                            getJolieDefinitionFromOpenApiObject@MySelf( rq_obj )( object )
-                            response = response + branch_st + "void {\n"  + object + "}"
-                        } else if ( is_defined( branch.("$ref") ) ) {
-                            split@StringUtils( branch.("$ref") { . regex="#/definitions/" } )( splitted_ref )
-                            ref_name = splitted_ref.result[ 1 ]
-                            if ( !( request.array_def_list.( ref_name ) instanceof void ) ) {
-                                println@Console("Warning! definition array " + ref_name + " cannot be converted from a oneOf branch. Converted as a simple type")()
-                            } 
-                            response = response + branch_st + ref_name                               
-                        }
-                    }
-                    response = response + "\n"
-
-            } else if ( request.schema instanceof void ) {
+            if ( request.schema instanceof void ) {
 
                         response = "void\n"
 
@@ -393,6 +368,31 @@ main {
                             getJolieDefinitionFromOpenApiObject@MySelf( rq_obj )( object );
                             response = "void {\n" + object + "}\n"
                         }
+
+            } else if ( is_defined( request.schema.oneOf ) ) {
+
+                    for( _of = 0, _of < #request.schema.oneOf, _of++ ) {
+                        branch -> request.schema.oneOf[ _of ]
+                        if ( _of == 0 ) {
+                            branch_st = ""
+                        } else {
+                            branch_st = "\n| "
+                        }
+                        if ( is_defined( branch.type ) ) {
+                            rq_obj.definition -> branch; rq_obj.indentation = request.indentation;
+                            rq_obj.array_def_list -> request.array_def_list
+                            getJolieDefinitionFromOpenApiObject@MySelf( rq_obj )( object )
+                            response = response + branch_st + "void {\n"  + object + "}"
+                        } else if ( is_defined( branch.("$ref") ) ) {
+                            split@StringUtils( branch.("$ref") { . regex="#/definitions/" } )( splitted_ref )
+                            ref_name = splitted_ref.result[ 1 ]
+                            if ( !( request.array_def_list.( ref_name ) instanceof void ) ) {
+                                println@Console("Warning! definition array " + ref_name + " cannot be converted from a oneOf branch. Converted as a simple type")()
+                            } 
+                            response = response + branch_st + ref_name                               
+                        }
+                    }
+                    response = response + "\n"
 
             } else {
 
