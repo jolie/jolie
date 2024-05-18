@@ -497,10 +497,10 @@ main {
     }]
 
     [ getJolieDefinitionFromOpenApiArray( request )( response ) {
-        if ( is_defined( request.definition.items.minItems ) ) { min_cardinality = string( request.definition.items.minItems ) } 
+        if ( is_defined( request.definition.minItems ) ) { min_cardinality = string( request.definition.minItems ) }
         else { min_cardinality = "0" }
           
-        if ( is_defined( request.definition.items.maxItems ) ) { max_cardinality = string( request.definition.items.maxItems )} 
+        if ( is_defined( request.definition.maxItems ) ) { max_cardinality = string( request.definition.maxItems ) }
         else { max_cardinality = "*" }
           
         response.cardinality = "[" + min_cardinality + "," + max_cardinality + "]"
