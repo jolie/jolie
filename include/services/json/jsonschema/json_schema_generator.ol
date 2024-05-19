@@ -108,11 +108,9 @@ main
         } else {
             .items << typedef;
             .type = "array";
-              with( .items ) {
-                .minItems = request.cardinality.min;
-                if ( is_defined( request.cardinality.max ) ) {
-                    .maxItems = request.cardinality.max
-                }
+            .minItems = request.cardinality.min;
+            if ( is_defined( request.cardinality.max ) ) {
+                .maxItems = request.cardinality.max
             }
         }
       }
