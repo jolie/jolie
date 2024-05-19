@@ -22,6 +22,7 @@
 package joliex.surface;
 
 import jolie.cli.CommandLineException;
+import jolie.Interpreter;
 import jolie.JolieURLStreamHandlerFactory;
 import jolie.lang.CodeCheckException;
 import jolie.lang.parse.ParserException;
@@ -49,19 +50,20 @@ public class GetSurface {
 		try {
 			JolieToSurfaceCommandLineParser cmdParser =
 				JolieToSurfaceCommandLineParser.create( args, GetSurface.class.getClassLoader() );
+			Interpreter.Configuration interpreterConfiguration = cmdParser.getInterpreterConfiguration();
 			Program program = ParsingUtils.parseProgram(
-				cmdParser.getInterpreterConfiguration().inputStream(),
-				cmdParser.getInterpreterConfiguration().programFilepath().toURI(),
-				cmdParser.getInterpreterConfiguration().charset(),
-				cmdParser.getInterpreterConfiguration().includePaths(),
-				cmdParser.getInterpreterConfiguration().packagePaths(),
-				cmdParser.getInterpreterConfiguration().jolieClassLoader(),
-				cmdParser.getInterpreterConfiguration().constants(),
-				cmdParser.getInterpreterConfiguration().executionTarget(),
+				interpreterConfiguration.inputStream(),
+				interpreterConfiguration.programFilepath().toURI(),
+				interpreterConfiguration.charset(),
+				interpreterConfiguration.includePaths(),
+				interpreterConfiguration.packagePaths(),
+				interpreterConfiguration.jolieClassLoader(),
+				interpreterConfiguration.constants(),
+				interpreterConfiguration.executionTarget(),
 				false );
 			ProgramInspector inspector = ParsingUtils.createInspector( program );
 			SurfaceCreator document = new SurfaceCreator( inspector );
-			document.ConvertDocument( cmdParser.getInterpreterConfiguration().arguments()[ 0 ],
+			document.ConvertDocument( interpreterConfiguration.arguments()[ 0 ],
 				cmdParser.noOutputPort(),
 				cmdParser.noLocation(), cmdParser.noProtocol() );
 		} catch( CommandLineException | ParserException | ModuleException e ) {

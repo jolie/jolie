@@ -178,7 +178,7 @@ public class SurfaceCreator {
 			TypeInlineDefinition def = (TypeInlineDefinition) type;
 			ret = ret + def.basicType().nativeType().id();
 			if( def.hasSubTypes() ) {
-				ret = ret + "{ \n";
+				ret = ret + " {\n";
 				for( Entry< String, TypeDefinition > entry : def.subTypes() ) {
 					ret = ret + getSubType( entry.getValue(), indent + 1 ) + "\n";
 				}
@@ -187,7 +187,7 @@ public class SurfaceCreator {
 				}
 				ret = ret + "}";
 			} else if( ((TypeInlineDefinition) type).untypedSubTypes() ) {
-				ret = ret + "{ ? }";
+				ret = ret + " { ? }";
 			}
 		} else if( type instanceof TypeChoiceDefinition ) {
 			choice = true;
@@ -224,7 +224,7 @@ public class SurfaceCreator {
 			TypeInlineDefinition def = (TypeInlineDefinition) type;
 			System.out.print( def.basicType().nativeType().id() );
 			if( def.hasSubTypes() ) {
-				System.out.print( "{\n" );
+				System.out.print( " {\n" );
 				for( Entry< String, TypeDefinition > entry : def.subTypes() ) {
 					System.out.print( getSubType( entry.getValue(), 1 ) + "\n" );
 				}
@@ -317,12 +317,12 @@ public class SurfaceCreator {
 
 		// outputPort definition
 		if( !noOutputPort ) {
-			System.out.println( "outputPort " + inputPort.id() + "{" );
+			System.out.println( "outputPort " + inputPort.id() + " {" );
 			if( !noLocation )
-				System.out.println( "\tLocation:\"" + inputPort.location() + "\"" );
-			if( !noProtocol )
-				System.out.println( "\tProtocol:" + inputPort.protocolId() );
-			System.out.println( "\tInterfaces:" + inputPort.id() + "Surface" );
+				System.out.println( "\tLocation: \"" + inputPort.location() + "\"" );
+			if( !noProtocol && !inputPort.protocolId().isEmpty() )
+				System.out.println( "\tProtocol: " + inputPort.protocolId() );
+			System.out.println( "\tInterfaces: " + inputPort.id() + "Surface" );
 			System.out.println( "}" );
 		}
 	}
