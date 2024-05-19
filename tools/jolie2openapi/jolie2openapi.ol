@@ -27,7 +27,7 @@ main {
         println@Console("<input_port>:\tinput port to be converted")()
         println@Console("<router_host>:\turl of the host to be contacted for using rest apis")()
         println@Console("<output_folder>:\toutput folder where storing the resulting json file")()
-        println@Console("[easy_interface true|false]:\t if true no templates will be exploited for generating the json file. Default is false. jolie2openapi will read templates from file rest_template.json")()
+        println@Console("[easy_interface true|false]:\t if set to true no external templates from rest_template.json will be applied. Default is false.")()
         println@Console()()
         throw( Error )
     }

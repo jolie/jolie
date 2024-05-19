@@ -221,7 +221,7 @@ define __body {
                         } 
                         if ( !easyInterface && !( __template instanceof void  ) ) {
                             if ( __method == "" || __method instanceof void ) {
-                                 throw( DefinitionError, "Template " + __given_template.template + " of operation " + oper.operation_name + " does not define method, not permitted" )
+                                 throw( DefinitionError, "Template " + __given_template.template + " of operation " + oper.operation_name + " does not define the method, not permitted" )
                             }
                         } 
                         
@@ -271,7 +271,7 @@ define __body {
                             }
                             undef( fnames )
 
-                            // if jolie faults exist, thwy will be collected under 500
+                            // if jolie faults exist, they will be collected under 500
                             if ( #oper.fault > 0 ) {
                                 for ( f = 0, f < #oper.fault, f++ ) {
                                         

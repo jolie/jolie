@@ -24,7 +24,7 @@ type OpenApiRequest: void {
   .host: string
   .inputPort: string
   .easyInterface?: bool
-  .template: undefined
+  .template?: undefined
 }
 
 interface Jolie2OpenApiInterface {
