@@ -1,72 +1,51 @@
 package joliex.util.spec.types;
 
-import jolie.runtime.Value;
-import jolie.runtime.ValueVector;
-import jolie.runtime.ByteArray;
-import jolie.runtime.typing.TypeCheckingException;
-import jolie.runtime.embedding.java.JolieValue;
-import jolie.runtime.embedding.java.JolieNative;
-import jolie.runtime.embedding.java.JolieNative.*;
-import jolie.runtime.embedding.java.TypedStructure;
-import jolie.runtime.embedding.java.UntypedStructure;
-import jolie.runtime.embedding.java.TypeValidationException;
-import jolie.runtime.embedding.java.util.*;
-
-import java.util.Arrays;
-import java.util.Map;
-import java.util.SequencedCollection;
-import java.util.List;
-import java.util.Optional;
-import java.util.Objects;
-import java.util.Set;
-import java.util.function.Function;
-
 /**
- * this class is a {@link TypedStructure} which can be described as follows:
+ * this class is a {@link jolie.runtime.embedding.java.TypedStructure} which can be described as follows:
  * <pre>
  * 
- * contentValue: {@link String}
-     * prefix: {@link String}
+ * contentValue: {@link java.lang.String}
+     * prefix: {@link java.lang.String}
  * </pre>
  * 
- * @see JolieValue
- * @see JolieNative
+ * @see jolie.runtime.embedding.java.JolieValue
+ * @see jolie.runtime.embedding.java.JolieNative
  */
-public final class StartsWithRequest extends TypedStructure {
+public final class StartsWithRequest extends jolie.runtime.embedding.java.TypedStructure {
     
-    private static final Set<String> FIELD_KEYS = fieldKeys( StartsWithRequest.class );
+    private static final java.util.Set<java.lang.String> FIELD_KEYS = fieldKeys( StartsWithRequest.class );
     
-    private final String contentValue;
-    @JolieName("prefix")
-    private final String prefix;
+    private final java.lang.String contentValue;
+    @jolie.runtime.embedding.java.util.JolieName("prefix")
+    private final java.lang.String prefix;
     
-    public StartsWithRequest( String contentValue, String prefix ) {
-        this.contentValue = ValueManager.validated( "contentValue", contentValue );
-        this.prefix = ValueManager.validated( "prefix", prefix );
+    public StartsWithRequest( java.lang.String contentValue, java.lang.String prefix ) {
+        this.contentValue = jolie.runtime.embedding.java.util.ValueManager.validated( "contentValue", contentValue );
+        this.prefix = jolie.runtime.embedding.java.util.ValueManager.validated( "prefix", prefix );
     }
     
-    public String contentValue() { return contentValue; }
-    public String prefix() { return prefix; }
+    public java.lang.String contentValue() { return contentValue; }
+    public java.lang.String prefix() { return prefix; }
     
-    public JolieString content() { return new JolieString( contentValue ); }
+    public jolie.runtime.embedding.java.JolieNative.JolieString content() { return new jolie.runtime.embedding.java.JolieNative.JolieString( contentValue ); }
     
-    public static StartsWithRequest from( JolieValue j ) {
+    public static StartsWithRequest from( jolie.runtime.embedding.java.JolieValue j ) throws jolie.runtime.embedding.java.TypeValidationException {
         return new StartsWithRequest(
-            JolieString.from( j ).value(),
-            ValueManager.fieldFrom( j.getFirstChild( "prefix" ), c -> c.content() instanceof JolieString content ? content.value() : null )
+            jolie.runtime.embedding.java.JolieNative.JolieString.from( j ).value(),
+            jolie.runtime.embedding.java.util.ValueManager.fieldFrom( j.getFirstChild( "prefix" ), c -> c.content() instanceof jolie.runtime.embedding.java.JolieNative.JolieString content ? content.value() : null )
         );
     }
     
-    public static StartsWithRequest fromValue( Value v ) throws TypeCheckingException {
-        ValueManager.requireChildren( v, FIELD_KEYS );
+    public static StartsWithRequest fromValue( jolie.runtime.Value v ) throws jolie.runtime.typing.TypeCheckingException {
+        jolie.runtime.embedding.java.util.ValueManager.requireChildren( v, FIELD_KEYS );
         return new StartsWithRequest(
-            JolieString.contentFromValue( v ),
-            ValueManager.singleFieldFrom( v, "prefix", JolieString::fieldFromValue )
+            jolie.runtime.embedding.java.JolieNative.JolieString.contentFromValue( v ),
+            jolie.runtime.embedding.java.util.ValueManager.singleFieldFrom( v, "prefix", jolie.runtime.embedding.java.JolieNative.JolieString::fieldFromValue )
         );
     }
     
-    public static Value toValue( StartsWithRequest t ) {
-        final Value v = Value.create( t.contentValue() );
+    public static jolie.runtime.Value toValue( StartsWithRequest t ) {
+        final jolie.runtime.Value v = jolie.runtime.Value.create( t.contentValue() );
         
         v.getFirstChild( "prefix" ).setValue( t.prefix() );
         

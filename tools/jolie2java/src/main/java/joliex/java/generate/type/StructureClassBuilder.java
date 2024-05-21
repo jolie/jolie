@@ -1,6 +1,7 @@
 package joliex.java.generate.type;
 
 import joliex.java.parse.ast.JolieType.Definition.Structure;
+import joliex.java.generate.util.ClassPath;
 import joliex.java.parse.ast.JolieType.Native;
 
 public abstract class StructureClassBuilder extends TypeClassBuilder {
@@ -31,18 +32,18 @@ public abstract class StructureClassBuilder extends TypeClassBuilder {
 	private void appendConstructMethods() {
 		builder.newNewlineAppend( "public static Builder builder() { return new Builder(); }" );
 
-		if ( structure.nativeType() == Native.ANY ) {
-			builder.newlineAppend( "public static Builder builder( JolieNative<?> content ) { return builder().content( content ); }" );
-			structure.nativeType().valueNames().forEach( n ->
-				builder.newlineAppend( "public static Builder builder( " ).append( n ).append( " contentValue ) { return builder().content( JolieNative.of( contentValue ) ); }" ) );
-		} else if ( structure.nativeType() != Native.VOID )
-			builder.newlineAppend( "public static Builder builder( " ).append( structure.nativeType().valueName() ).append( " contentValue ) { return builder().contentValue( contentValue ); }" );
+		if ( structure.contentType() == Native.ANY ) {
+			builder.newlineAppend( "public static Builder builder( " ).append( ClassPath.JOLIENATIVE.parameterized( "?" ) ).append( " content ) { return builder().content( content ); }" );
+			structure.contentType().nativeClasses().forEach( cp ->
+				builder.newlineAppend( "public static Builder builder( " ).append( cp ).append( " contentValue ) { return builder().content( " ).append( ClassPath.JOLIENATIVE ).append( ".of( contentValue ) ); }" ) );
+		} else if ( structure.contentType() != Native.VOID )
+			builder.newlineAppend( "public static Builder builder( " ).append( structure.contentType().nativeClass() ).append( " contentValue ) { return builder().contentValue( contentValue ); }" );
 
-        builder.newlineAppend( "public static Builder builder( JolieValue from ) { return new Builder( from ); }" )
+        builder.newlineAppend( "public static Builder builder( " ).append( ClassPath.JOLIEVALUE ).append( " from ) { return new Builder( from ); }" )
 			.newline()
-			.newlineAppend( "public static StructureListBuilder<" ).append( className ).append( ",Builder> listBuilder() { return new StructureListBuilder<>( " ).append( className ).append( "::builder, " ).append( className ).append( "::builder ); }" )
-        	.newlineAppend( "public static StructureListBuilder<" ).append( className ).append( ",Builder> listBuilder( SequencedCollection<? extends JolieValue> from )" ).body( () -> 
-				builder.newlineAppend( "return new StructureListBuilder<>( from, " ).append( className ).append( "::from, " ).append( className ).append( "::builder, " ).append( className ).append( "::builder );" ) );
+			.newlineAppend( "public static " ).append( ClassPath.STRUCTURELISTBUILDER.parameterized( className, "Builder" ) ).append( " listBuilder() { return new " ).append( ClassPath.STRUCTURELISTBUILDER.parameterized( "" ) ).append( "( " ).append( className ).append( "::builder, " ).append( className ).append( "::builder ); }" )
+        	.newlineAppend( "public static " ).append( ClassPath.STRUCTURELISTBUILDER.parameterized( className, "Builder" ) ).append( " listBuilder( " ).append( ClassPath.SEQUENCEDCOLLECTION.parameterized( "? extends " + ClassPath.JOLIEVALUE.get() ) ).append( " from )" ).body( () -> 
+				builder.newlineAppend( "return new " ).append( ClassPath.STRUCTURELISTBUILDER.parameterized( "" ) ).append( "( from, " ).append( className ).append( "::from, " ).append( className ).append( "::builder, " ).append( className ).append( "::builder );" ) );
 	}
 
 	private final void appendInnerClasses() {

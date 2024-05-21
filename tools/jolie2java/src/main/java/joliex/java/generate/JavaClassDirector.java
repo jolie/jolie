@@ -11,7 +11,7 @@ import joliex.java.generate.util.ClassBuilderException;
 public class JavaClassDirector {
 
     public static String constructClass( JavaClassBuilder builder ) {
-        builder.appendHeader();
+        builder.appendPackage();
         builder.appendDefinition();
         return builder.getResult();
     }

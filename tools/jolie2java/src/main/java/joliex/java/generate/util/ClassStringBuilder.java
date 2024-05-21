@@ -12,6 +12,8 @@ public class ClassStringBuilder {
 
     public ClassStringBuilder append( int i ) { return append( String.valueOf( i ) ); }
 
+    public ClassStringBuilder append( Object obj ) { return append( obj.toString() ); }
+
     public ClassStringBuilder indent() {
         indentation += INDENTSTEP;
         return this;

@@ -1,11 +1,5 @@
 package joliex.util.spec.interfaces;
 
-import jolie.runtime.ByteArray;
-import jolie.runtime.FaultException;
-import jolie.runtime.embedding.java.JolieValue;
-import jolie.runtime.embedding.java.JolieNative;
-import joliex.util.spec.types.*;
-
 public interface TimeInterface {
     
     /**
@@ -13,7 +7,7 @@ public interface TimeInterface {
      * 		 Schedules a timeout, which can be cancelled using #cancelTimeout from the returned string. Default .timeunit value is MILLISECONDS, .operation default is "timeout".
      * 		
      */
-    Long scheduleTimeout( ScheduleTimeOutRequest request ) throws FaultException;
+    java.lang.Long scheduleTimeout( joliex.util.spec.types.ScheduleTimeOutRequest request ) throws jolie.runtime.FaultException;
     
     /**
      * 
@@ -22,55 +16,55 @@ public interface TimeInterface {
      * 		 date parsing format. See #DateValuesRequestType for details.
      * 		
      */
-    DateValuesType getDateValues( DateValuesRequestType request ) throws FaultException;
+    joliex.util.spec.types.DateValuesType getDateValues( joliex.util.spec.types.DateValuesRequestType request ) throws jolie.runtime.FaultException;
     
     /**
      * 
      * 		 It returns a date time in a string format starting from a timestamp
      * 		
      */
-    GetDateTimeResponse getDateTime( GetDateTimeRequest request ) throws FaultException;
+    joliex.util.spec.types.GetDateTimeResponse getDateTime( joliex.util.spec.types.GetDateTimeRequest request ) throws jolie.runtime.FaultException;
     
     /**
      * 
      * 		 Warning: this is temporary and subject to future change as soon as long is supported by Jolie.
      * 		
      */
-    Long getCurrentTimeMillis() throws FaultException;
+    java.lang.Long getCurrentTimeMillis() throws jolie.runtime.FaultException;
     
-    Integer getDateDiff( DiffDateRequestType request ) throws FaultException;
+    java.lang.Integer getDateDiff( joliex.util.spec.types.DiffDateRequestType request ) throws jolie.runtime.FaultException;
     
     /**
      *  It stops the current timeout previously set with a setNextTimeout 
      */
-    void stopNextTimeout() throws FaultException;
+    void stopNextTimeout() throws jolie.runtime.FaultException;
     
-    Integer getTimeDiff( GetTimeDiffRequest request ) throws FaultException;
+    java.lang.Integer getTimeDiff( joliex.util.spec.types.GetTimeDiffRequest request ) throws jolie.runtime.FaultException;
     
-    Long getTimestampFromString( GetTimestampFromStringRequest request ) throws FaultException;
+    java.lang.Long getTimestampFromString( joliex.util.spec.types.GetTimestampFromStringRequest request ) throws jolie.runtime.FaultException;
     
     /**
      * 
      * 		It Cancels a timeout from a long-value created from #scheduleTimeout
      * 		
      */
-    Boolean cancelTimeout( Long request ) throws FaultException;
+    java.lang.Boolean cancelTimeout( java.lang.Long request ) throws jolie.runtime.FaultException;
     
-    void setNextTimeoutByTime( JolieValue request ) throws FaultException;
+    void setNextTimeoutByTime( jolie.runtime.embedding.java.JolieValue request ) throws jolie.runtime.FaultException;
     
     /**
      * 
      * 		It returns the current date time as a string
      * 		
      */
-    String getCurrentDateTime( CurrentDateTimeRequestType request ) throws FaultException;
+    java.lang.String getCurrentDateTime( joliex.util.spec.types.CurrentDateTimeRequestType request ) throws jolie.runtime.FaultException;
     
     /**
      * 
      * 		It waits for a period specified in the request (in milliseconds)
      * 		
      */
-    void sleep( Integer request ) throws FaultException;
+    void sleep( java.lang.Integer request ) throws jolie.runtime.FaultException;
     
     /**
      * 
@@ -79,20 +73,20 @@ public interface TimeInterface {
      * 		  ( default: timeout )
      * 		
      */
-    void setNextTimeout( SetNextTimeOutRequest request ) throws FaultException;
+    void setNextTimeout( joliex.util.spec.types.SetNextTimeOutRequest request ) throws jolie.runtime.FaultException;
     
-    TimeValuesType getTimeFromMilliSeconds( Integer request ) throws FaultException;
+    joliex.util.spec.types.TimeValuesType getTimeFromMilliSeconds( java.lang.Integer request ) throws jolie.runtime.FaultException;
     
-    DateTimeType getDateTimeValues( GetTimestampFromStringRequest request ) throws FaultException;
+    joliex.util.spec.types.DateTimeType getDateTimeValues( joliex.util.spec.types.GetTimestampFromStringRequest request ) throws jolie.runtime.FaultException;
     
-    void setNextTimeoutByDateTime( JolieValue request ) throws FaultException;
+    void setNextTimeoutByDateTime( jolie.runtime.embedding.java.JolieValue request ) throws jolie.runtime.FaultException;
     
     /**
      * 
      * 		 Returns the current date split in three fields: day, month and year
      * 		
      */
-    DateValuesType getCurrentDateValues() throws FaultException;
+    joliex.util.spec.types.DateValuesType getCurrentDateValues() throws jolie.runtime.FaultException;
     
-    TimeValuesType getTimeValues( String request ) throws FaultException;
+    joliex.util.spec.types.TimeValuesType getTimeValues( java.lang.String request ) throws jolie.runtime.FaultException;
 }

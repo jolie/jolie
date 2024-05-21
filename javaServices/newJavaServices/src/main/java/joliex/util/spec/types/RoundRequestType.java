@@ -1,72 +1,51 @@
 package joliex.util.spec.types;
 
-import jolie.runtime.Value;
-import jolie.runtime.ValueVector;
-import jolie.runtime.ByteArray;
-import jolie.runtime.typing.TypeCheckingException;
-import jolie.runtime.embedding.java.JolieValue;
-import jolie.runtime.embedding.java.JolieNative;
-import jolie.runtime.embedding.java.JolieNative.*;
-import jolie.runtime.embedding.java.TypedStructure;
-import jolie.runtime.embedding.java.UntypedStructure;
-import jolie.runtime.embedding.java.TypeValidationException;
-import jolie.runtime.embedding.java.util.*;
-
-import java.util.Arrays;
-import java.util.Map;
-import java.util.SequencedCollection;
-import java.util.List;
-import java.util.Optional;
-import java.util.Objects;
-import java.util.Set;
-import java.util.function.Function;
-
 /**
- * this class is a {@link TypedStructure} which can be described as follows:
+ * this class is a {@link jolie.runtime.embedding.java.TypedStructure} which can be described as follows:
  * <pre>
  * 
- * contentValue: {@link Double}
-     * decimals[0,1]: {@link Integer}
+ * contentValue: {@link java.lang.Double}
+     * decimals[0,1]: {@link java.lang.Integer}
  * </pre>
  * 
- * @see JolieValue
- * @see JolieNative
+ * @see jolie.runtime.embedding.java.JolieValue
+ * @see jolie.runtime.embedding.java.JolieNative
  */
-public final class RoundRequestType extends TypedStructure {
+public final class RoundRequestType extends jolie.runtime.embedding.java.TypedStructure {
     
-    private static final Set<String> FIELD_KEYS = fieldKeys( RoundRequestType.class );
+    private static final java.util.Set<java.lang.String> FIELD_KEYS = fieldKeys( RoundRequestType.class );
     
-    private final Double contentValue;
-    @JolieName("decimals")
-    private final Integer decimals;
+    private final java.lang.Double contentValue;
+    @jolie.runtime.embedding.java.util.JolieName("decimals")
+    private final java.lang.Integer decimals;
     
-    public RoundRequestType( Double contentValue, Integer decimals ) {
-        this.contentValue = ValueManager.validated( "contentValue", contentValue );
+    public RoundRequestType( java.lang.Double contentValue, java.lang.Integer decimals ) {
+        this.contentValue = jolie.runtime.embedding.java.util.ValueManager.validated( "contentValue", contentValue );
         this.decimals = decimals;
     }
     
-    public Double contentValue() { return contentValue; }
-    public Optional<Integer> decimals() { return Optional.ofNullable( decimals ); }
+    public java.lang.Double contentValue() { return contentValue; }
+    public java.util.Optional<java.lang.Integer> decimals() { return java.util.Optional.ofNullable( decimals ); }
     
-    public JolieDouble content() { return new JolieDouble( contentValue ); }
+    public jolie.runtime.embedding.java.JolieNative.JolieDouble content() { return new jolie.runtime.embedding.java.JolieNative.JolieDouble( contentValue ); }
     
-    public static RoundRequestType from( JolieValue j ) {
+    public static RoundRequestType from( jolie.runtime.embedding.java.JolieValue j ) throws jolie.runtime.embedding.java.TypeValidationException {
         return new RoundRequestType(
-            JolieDouble.from( j ).value(),
-            ValueManager.fieldFrom( j.getFirstChild( "decimals" ), c -> c.content() instanceof JolieInt content ? content.value() : null )
+            jolie.runtime.embedding.java.JolieNative.JolieDouble.from( j ).value(),
+            jolie.runtime.embedding.java.util.ValueManager.fieldFrom( j.getFirstChild( "decimals" ), c -> c.content() instanceof jolie.runtime.embedding.java.JolieNative.JolieInt content ? content.value() : null )
         );
     }
     
-    public static RoundRequestType fromValue( Value v ) throws TypeCheckingException {
-        ValueManager.requireChildren( v, FIELD_KEYS );
+    public static RoundRequestType fromValue( jolie.runtime.Value v ) throws jolie.runtime.typing.TypeCheckingException {
+        jolie.runtime.embedding.java.util.ValueManager.requireChildren( v, FIELD_KEYS );
         return new RoundRequestType(
-            JolieDouble.contentFromValue( v ),
-            ValueManager.singleFieldFrom( v, "decimals", JolieInt::fieldFromValue )
+            jolie.runtime.embedding.java.JolieNative.JolieDouble.contentFromValue( v ),
+            jolie.runtime.embedding.java.util.ValueManager.singleFieldFrom( v, "decimals", jolie.runtime.embedding.java.JolieNative.JolieInt::fieldFromValue )
         );
     }
     
-    public static Value toValue( RoundRequestType t ) {
-        final Value v = Value.create( t.contentValue() );
+    public static jolie.runtime.Value toValue( RoundRequestType t ) {
+        final jolie.runtime.Value v = jolie.runtime.Value.create( t.contentValue() );
         
         t.decimals().ifPresent( c -> v.getFirstChild( "decimals" ).setValue( c ) );
         

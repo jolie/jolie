@@ -1,8 +1,8 @@
 package joliex.java.generate.operation;
 
 import java.util.Collection;
-
 import joliex.java.generate.JavaClassBuilder;
+import joliex.java.generate.util.ClassPath;
 import joliex.java.parse.ast.JolieOperation;
 
 public class InterfaceClassBuilder extends JavaClassBuilder {
@@ -21,16 +21,8 @@ public class InterfaceClassBuilder extends JavaClassBuilder {
 
     public String className() { return className; }
 
-    public void appendHeader() {
-        builder.append( "package " ).append( interfacesPackage ).append( ";" )
-            .newline()
-            .newlineAppend( "import jolie.runtime.ByteArray;" )
-            .newlineAppend( "import jolie.runtime.FaultException;" )
-            .newlineAppend( "import jolie.runtime.embedding.java.JolieValue;" )
-            .newlineAppend( "import jolie.runtime.embedding.java.JolieNative;" );
-
-        if ( typesPackage != null && !typesPackage.equals( interfacesPackage ) )
-            builder.newlineAppend( "import " ).append( typesPackage ).append( ".*;" );
+    public void appendPackage() {
+        builder.append( "package " ).append( interfacesPackage ).append( ";" );
     }
 
     public void appendDefinition() {
@@ -45,6 +37,6 @@ public class InterfaceClassBuilder extends JavaClassBuilder {
             builder.commentBlock( () -> builder.newlineAppend( s ) )
         );
 
-        builder.newlineAppend( operation.responseType().orElse( "void" ) ).append( " " ).append( operation.name() ).append( operation.requestType().map( t -> "( " + t + " request )" ).orElse( "()" ) ).append( " throws FaultException;" );
+        builder.newlineAppend( operation.responseType( typesPackage ) ).append( " " ).append( operation.name() ).append( operation.requestType( typesPackage ).map( t -> "( " + t + " request )" ).orElse( "()" ) ).append( " throws " ).append( ClassPath.FAULTEXCEPTION ).append( ";" );
     }
 }

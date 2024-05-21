@@ -2,10 +2,9 @@ package joliex.java.generate.operation;
 
 import java.util.Collection;
 import java.util.Map;
-import java.util.stream.Stream;
 import joliex.java.generate.JavaClassBuilder;
+import joliex.java.generate.util.ClassPath;
 import joliex.java.parse.ast.JolieOperation;
-import joliex.java.parse.ast.JolieOperation.RequestResponse.Fault;
 import joliex.java.parse.ast.JolieType.Definition;
 import joliex.java.parse.ast.JolieType.Native;
 import joliex.java.parse.ast.JolieType.Definition.Basic;
@@ -34,33 +33,22 @@ public class ServiceClassBuilder extends JavaClassBuilder {
         return className;
     }
 
-    public void appendHeader() {
-        builder.append( "package " ).append( servicePackage ).append( ";" )
-            .newline()
-            .newlineAppend( "import jolie.runtime.JavaService;" )
-            .newlineAppend( "import jolie.runtime.ByteArray;" )
-            .newlineAppend( "import jolie.runtime.embedding.RequestResponse;" )
-            .newlineAppend( "import jolie.runtime.embedding.java.JolieValue;" )
-            .newlineAppend( "import jolie.runtime.embedding.java.JolieNative;" )
-            .newlineAppend( "import jolie.runtime.embedding.java.JolieNative.*;" );
-
-        Stream.of( typesPackage, faultsPackage, interfacesPackage )
-            .filter( p -> p != null && !p.equals( servicePackage ) )
-            .forEach( p -> builder.newlineAppend( "import " ).append( p ).append( ".*;" ) );
+    public void appendPackage() {
+        builder.append( "package " ).append( servicePackage ).append( ";" );
     }
 
     public void appendDefinition() {
-        builder.newNewlineAppend( "public final class " ).append( className ).append( " extends JavaService implements " ).append( operationsMap.keySet().stream().reduce( (s1, s2) -> s1 + ", " + s2 ).get() )
+        builder.newNewlineAppend( "public final class " ).append( className ).append( " extends " ).append( ClassPath.JAVASERVICE ).append( " implements " ).append( operationsMap.keySet().stream().map( k -> interfacesPackage + "." + k ).reduce( (s1, s2) -> s1 + ", " + s2 ).get() )
             .body( () -> operationsMap.values().stream().flatMap( Collection::stream ).forEach( this::appendMethod ) );
     }
 
     private void appendMethod( JolieOperation operation ) {
         builder.newline();
 
-        if ( operation instanceof JolieOperation.RequestResponse && operation.responseType().isEmpty() )
-            builder.newlineAppend( "@RequestResponse" );
+        if ( operation instanceof JolieOperation.RequestResponse && operation.response() == Native.VOID )
+            builder.newlineAppend( "@" ).append( ClassPath.REQUESTRESPONSE );
 
-        builder.newlineAppend( "public " ).append( operation.responseType().orElse( "void" ) ).append( " " ).append( operation.name() ).append( operation.requestType().map( t -> "( " + t + " request )" ).orElse( "()" ) ).append( operation.faults().parallelStream().map( Fault::className ).reduce( (n1, n2) -> n1 + ", " + n2 ).map( s -> " throws " + s ).orElse( "" ) )
+        builder.newlineAppend( "public " ).append( operation.responseType( typesPackage ) ).append( " " ).append( operation.name() ).append( operation.requestType( typesPackage ).map( t -> "( " + t + " request )" ).orElse( "()" ) ).append( operation.faults().parallelStream().map( f -> faultsPackage + "." + f.className() ).reduce( (n1, n2) -> n1 + ", " + n2 ).map( s -> " throws " + s ).orElse( "" ) )
             .body( () -> {
                 appendRequestUnpacking( operation );
                 appendDefaultResponse( operation );
@@ -79,23 +67,23 @@ public class ServiceClassBuilder extends JavaClassBuilder {
     }
 
     private void appendAnyCases() {
-        builder.newlineAppend( "case JolieVoid v -> {}" );
-        Native.valueTypesOf( Native.ANY ).forEach( 
-            t -> builder.newlineAppend( "case " ).append( t.wrapperName() ).append( "( " ).append( t.valueName() ).append( " value ) -> {}" )
+        builder.newlineAppend( "case " ).append( ClassPath.JOLIEVOID ).append( " v -> {}" );
+        Native.nativeClassesOf( Native.ANY ).forEach(
+            t -> builder.newlineAppend( "case " ).append( t.wrapperType() ).append( "( " ).append( t.nativeType() ).append( " value ) -> {}" )
         );
     }
 
     private void appendChoiceCases( Choice choice ) {
         choice.numberedOptions().forKeyValue( (i,t) -> {
             final String recordPattern = switch ( t ) {
-                case Native n -> n == Native.VOID ? "()" : "( " + n.valueName() + " option )";
+                case Native n -> n == Native.VOID ? "()" : "( " + n.nativeType() + " option )";
                 case Definition d -> "( " + switch ( d ) { 
-                    case Basic.Inline b -> b.nativeType().valueName();
-                    case Structure.Inline s -> choice.name() + "." + s.name();
-                    default -> d.name();
+                    case Basic.Inline b -> b.type().nativeClass().get();
+                    case Structure.Inline s -> typesPackage + "." + choice.name() + "." + s.name();
+                    default -> typesPackage + "." + d.name();
                 } + " option )";
             };
-            builder.newlineAppend( "case " ).append( choice.name() ).append( ".C" ).append( i ).append( recordPattern ).append( " -> {}" );
+            builder.newlineAppend( "case " ).append( typesPackage ).append( "." ).append( choice.name() ).append( ".C" ).append( i ).append( recordPattern ).append( " -> {}" );
         } );
     }
 
@@ -104,12 +92,12 @@ public class ServiceClassBuilder extends JavaClassBuilder {
 
             case Native.VOID -> builder.newlineAppend( "/* developer code */" );
 
-            case Native.ANY -> builder.newlineAppend( "return JolieNative.of( /* TODO: create with actual value */ );" );
+            case Native.ANY -> builder.newlineAppend( "return " ).append( ClassPath.JOLIENATIVE ).append( ".of( /* TODO: create with actual value */ );" );
             
-            case Basic b -> builder.newlineAppend( "return new " ).append( b.name() ).append( "( null ); /* TODO: create with actual value */" );
+            case Basic b -> builder.newlineAppend( "return new " ).append( typesPackage ).append( "." ).append( b.name() ).append( "( null ); /* TODO: create with actual value */" );
             
             case Structure s when s.hasBuilder() -> builder
-                .newlineAppend( "return " ).append( s.name() ).append( s.nativeType() == Native.VOID ? ".builder()" : ".builder( /* content */ )" )
+                .newlineAppend( "return " ).append( s instanceof Structure.Undefined ? ClassPath.JOLIEVALUE.get() : typesPackage + "." + s.name() ).append( s.contentType() == Native.VOID ? ".builder()" : ".builder( /* content */ )" )
                 .indentedNewlineAppend( "/* children */" )
                 .indentedNewlineAppend( ".build();" );
 

@@ -5,7 +5,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.SequencedCollection;
 import java.util.Set;
-import java.util.function.Predicate;
+import java.util.function.UnaryOperator;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 import jolie.runtime.typing.TypeCheckingException;
@@ -21,31 +21,16 @@ public class ValueManager {
 		return t;
 	}
 
-	public static <T> T validated( String n, T t, Predicate<T> p ) throws TypeValidationException { 
-		if ( !p.test( validated( n, t ) ) )
-			throw new TypeValidationException( "The value assigned to the field \"" + n + "\" didn't abide by the restrictions imposed on its type." );
-
-		return t;
-	}
-
-	public static <T> List<T> validated( String n, SequencedCollection<T> ts, int min, int max ) throws TypeValidationException {
+	public static <T> List<T> validated( String n, SequencedCollection<T> ts, int min, int max, UnaryOperator<T> op ) throws TypeValidationException {
 		final List<T> vts = ts == null 
 			? List.of() 
 			: ts.parallelStream()
+				.map( op::apply )
 				.map( Objects::requireNonNull )
 				.toList();
 
 		if ( vts.size() < min || vts.size() > max )
 			throw new TypeValidationException( "The field \"" + n + "\"'s cardinality was expected to be in the range [" + min + ", " + max + "], actual cardinality=" + vts.size() + "." );
-
-		return vts;
-	}
-
-	public static <T> List<T> validated( String n, SequencedCollection<T> ts, int min, int max, Predicate<T> p ) throws TypeValidationException {
-		final List<T> vts = validated( n, ts, min, max );
-
-		if ( !vts.parallelStream().allMatch( p ) )
-			throw new TypeValidationException( "The field \"" + n + "\" contained values which didn't abide by the restrictions imposed on its type." );
 
 		return vts;
 	}

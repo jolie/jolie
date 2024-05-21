@@ -1,117 +1,96 @@
 package joliex.util.spec.types;
 
-import jolie.runtime.Value;
-import jolie.runtime.ValueVector;
-import jolie.runtime.ByteArray;
-import jolie.runtime.typing.TypeCheckingException;
-import jolie.runtime.embedding.java.JolieValue;
-import jolie.runtime.embedding.java.JolieNative;
-import jolie.runtime.embedding.java.JolieNative.*;
-import jolie.runtime.embedding.java.TypedStructure;
-import jolie.runtime.embedding.java.UntypedStructure;
-import jolie.runtime.embedding.java.TypeValidationException;
-import jolie.runtime.embedding.java.util.*;
-
-import java.util.Arrays;
-import java.util.Map;
-import java.util.SequencedCollection;
-import java.util.List;
-import java.util.Optional;
-import java.util.Objects;
-import java.util.Set;
-import java.util.function.Function;
-
 /**
- * this class is a {@link TypedStructure} which can be described as follows:
+ * this class is a {@link jolie.runtime.embedding.java.TypedStructure} which can be described as follows:
  * <pre>
  * 
- * contentValue: {@link String}
-     * month: {@link Integer}
-     * hour: {@link Integer}
-     * year: {@link Integer}
-     * day: {@link Integer}
-     * minute: {@link Integer}
-     * second: {@link Integer}
+ * contentValue: {@link java.lang.String}
+     * month: {@link java.lang.Integer}
+     * hour: {@link java.lang.Integer}
+     * year: {@link java.lang.Integer}
+     * day: {@link java.lang.Integer}
+     * minute: {@link java.lang.Integer}
+     * second: {@link java.lang.Integer}
  * </pre>
  * 
- * @see JolieValue
- * @see JolieNative
+ * @see jolie.runtime.embedding.java.JolieValue
+ * @see jolie.runtime.embedding.java.JolieNative
  * @see #builder()
  */
-public final class GetDateTimeResponse extends TypedStructure {
+public final class GetDateTimeResponse extends jolie.runtime.embedding.java.TypedStructure {
     
-    private static final Set<String> FIELD_KEYS = fieldKeys( GetDateTimeResponse.class );
+    private static final java.util.Set<java.lang.String> FIELD_KEYS = fieldKeys( GetDateTimeResponse.class );
     
-    private final String contentValue;
-    @JolieName("month")
-    private final Integer month;
-    @JolieName("hour")
-    private final Integer hour;
-    @JolieName("year")
-    private final Integer year;
-    @JolieName("day")
-    private final Integer day;
-    @JolieName("minute")
-    private final Integer minute;
-    @JolieName("second")
-    private final Integer second;
+    private final java.lang.String contentValue;
+    @jolie.runtime.embedding.java.util.JolieName("month")
+    private final java.lang.Integer month;
+    @jolie.runtime.embedding.java.util.JolieName("hour")
+    private final java.lang.Integer hour;
+    @jolie.runtime.embedding.java.util.JolieName("year")
+    private final java.lang.Integer year;
+    @jolie.runtime.embedding.java.util.JolieName("day")
+    private final java.lang.Integer day;
+    @jolie.runtime.embedding.java.util.JolieName("minute")
+    private final java.lang.Integer minute;
+    @jolie.runtime.embedding.java.util.JolieName("second")
+    private final java.lang.Integer second;
     
-    public GetDateTimeResponse( String contentValue, Integer month, Integer hour, Integer year, Integer day, Integer minute, Integer second ) {
-        this.contentValue = ValueManager.validated( "contentValue", contentValue );
-        this.month = ValueManager.validated( "month", month );
-        this.hour = ValueManager.validated( "hour", hour );
-        this.year = ValueManager.validated( "year", year );
-        this.day = ValueManager.validated( "day", day );
-        this.minute = ValueManager.validated( "minute", minute );
-        this.second = ValueManager.validated( "second", second );
+    public GetDateTimeResponse( java.lang.String contentValue, java.lang.Integer month, java.lang.Integer hour, java.lang.Integer year, java.lang.Integer day, java.lang.Integer minute, java.lang.Integer second ) {
+        this.contentValue = jolie.runtime.embedding.java.util.ValueManager.validated( "contentValue", contentValue );
+        this.month = jolie.runtime.embedding.java.util.ValueManager.validated( "month", month );
+        this.hour = jolie.runtime.embedding.java.util.ValueManager.validated( "hour", hour );
+        this.year = jolie.runtime.embedding.java.util.ValueManager.validated( "year", year );
+        this.day = jolie.runtime.embedding.java.util.ValueManager.validated( "day", day );
+        this.minute = jolie.runtime.embedding.java.util.ValueManager.validated( "minute", minute );
+        this.second = jolie.runtime.embedding.java.util.ValueManager.validated( "second", second );
     }
     
-    public String contentValue() { return contentValue; }
-    public Integer month() { return month; }
-    public Integer hour() { return hour; }
-    public Integer year() { return year; }
-    public Integer day() { return day; }
-    public Integer minute() { return minute; }
-    public Integer second() { return second; }
+    public java.lang.String contentValue() { return contentValue; }
+    public java.lang.Integer month() { return month; }
+    public java.lang.Integer hour() { return hour; }
+    public java.lang.Integer year() { return year; }
+    public java.lang.Integer day() { return day; }
+    public java.lang.Integer minute() { return minute; }
+    public java.lang.Integer second() { return second; }
     
-    public JolieString content() { return new JolieString( contentValue ); }
+    public jolie.runtime.embedding.java.JolieNative.JolieString content() { return new jolie.runtime.embedding.java.JolieNative.JolieString( contentValue ); }
     
     public static Builder builder() { return new Builder(); }
-    public static Builder builder( String contentValue ) { return builder().contentValue( contentValue ); }
-    public static Builder builder( JolieValue from ) { return new Builder( from ); }
+    public static Builder builder( java.lang.String contentValue ) { return builder().contentValue( contentValue ); }
+    public static Builder builder( jolie.runtime.embedding.java.JolieValue from ) { return new Builder( from ); }
     
-    public static StructureListBuilder<GetDateTimeResponse,Builder> listBuilder() { return new StructureListBuilder<>( GetDateTimeResponse::builder, GetDateTimeResponse::builder ); }
-    public static StructureListBuilder<GetDateTimeResponse,Builder> listBuilder( SequencedCollection<? extends JolieValue> from ) {
-        return new StructureListBuilder<>( from, GetDateTimeResponse::from, GetDateTimeResponse::builder, GetDateTimeResponse::builder );
+    public static jolie.runtime.embedding.java.util.StructureListBuilder<GetDateTimeResponse, Builder> listBuilder() { return new jolie.runtime.embedding.java.util.StructureListBuilder<>( GetDateTimeResponse::builder, GetDateTimeResponse::builder ); }
+    public static jolie.runtime.embedding.java.util.StructureListBuilder<GetDateTimeResponse, Builder> listBuilder( java.util.SequencedCollection<? extends jolie.runtime.embedding.java.JolieValue> from ) {
+        return new jolie.runtime.embedding.java.util.StructureListBuilder<>( from, GetDateTimeResponse::from, GetDateTimeResponse::builder, GetDateTimeResponse::builder );
     }
     
-    public static GetDateTimeResponse from( JolieValue j ) {
+    public static GetDateTimeResponse from( jolie.runtime.embedding.java.JolieValue j ) throws jolie.runtime.embedding.java.TypeValidationException {
         return new GetDateTimeResponse(
-            JolieString.from( j ).value(),
-            ValueManager.fieldFrom( j.getFirstChild( "month" ), c -> c.content() instanceof JolieInt content ? content.value() : null ),
-            ValueManager.fieldFrom( j.getFirstChild( "hour" ), c -> c.content() instanceof JolieInt content ? content.value() : null ),
-            ValueManager.fieldFrom( j.getFirstChild( "year" ), c -> c.content() instanceof JolieInt content ? content.value() : null ),
-            ValueManager.fieldFrom( j.getFirstChild( "day" ), c -> c.content() instanceof JolieInt content ? content.value() : null ),
-            ValueManager.fieldFrom( j.getFirstChild( "minute" ), c -> c.content() instanceof JolieInt content ? content.value() : null ),
-            ValueManager.fieldFrom( j.getFirstChild( "second" ), c -> c.content() instanceof JolieInt content ? content.value() : null )
+            jolie.runtime.embedding.java.JolieNative.JolieString.from( j ).value(),
+            jolie.runtime.embedding.java.util.ValueManager.fieldFrom( j.getFirstChild( "month" ), c -> c.content() instanceof jolie.runtime.embedding.java.JolieNative.JolieInt content ? content.value() : null ),
+            jolie.runtime.embedding.java.util.ValueManager.fieldFrom( j.getFirstChild( "hour" ), c -> c.content() instanceof jolie.runtime.embedding.java.JolieNative.JolieInt content ? content.value() : null ),
+            jolie.runtime.embedding.java.util.ValueManager.fieldFrom( j.getFirstChild( "year" ), c -> c.content() instanceof jolie.runtime.embedding.java.JolieNative.JolieInt content ? content.value() : null ),
+            jolie.runtime.embedding.java.util.ValueManager.fieldFrom( j.getFirstChild( "day" ), c -> c.content() instanceof jolie.runtime.embedding.java.JolieNative.JolieInt content ? content.value() : null ),
+            jolie.runtime.embedding.java.util.ValueManager.fieldFrom( j.getFirstChild( "minute" ), c -> c.content() instanceof jolie.runtime.embedding.java.JolieNative.JolieInt content ? content.value() : null ),
+            jolie.runtime.embedding.java.util.ValueManager.fieldFrom( j.getFirstChild( "second" ), c -> c.content() instanceof jolie.runtime.embedding.java.JolieNative.JolieInt content ? content.value() : null )
         );
     }
     
-    public static GetDateTimeResponse fromValue( Value v ) throws TypeCheckingException {
-        ValueManager.requireChildren( v, FIELD_KEYS );
+    public static GetDateTimeResponse fromValue( jolie.runtime.Value v ) throws jolie.runtime.typing.TypeCheckingException {
+        jolie.runtime.embedding.java.util.ValueManager.requireChildren( v, FIELD_KEYS );
         return new GetDateTimeResponse(
-            JolieString.contentFromValue( v ),
-            ValueManager.singleFieldFrom( v, "month", JolieInt::fieldFromValue ),
-            ValueManager.singleFieldFrom( v, "hour", JolieInt::fieldFromValue ),
-            ValueManager.singleFieldFrom( v, "year", JolieInt::fieldFromValue ),
-            ValueManager.singleFieldFrom( v, "day", JolieInt::fieldFromValue ),
-            ValueManager.singleFieldFrom( v, "minute", JolieInt::fieldFromValue ),
-            ValueManager.singleFieldFrom( v, "second", JolieInt::fieldFromValue )
+            jolie.runtime.embedding.java.JolieNative.JolieString.contentFromValue( v ),
+            jolie.runtime.embedding.java.util.ValueManager.singleFieldFrom( v, "month", jolie.runtime.embedding.java.JolieNative.JolieInt::fieldFromValue ),
+            jolie.runtime.embedding.java.util.ValueManager.singleFieldFrom( v, "hour", jolie.runtime.embedding.java.JolieNative.JolieInt::fieldFromValue ),
+            jolie.runtime.embedding.java.util.ValueManager.singleFieldFrom( v, "year", jolie.runtime.embedding.java.JolieNative.JolieInt::fieldFromValue ),
+            jolie.runtime.embedding.java.util.ValueManager.singleFieldFrom( v, "day", jolie.runtime.embedding.java.JolieNative.JolieInt::fieldFromValue ),
+            jolie.runtime.embedding.java.util.ValueManager.singleFieldFrom( v, "minute", jolie.runtime.embedding.java.JolieNative.JolieInt::fieldFromValue ),
+            jolie.runtime.embedding.java.util.ValueManager.singleFieldFrom( v, "second", jolie.runtime.embedding.java.JolieNative.JolieInt::fieldFromValue )
         );
     }
     
-    public static Value toValue( GetDateTimeResponse t ) {
-        final Value v = Value.create( t.contentValue() );
+    public static jolie.runtime.Value toValue( GetDateTimeResponse t ) {
+        final jolie.runtime.Value v = jolie.runtime.Value.create( t.contentValue() );
         
         v.getFirstChild( "month" ).setValue( t.month() );
         v.getFirstChild( "hour" ).setValue( t.hour() );
@@ -125,33 +104,33 @@ public final class GetDateTimeResponse extends TypedStructure {
     
     public static class Builder {
         
-        private String contentValue;
-        private Integer month;
-        private Integer hour;
-        private Integer year;
-        private Integer day;
-        private Integer minute;
-        private Integer second;
+        private java.lang.String contentValue;
+        private java.lang.Integer month;
+        private java.lang.Integer hour;
+        private java.lang.Integer year;
+        private java.lang.Integer day;
+        private java.lang.Integer minute;
+        private java.lang.Integer second;
         
         private Builder() {}
-        private Builder( JolieValue j ) {
+        private Builder( jolie.runtime.embedding.java.JolieValue j ) {
             
-            contentValue = j.content() instanceof JolieString content ? content.value() : null;
-            this.month = ValueManager.fieldFrom( j.getFirstChild( "month" ), c -> c.content() instanceof JolieInt content ? content.value() : null );
-            this.hour = ValueManager.fieldFrom( j.getFirstChild( "hour" ), c -> c.content() instanceof JolieInt content ? content.value() : null );
-            this.year = ValueManager.fieldFrom( j.getFirstChild( "year" ), c -> c.content() instanceof JolieInt content ? content.value() : null );
-            this.day = ValueManager.fieldFrom( j.getFirstChild( "day" ), c -> c.content() instanceof JolieInt content ? content.value() : null );
-            this.minute = ValueManager.fieldFrom( j.getFirstChild( "minute" ), c -> c.content() instanceof JolieInt content ? content.value() : null );
-            this.second = ValueManager.fieldFrom( j.getFirstChild( "second" ), c -> c.content() instanceof JolieInt content ? content.value() : null );
+            contentValue = j.content() instanceof jolie.runtime.embedding.java.JolieNative.JolieString content ? content.value() : null;
+            this.month = jolie.runtime.embedding.java.util.ValueManager.fieldFrom( j.getFirstChild( "month" ), c -> c.content() instanceof jolie.runtime.embedding.java.JolieNative.JolieInt content ? content.value() : null );
+            this.hour = jolie.runtime.embedding.java.util.ValueManager.fieldFrom( j.getFirstChild( "hour" ), c -> c.content() instanceof jolie.runtime.embedding.java.JolieNative.JolieInt content ? content.value() : null );
+            this.year = jolie.runtime.embedding.java.util.ValueManager.fieldFrom( j.getFirstChild( "year" ), c -> c.content() instanceof jolie.runtime.embedding.java.JolieNative.JolieInt content ? content.value() : null );
+            this.day = jolie.runtime.embedding.java.util.ValueManager.fieldFrom( j.getFirstChild( "day" ), c -> c.content() instanceof jolie.runtime.embedding.java.JolieNative.JolieInt content ? content.value() : null );
+            this.minute = jolie.runtime.embedding.java.util.ValueManager.fieldFrom( j.getFirstChild( "minute" ), c -> c.content() instanceof jolie.runtime.embedding.java.JolieNative.JolieInt content ? content.value() : null );
+            this.second = jolie.runtime.embedding.java.util.ValueManager.fieldFrom( j.getFirstChild( "second" ), c -> c.content() instanceof jolie.runtime.embedding.java.JolieNative.JolieInt content ? content.value() : null );
         }
         
-        public Builder contentValue( String contentValue ) { this.contentValue = contentValue; return this; }
-        public Builder month( Integer month ) { this.month = month; return this; }
-        public Builder hour( Integer hour ) { this.hour = hour; return this; }
-        public Builder year( Integer year ) { this.year = year; return this; }
-        public Builder day( Integer day ) { this.day = day; return this; }
-        public Builder minute( Integer minute ) { this.minute = minute; return this; }
-        public Builder second( Integer second ) { this.second = second; return this; }
+        public Builder contentValue( java.lang.String contentValue ) { this.contentValue = contentValue; return this; }
+        public Builder month( java.lang.Integer month ) { this.month = month; return this; }
+        public Builder hour( java.lang.Integer hour ) { this.hour = hour; return this; }
+        public Builder year( java.lang.Integer year ) { this.year = year; return this; }
+        public Builder day( java.lang.Integer day ) { this.day = day; return this; }
+        public Builder minute( java.lang.Integer minute ) { this.minute = minute; return this; }
+        public Builder second( java.lang.Integer second ) { this.second = second; return this; }
         
         public GetDateTimeResponse build() {
             return new GetDateTimeResponse( contentValue, month, hour, year, day, minute, second );

@@ -1,65 +1,44 @@
 package joliex.util.spec.types;
 
-import jolie.runtime.Value;
-import jolie.runtime.ValueVector;
-import jolie.runtime.ByteArray;
-import jolie.runtime.typing.TypeCheckingException;
-import jolie.runtime.embedding.java.JolieValue;
-import jolie.runtime.embedding.java.JolieNative;
-import jolie.runtime.embedding.java.JolieNative.*;
-import jolie.runtime.embedding.java.TypedStructure;
-import jolie.runtime.embedding.java.UntypedStructure;
-import jolie.runtime.embedding.java.TypeValidationException;
-import jolie.runtime.embedding.java.util.*;
-
-import java.util.Arrays;
-import java.util.Map;
-import java.util.SequencedCollection;
-import java.util.List;
-import java.util.Optional;
-import java.util.Objects;
-import java.util.Set;
-import java.util.function.Function;
-
 /**
- * this class is a {@link TypedStructure} which can be described as follows:
+ * this class is a {@link jolie.runtime.embedding.java.TypedStructure} which can be described as follows:
  * <pre>
- * result[0,2147483647]: {@link String}
+ * result[0,2147483647]: {@link java.lang.String}
  * </pre>
  * 
- * @see JolieValue
- * @see JolieNative
+ * @see jolie.runtime.embedding.java.JolieValue
+ * @see jolie.runtime.embedding.java.JolieNative
  */
-public final class SplitResult extends TypedStructure {
+public final class SplitResult extends jolie.runtime.embedding.java.TypedStructure {
     
-    private static final Set<String> FIELD_KEYS = fieldKeys( SplitResult.class );
+    private static final java.util.Set<java.lang.String> FIELD_KEYS = fieldKeys( SplitResult.class );
     
-    @JolieName("result")
-    private final List<String> result;
+    @jolie.runtime.embedding.java.util.JolieName("result")
+    private final java.util.List<java.lang.String> result;
     
-    public SplitResult( SequencedCollection<String> result ) {
-        this.result = ValueManager.validated( "result", result, 0, 2147483647 );
+    public SplitResult( java.util.SequencedCollection<java.lang.String> result ) {
+        this.result = jolie.runtime.embedding.java.util.ValueManager.validated( "result", result, 0, 2147483647, t -> t );
     }
     
-    public List<String> result() { return result; }
+    public java.util.List<java.lang.String> result() { return result; }
     
-    public JolieVoid content() { return new JolieVoid(); }
+    public jolie.runtime.embedding.java.JolieNative.JolieVoid content() { return new jolie.runtime.embedding.java.JolieNative.JolieVoid(); }
     
-    public static SplitResult from( JolieValue j ) {
+    public static SplitResult from( jolie.runtime.embedding.java.JolieValue j ) throws jolie.runtime.embedding.java.TypeValidationException {
         return new SplitResult(
-            ValueManager.fieldFrom( j.getChildOrDefault( "result", List.of() ), c -> c.content() instanceof JolieString content ? content.value() : null )
+            jolie.runtime.embedding.java.util.ValueManager.fieldFrom( j.getChildOrDefault( "result", java.util.List.of() ), c -> c.content() instanceof jolie.runtime.embedding.java.JolieNative.JolieString content ? content.value() : null )
         );
     }
     
-    public static SplitResult fromValue( Value v ) throws TypeCheckingException {
-        ValueManager.requireChildren( v, FIELD_KEYS );
+    public static SplitResult fromValue( jolie.runtime.Value v ) throws jolie.runtime.typing.TypeCheckingException {
+        jolie.runtime.embedding.java.util.ValueManager.requireChildren( v, FIELD_KEYS );
         return new SplitResult(
-            ValueManager.vectorFieldFrom( v, "result", JolieString::fieldFromValue )
+            jolie.runtime.embedding.java.util.ValueManager.vectorFieldFrom( v, "result", jolie.runtime.embedding.java.JolieNative.JolieString::fieldFromValue )
         );
     }
     
-    public static Value toValue( SplitResult t ) {
-        final Value v = Value.create();
+    public static jolie.runtime.Value toValue( SplitResult t ) {
+        final jolie.runtime.Value v = jolie.runtime.Value.create();
         
         t.result().forEach( c -> v.getNewChild( "result" ).setValue( c ) );
         

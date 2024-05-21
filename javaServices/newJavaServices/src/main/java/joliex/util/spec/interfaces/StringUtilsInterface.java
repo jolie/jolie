@@ -1,28 +1,22 @@
 package joliex.util.spec.interfaces;
 
-import jolie.runtime.ByteArray;
-import jolie.runtime.FaultException;
-import jolie.runtime.embedding.java.JolieValue;
-import jolie.runtime.embedding.java.JolieNative;
-import joliex.util.spec.types.*;
-
 public interface StringUtilsInterface {
     
-    String leftPad( PadRequest request ) throws FaultException;
+    java.lang.String leftPad( joliex.util.spec.types.PadRequest request ) throws jolie.runtime.FaultException;
     
-    String valueToPrettyString( JolieValue request ) throws FaultException;
+    java.lang.String valueToPrettyString( jolie.runtime.embedding.java.JolieValue request ) throws jolie.runtime.FaultException;
     
-    String toLowerCase( String request ) throws FaultException;
+    java.lang.String toLowerCase( java.lang.String request ) throws jolie.runtime.FaultException;
     
-    Integer length( String request ) throws FaultException;
+    java.lang.Integer length( java.lang.String request ) throws jolie.runtime.FaultException;
     
-    MatchResult match( MatchRequest request ) throws FaultException;
+    joliex.util.spec.types.MatchResult match( joliex.util.spec.types.MatchRequest request ) throws jolie.runtime.FaultException;
     
-    String urlDecode( UrlDecodeRequest request ) throws FaultException;
+    java.lang.String urlDecode( joliex.util.spec.types.UrlDecodeRequest request ) throws jolie.runtime.FaultException;
     
-    String replaceFirst( ReplaceRequest request ) throws FaultException;
+    java.lang.String replaceFirst( joliex.util.spec.types.ReplaceRequest request ) throws jolie.runtime.FaultException;
     
-    StringItemList sort( StringItemList request ) throws FaultException;
+    joliex.util.spec.types.StringItemList sort( joliex.util.spec.types.StringItemList request ) throws jolie.runtime.FaultException;
     
     /**
      *  Formats a string.
@@ -30,55 +24,55 @@ public interface StringUtilsInterface {
      * 	 You can use formatting rules as in Java's MessageFormat, for example, "Up to {pct,number,percent}" { pct = 0.6 } becomes "Up to 60%"
      * 	
      */
-    String fmt( FormatRequest request ) throws FaultException;
+    java.lang.String fmt( joliex.util.spec.types.FormatRequest request ) throws jolie.runtime.FaultException;
     
-    String replaceAll( ReplaceRequest request ) throws FaultException;
+    java.lang.String replaceAll( joliex.util.spec.types.ReplaceRequest request ) throws jolie.runtime.FaultException;
     
-    String urlEncode( UrlEncodeRequest request ) throws FaultException;
+    java.lang.String urlEncode( joliex.util.spec.types.UrlEncodeRequest request ) throws jolie.runtime.FaultException;
     
-    String substring( SubStringRequest request ) throws FaultException;
+    java.lang.String substring( joliex.util.spec.types.SubStringRequest request ) throws jolie.runtime.FaultException;
     
     /**
      * 
      * 	 it returns a random UUID
      * 	
      */
-    String getRandomUUID() throws FaultException;
+    java.lang.String getRandomUUID() throws jolie.runtime.FaultException;
     
-    String rightPad( PadRequest request ) throws FaultException;
+    java.lang.String rightPad( joliex.util.spec.types.PadRequest request ) throws jolie.runtime.FaultException;
     
     /**
      * 
      * 	  Returns true if the string contains .substring
      * 	 
      */
-    Boolean contains( ContainsRequest request ) throws FaultException;
+    java.lang.Boolean contains( joliex.util.spec.types.ContainsRequest request ) throws jolie.runtime.FaultException;
     
-    SplitResult split( SplitRequest request ) throws FaultException;
+    joliex.util.spec.types.SplitResult split( joliex.util.spec.types.SplitRequest request ) throws jolie.runtime.FaultException;
     
-    SplitResult splitByLength( SplitByLengthRequest request ) throws FaultException;
+    joliex.util.spec.types.SplitResult splitByLength( joliex.util.spec.types.SplitByLengthRequest request ) throws jolie.runtime.FaultException;
     
-    String trim( String request ) throws FaultException;
+    java.lang.String trim( java.lang.String request ) throws jolie.runtime.FaultException;
     
-    MatchResult find( MatchRequest request ) throws FaultException;
+    joliex.util.spec.types.MatchResult find( joliex.util.spec.types.MatchRequest request ) throws jolie.runtime.FaultException;
     
     /**
      * 
      * 	  checks if a string ends with a given suffix
      * 	
      */
-    Boolean endsWith( EndsWithRequest request ) throws FaultException;
+    java.lang.Boolean endsWith( joliex.util.spec.types.EndsWithRequest request ) throws jolie.runtime.FaultException;
     
-    String toUpperCase( String request ) throws FaultException;
+    java.lang.String toUpperCase( java.lang.String request ) throws jolie.runtime.FaultException;
     
-    String join( JoinRequest request ) throws FaultException;
+    java.lang.String join( joliex.util.spec.types.JoinRequest request ) throws jolie.runtime.FaultException;
     
-    Integer indexOf( IndexOfRequest request ) throws FaultException;
+    java.lang.Integer indexOf( joliex.util.spec.types.IndexOfRequest request ) throws jolie.runtime.FaultException;
     
     /**
      * 
      * 	 checks if the passed string starts with a given prefix
      * 	
      */
-    Boolean startsWith( StartsWithRequest request ) throws FaultException;
+    java.lang.Boolean startsWith( joliex.util.spec.types.StartsWithRequest request ) throws jolie.runtime.FaultException;
 }

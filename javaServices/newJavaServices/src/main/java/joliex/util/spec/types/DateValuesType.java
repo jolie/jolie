@@ -1,88 +1,67 @@
 package joliex.util.spec.types;
 
-import jolie.runtime.Value;
-import jolie.runtime.ValueVector;
-import jolie.runtime.ByteArray;
-import jolie.runtime.typing.TypeCheckingException;
-import jolie.runtime.embedding.java.JolieValue;
-import jolie.runtime.embedding.java.JolieNative;
-import jolie.runtime.embedding.java.JolieNative.*;
-import jolie.runtime.embedding.java.TypedStructure;
-import jolie.runtime.embedding.java.UntypedStructure;
-import jolie.runtime.embedding.java.TypeValidationException;
-import jolie.runtime.embedding.java.util.*;
-
-import java.util.Arrays;
-import java.util.Map;
-import java.util.SequencedCollection;
-import java.util.List;
-import java.util.Optional;
-import java.util.Objects;
-import java.util.Set;
-import java.util.function.Function;
-
 /**
- * this class is a {@link TypedStructure} which can be described as follows:
+ * this class is a {@link jolie.runtime.embedding.java.TypedStructure} which can be described as follows:
  * <pre>
- * month: {@link Integer}
- * year: {@link Integer}
- * day: {@link Integer}
+ * month: {@link java.lang.Integer}
+ * year: {@link java.lang.Integer}
+ * day: {@link java.lang.Integer}
  * </pre>
  * 
- * @see JolieValue
- * @see JolieNative
+ * @see jolie.runtime.embedding.java.JolieValue
+ * @see jolie.runtime.embedding.java.JolieNative
  * @see #builder()
  */
-public final class DateValuesType extends TypedStructure {
+public final class DateValuesType extends jolie.runtime.embedding.java.TypedStructure {
     
-    private static final Set<String> FIELD_KEYS = fieldKeys( DateValuesType.class );
+    private static final java.util.Set<java.lang.String> FIELD_KEYS = fieldKeys( DateValuesType.class );
     
-    @JolieName("month")
-    private final Integer month;
-    @JolieName("year")
-    private final Integer year;
-    @JolieName("day")
-    private final Integer day;
+    @jolie.runtime.embedding.java.util.JolieName("month")
+    private final java.lang.Integer month;
+    @jolie.runtime.embedding.java.util.JolieName("year")
+    private final java.lang.Integer year;
+    @jolie.runtime.embedding.java.util.JolieName("day")
+    private final java.lang.Integer day;
     
-    public DateValuesType( Integer month, Integer year, Integer day ) {
-        this.month = ValueManager.validated( "month", month );
-        this.year = ValueManager.validated( "year", year );
-        this.day = ValueManager.validated( "day", day );
+    public DateValuesType( java.lang.Integer month, java.lang.Integer year, java.lang.Integer day ) {
+        this.month = jolie.runtime.embedding.java.util.ValueManager.validated( "month", month );
+        this.year = jolie.runtime.embedding.java.util.ValueManager.validated( "year", year );
+        this.day = jolie.runtime.embedding.java.util.ValueManager.validated( "day", day );
     }
     
-    public Integer month() { return month; }
-    public Integer year() { return year; }
-    public Integer day() { return day; }
+    public java.lang.Integer month() { return month; }
+    public java.lang.Integer year() { return year; }
+    public java.lang.Integer day() { return day; }
     
-    public JolieVoid content() { return new JolieVoid(); }
+    public jolie.runtime.embedding.java.JolieNative.JolieVoid content() { return new jolie.runtime.embedding.java.JolieNative.JolieVoid(); }
     
     public static Builder builder() { return new Builder(); }
-    public static Builder builder( JolieValue from ) { return new Builder( from ); }
+    public static Builder builder( jolie.runtime.embedding.java.JolieValue from ) { return new Builder( from ); }
     
-    public static StructureListBuilder<DateValuesType,Builder> listBuilder() { return new StructureListBuilder<>( DateValuesType::builder, DateValuesType::builder ); }
-    public static StructureListBuilder<DateValuesType,Builder> listBuilder( SequencedCollection<? extends JolieValue> from ) {
-        return new StructureListBuilder<>( from, DateValuesType::from, DateValuesType::builder, DateValuesType::builder );
+    public static jolie.runtime.embedding.java.util.StructureListBuilder<DateValuesType, Builder> listBuilder() { return new jolie.runtime.embedding.java.util.StructureListBuilder<>( DateValuesType::builder, DateValuesType::builder ); }
+    public static jolie.runtime.embedding.java.util.StructureListBuilder<DateValuesType, Builder> listBuilder( java.util.SequencedCollection<? extends jolie.runtime.embedding.java.JolieValue> from ) {
+        return new jolie.runtime.embedding.java.util.StructureListBuilder<>( from, DateValuesType::from, DateValuesType::builder, DateValuesType::builder );
     }
     
-    public static DateValuesType from( JolieValue j ) {
+    public static DateValuesType from( jolie.runtime.embedding.java.JolieValue j ) throws jolie.runtime.embedding.java.TypeValidationException {
         return new DateValuesType(
-            ValueManager.fieldFrom( j.getFirstChild( "month" ), c -> c.content() instanceof JolieInt content ? content.value() : null ),
-            ValueManager.fieldFrom( j.getFirstChild( "year" ), c -> c.content() instanceof JolieInt content ? content.value() : null ),
-            ValueManager.fieldFrom( j.getFirstChild( "day" ), c -> c.content() instanceof JolieInt content ? content.value() : null )
+            jolie.runtime.embedding.java.util.ValueManager.fieldFrom( j.getFirstChild( "month" ), c -> c.content() instanceof jolie.runtime.embedding.java.JolieNative.JolieInt content ? content.value() : null ),
+            jolie.runtime.embedding.java.util.ValueManager.fieldFrom( j.getFirstChild( "year" ), c -> c.content() instanceof jolie.runtime.embedding.java.JolieNative.JolieInt content ? content.value() : null ),
+            jolie.runtime.embedding.java.util.ValueManager.fieldFrom( j.getFirstChild( "day" ), c -> c.content() instanceof jolie.runtime.embedding.java.JolieNative.JolieInt content ? content.value() : null )
         );
     }
     
-    public static DateValuesType fromValue( Value v ) throws TypeCheckingException {
-        ValueManager.requireChildren( v, FIELD_KEYS );
+    public static DateValuesType fromValue( jolie.runtime.Value v ) throws jolie.runtime.typing.TypeCheckingException {
+        jolie.runtime.embedding.java.util.ValueManager.requireChildren( v, FIELD_KEYS );
         return new DateValuesType(
-            ValueManager.singleFieldFrom( v, "month", JolieInt::fieldFromValue ),
-            ValueManager.singleFieldFrom( v, "year", JolieInt::fieldFromValue ),
-            ValueManager.singleFieldFrom( v, "day", JolieInt::fieldFromValue )
+            jolie.runtime.embedding.java.util.ValueManager.singleFieldFrom( v, "month", jolie.runtime.embedding.java.JolieNative.JolieInt::fieldFromValue ),
+            jolie.runtime.embedding.java.util.ValueManager.singleFieldFrom( v, "year", jolie.runtime.embedding.java.JolieNative.JolieInt::fieldFromValue ),
+            jolie.runtime.embedding.java.util.ValueManager.singleFieldFrom( v, "day", jolie.runtime.embedding.java.JolieNative.JolieInt::fieldFromValue )
         );
     }
     
-    public static Value toValue( DateValuesType t ) {
-        final Value v = Value.create();
+    public static jolie.runtime.Value toValue( DateValuesType t ) {
+        final jolie.runtime.Value v = jolie.runtime.Value.create();
         
         v.getFirstChild( "month" ).setValue( t.month() );
         v.getFirstChild( "year" ).setValue( t.year() );
@@ -93,20 +72,20 @@ public final class DateValuesType extends TypedStructure {
     
     public static class Builder {
         
-        private Integer month;
-        private Integer year;
-        private Integer day;
+        private java.lang.Integer month;
+        private java.lang.Integer year;
+        private java.lang.Integer day;
         
         private Builder() {}
-        private Builder( JolieValue j ) {
-            this.month = ValueManager.fieldFrom( j.getFirstChild( "month" ), c -> c.content() instanceof JolieInt content ? content.value() : null );
-            this.year = ValueManager.fieldFrom( j.getFirstChild( "year" ), c -> c.content() instanceof JolieInt content ? content.value() : null );
-            this.day = ValueManager.fieldFrom( j.getFirstChild( "day" ), c -> c.content() instanceof JolieInt content ? content.value() : null );
+        private Builder( jolie.runtime.embedding.java.JolieValue j ) {
+            this.month = jolie.runtime.embedding.java.util.ValueManager.fieldFrom( j.getFirstChild( "month" ), c -> c.content() instanceof jolie.runtime.embedding.java.JolieNative.JolieInt content ? content.value() : null );
+            this.year = jolie.runtime.embedding.java.util.ValueManager.fieldFrom( j.getFirstChild( "year" ), c -> c.content() instanceof jolie.runtime.embedding.java.JolieNative.JolieInt content ? content.value() : null );
+            this.day = jolie.runtime.embedding.java.util.ValueManager.fieldFrom( j.getFirstChild( "day" ), c -> c.content() instanceof jolie.runtime.embedding.java.JolieNative.JolieInt content ? content.value() : null );
         }
         
-        public Builder month( Integer month ) { this.month = month; return this; }
-        public Builder year( Integer year ) { this.year = year; return this; }
-        public Builder day( Integer day ) { this.day = day; return this; }
+        public Builder month( java.lang.Integer month ) { this.month = month; return this; }
+        public Builder year( java.lang.Integer year ) { this.year = year; return this; }
+        public Builder day( java.lang.Integer day ) { this.day = day; return this; }
         
         public DateValuesType build() {
             return new DateValuesType( month, year, day );

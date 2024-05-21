@@ -1,72 +1,51 @@
 package joliex.util.spec.types;
 
-import jolie.runtime.Value;
-import jolie.runtime.ValueVector;
-import jolie.runtime.ByteArray;
-import jolie.runtime.typing.TypeCheckingException;
-import jolie.runtime.embedding.java.JolieValue;
-import jolie.runtime.embedding.java.JolieNative;
-import jolie.runtime.embedding.java.JolieNative.*;
-import jolie.runtime.embedding.java.TypedStructure;
-import jolie.runtime.embedding.java.UntypedStructure;
-import jolie.runtime.embedding.java.TypeValidationException;
-import jolie.runtime.embedding.java.util.*;
-
-import java.util.Arrays;
-import java.util.Map;
-import java.util.SequencedCollection;
-import java.util.List;
-import java.util.Optional;
-import java.util.Objects;
-import java.util.Set;
-import java.util.function.Function;
-
 /**
- * this class is a {@link TypedStructure} which can be described as follows:
+ * this class is a {@link jolie.runtime.embedding.java.TypedStructure} which can be described as follows:
  * <pre>
  * 
- * contentValue: {@link String}
-     * format[0,1]: {@link String}
+ * contentValue: {@link java.lang.String}
+     * format[0,1]: {@link java.lang.String}
  * </pre>
  * 
- * @see JolieValue
- * @see JolieNative
+ * @see jolie.runtime.embedding.java.JolieValue
+ * @see jolie.runtime.embedding.java.JolieNative
  */
-public final class DateValuesRequestType extends TypedStructure {
+public final class DateValuesRequestType extends jolie.runtime.embedding.java.TypedStructure {
     
-    private static final Set<String> FIELD_KEYS = fieldKeys( DateValuesRequestType.class );
+    private static final java.util.Set<java.lang.String> FIELD_KEYS = fieldKeys( DateValuesRequestType.class );
     
-    private final String contentValue;
-    @JolieName("format")
-    private final String format;
+    private final java.lang.String contentValue;
+    @jolie.runtime.embedding.java.util.JolieName("format")
+    private final java.lang.String format;
     
-    public DateValuesRequestType( String contentValue, String format ) {
-        this.contentValue = ValueManager.validated( "contentValue", contentValue );
+    public DateValuesRequestType( java.lang.String contentValue, java.lang.String format ) {
+        this.contentValue = jolie.runtime.embedding.java.util.ValueManager.validated( "contentValue", contentValue );
         this.format = format;
     }
     
-    public String contentValue() { return contentValue; }
-    public Optional<String> format() { return Optional.ofNullable( format ); }
+    public java.lang.String contentValue() { return contentValue; }
+    public java.util.Optional<java.lang.String> format() { return java.util.Optional.ofNullable( format ); }
     
-    public JolieString content() { return new JolieString( contentValue ); }
+    public jolie.runtime.embedding.java.JolieNative.JolieString content() { return new jolie.runtime.embedding.java.JolieNative.JolieString( contentValue ); }
     
-    public static DateValuesRequestType from( JolieValue j ) {
+    public static DateValuesRequestType from( jolie.runtime.embedding.java.JolieValue j ) throws jolie.runtime.embedding.java.TypeValidationException {
         return new DateValuesRequestType(
-            JolieString.from( j ).value(),
-            ValueManager.fieldFrom( j.getFirstChild( "format" ), c -> c.content() instanceof JolieString content ? content.value() : null )
+            jolie.runtime.embedding.java.JolieNative.JolieString.from( j ).value(),
+            jolie.runtime.embedding.java.util.ValueManager.fieldFrom( j.getFirstChild( "format" ), c -> c.content() instanceof jolie.runtime.embedding.java.JolieNative.JolieString content ? content.value() : null )
         );
     }
     
-    public static DateValuesRequestType fromValue( Value v ) throws TypeCheckingException {
-        ValueManager.requireChildren( v, FIELD_KEYS );
+    public static DateValuesRequestType fromValue( jolie.runtime.Value v ) throws jolie.runtime.typing.TypeCheckingException {
+        jolie.runtime.embedding.java.util.ValueManager.requireChildren( v, FIELD_KEYS );
         return new DateValuesRequestType(
-            JolieString.contentFromValue( v ),
-            ValueManager.singleFieldFrom( v, "format", JolieString::fieldFromValue )
+            jolie.runtime.embedding.java.JolieNative.JolieString.contentFromValue( v ),
+            jolie.runtime.embedding.java.util.ValueManager.singleFieldFrom( v, "format", jolie.runtime.embedding.java.JolieNative.JolieString::fieldFromValue )
         );
     }
     
-    public static Value toValue( DateValuesRequestType t ) {
-        final Value v = Value.create( t.contentValue() );
+    public static jolie.runtime.Value toValue( DateValuesRequestType t ) {
+        final jolie.runtime.Value v = jolie.runtime.Value.create( t.contentValue() );
         
         t.format().ifPresent( c -> v.getFirstChild( "format" ).setValue( c ) );
         

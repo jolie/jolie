@@ -1,88 +1,67 @@
 package joliex.util.spec.types;
 
-import jolie.runtime.Value;
-import jolie.runtime.ValueVector;
-import jolie.runtime.ByteArray;
-import jolie.runtime.typing.TypeCheckingException;
-import jolie.runtime.embedding.java.JolieValue;
-import jolie.runtime.embedding.java.JolieNative;
-import jolie.runtime.embedding.java.JolieNative.*;
-import jolie.runtime.embedding.java.TypedStructure;
-import jolie.runtime.embedding.java.UntypedStructure;
-import jolie.runtime.embedding.java.TypeValidationException;
-import jolie.runtime.embedding.java.util.*;
-
-import java.util.Arrays;
-import java.util.Map;
-import java.util.SequencedCollection;
-import java.util.List;
-import java.util.Optional;
-import java.util.Objects;
-import java.util.Set;
-import java.util.function.Function;
-
 /**
- * this class is a {@link TypedStructure} which can be described as follows:
+ * this class is a {@link jolie.runtime.embedding.java.TypedStructure} which can be described as follows:
  * <pre>
- * hour: {@link Integer}
- * minute: {@link Integer}
- * second: {@link Integer}
+ * hour: {@link java.lang.Integer}
+ * minute: {@link java.lang.Integer}
+ * second: {@link java.lang.Integer}
  * </pre>
  * 
- * @see JolieValue
- * @see JolieNative
+ * @see jolie.runtime.embedding.java.JolieValue
+ * @see jolie.runtime.embedding.java.JolieNative
  * @see #builder()
  */
-public final class TimeValuesType extends TypedStructure {
+public final class TimeValuesType extends jolie.runtime.embedding.java.TypedStructure {
     
-    private static final Set<String> FIELD_KEYS = fieldKeys( TimeValuesType.class );
+    private static final java.util.Set<java.lang.String> FIELD_KEYS = fieldKeys( TimeValuesType.class );
     
-    @JolieName("hour")
-    private final Integer hour;
-    @JolieName("minute")
-    private final Integer minute;
-    @JolieName("second")
-    private final Integer second;
+    @jolie.runtime.embedding.java.util.JolieName("hour")
+    private final java.lang.Integer hour;
+    @jolie.runtime.embedding.java.util.JolieName("minute")
+    private final java.lang.Integer minute;
+    @jolie.runtime.embedding.java.util.JolieName("second")
+    private final java.lang.Integer second;
     
-    public TimeValuesType( Integer hour, Integer minute, Integer second ) {
-        this.hour = ValueManager.validated( "hour", hour );
-        this.minute = ValueManager.validated( "minute", minute );
-        this.second = ValueManager.validated( "second", second );
+    public TimeValuesType( java.lang.Integer hour, java.lang.Integer minute, java.lang.Integer second ) {
+        this.hour = jolie.runtime.embedding.java.util.ValueManager.validated( "hour", hour );
+        this.minute = jolie.runtime.embedding.java.util.ValueManager.validated( "minute", minute );
+        this.second = jolie.runtime.embedding.java.util.ValueManager.validated( "second", second );
     }
     
-    public Integer hour() { return hour; }
-    public Integer minute() { return minute; }
-    public Integer second() { return second; }
+    public java.lang.Integer hour() { return hour; }
+    public java.lang.Integer minute() { return minute; }
+    public java.lang.Integer second() { return second; }
     
-    public JolieVoid content() { return new JolieVoid(); }
+    public jolie.runtime.embedding.java.JolieNative.JolieVoid content() { return new jolie.runtime.embedding.java.JolieNative.JolieVoid(); }
     
     public static Builder builder() { return new Builder(); }
-    public static Builder builder( JolieValue from ) { return new Builder( from ); }
+    public static Builder builder( jolie.runtime.embedding.java.JolieValue from ) { return new Builder( from ); }
     
-    public static StructureListBuilder<TimeValuesType,Builder> listBuilder() { return new StructureListBuilder<>( TimeValuesType::builder, TimeValuesType::builder ); }
-    public static StructureListBuilder<TimeValuesType,Builder> listBuilder( SequencedCollection<? extends JolieValue> from ) {
-        return new StructureListBuilder<>( from, TimeValuesType::from, TimeValuesType::builder, TimeValuesType::builder );
+    public static jolie.runtime.embedding.java.util.StructureListBuilder<TimeValuesType, Builder> listBuilder() { return new jolie.runtime.embedding.java.util.StructureListBuilder<>( TimeValuesType::builder, TimeValuesType::builder ); }
+    public static jolie.runtime.embedding.java.util.StructureListBuilder<TimeValuesType, Builder> listBuilder( java.util.SequencedCollection<? extends jolie.runtime.embedding.java.JolieValue> from ) {
+        return new jolie.runtime.embedding.java.util.StructureListBuilder<>( from, TimeValuesType::from, TimeValuesType::builder, TimeValuesType::builder );
     }
     
-    public static TimeValuesType from( JolieValue j ) {
+    public static TimeValuesType from( jolie.runtime.embedding.java.JolieValue j ) throws jolie.runtime.embedding.java.TypeValidationException {
         return new TimeValuesType(
-            ValueManager.fieldFrom( j.getFirstChild( "hour" ), c -> c.content() instanceof JolieInt content ? content.value() : null ),
-            ValueManager.fieldFrom( j.getFirstChild( "minute" ), c -> c.content() instanceof JolieInt content ? content.value() : null ),
-            ValueManager.fieldFrom( j.getFirstChild( "second" ), c -> c.content() instanceof JolieInt content ? content.value() : null )
+            jolie.runtime.embedding.java.util.ValueManager.fieldFrom( j.getFirstChild( "hour" ), c -> c.content() instanceof jolie.runtime.embedding.java.JolieNative.JolieInt content ? content.value() : null ),
+            jolie.runtime.embedding.java.util.ValueManager.fieldFrom( j.getFirstChild( "minute" ), c -> c.content() instanceof jolie.runtime.embedding.java.JolieNative.JolieInt content ? content.value() : null ),
+            jolie.runtime.embedding.java.util.ValueManager.fieldFrom( j.getFirstChild( "second" ), c -> c.content() instanceof jolie.runtime.embedding.java.JolieNative.JolieInt content ? content.value() : null )
         );
     }
     
-    public static TimeValuesType fromValue( Value v ) throws TypeCheckingException {
-        ValueManager.requireChildren( v, FIELD_KEYS );
+    public static TimeValuesType fromValue( jolie.runtime.Value v ) throws jolie.runtime.typing.TypeCheckingException {
+        jolie.runtime.embedding.java.util.ValueManager.requireChildren( v, FIELD_KEYS );
         return new TimeValuesType(
-            ValueManager.singleFieldFrom( v, "hour", JolieInt::fieldFromValue ),
-            ValueManager.singleFieldFrom( v, "minute", JolieInt::fieldFromValue ),
-            ValueManager.singleFieldFrom( v, "second", JolieInt::fieldFromValue )
+            jolie.runtime.embedding.java.util.ValueManager.singleFieldFrom( v, "hour", jolie.runtime.embedding.java.JolieNative.JolieInt::fieldFromValue ),
+            jolie.runtime.embedding.java.util.ValueManager.singleFieldFrom( v, "minute", jolie.runtime.embedding.java.JolieNative.JolieInt::fieldFromValue ),
+            jolie.runtime.embedding.java.util.ValueManager.singleFieldFrom( v, "second", jolie.runtime.embedding.java.JolieNative.JolieInt::fieldFromValue )
         );
     }
     
-    public static Value toValue( TimeValuesType t ) {
-        final Value v = Value.create();
+    public static jolie.runtime.Value toValue( TimeValuesType t ) {
+        final jolie.runtime.Value v = jolie.runtime.Value.create();
         
         v.getFirstChild( "hour" ).setValue( t.hour() );
         v.getFirstChild( "minute" ).setValue( t.minute() );
@@ -93,20 +72,20 @@ public final class TimeValuesType extends TypedStructure {
     
     public static class Builder {
         
-        private Integer hour;
-        private Integer minute;
-        private Integer second;
+        private java.lang.Integer hour;
+        private java.lang.Integer minute;
+        private java.lang.Integer second;
         
         private Builder() {}
-        private Builder( JolieValue j ) {
-            this.hour = ValueManager.fieldFrom( j.getFirstChild( "hour" ), c -> c.content() instanceof JolieInt content ? content.value() : null );
-            this.minute = ValueManager.fieldFrom( j.getFirstChild( "minute" ), c -> c.content() instanceof JolieInt content ? content.value() : null );
-            this.second = ValueManager.fieldFrom( j.getFirstChild( "second" ), c -> c.content() instanceof JolieInt content ? content.value() : null );
+        private Builder( jolie.runtime.embedding.java.JolieValue j ) {
+            this.hour = jolie.runtime.embedding.java.util.ValueManager.fieldFrom( j.getFirstChild( "hour" ), c -> c.content() instanceof jolie.runtime.embedding.java.JolieNative.JolieInt content ? content.value() : null );
+            this.minute = jolie.runtime.embedding.java.util.ValueManager.fieldFrom( j.getFirstChild( "minute" ), c -> c.content() instanceof jolie.runtime.embedding.java.JolieNative.JolieInt content ? content.value() : null );
+            this.second = jolie.runtime.embedding.java.util.ValueManager.fieldFrom( j.getFirstChild( "second" ), c -> c.content() instanceof jolie.runtime.embedding.java.JolieNative.JolieInt content ? content.value() : null );
         }
         
-        public Builder hour( Integer hour ) { this.hour = hour; return this; }
-        public Builder minute( Integer minute ) { this.minute = minute; return this; }
-        public Builder second( Integer second ) { this.second = second; return this; }
+        public Builder hour( java.lang.Integer hour ) { this.hour = hour; return this; }
+        public Builder minute( java.lang.Integer minute ) { this.minute = minute; return this; }
+        public Builder second( java.lang.Integer second ) { this.second = second; return this; }
         
         public TimeValuesType build() {
             return new TimeValuesType( hour, minute, second );

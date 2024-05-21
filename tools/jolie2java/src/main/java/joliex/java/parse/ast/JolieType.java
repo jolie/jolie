@@ -7,7 +7,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
 
 import jolie.lang.NativeType;
-
+import joliex.java.generate.util.ClassPath;
 import org.apache.commons.lang3.StringUtils;
 
 import one.util.streamex.EntryStream;
@@ -21,13 +21,13 @@ public sealed interface JolieType {
 
         public static sealed interface Basic extends Definition {
 
-            Native nativeType();
+            Native type();
             NativeRefinement refinement();
     
-            default boolean isAny() { return nativeType() == Native.ANY; }
-            default boolean isVoid() { return nativeType() == Native.VOID; }
+            default boolean isAny() { return type() == Native.ANY; }
+            default boolean isVoid() { return type() == Native.VOID; }
     
-            public static record Inline( String name, Native nativeType, NativeRefinement refinement ) implements Basic {
+            public static record Inline( String name, Native type, NativeRefinement refinement ) implements Basic {
     
                 public boolean equals( Object obj ) { return obj != null && obj instanceof Basic other && name.equals( other.name() ); }
                 public int hashCode() { return name.hashCode(); }
@@ -36,7 +36,7 @@ public sealed interface JolieType {
             public static record Link( Inline definition ) implements Basic {
     
                 public String name() { return definition.name(); }
-                public Native nativeType() { return definition.nativeType(); }
+                public Native type() { return definition.type(); }
                 public NativeRefinement refinement() { return definition.refinement(); }
                 
                 public boolean isLink() { return true; }
@@ -50,7 +50,7 @@ public sealed interface JolieType {
     
             public static record Field( String jolieName, String javaName, int min, int max, JolieType type ) {}
     
-            Native nativeType();
+            Native contentType();
             NativeRefinement nativeRefinement();
             List<Field> fields();
             default boolean hasBuilder() { return true; }
@@ -58,7 +58,7 @@ public sealed interface JolieType {
     
             public static sealed interface Inline extends Structure {
 
-                public static record Typed( String name, Native nativeType, NativeRefinement nativeRefinement, CompletableFuture<List<Field>> fieldsFuture, boolean hasBuilder ) implements Inline {
+                public static record Typed( String name, Native contentType, NativeRefinement nativeRefinement, CompletableFuture<List<Field>> fieldsFuture, boolean hasBuilder ) implements Inline {
                     
                     public List<Field> fields() { return fieldsFuture.join(); }
 
@@ -66,7 +66,7 @@ public sealed interface JolieType {
                     public int hashCode() { return name.hashCode(); }
                 }
 
-                public static record Untyped( String name, Native nativeType, NativeRefinement nativeRefinement, boolean hasBuilder ) implements Inline {
+                public static record Untyped( String name, Native contentType, NativeRefinement nativeRefinement, boolean hasBuilder ) implements Inline {
                     
                     public List<Field> fields() { return List.of(); }
 
@@ -78,7 +78,7 @@ public sealed interface JolieType {
             public static record Link( Inline definition ) implements Structure {
     
                 public String name() { return definition.name(); }
-                public Native nativeType() { return definition.nativeType(); }
+                public Native contentType() { return definition.contentType(); }
                 public NativeRefinement nativeRefinement() { return definition.nativeRefinement(); }
                 public List<Field> fields() { return definition.fields(); }
                 public boolean hasBuilder() { return definition.hasBuilder(); }
@@ -96,7 +96,7 @@ public sealed interface JolieType {
                 private Undefined() {}
         
                 public String name() { return "JolieValue"; }
-                public Native nativeType() { return Native.ANY; }
+                public Native contentType() { return Native.ANY; }
                 public NativeRefinement nativeRefinement() { return null; }
                 public List<Field> fields() { return List.of(); }
         
@@ -134,14 +134,30 @@ public sealed interface JolieType {
     }
 
     public enum Native implements JolieType {
-        BOOL( "Boolean", "JolieBool", "boolValue", "isBool" ),
-        INT( "Integer", "JolieInt", "intValue", "isInt" ),
-        LONG( "Long", "JolieLong", "longValue", "isLong" ),
-        DOUBLE( "Double", "JolieDouble", "doubleValue", "isDouble" ),
-        STRING( "String", "JolieString", "strValue", "isString" ),
-        RAW( "ByteArray", "JolieRaw", "byteArrayValue", "isByteArray" ),
-        ANY( "JolieNative<?>", "JolieNative<?>", "valueObject", "" ),
-        VOID( "Void", "JolieVoid", "", "" );
+        BOOL(
+            ClassPath.BOOLEAN, ClassPath.JOLIEBOOL, 
+            "boolValue", "isBool" ),
+        INT(
+            ClassPath.INTEGER, ClassPath.JOLIEINT,
+            "intValue", "isInt" ),
+        LONG(
+            ClassPath.LONG, ClassPath.JOLIELONG, 
+            "longValue", "isLong" ),
+        DOUBLE(
+            ClassPath.DOUBLE, ClassPath.JOLIEDOUBLE,
+            "doubleValue", "isDouble" ),
+        STRING(
+            ClassPath.STRING, ClassPath.JOLIESTRING, 
+            "strValue", "isString" ),
+        RAW(
+            ClassPath.BYTEARRAY, ClassPath.JOLIERAW, 
+            "byteArrayValue", "isByteArray" ),
+        ANY(
+            ClassPath.JOLIENATIVE, ClassPath.JOLIENATIVE,
+            "valueObject", "" ),
+        VOID(
+            null, ClassPath.JOLIEVOID, 
+            "", "" );
 
         private static final Map<NativeType, Native> TRANSLATIONS = Map.of(
             NativeType.VOID, Native.VOID,
@@ -154,24 +170,27 @@ public sealed interface JolieType {
             NativeType.ANY, Native.ANY
         );
 
-        private final String valueName;
-        private final String wrapperName;
+        private final ClassPath nativeClass;
+        private final ClassPath wrapperClass;
         private final String valueGetter;
         private final String valueChecker;
 
-        private Native( String valueName, String wrapperName, String valueGetter, String valueChecker ) {
-            this.valueName = valueName;
-            this.wrapperName = wrapperName;
+        private Native( ClassPath nativeClass, ClassPath wrapperClass, String valueGetter, String valueChecker ) {
+            this.nativeClass = nativeClass;
+            this.wrapperClass = wrapperClass;
             this.valueGetter = valueGetter;
             this.valueChecker = valueChecker;
         }
 
-        public String valueName() { return valueName; }
-        public String wrapperName() { return wrapperName; }
+        public ClassPath nativeClass() { return nativeClass; }
+        public ClassPath wrapperClass() { return wrapperClass; }
         public String valueGetter() { return valueGetter; }
         public String valueChecker() { return valueChecker; }
 
-        public Stream<String> valueNames() { return valueTypesOf( this ).map( Native::valueName ); }
+        public String nativeType() { return this == ANY ? nativeClass.parameterized( "?" ) : nativeClass.get(); }
+        public String wrapperType() { return this == ANY ? wrapperClass.parameterized( "?" ) : wrapperClass.get(); }
+
+        public Stream<ClassPath> nativeClasses() { return nativeClassesOf( this ).map( Native::nativeClass ); }
 
         public String toString() {
             return StringUtils.capitalize( super.toString().toLowerCase() );
@@ -181,7 +200,7 @@ public sealed interface JolieType {
             return TRANSLATIONS.get( nativeType );
         }
 
-        public static Stream<Native> valueTypesOf( Native type ) {
+        public static Stream<Native> nativeClassesOf( Native type ) {
             return type == ANY
                 ? Stream.of( values() ).filter( t -> t != ANY && t != VOID )
                 : Stream.of( type );

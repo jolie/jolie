@@ -1,11 +1,19 @@
 package joliex.java.generate.type;
 
+import java.util.List;
 import joliex.java.generate.JavaClassBuilder;
+import joliex.java.generate.util.ClassPath;
 import joliex.java.parse.ast.JolieType;
+import joliex.java.parse.ast.NativeRefinement;
+import joliex.java.parse.ast.NativeRefinement.Enumeration;
+import joliex.java.parse.ast.NativeRefinement.Length;
+import joliex.java.parse.ast.NativeRefinement.Ranges;
+import joliex.java.parse.ast.NativeRefinement.Regex;
 import joliex.java.parse.ast.JolieType.Definition;
 import joliex.java.parse.ast.JolieType.Definition.Basic;
 import joliex.java.parse.ast.JolieType.Definition.Choice;
 import joliex.java.parse.ast.JolieType.Definition.Structure;
+import joliex.java.parse.ast.JolieType.Definition.Structure.Undefined;
 import joliex.java.parse.ast.JolieType.Native;
 
 public abstract class TypeClassBuilder extends JavaClassBuilder {
@@ -20,29 +28,8 @@ public abstract class TypeClassBuilder extends JavaClassBuilder {
 
     public String className() { return className; }
 
-    public void appendHeader() {
-        builder.append( "package " ).append( typesPackage ).append( ";" )
-            .newline()
-            .newlineAppend( "import jolie.runtime.Value;" )
-            .newlineAppend( "import jolie.runtime.ValueVector;" )
-            .newlineAppend( "import jolie.runtime.ByteArray;" )
-            .newlineAppend( "import jolie.runtime.typing.TypeCheckingException;" )
-            .newlineAppend( "import jolie.runtime.embedding.java.JolieValue;" )
-            .newlineAppend( "import jolie.runtime.embedding.java.JolieNative;" )
-            .newlineAppend( "import jolie.runtime.embedding.java.JolieNative.*;" )
-            .newlineAppend( "import jolie.runtime.embedding.java.TypedStructure;" )
-            .newlineAppend( "import jolie.runtime.embedding.java.UntypedStructure;" )
-            .newlineAppend( "import jolie.runtime.embedding.java.TypeValidationException;" )
-            .newlineAppend( "import jolie.runtime.embedding.java.util.*;" )
-            .newline()
-            .newlineAppend( "import java.util.Arrays;" )
-            .newlineAppend( "import java.util.Map;" )
-            .newlineAppend( "import java.util.SequencedCollection;" )
-            .newlineAppend( "import java.util.List;" )
-            .newlineAppend( "import java.util.Optional;" )
-            .newlineAppend( "import java.util.Objects;" )
-            .newlineAppend( "import java.util.Set;" )
-            .newlineAppend( "import java.util.function.Function;" );
+    public final void appendPackage() {
+        builder.append( "package " ).append( typesPackage ).append( ";" );
     }
 
     public void appendDefinition() { appendDefinition( false ); }
@@ -78,12 +65,16 @@ public abstract class TypeClassBuilder extends JavaClassBuilder {
     }
 
     protected String qualifiedName( Definition d ) {
+        if ( d instanceof Undefined )
+            return ClassPath.JOLIEVALUE.get();
+        
         return d.isLink() ? typesPackage + "." + d.name() : d.name(); 
     }
 
     protected String typeName( JolieType t ) {
         return switch( storedType( t ) ) {
-            case Native n -> n == Native.VOID ? n.wrapperName() : n.valueName();
+            case Native.VOID -> Native.VOID.wrapperClass().get();
+            case Native n -> n.nativeType();
             case Definition d -> qualifiedName( d );
         };
     }
@@ -92,6 +83,59 @@ public abstract class TypeClassBuilder extends JavaClassBuilder {
      * Convenience method to handle the fact that Basic.Inline and Native are stored in the same way.
      */
     protected static JolieType storedType( JolieType t ) {
-        return t instanceof Basic.Inline b ? b.nativeType() : t;
+        return t instanceof Basic.Inline b ? b.type() : t;
+    }
+
+    protected static String validateVectorField( String name, int min, int max, NativeRefinement refinement ) {
+        return new StringBuilder()
+            .append( ClassPath.VALUEMANAGER ).append( ".validated( " )
+            .append( "\"" ).append( name ).append( "\", " )
+            .append( name ).append( ", " ).append( min ).append( ", " ).append( max )
+            .append( ", t -> " ).append( validateRefinement( "t", refinement ) )
+            .append( " )" )
+            .toString();
+    }
+
+    protected static String validateMandatoryField( String name, NativeRefinement refinement ) {
+        return new StringBuilder()
+            .append( ClassPath.VALUEMANAGER ).append( ".validated( " )
+            .append( "\"" ).append( name ).append( "\", " )
+            .append( validateRefinement( name, refinement ) )
+            .append( " )" )
+            .toString();
+    }
+
+    protected static String validateRefinement( String name, NativeRefinement refinement ) {
+        return switch ( refinement ) {
+            case null -> name;
+
+            case Ranges( List<Ranges.Interval> intervals ) -> new StringBuilder()
+                .append( ClassPath.REFINEMENTVALIDATOR ).append( ".ranges( " )
+                .append( name )
+                .append( intervals.parallelStream()
+                    .map( i -> ", " + i.minString() + ", " + i.maxString() )
+                    .reduce( (s1,s2) -> s1 + s2 )
+                    .orElse( "" ) )
+                .append( " )" ).toString();
+
+            case Length( int min, int max ) -> new StringBuilder()
+                .append( ClassPath.REFINEMENTVALIDATOR ).append( ".length( " )
+                .append( name ).append( ", " ).append( min ).append( ", " ).append( max )
+                .append( " )" ).toString();
+
+            case Enumeration( List<String> values ) -> new StringBuilder()
+                .append( ClassPath.REFINEMENTVALIDATOR ).append( ".enumeration( " )
+                .append( name )
+                .append( values.parallelStream()
+                    .map( v -> ", \"" + v + "\"" )
+                    .reduce( (s1,s2) -> s1 + s2 )
+                    .orElse( "" ) )
+                .append( " )" ).toString();
+
+            case Regex( String regex ) -> new StringBuilder()
+                .append( ClassPath.REFINEMENTVALIDATOR ).append( ".regex( " )
+                .append( name ).append( ", \"" ).append( regex ).append( "\"" )
+                .append( " )" ).toString();
+        };
     }
 }

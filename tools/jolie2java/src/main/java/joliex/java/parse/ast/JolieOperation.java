@@ -2,8 +2,9 @@ package joliex.java.parse.ast;
 
 import java.util.List;
 import java.util.Optional;
-
+import joliex.java.generate.util.ClassPath;
 import joliex.java.parse.ast.JolieType.Definition;
+import joliex.java.parse.ast.JolieType.Definition.Structure.Undefined;
 import joliex.java.parse.ast.JolieType.Native;
 
 public sealed interface JolieOperation {
@@ -13,18 +14,22 @@ public sealed interface JolieOperation {
     JolieType response();
     Optional<String> possibleDocumentation();
 
-    default Optional<String> requestType() { 
+    default Optional<String> requestType( String typesPackage ) {
         return switch ( request() ) {
-            case Native n -> n == Native.VOID ? Optional.empty() : Optional.of( n.valueName() );
-            case Definition d -> Optional.of( d.name() );
-        }; 
+            case Native.VOID -> Optional.empty();
+            case Native n -> Optional.of( n.nativeType() );
+            case Undefined d -> Optional.of( ClassPath.JOLIEVALUE.get() );
+            case Definition d -> Optional.of( typesPackage + "." + d.name() );
+        };
     }
 
-    default Optional<String> responseType() { 
-        return switch ( response() ) {
-            case Native n -> n == Native.VOID ? Optional.empty() : Optional.of( n.valueName() );
-            case Definition d -> Optional.of( d.name() );
-        }; 
+    default String responseType( String typesPackage ) {
+        return switch( response() ) { 
+            case Native.VOID -> "void"; 
+            case Native n -> n.nativeType(); 
+            case Undefined d -> ClassPath.JOLIEVALUE.get();
+            case Definition d -> typesPackage + "." + d.name(); 
+        };
     }
 
     default List<RequestResponse.Fault> faults() { return List.of(); }
@@ -32,7 +37,6 @@ public sealed interface JolieOperation {
     public static record OneWay( String name, JolieType request, String documentation ) implements JolieOperation {
         
         public JolieType response() { return Native.VOID; }
-        public Optional<String> responseType() { return Optional.empty(); }
 
         public Optional<String> possibleDocumentation() { return Optional.ofNullable( documentation ); }
     }

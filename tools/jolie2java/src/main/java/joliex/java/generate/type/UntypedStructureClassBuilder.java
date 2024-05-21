@@ -1,6 +1,7 @@
 package joliex.java.generate.type;
 
 import java.util.Optional;
+import joliex.java.generate.util.ClassPath;
 import joliex.java.parse.ast.JolieType.Native;
 import joliex.java.parse.ast.JolieType.Definition.Structure;
 
@@ -10,99 +11,77 @@ public class UntypedStructureClassBuilder extends StructureClassBuilder {
 
     public UntypedStructureClassBuilder( Structure.Inline.Untyped structure, String typesPackage ) {
         super( structure, typesPackage ); 
-        this.contentFieldName = Optional.ofNullable( switch ( structure.nativeType() ) {
+        this.contentFieldName = Optional.ofNullable( switch ( structure.contentType() ) {
             case VOID -> null;
             case ANY -> "content";
             default -> "contentValue";
         } );
     }
 
-    @Override
-    public void appendHeader() {
-        builder.append( "package " ).append( typesPackage ).append( ";" )
-            .newline()
-            .newlineAppend( "import jolie.runtime.Value;" )
-            .newlineAppend( "import jolie.runtime.ByteArray;" )
-            .newlineAppend( "import jolie.runtime.typing.TypeCheckingException;" )
-            .newlineAppend( "import jolie.runtime.embedding.java.JolieValue;" )
-            .newlineAppend( "import jolie.runtime.embedding.java.JolieNative;" )
-            .newlineAppend( "import jolie.runtime.embedding.java.JolieNative.*;" )
-            .newlineAppend( "import jolie.runtime.embedding.java.UntypedStructure;" )
-            .newlineAppend( "import jolie.runtime.embedding.java.TypeValidationException;" )
-            .newlineAppend( "import jolie.runtime.embedding.java.util.*;" )
-            .newline()
-            .newlineAppend( "import java.util.Map;" )
-            .newlineAppend( "import java.util.List;" );
-    }
-
     protected void appendDescriptionDocumentation() {
-        builder.newlineAppend( "this class is an {@link UntypedStructure} which can be described as follows:" );
+        builder.newlineAppend( "this class is an {@link " ).append( ClassPath.UNTYPEDSTRUCTURE ).append( "} which can be described as follows:" );
     }
 
     protected void appendDefinitionDocumentation() {
-        if ( structure.nativeType() != Native.VOID )
-            builder.newNewlineAppend( structure.nativeType() == Native.ANY ? "content" : "contentValue" )
-                .append( ": {@link " ).append( structure.nativeType().valueName() ).append( "}" )
+        if ( structure.contentType() != Native.VOID )
+            builder.newNewlineAppend( structure.contentType() == Native.ANY ? "content" : "contentValue" )
+                .append( ": {@link " ).append( structure.contentType().nativeClass() ).append( "}" )
                 .append( structure.possibleRefinement().map( r -> "( " + r.definitionString() + " )" ).orElse( "" ) )
                 .append( "{ ? }" );
         else
-            builder.newNewlineAppend( "content: {@link " ).append( structure.nativeType().wrapperName() ).append( "} { ? }" );
+            builder.newNewlineAppend( "void { ? }" );
     }
 
     protected void appendSeeDocumentation() {
         builder.newline()
-            .newlineAppend( "@see JolieValue" )
-            .newlineAppend( "@see JolieNative" )
+            .newlineAppend( "@see " ).append( ClassPath.JOLIEVALUE )
+            .newlineAppend( "@see " ).append( ClassPath.JOLIENATIVE )
             .newlineAppend( "@see #builder()" );
     }
 
     protected void appendSignature( boolean isInnerClass ) {
-        builder.newlineAppend( "public " ).append( isInnerClass ? "static " : "" ).append( "final class " ).append( className ).append( " extends UntypedStructure<" ).append( structure.nativeType().wrapperName() ).append( ">" );
+        builder.newlineAppend( "public " ).append( isInnerClass ? "static " : "" ).append( "final class " ).append( className ).append( " extends " ).append( ClassPath.UNTYPEDSTRUCTURE.parameterized( structure.contentType().wrapperType() ) );
     }
 
-    protected void appendAttributes() {
-        structure.possibleRefinement().ifPresent( r ->
-            builder.newNewlineAppend( "private static final List<Refinement<" ).append( structure.nativeType().valueName() ).append( ">> REFINEMENTS = " ).append( r.createString() ).append( ";" )
-        );
-    }
+    protected void appendAttributes() {}
 
     protected void appendConstructors() {
-        switch ( structure.nativeType() ) {
-            case ANY    -> builder.newNewlineAppend( "public " ).append( className ).append( "( " ).append( structure.nativeType().wrapperName() ).append( " content, Map<String, List<JolieValue>> children ) { super( content, children ); }" );
-            case VOID   -> builder.newNewlineAppend( "public " ).append( className ).append( "( Map<String, List<JolieValue>> children ) { super( new JolieVoid(), children ); }" );
-            default     -> builder.newNewlineAppend( "public " ).append( className ).append( "( " ).append( structure.nativeType().valueName() ).append( " contentValue, Map<String, List<JolieValue>> children ) { super( JolieNative.of( " ).append( structure.possibleRefinement().map( r -> "Refinement.validated( contentValue, REFINEMENTS )" ).orElse( "contentValue" ) ).append( " ), children ); }" );
+        switch ( structure.contentType() ) {
+            case ANY    -> builder.newNewlineAppend( "public " ).append( className ).append( "( " ).append( structure.contentType().wrapperType() ).append( " content, " ).append( ClassPath.childrenMap() ).append( " children ) { super( content, children ); }" );
+            case VOID   -> builder.newNewlineAppend( "public " ).append( className ).append( "( " ).append( ClassPath.childrenMap() ).append( " children ) { super( new " ).append( ClassPath.JOLIEVOID ).append( "(), children ); }" );
+            default     -> builder.newNewlineAppend( "public " ).append( className ).append( "( " ).append( structure.contentType().nativeType() ).append( " contentValue, " ).append( ClassPath.childrenMap() ).append( " children ) { super( " ).append( ClassPath.JOLIENATIVE ).append( ".of( " ).append( validateRefinement( "contentValue", structure.nativeRefinement() ) ).append( " ), children ); }" );
         }
     }
 
     protected void appendMethods() {
         contentFieldName.ifPresent( n -> {
-            if ( structure.nativeType() != Native.ANY )
-                builder.newNewlineAppend( "public " ).append( structure.nativeType().valueName() ).append( " " ).append( n ).append( "() { return content().value(); }" );
+            if ( structure.contentType() != Native.ANY )
+                builder.newNewlineAppend( "public " ).append( structure.contentType().nativeClass() ).append( " " ).append( n ).append( "() { return content().value(); }" );
         } );
     }
 
     protected void appendFromMethod() {
-        builder.newNewlineAppend( "public static " ).append( className ).append( " from( JolieValue j ) throws TypeValidationException" ).body( () -> 
+        builder.newNewlineAppend( "public static " ).append( className ).append( " from( " ).append( ClassPath.JOLIEVALUE ).append( " j ) throws " ).append( ClassPath.TYPEVALIDATIONEXCEPTION ).body( () -> 
             builder.newlineAppend( "return new " ).append( className ).append( "( " )
-                .append( switch ( structure.nativeType() ) {
+                .append( switch ( structure.contentType() ) {
                     case Native.VOID -> "";
                     case Native.ANY -> "j.content(), ";
-                    default -> structure.nativeType().wrapperName() + ".from( j ).value(), ";
+                    default -> structure.contentType().wrapperClass().get() + ".from( j ).value(), ";
                 } )
                 .append( "j.children() );" ) );
     }
 
     protected void appendFromValueMethod() {
         // TODO: make this more efficient
-        builder.newNewlineAppend( "public static " ).append( className ).append( " fromValue( Value v ) throws TypeCheckingException { return from( JolieValue.fromValue( v ) ); }" );
+        builder.newNewlineAppend( "public static " ).append( className ).append( " fromValue( " ).append( ClassPath.VALUE ).append( " v ) throws " ).append( ClassPath.TYPECHECKINGEXCEPTION ).append( " { return from( " ).append( ClassPath.JOLIEVALUE ).append( ".fromValue( v ) ); }" );
     }
 
     protected void appendToValueMethod() {
-        builder.newNewlineAppend( "public static Value toValue( " ).append( className ).append( " t ) { return JolieValue.toValue( t ); }" );
+        builder.newNewlineAppend( "public static " ).append( ClassPath.VALUE ).append( " toValue( " ).append( className ).append( " t ) { return " ).append( ClassPath.JOLIEVALUE ).append( ".toValue( t ); }" );
     }
 
     protected void appendBuilder() {
-        builder.newNewlineAppend( "public static class Builder extends UntypedBuilder<Builder>" ).body( () -> {
+        builder.newNewlineAppend( "public static class Builder extends " ).append( ClassPath.UNTYPEDBUILDER.parameterized( "Builder" ) ).body( () -> {
             appendBuilderAttributes();
             appendBuilderConstructors();
             appendBuilderMethods();
@@ -111,29 +90,29 @@ public class UntypedStructureClassBuilder extends StructureClassBuilder {
 
     private void appendBuilderAttributes() {
         contentFieldName.ifPresent(
-            n -> builder.newNewlineAppend( "private " ).append( structure.nativeType().valueName() ).append( " " ).append( n ).append( ";" )
+            n -> builder.newNewlineAppend( "private " ).append( structure.contentType().nativeType() ).append( " " ).append( n ).append( ";" )
         );
     }
 
     private void appendBuilderConstructors() {
         builder.newNewlineAppend( "private Builder() {}" );
 
-        builder.newNewlineAppend( "private Builder( JolieValue j )" ).body( () -> {
+        builder.newNewlineAppend( "private Builder( " ).append( ClassPath.JOLIEVALUE ).append( " j )" ).body( () -> {
             builder.newlineAppend( "super( j.children() );" );
 
-            if ( structure.nativeType() == Native.ANY )
+            if ( structure.contentType() == Native.ANY )
                 builder.newNewlineAppend( "content = j.content();" );
-            else if ( structure.nativeType() != Native.VOID )
-                builder.newNewlineAppend( "contentValue = j.content() instanceof " ).append( structure.nativeType().wrapperName() ).append( " content ? content.value() : null;" );
+            else if ( structure.contentType() != Native.VOID )
+                builder.newNewlineAppend( "contentValue = j.content() instanceof " ).append( structure.contentType().wrapperClass() ).append( " content ? content.value() : null;" );
         } );
     }
 
     private void appendBuilderMethods() {
         builder.newNewlineAppend( "protected Builder self() { return this; }" );
         contentFieldName.ifPresent( 
-            n -> builder.newNewlineAppend( "public Builder " ).append( n ).append( "( " ).append( structure.nativeType().valueName() ).append( " " ).append( n ).append( " ) { this." ).append( n ).append( " = " ).append( n ).append( "; return this; }" )
+            n -> builder.newNewlineAppend( "public Builder " ).append( n ).append( "( " ).append( structure.contentType().nativeType() ).append( " " ).append( n ).append( " ) { this." ).append( n ).append( " = " ).append( n ).append( "; return this; }" )
         );
-        builder.newNewlineAppend( "public " ).append( className ).append( " build() { return new " ).append( className ).append( "( " ).append( switch ( structure.nativeType() ) { case VOID -> ""; case ANY -> "content == null ? new JolieVoid() : content, "; default -> "contentValue, "; } ).append( "children ); }" );
+        builder.newNewlineAppend( "public " ).append( className ).append( " build() { return new " ).append( className ).append( "( " ).append( switch ( structure.contentType() ) { case VOID -> ""; case ANY -> "content == null ? new " + ClassPath.JOLIEVOID.get() + "() : content, "; default -> "contentValue, "; } ).append( "children ); }" );
     }
 
     protected void appendTypeClasses() {}

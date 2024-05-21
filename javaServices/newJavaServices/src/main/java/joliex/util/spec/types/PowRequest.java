@@ -1,72 +1,51 @@
 package joliex.util.spec.types;
 
-import jolie.runtime.Value;
-import jolie.runtime.ValueVector;
-import jolie.runtime.ByteArray;
-import jolie.runtime.typing.TypeCheckingException;
-import jolie.runtime.embedding.java.JolieValue;
-import jolie.runtime.embedding.java.JolieNative;
-import jolie.runtime.embedding.java.JolieNative.*;
-import jolie.runtime.embedding.java.TypedStructure;
-import jolie.runtime.embedding.java.UntypedStructure;
-import jolie.runtime.embedding.java.TypeValidationException;
-import jolie.runtime.embedding.java.util.*;
-
-import java.util.Arrays;
-import java.util.Map;
-import java.util.SequencedCollection;
-import java.util.List;
-import java.util.Optional;
-import java.util.Objects;
-import java.util.Set;
-import java.util.function.Function;
-
 /**
- * this class is a {@link TypedStructure} which can be described as follows:
+ * this class is a {@link jolie.runtime.embedding.java.TypedStructure} which can be described as follows:
  * <pre>
- * base: {@link Double}
- * exponent: {@link Double}
+ * base: {@link java.lang.Double}
+ * exponent: {@link java.lang.Double}
  * </pre>
  * 
- * @see JolieValue
- * @see JolieNative
+ * @see jolie.runtime.embedding.java.JolieValue
+ * @see jolie.runtime.embedding.java.JolieNative
  */
-public final class PowRequest extends TypedStructure {
+public final class PowRequest extends jolie.runtime.embedding.java.TypedStructure {
     
-    private static final Set<String> FIELD_KEYS = fieldKeys( PowRequest.class );
+    private static final java.util.Set<java.lang.String> FIELD_KEYS = fieldKeys( PowRequest.class );
     
-    @JolieName("base")
-    private final Double base;
-    @JolieName("exponent")
-    private final Double exponent;
+    @jolie.runtime.embedding.java.util.JolieName("base")
+    private final java.lang.Double base;
+    @jolie.runtime.embedding.java.util.JolieName("exponent")
+    private final java.lang.Double exponent;
     
-    public PowRequest( Double base, Double exponent ) {
-        this.base = ValueManager.validated( "base", base );
-        this.exponent = ValueManager.validated( "exponent", exponent );
+    public PowRequest( java.lang.Double base, java.lang.Double exponent ) {
+        this.base = jolie.runtime.embedding.java.util.ValueManager.validated( "base", base );
+        this.exponent = jolie.runtime.embedding.java.util.ValueManager.validated( "exponent", exponent );
     }
     
-    public Double base() { return base; }
-    public Double exponent() { return exponent; }
+    public java.lang.Double base() { return base; }
+    public java.lang.Double exponent() { return exponent; }
     
-    public JolieVoid content() { return new JolieVoid(); }
+    public jolie.runtime.embedding.java.JolieNative.JolieVoid content() { return new jolie.runtime.embedding.java.JolieNative.JolieVoid(); }
     
-    public static PowRequest from( JolieValue j ) {
+    public static PowRequest from( jolie.runtime.embedding.java.JolieValue j ) throws jolie.runtime.embedding.java.TypeValidationException {
         return new PowRequest(
-            ValueManager.fieldFrom( j.getFirstChild( "base" ), c -> c.content() instanceof JolieDouble content ? content.value() : null ),
-            ValueManager.fieldFrom( j.getFirstChild( "exponent" ), c -> c.content() instanceof JolieDouble content ? content.value() : null )
+            jolie.runtime.embedding.java.util.ValueManager.fieldFrom( j.getFirstChild( "base" ), c -> c.content() instanceof jolie.runtime.embedding.java.JolieNative.JolieDouble content ? content.value() : null ),
+            jolie.runtime.embedding.java.util.ValueManager.fieldFrom( j.getFirstChild( "exponent" ), c -> c.content() instanceof jolie.runtime.embedding.java.JolieNative.JolieDouble content ? content.value() : null )
         );
     }
     
-    public static PowRequest fromValue( Value v ) throws TypeCheckingException {
-        ValueManager.requireChildren( v, FIELD_KEYS );
+    public static PowRequest fromValue( jolie.runtime.Value v ) throws jolie.runtime.typing.TypeCheckingException {
+        jolie.runtime.embedding.java.util.ValueManager.requireChildren( v, FIELD_KEYS );
         return new PowRequest(
-            ValueManager.singleFieldFrom( v, "base", JolieDouble::fieldFromValue ),
-            ValueManager.singleFieldFrom( v, "exponent", JolieDouble::fieldFromValue )
+            jolie.runtime.embedding.java.util.ValueManager.singleFieldFrom( v, "base", jolie.runtime.embedding.java.JolieNative.JolieDouble::fieldFromValue ),
+            jolie.runtime.embedding.java.util.ValueManager.singleFieldFrom( v, "exponent", jolie.runtime.embedding.java.JolieNative.JolieDouble::fieldFromValue )
         );
     }
     
-    public static Value toValue( PowRequest t ) {
-        final Value v = Value.create();
+    public static jolie.runtime.Value toValue( PowRequest t ) {
+        final jolie.runtime.Value v = jolie.runtime.Value.create();
         
         v.getFirstChild( "base" ).setValue( t.base() );
         v.getFirstChild( "exponent" ).setValue( t.exponent() );

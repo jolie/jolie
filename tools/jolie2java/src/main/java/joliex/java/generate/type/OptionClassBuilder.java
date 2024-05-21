@@ -1,5 +1,6 @@
 package joliex.java.generate.type;
 
+import joliex.java.generate.util.ClassPath;
 import joliex.java.parse.ast.JolieType;
 import joliex.java.parse.ast.JolieType.Definition;
 import joliex.java.parse.ast.JolieType.Definition.Basic;
@@ -45,14 +46,15 @@ public final class OptionClassBuilder extends TypeClassBuilder {
 
     private void appendConstructors() {
         if ( type != Native.VOID )
-            builder.newNewlineAppend( "public " ).append( className ).append( "( " ).append( typeName( type ) ).append( " option ) { this.option = ValueManager.validated( \"option\", option" ).append( type instanceof Basic.Inline b ? ", " + b.refinement().createString() : "" ).append( " ); }" );
+            builder.newNewlineAppend( "public " ).append( className ).append( "( " ).append( typeName( type ) ).append( " option )" ).body( () ->
+                builder.newlineAppend( "this.option = " ).append( validateMandatoryField( "option", type instanceof Basic.Inline b ? b.refinement() : null ) ).append( ";" ) );
     }
 
     private void appendMethods( Native n ) {
         builder.newline()
-            .newlineAppend( "public " ).append( n.wrapperName() ).append( " content() { return " ).append( switch ( n ) { case ANY -> "option"; case VOID -> "new JolieVoid()"; default -> "JolieNative.of( option )"; } ).append( "; }" )
-            .newlineAppend( "public Map<String, List<JolieValue>> children() { return Map.of(); }" )
-            .newlineAppend( "public Value jolieRepr() { return " ).append( switch ( n ) { case ANY -> "JolieNative.toValue( option )"; case VOID -> "Value.create()"; default -> "Value.create( option )"; } ).append( "; }" );
+            .newlineAppend( "public " ).append( n.wrapperType() ).append( " content() { return " ).append( switch ( n ) { case ANY -> "option"; case VOID -> "new " + ClassPath.JOLIEVOID.get() + "()"; default -> ClassPath.JOLIENATIVE.get() + ".of( option )"; } ).append( "; }" )
+            .newlineAppend( "public " ).append( ClassPath.MAP.parameterized( ClassPath.STRING.get(), ClassPath.LIST.parameterized( ClassPath.JOLIEVALUE ) ) ).append( " children() { return " ).append( ClassPath.MAP ).append( ".of(); }" )
+            .newlineAppend( "public " ).append( ClassPath.VALUE ).append( " jolieRepr() { return " ).append( switch ( n ) { case ANY -> ClassPath.JOLIENATIVE.get() + ".toValue( option )"; case VOID -> ClassPath.VALUE.get() + ".create()"; default -> ClassPath.VALUE.get() + ".create( option )"; } ).append( "; }" );
 
         appendOverrideMethods();
         appendFromMethod( n );
@@ -62,9 +64,9 @@ public final class OptionClassBuilder extends TypeClassBuilder {
     
     private void appendMethods( Definition d ) {
         builder.newline()
-            .newlineAppend( "public " ).append( switch ( d ) { case Basic b -> b.nativeType().wrapperName(); case Structure s -> s.nativeType().wrapperName(); case Choice c -> "JolieNative<?>"; } ).append( " content() { return option.content(); }" )
-            .newlineAppend( "public Map<String, List<JolieValue>> children() { return option.children(); }" )
-            .newlineAppend( "public Value jolieRepr() { return " ).append( qualifiedName( d ) ).append( ".toValue( option ); }" );
+            .newlineAppend( "public " ).append( switch ( d ) { case Basic b -> b.type().wrapperType(); case Structure s -> s.contentType().wrapperType(); case Choice c -> ClassPath.JOLIENATIVE.parameterized( "?" ); } ).append( " content() { return option.content(); }" )
+            .newlineAppend( "public " ).append( ClassPath.MAP.parameterized( ClassPath.STRING.get(), ClassPath.LIST.parameterized( ClassPath.JOLIEVALUE ) ) ).append( " children() { return option.children(); }" )
+            .newlineAppend( "public " ).append( ClassPath.VALUE ).append( " jolieRepr() { return " ).append( qualifiedName( d ) ).append( ".toValue( option ); }" );
 
         appendOverrideMethods();
         appendFromMethod( d );
@@ -75,47 +77,46 @@ public final class OptionClassBuilder extends TypeClassBuilder {
     private void appendOverrideMethods() {
         if ( type != Native.VOID )
             builder.newline()
-                .newlineAppend( "public boolean equals( Object obj ) { return obj != null && obj instanceof JolieValue j && option.equals( " )
-                    .append( storedType( type ) instanceof Native ? "j.content().value()" : "j" ).append( " ); }" )
+                .newlineAppend( "public boolean equals( " ).append( ClassPath.OBJECT ).append( " obj ) { return obj != null && obj instanceof " ).append( ClassPath.JOLIEVALUE ).append( " j && " ).append( storedType( type ) instanceof Native ? "option.equals( j.content().value() ) && j.children().isEmpty()" : "option.equals( j )" ).append( "; }" )
                 .newlineAppend( "public int hashCode() { return option.hashCode(); }" )
-                .newlineAppend( "public String toString() { return option.toString(); }" );
+                .newlineAppend( "public " ).append( ClassPath.STRING ).append( " toString() { return option.toString(); }" );
         else
             builder.newline()
-                .newlineAppend( "public boolean equals( Object obj ) { return obj != null && obj instanceof JolieValue j && j.content() instanceof JolieVoid && j.children().isEmpty(); }" )
+                .newlineAppend( "public boolean equals( " ).append( ClassPath.OBJECT ).append( " obj ) { return obj != null && obj instanceof " ).append( ClassPath.JOLIEVALUE ).append( " j && j.content() instanceof " ).append( ClassPath.JOLIEVOID ).append( " && j.children().isEmpty(); }" )
                 .newlineAppend( "public int hashCode() { return 0; }" )
-                .newlineAppend( "public String toString() { return \"\"; }" );
+                .newlineAppend( "public " ).append( ClassPath.STRING ).append( " toString() { return \"\"; }" );
     }
 
     private void appendFromMethod( Native n ) {
-        builder.newNewlineAppend( "public static " ).append( className ).append( " from( JolieValue j ) throws TypeValidationException" ).body( () -> {
+        builder.newNewlineAppend( "public static " ).append( className ).append( " from( " ).append( ClassPath.JOLIEVALUE ).append( " j ) throws " ).append( ClassPath.TYPEVALIDATIONEXCEPTION ).body( () -> {
             if ( n == Native.VOID )
                 builder.newlineAppend( "return new " ).append( className ).append( "();" );
             else if ( n == Native.ANY )
                 builder.newlineAppend( "return new " ).append( className ).append( "( j.content() );" );
             else
-                builder.newlineAppend( "return new " ).append( className ).append( "( " ).append( n.wrapperName() ).append( ".from( j ).value() );" );
+                builder.newlineAppend( "return new " ).append( className ).append( "( " ).append( n.wrapperClass() ).append( ".from( j ).value() );" );
         } );
     }
 
     private void appendFromMethod( Definition d ) {
-        builder.newNewlineAppend( "public static " ).append( className ).append( " from( JolieValue j ) throws TypeValidationException { return new " ).append( className ).append( "( " ).append( qualifiedName( d ) ).append( ".from( j ) ); }" );
+        builder.newNewlineAppend( "public static " ).append( className ).append( " from( " ).append( ClassPath.JOLIEVALUE ).append( " j ) throws " ).append( ClassPath.TYPEVALIDATIONEXCEPTION ).append( " { return new " ).append( className ).append( "( " ).append( qualifiedName( d ) ).append( ".from( j ) ); }" );
     }
 
     private void appendFromValueMethod( Native n ) {
-        builder.newNewlineAppend( "public static " ).append( className ).append( " fromValue( Value v ) throws TypeCheckingException { " ).append(
+        builder.newNewlineAppend( "public static " ).append( className ).append( " fromValue( " ).append( ClassPath.VALUE ).append( " v ) throws " ).append( ClassPath.TYPECHECKINGEXCEPTION ).append( " { " ).append(
             switch ( n ) {
-                case VOID -> "JolieVoid.requireVoid( v ); return new " + className + "();";
-                case ANY -> "return JolieNative.fromValue( v );";
-                default -> "return new " + className + "( " + n.wrapperName() + ".fieldFromValue( v ) );";
+                case VOID -> ClassPath.JOLIEVOID.get() + ".requireVoid( v ); return new " + className + "();";
+                case ANY -> "return " + ClassPath.JOLIENATIVE.get() + ".fromValue( v );";
+                default -> "return new " + className + "( " + n.wrapperClass().get() + ".fieldFromValue( v ) );";
             }
         ).append( " }" );
     }
 
     private void appendFromValueMethod( Definition d ) {
-        builder.newNewlineAppend( "public static " ).append( className ).append( " fromValue( Value v ) throws TypeCheckingException { return new " ).append( className ).append( "( " ).append( qualifiedName( d ) ).append( ".fromValue( v ) ); }" );
+        builder.newNewlineAppend( "public static " ).append( className ).append( " fromValue( " ).append( ClassPath.VALUE ).append( " v ) throws " ).append( ClassPath.TYPECHECKINGEXCEPTION ).append( " { return new " ).append( className ).append( "( " ).append( qualifiedName( d ) ).append( ".fromValue( v ) ); }" );
     }
 
     private void appendToValueMethod() {
-        builder.newNewlineAppend( "public static Value toValue( " ).append( className ).append( " t ) { return t.jolieRepr(); }" );
+        builder.newNewlineAppend( "public static " ).append( ClassPath.VALUE ).append( " toValue( " ).append( className ).append( " t ) { return t.jolieRepr(); }" );
     }
 }

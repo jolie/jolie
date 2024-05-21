@@ -1,72 +1,51 @@
 package joliex.util.spec.types;
 
-import jolie.runtime.Value;
-import jolie.runtime.ValueVector;
-import jolie.runtime.ByteArray;
-import jolie.runtime.typing.TypeCheckingException;
-import jolie.runtime.embedding.java.JolieValue;
-import jolie.runtime.embedding.java.JolieNative;
-import jolie.runtime.embedding.java.JolieNative.*;
-import jolie.runtime.embedding.java.TypedStructure;
-import jolie.runtime.embedding.java.UntypedStructure;
-import jolie.runtime.embedding.java.TypeValidationException;
-import jolie.runtime.embedding.java.util.*;
-
-import java.util.Arrays;
-import java.util.Map;
-import java.util.SequencedCollection;
-import java.util.List;
-import java.util.Optional;
-import java.util.Objects;
-import java.util.Set;
-import java.util.function.Function;
-
 /**
- * this class is a {@link TypedStructure} which can be described as follows:
+ * this class is a {@link jolie.runtime.embedding.java.TypedStructure} which can be described as follows:
  * <pre>
- * from: {@link Integer}
- * to: {@link Integer}
+ * from: {@link java.lang.Integer}
+ * to: {@link java.lang.Integer}
  * </pre>
  * 
- * @see JolieValue
- * @see JolieNative
+ * @see jolie.runtime.embedding.java.JolieValue
+ * @see jolie.runtime.embedding.java.JolieNative
  */
-public final class SummationRequest extends TypedStructure {
+public final class SummationRequest extends jolie.runtime.embedding.java.TypedStructure {
     
-    private static final Set<String> FIELD_KEYS = fieldKeys( SummationRequest.class );
+    private static final java.util.Set<java.lang.String> FIELD_KEYS = fieldKeys( SummationRequest.class );
     
-    @JolieName("from")
-    private final Integer from;
-    @JolieName("to")
-    private final Integer to;
+    @jolie.runtime.embedding.java.util.JolieName("from")
+    private final java.lang.Integer from;
+    @jolie.runtime.embedding.java.util.JolieName("to")
+    private final java.lang.Integer to;
     
-    public SummationRequest( Integer from, Integer to ) {
-        this.from = ValueManager.validated( "from", from );
-        this.to = ValueManager.validated( "to", to );
+    public SummationRequest( java.lang.Integer from, java.lang.Integer to ) {
+        this.from = jolie.runtime.embedding.java.util.ValueManager.validated( "from", from );
+        this.to = jolie.runtime.embedding.java.util.ValueManager.validated( "to", to );
     }
     
-    public Integer from() { return from; }
-    public Integer to() { return to; }
+    public java.lang.Integer from() { return from; }
+    public java.lang.Integer to() { return to; }
     
-    public JolieVoid content() { return new JolieVoid(); }
+    public jolie.runtime.embedding.java.JolieNative.JolieVoid content() { return new jolie.runtime.embedding.java.JolieNative.JolieVoid(); }
     
-    public static SummationRequest from( JolieValue j ) {
+    public static SummationRequest from( jolie.runtime.embedding.java.JolieValue j ) throws jolie.runtime.embedding.java.TypeValidationException {
         return new SummationRequest(
-            ValueManager.fieldFrom( j.getFirstChild( "from" ), c -> c.content() instanceof JolieInt content ? content.value() : null ),
-            ValueManager.fieldFrom( j.getFirstChild( "to" ), c -> c.content() instanceof JolieInt content ? content.value() : null )
+            jolie.runtime.embedding.java.util.ValueManager.fieldFrom( j.getFirstChild( "from" ), c -> c.content() instanceof jolie.runtime.embedding.java.JolieNative.JolieInt content ? content.value() : null ),
+            jolie.runtime.embedding.java.util.ValueManager.fieldFrom( j.getFirstChild( "to" ), c -> c.content() instanceof jolie.runtime.embedding.java.JolieNative.JolieInt content ? content.value() : null )
         );
     }
     
-    public static SummationRequest fromValue( Value v ) throws TypeCheckingException {
-        ValueManager.requireChildren( v, FIELD_KEYS );
+    public static SummationRequest fromValue( jolie.runtime.Value v ) throws jolie.runtime.typing.TypeCheckingException {
+        jolie.runtime.embedding.java.util.ValueManager.requireChildren( v, FIELD_KEYS );
         return new SummationRequest(
-            ValueManager.singleFieldFrom( v, "from", JolieInt::fieldFromValue ),
-            ValueManager.singleFieldFrom( v, "to", JolieInt::fieldFromValue )
+            jolie.runtime.embedding.java.util.ValueManager.singleFieldFrom( v, "from", jolie.runtime.embedding.java.JolieNative.JolieInt::fieldFromValue ),
+            jolie.runtime.embedding.java.util.ValueManager.singleFieldFrom( v, "to", jolie.runtime.embedding.java.JolieNative.JolieInt::fieldFromValue )
         );
     }
     
-    public static Value toValue( SummationRequest t ) {
-        final Value v = Value.create();
+    public static jolie.runtime.Value toValue( SummationRequest t ) {
+        final jolie.runtime.Value v = jolie.runtime.Value.create();
         
         v.getFirstChild( "from" ).setValue( t.from() );
         v.getFirstChild( "to" ).setValue( t.to() );

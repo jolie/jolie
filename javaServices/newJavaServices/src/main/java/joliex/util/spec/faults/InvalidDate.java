@@ -1,22 +1,12 @@
 package joliex.util.spec.faults;
 
-import java.util.Objects;
-
-import jolie.runtime.Value;
-import jolie.runtime.ByteArray;
-import jolie.runtime.FaultException;
-import jolie.runtime.embedding.java.JolieValue;
-import jolie.runtime.embedding.java.JolieNative;
-
-import joliex.util.spec.types.*;
-
-public class InvalidDate extends FaultException {
+public class InvalidDate extends jolie.runtime.FaultException {
     
-    private final JolieValue fault;
-    public InvalidDate( JolieValue fault ) {
-        super( "InvalidDate", JolieValue.toValue( fault ) );
-        this.fault = Objects.requireNonNull( fault );
+    private final jolie.runtime.embedding.java.JolieValue fault;
+    public InvalidDate( jolie.runtime.embedding.java.JolieValue fault ) {
+        super( "InvalidDate", jolie.runtime.embedding.java.JolieValue.toValue( fault ) );
+        this.fault = java.util.Objects.requireNonNull( fault );
     }
     
-    public JolieValue fault() { return fault; }
+    public jolie.runtime.embedding.java.JolieValue fault() { return fault; }
 }

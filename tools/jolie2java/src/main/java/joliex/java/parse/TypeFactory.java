@@ -107,9 +107,9 @@ public class TypeFactory {
     private JolieType parseAlias( TypeDefinitionLink linkDefinition, NameSupplier nameSupplier ) {
         final JolieType t = get( unpackLink( linkDefinition ) );
         return inlineLink( linkDefinition ) ? t : switch ( t ) {
-            case Basic.Inline b -> new Basic.Inline( nameSupplier.get(), b.nativeType(), b.refinement() );
-            case Structure.Inline.Typed s -> new Structure.Inline.Typed( nameSupplier.get(), s.nativeType(), s.nativeRefinement(), s.fieldsFuture(), s.hasBuilder() );
-            case Structure.Inline.Untyped u -> new Structure.Inline.Untyped( nameSupplier.get(), u.nativeType(), u.nativeRefinement(), u.hasBuilder() );
+            case Basic.Inline b -> new Basic.Inline( nameSupplier.get(), b.type(), b.refinement() );
+            case Structure.Inline.Typed s -> new Structure.Inline.Typed( nameSupplier.get(), s.contentType(), s.nativeRefinement(), s.fieldsFuture(), s.hasBuilder() );
+            case Structure.Inline.Untyped u -> new Structure.Inline.Untyped( nameSupplier.get(), u.contentType(), u.nativeRefinement(), u.hasBuilder() );
             case Choice.Inline c -> new Choice.Inline( nameSupplier.get(), c.optionsFuture(), c.hasBuilder() );
             default -> t;
         };

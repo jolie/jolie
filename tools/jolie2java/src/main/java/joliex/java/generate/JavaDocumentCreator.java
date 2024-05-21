@@ -41,7 +41,7 @@ public class JavaDocumentCreator {
     public JavaDocumentCreator( String outputDirectory, String packageName, String typePackage, String faultPackage, String interfacePackage, String serviceName, GenerateService generateService ) {
         final Path od = Path.of( outputDirectory );
 
-        servicePackage = getPackageName( packageName, DEFAULT_PACKAGE_SERVICE );
+        servicePackage = getPackageName( null, packageName, DEFAULT_PACKAGE_SERVICE );
         serviceDirectory = getPackagePath( od, servicePackage );
         
         this.typePackage = getPackageName( servicePackage, typePackage, DEFAULT_PACKAGE_TYPE );
@@ -115,24 +115,28 @@ public class JavaDocumentCreator {
             generateService == GenerateService.ALWAYS );
     }
 
-    private static String getPackageName( String packageName, String defaultName ) {
-        return packageName == null
-            ? defaultName
-            : packageName.replaceAll( "-", "_" );
+    private static String getAbsoluteName( String baseName, String relativeName ) {
+        if ( !relativeName.startsWith( "." ) )
+            return relativeName;
+
+        if ( baseName == null )
+            throw new IllegalArgumentException( "Can't use a relative package name for the base package." );
+
+        return relativeName.length() == 1
+            ? baseName
+            : baseName + relativeName;
     }
 
-    private static String getPackageName( String packageBase, String packageName, String defaultName ) {
-        final String name = getPackageName( packageName, defaultName );
+    private static String getPackageName( String basePackage, String packageName, String defaultName ) {
+        if ( packageName == null )
+            return getAbsoluteName( basePackage, defaultName );
 
-        if ( !name.startsWith(".") )
-            return name;
+        final String name = getAbsoluteName( basePackage, packageName );
 
-        if ( packageBase.isBlank() )
-            return name.substring( 1 );
+        if ( !name.matches( "\\w+(\\.\\w+)*" ) )
+            throw new IllegalArgumentException( "The absolute name of a package must match the regex \"\\w+(\\.\\w+)*\", got=\"" + name + "\"." );
 
-        return name.length() == 1
-            ? packageBase
-            : packageBase + name;
+        return name;
     }
 
     private static Path getPackagePath( Path dir, String packagePath ) {

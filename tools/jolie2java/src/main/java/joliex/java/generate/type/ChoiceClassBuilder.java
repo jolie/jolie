@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.Objects;
 
 import joliex.java.generate.JavaClassDirector;
+import joliex.java.generate.util.ClassPath;
 import joliex.java.parse.ast.JolieType.Definition;
 import joliex.java.parse.ast.JolieType.Native;
 import one.util.streamex.StreamEx;
@@ -30,8 +31,9 @@ public class ChoiceClassBuilder extends TypeClassBuilder {
         choice.options()
             .parallelStream()
             .map( t -> switch ( t ) {
-                case Native n -> n.valueName();
-                case Basic.Inline b -> b.nativeType().valueName() + Optional.ofNullable( b.refinement() ).map( r -> "( " + r.definitionString() + " )" ).orElse( "" );
+                case Native.VOID -> "void";
+                case Native n -> n.nativeClass().get();
+                case Basic.Inline b -> b.type().nativeClass().get() + Optional.ofNullable( b.refinement() ).map( r -> "( " + r.definitionString() + " )" ).orElse( "" );
                 case Definition d -> qualifiedName( d );
             } )
             .reduce( (s1, s2) -> s1 + " | " + s2 )
@@ -40,7 +42,8 @@ public class ChoiceClassBuilder extends TypeClassBuilder {
 
     protected void appendSeeDocumentation() {
         builder.newline();
-        StreamEx.of( "JolieValue", "JolieNative" )
+        StreamEx.of( ClassPath.JOLIEVALUE, ClassPath.JOLIENATIVE )
+            .map( ClassPath::get )
             .append( choice.options()
                 .parallelStream()
                 .map( t -> t instanceof Definition d ? qualifiedName( d ) : null )
@@ -54,7 +57,7 @@ public class ChoiceClassBuilder extends TypeClassBuilder {
     }
 
     protected void appendSignature( boolean isInnerClass ) {
-        builder.newlineAppend( "public " ).append( isInnerClass ? "static " : "" ).append( "sealed interface " ).append( className ).append( " extends JolieValue" );
+        builder.newlineAppend( "public " ).append( isInnerClass ? "static " : "" ).append( "sealed interface " ).append( className ).append( " extends " ).append( ClassPath.JOLIEVALUE );
     }
 
     protected void appendBody() {
@@ -67,7 +70,7 @@ public class ChoiceClassBuilder extends TypeClassBuilder {
     }
 
     private void appendMethods() {
-        builder.newNewlineAppend( "Value jolieRepr();" );
+        builder.newNewlineAppend( ClassPath.VALUE.get() ).append( " jolieRepr();" );
     }
 
     private void appendOptionClasses() {
@@ -82,7 +85,7 @@ public class ChoiceClassBuilder extends TypeClassBuilder {
         if ( choice.hasBuilder() )
             builder.newline()
                 .newlineAppend( "public static ListBuilder listBuilder() { return new ListBuilder(); }" )
-                .newlineAppend( "public static ListBuilder listBuilder( SequencedCollection<? extends JolieValue> from ) { return new ListBuilder( from ); }" );
+                .newlineAppend( "public static ListBuilder listBuilder( " ).append( ClassPath.SEQUENCEDCOLLECTION.parameterized( ClassPath.JOLIEVALUE ) ).append( " from ) { return new ListBuilder( from ); }" );
         // of() methods
         choice.numberedOptions().forKeyValue( (i,t) -> {
             if ( t == Native.VOID )
@@ -91,26 +94,26 @@ public class ChoiceClassBuilder extends TypeClassBuilder {
                 builder.newNewlineAppend( "public static " ).append( className ).append( " of" ).append( i ).append( "( " ).append( typeName( t ) ).append( " option ) { return new C" ).append( i ).append( "( option ); }" );
 
                 switch ( storedType( t ) ) {
-                    case Basic b -> builder.newlineAppend( "public static " ).append( className ).append( " of" ).append( i ).append( "( " ).append( b.nativeType().valueName() ).append( " value ) { return of" ).append( i ).append( "( new " ).append( b.name() ).append( "( value ) ); }" );
-                    case Structure s when s.hasBuilder() -> builder.newlineAppend( "public static " ).append( className ).append( " of" ).append( i ).append( "( Function<" ).append( qualifiedName( s ) ).append( ".Builder, " ).append( qualifiedName( s ) ).append( "> f ) { return of" ).append( i ).append( "( f.apply( " ).append( qualifiedName( s ) ).append( ".builder() ) ); }" );
+                    case Basic b -> builder.newlineAppend( "public static " ).append( className ).append( " of" ).append( i ).append( "( " ).append( b.type().nativeClass() ).append( " value ) { return of" ).append( i ).append( "( new " ).append( qualifiedName( b ) ).append( "( value ) ); }" );
+                    case Structure s when s.hasBuilder() -> builder.newlineAppend( "public static " ).append( className ).append( " of" ).append( i ).append( "( " ).append( ClassPath.FUNCTION.parameterized( qualifiedName( s ) + ".Builder", qualifiedName( s ) ) ).append( " f ) { return of" ).append( i ).append( "( f.apply( " ).append( qualifiedName( s ) ).append( ".builder() ) ); }" );
                     default -> {}
                 }
             }
         } );
         // from() method
-        builder.newNewlineAppend( "public static " ).append( className ).append( " from( JolieValue j ) throws TypeValidationException" ).body( () -> 
-            builder.newlineAppend( "return ValueManager.choiceFrom( j, " )
+        builder.newNewlineAppend( "public static " ).append( className ).append( " from( " ).append( ClassPath.JOLIEVALUE ).append( " j ) throws " ).append( ClassPath.TYPEVALIDATIONEXCEPTION ).body( () -> 
+            builder.newlineAppend( "return " ).append( ClassPath.VALUEMANAGER ).append( ".choiceFrom( j, " )
                 .append( fromFunctionList( "from" ) )
                 .append( " );" ) 
         );
         // fromValue() method
-        builder.newNewlineAppend( "public static " ).append( className ).append( " fromValue( Value v ) throws TypeCheckingException" ).body( () -> 
-            builder.newlineAppend( "return ValueManager.choiceFrom( v, " )
+        builder.newNewlineAppend( "public static " ).append( className ).append( " fromValue( " ).append( ClassPath.VALUE ).append( " v ) throws " ).append( ClassPath.TYPECHECKINGEXCEPTION ).body( () -> 
+            builder.newlineAppend( "return " ).append( ClassPath.VALUEMANAGER ).append( ".choiceFrom( v, " )
                 .append( fromFunctionList( "fromValue" ) )
                 .append( " );" )
         );
         // toValue() method
-        builder.newNewlineAppend( "public static Value toValue( " ).append( className ).append( " t ) { return t.jolieRepr(); }" );
+        builder.newNewlineAppend( "public static " ).append( ClassPath.VALUE ).append( " toValue( " ).append( className ).append( " t ) { return t.jolieRepr(); }" );
     }
 
     private void appendTypeClasses() {
@@ -127,10 +130,10 @@ public class ChoiceClassBuilder extends TypeClassBuilder {
     }
 
     private void appendListBuilder() {
-        builder.newNewlineAppend( "public static class ListBuilder extends AbstractListBuilder<ListBuilder, " ).append( className ).append( ">" ).body( () -> {
+        builder.newNewlineAppend( "public static class ListBuilder extends " ).append( ClassPath.ABSTRACTLISTBUILDER.parameterized( "ListBuilder", className ) ).body( () -> {
 			builder.newline()
 				.newlineAppend( "private ListBuilder() {}" )
-				.newlineAppend( "private ListBuilder( SequencedCollection<? extends JolieValue> c ) { super( c, " ).append( className ).append( "::from ); }" )
+				.newlineAppend( "private ListBuilder( " ).append( ClassPath.SEQUENCEDCOLLECTION.parameterized( "? extends " + ClassPath.JOLIEVALUE.get() ) ).append( " c ) { super( c, " ).append( className ).append( "::from ); }" )
 				.newline()
 				.newlineAppend( "protected ListBuilder self() { return this; }" );
             
@@ -146,12 +149,11 @@ public class ChoiceClassBuilder extends TypeClassBuilder {
 
                 if ( t instanceof Structure s && s.hasBuilder() )
                     builder.newline()
-                        .newlineAppend( "public ListBuilder add" ).append( i ).append( "( Function<" ).append( qualifiedName( s ) ).append( ".Builder, " ).append( qualifiedName( s ) ).append( "> b ) { return add" ).append( i ).append( "( b.apply( " ).append( qualifiedName( s ) ).append( ".builder() ) ); }" )
-                        .newlineAppend( "public ListBuilder set" ).append( i ).append( "( int index, Function<" ).append( qualifiedName( s ) ).append( ".Builder, " ).append( qualifiedName( s ) ).append( "> b ) { return set" ).append( i ).append( "( index, b.apply( " ).append( qualifiedName( s ) ).append( ".builder() ) ); }" )
-                        .newlineAppend( "public ListBuilder rebuild" ).append( i ).append( "( int index, Function<" ).append( qualifiedName( s ) ).append( ".Builder, " ).append( qualifiedName( s ) ).append( "> b ) { return set" ).append( i ).append( "( index, b.apply( " ).append( qualifiedName( s ) ).append( ".builder() ) ); }" );
+                        .newlineAppend( "public ListBuilder add" ).append( i ).append( "( " ).append( ClassPath.FUNCTION.parameterized( qualifiedName( s ) + ".Builder", qualifiedName( s ) ) ).append( " b ) { return add" ).append( i ).append( "( b.apply( " ).append( qualifiedName( s ) ).append( ".builder() ) ); }" )
+                        .newlineAppend( "public ListBuilder set" ).append( i ).append( "( int index, " ).append( ClassPath.FUNCTION.parameterized( qualifiedName( s ) + ".Builder", qualifiedName( s ) )).append( " b ) { return set" ).append( i ).append( "( index, b.apply( " ).append( qualifiedName( s ) ).append( ".builder() ) ); }" );
             } );
             
-            builder.newNewlineAppend( "public List<" ).append( className ).append( "> build() { return super.build(); }" );
+            builder.newNewlineAppend( "public " ).append( ClassPath.LIST.parameterized( className ) ).append( " build() { return super.build(); }" );
         } );
     }
 
@@ -159,8 +161,8 @@ public class ChoiceClassBuilder extends TypeClassBuilder {
         return fromFunctionStream( choice, methodName, new HashSet<>() )
             .map( StringBuilder::toString )
             .reduce( (s1, s2) -> s1 + ", " + s2 )
-            .map( s -> "List.of( " + s + " )" )
-            .orElse( "List.of()" );
+            .map( s -> ClassPath.LIST + ".of( " + s + " )" )
+            .orElse( ClassPath.LIST + ".of()" );
     }
 
     private Stream<StringBuilder> fromFunctionStream( Choice choice, String methodName, HashSet<String> choiceNames ) {
@@ -176,7 +178,7 @@ public class ChoiceClassBuilder extends TypeClassBuilder {
                     .append( "C" ).append( i ).append( "::new" )
                     .append( " )" ) )
                 : Stream.of( new StringBuilder()
-                    .append( "ValueManager.castFunc( " )
+                    .append( "" ).append( ClassPath.VALUEMANAGER ).append( ".castFunc( " )
                     .append( optionPrefix )
                     .append( "C" ).append( i ).append( "::" ).append( methodName )
                     .append( " )" ) )

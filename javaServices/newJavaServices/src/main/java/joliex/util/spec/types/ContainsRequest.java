@@ -1,72 +1,51 @@
 package joliex.util.spec.types;
 
-import jolie.runtime.Value;
-import jolie.runtime.ValueVector;
-import jolie.runtime.ByteArray;
-import jolie.runtime.typing.TypeCheckingException;
-import jolie.runtime.embedding.java.JolieValue;
-import jolie.runtime.embedding.java.JolieNative;
-import jolie.runtime.embedding.java.JolieNative.*;
-import jolie.runtime.embedding.java.TypedStructure;
-import jolie.runtime.embedding.java.UntypedStructure;
-import jolie.runtime.embedding.java.TypeValidationException;
-import jolie.runtime.embedding.java.util.*;
-
-import java.util.Arrays;
-import java.util.Map;
-import java.util.SequencedCollection;
-import java.util.List;
-import java.util.Optional;
-import java.util.Objects;
-import java.util.Set;
-import java.util.function.Function;
-
 /**
- * this class is a {@link TypedStructure} which can be described as follows:
+ * this class is a {@link jolie.runtime.embedding.java.TypedStructure} which can be described as follows:
  * <pre>
  * 
- * contentValue: {@link String}
-     * substring: {@link String}
+ * contentValue: {@link java.lang.String}
+     * substring: {@link java.lang.String}
  * </pre>
  * 
- * @see JolieValue
- * @see JolieNative
+ * @see jolie.runtime.embedding.java.JolieValue
+ * @see jolie.runtime.embedding.java.JolieNative
  */
-public final class ContainsRequest extends TypedStructure {
+public final class ContainsRequest extends jolie.runtime.embedding.java.TypedStructure {
     
-    private static final Set<String> FIELD_KEYS = fieldKeys( ContainsRequest.class );
+    private static final java.util.Set<java.lang.String> FIELD_KEYS = fieldKeys( ContainsRequest.class );
     
-    private final String contentValue;
-    @JolieName("substring")
-    private final String substring;
+    private final java.lang.String contentValue;
+    @jolie.runtime.embedding.java.util.JolieName("substring")
+    private final java.lang.String substring;
     
-    public ContainsRequest( String contentValue, String substring ) {
-        this.contentValue = ValueManager.validated( "contentValue", contentValue );
-        this.substring = ValueManager.validated( "substring", substring );
+    public ContainsRequest( java.lang.String contentValue, java.lang.String substring ) {
+        this.contentValue = jolie.runtime.embedding.java.util.ValueManager.validated( "contentValue", contentValue );
+        this.substring = jolie.runtime.embedding.java.util.ValueManager.validated( "substring", substring );
     }
     
-    public String contentValue() { return contentValue; }
-    public String substring() { return substring; }
+    public java.lang.String contentValue() { return contentValue; }
+    public java.lang.String substring() { return substring; }
     
-    public JolieString content() { return new JolieString( contentValue ); }
+    public jolie.runtime.embedding.java.JolieNative.JolieString content() { return new jolie.runtime.embedding.java.JolieNative.JolieString( contentValue ); }
     
-    public static ContainsRequest from( JolieValue j ) {
+    public static ContainsRequest from( jolie.runtime.embedding.java.JolieValue j ) throws jolie.runtime.embedding.java.TypeValidationException {
         return new ContainsRequest(
-            JolieString.from( j ).value(),
-            ValueManager.fieldFrom( j.getFirstChild( "substring" ), c -> c.content() instanceof JolieString content ? content.value() : null )
+            jolie.runtime.embedding.java.JolieNative.JolieString.from( j ).value(),
+            jolie.runtime.embedding.java.util.ValueManager.fieldFrom( j.getFirstChild( "substring" ), c -> c.content() instanceof jolie.runtime.embedding.java.JolieNative.JolieString content ? content.value() : null )
         );
     }
     
-    public static ContainsRequest fromValue( Value v ) throws TypeCheckingException {
-        ValueManager.requireChildren( v, FIELD_KEYS );
+    public static ContainsRequest fromValue( jolie.runtime.Value v ) throws jolie.runtime.typing.TypeCheckingException {
+        jolie.runtime.embedding.java.util.ValueManager.requireChildren( v, FIELD_KEYS );
         return new ContainsRequest(
-            JolieString.contentFromValue( v ),
-            ValueManager.singleFieldFrom( v, "substring", JolieString::fieldFromValue )
+            jolie.runtime.embedding.java.JolieNative.JolieString.contentFromValue( v ),
+            jolie.runtime.embedding.java.util.ValueManager.singleFieldFrom( v, "substring", jolie.runtime.embedding.java.JolieNative.JolieString::fieldFromValue )
         );
     }
     
-    public static Value toValue( ContainsRequest t ) {
-        final Value v = Value.create( t.contentValue() );
+    public static jolie.runtime.Value toValue( ContainsRequest t ) {
+        final jolie.runtime.Value v = jolie.runtime.Value.create( t.contentValue() );
         
         v.getFirstChild( "substring" ).setValue( t.substring() );
         

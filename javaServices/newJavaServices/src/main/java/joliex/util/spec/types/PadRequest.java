@@ -1,79 +1,58 @@
 package joliex.util.spec.types;
 
-import jolie.runtime.Value;
-import jolie.runtime.ValueVector;
-import jolie.runtime.ByteArray;
-import jolie.runtime.typing.TypeCheckingException;
-import jolie.runtime.embedding.java.JolieValue;
-import jolie.runtime.embedding.java.JolieNative;
-import jolie.runtime.embedding.java.JolieNative.*;
-import jolie.runtime.embedding.java.TypedStructure;
-import jolie.runtime.embedding.java.UntypedStructure;
-import jolie.runtime.embedding.java.TypeValidationException;
-import jolie.runtime.embedding.java.util.*;
-
-import java.util.Arrays;
-import java.util.Map;
-import java.util.SequencedCollection;
-import java.util.List;
-import java.util.Optional;
-import java.util.Objects;
-import java.util.Set;
-import java.util.function.Function;
-
 /**
- * this class is a {@link TypedStructure} which can be described as follows:
+ * this class is a {@link jolie.runtime.embedding.java.TypedStructure} which can be described as follows:
  * <pre>
  * 
- * contentValue: {@link String}
-     * length: {@link Integer}
-     * chars("char"): {@link String}
+ * contentValue: {@link java.lang.String}
+     * length: {@link java.lang.Integer}
+     * chars("char"): {@link java.lang.String}
  * </pre>
  * 
- * @see JolieValue
- * @see JolieNative
+ * @see jolie.runtime.embedding.java.JolieValue
+ * @see jolie.runtime.embedding.java.JolieNative
  */
-public final class PadRequest extends TypedStructure {
+public final class PadRequest extends jolie.runtime.embedding.java.TypedStructure {
     
-    private static final Set<String> FIELD_KEYS = fieldKeys( PadRequest.class );
+    private static final java.util.Set<java.lang.String> FIELD_KEYS = fieldKeys( PadRequest.class );
     
-    private final String contentValue;
-    @JolieName("length")
-    private final Integer length;
-    @JolieName("char")
-    private final String chars;
+    private final java.lang.String contentValue;
+    @jolie.runtime.embedding.java.util.JolieName("length")
+    private final java.lang.Integer length;
+    @jolie.runtime.embedding.java.util.JolieName("char")
+    private final java.lang.String chars;
     
-    public PadRequest( String contentValue, Integer length, String chars ) {
-        this.contentValue = ValueManager.validated( "contentValue", contentValue );
-        this.length = ValueManager.validated( "length", length );
-        this.chars = ValueManager.validated( "chars", chars );
+    public PadRequest( java.lang.String contentValue, java.lang.Integer length, java.lang.String chars ) {
+        this.contentValue = jolie.runtime.embedding.java.util.ValueManager.validated( "contentValue", contentValue );
+        this.length = jolie.runtime.embedding.java.util.ValueManager.validated( "length", length );
+        this.chars = jolie.runtime.embedding.java.util.ValueManager.validated( "chars", chars );
     }
     
-    public String contentValue() { return contentValue; }
-    public Integer length() { return length; }
-    public String chars() { return chars; }
+    public java.lang.String contentValue() { return contentValue; }
+    public java.lang.Integer length() { return length; }
+    public java.lang.String chars() { return chars; }
     
-    public JolieString content() { return new JolieString( contentValue ); }
+    public jolie.runtime.embedding.java.JolieNative.JolieString content() { return new jolie.runtime.embedding.java.JolieNative.JolieString( contentValue ); }
     
-    public static PadRequest from( JolieValue j ) {
+    public static PadRequest from( jolie.runtime.embedding.java.JolieValue j ) throws jolie.runtime.embedding.java.TypeValidationException {
         return new PadRequest(
-            JolieString.from( j ).value(),
-            ValueManager.fieldFrom( j.getFirstChild( "length" ), c -> c.content() instanceof JolieInt content ? content.value() : null ),
-            ValueManager.fieldFrom( j.getFirstChild( "char" ), c -> c.content() instanceof JolieString content ? content.value() : null )
+            jolie.runtime.embedding.java.JolieNative.JolieString.from( j ).value(),
+            jolie.runtime.embedding.java.util.ValueManager.fieldFrom( j.getFirstChild( "length" ), c -> c.content() instanceof jolie.runtime.embedding.java.JolieNative.JolieInt content ? content.value() : null ),
+            jolie.runtime.embedding.java.util.ValueManager.fieldFrom( j.getFirstChild( "char" ), c -> c.content() instanceof jolie.runtime.embedding.java.JolieNative.JolieString content ? content.value() : null )
         );
     }
     
-    public static PadRequest fromValue( Value v ) throws TypeCheckingException {
-        ValueManager.requireChildren( v, FIELD_KEYS );
+    public static PadRequest fromValue( jolie.runtime.Value v ) throws jolie.runtime.typing.TypeCheckingException {
+        jolie.runtime.embedding.java.util.ValueManager.requireChildren( v, FIELD_KEYS );
         return new PadRequest(
-            JolieString.contentFromValue( v ),
-            ValueManager.singleFieldFrom( v, "length", JolieInt::fieldFromValue ),
-            ValueManager.singleFieldFrom( v, "char", JolieString::fieldFromValue )
+            jolie.runtime.embedding.java.JolieNative.JolieString.contentFromValue( v ),
+            jolie.runtime.embedding.java.util.ValueManager.singleFieldFrom( v, "length", jolie.runtime.embedding.java.JolieNative.JolieInt::fieldFromValue ),
+            jolie.runtime.embedding.java.util.ValueManager.singleFieldFrom( v, "char", jolie.runtime.embedding.java.JolieNative.JolieString::fieldFromValue )
         );
     }
     
-    public static Value toValue( PadRequest t ) {
-        final Value v = Value.create( t.contentValue() );
+    public static jolie.runtime.Value toValue( PadRequest t ) {
+        final jolie.runtime.Value v = jolie.runtime.Value.create( t.contentValue() );
         
         v.getFirstChild( "length" ).setValue( t.length() );
         v.getFirstChild( "char" ).setValue( t.chars() );

@@ -2,48 +2,38 @@ package joliex.java.generate.operation;
 
 import java.util.Optional;
 import joliex.java.generate.JavaClassBuilder;
+import joliex.java.generate.util.ClassPath;
 import joliex.java.parse.ast.JolieOperation.RequestResponse.Fault;
 import joliex.java.parse.ast.JolieType.Definition;
+import joliex.java.parse.ast.JolieType.Definition.Structure.Undefined;
 import joliex.java.parse.ast.JolieType.Native;
 
 public class ExceptionClassBuilder extends JavaClassBuilder {
 
     private final Fault fault;
     private final String faultsPackage;
-    private final String typesPackage;
 
     private final Optional<String> typeName;
 
     public ExceptionClassBuilder( Fault fault, String faultsPackage, String typesPackage ) {
         this.fault = fault;
         this.faultsPackage = faultsPackage;
-        this.typesPackage = typesPackage;
-
+        
         typeName = Optional.ofNullable( switch( fault.type() ) {
-            case Native n -> n == Native.VOID ? null : n.valueName();
-            case Definition d -> d.name();
+            case Native n -> n == Native.VOID ? null : n.nativeType();
+            case Undefined d -> ClassPath.JOLIEVALUE.get();
+            case Definition d -> typesPackage + "." + d.name();
         } );
     }
 
     public String className() { return fault.className(); }
 
-    public void appendHeader() { 
-        builder.append( "package " ).append( faultsPackage ).append( ";" )
-            .newline()
-            .newlineAppend( "import java.util.Objects;" )
-            .newline()
-            .newlineAppend( "import jolie.runtime.Value;" )
-            .newlineAppend( "import jolie.runtime.ByteArray;" )
-            .newlineAppend( "import jolie.runtime.FaultException;" )
-            .newlineAppend( "import jolie.runtime.embedding.java.JolieValue;" )
-            .newlineAppend( "import jolie.runtime.embedding.java.JolieNative;" );
-
-        if ( fault.type() instanceof Definition && !typesPackage.equals( faultsPackage ) )
-            builder.newNewlineAppend( "import " ).append( typesPackage ).append( ".*;" );
+    public void appendPackage() { 
+        builder.append( "package " ).append( faultsPackage ).append( ";" );
     }
 
     public void appendDefinition() {
-        builder.newNewlineAppend( "public class " ).append( className() ).append( " extends FaultException" ).body( () -> {
+        builder.newNewlineAppend( "public class " ).append( className() ).append( " extends " ).append( ClassPath.FAULTEXCEPTION ).body( () -> {
             appendAttributes();
             appendConstructors();
             appendMethods();
@@ -59,10 +49,10 @@ public class ExceptionClassBuilder extends JavaClassBuilder {
             typeName.ifPresentOrElse(
                 tn -> builder.newlineAppend( "super( \"" ).append( fault.name() ).append( "\", " )
                         .append( switch ( fault.type() ) { 
-                            case Native n -> n == Native.ANY ? "JolieNative.toValue( fault )" : "Value.create( fault )";
-                            case Definition d -> d.name() + ".toValue( fault )";
+                            case Native n -> n == Native.ANY ? ClassPath.JOLIENATIVE.get() + ".toValue( fault )" : ClassPath.VALUE.get() + ".create( fault )";
+                            case Definition d -> tn + ".toValue( fault )";
                         } ).append( " );" )
-                    .newlineAppend( "this.fault = Objects.requireNonNull( fault );" ), 
+                    .newlineAppend( "this.fault = " ).append( ClassPath.OBJECTS ).append( ".requireNonNull( fault );" ),
                 () -> builder.newlineAppend( "super( \"" ).append( fault.name() ).append( "\" );" )
             );
         } );

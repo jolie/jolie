@@ -1,79 +1,58 @@
 package joliex.util.spec.types;
 
-import jolie.runtime.Value;
-import jolie.runtime.ValueVector;
-import jolie.runtime.ByteArray;
-import jolie.runtime.typing.TypeCheckingException;
-import jolie.runtime.embedding.java.JolieValue;
-import jolie.runtime.embedding.java.JolieNative;
-import jolie.runtime.embedding.java.JolieNative.*;
-import jolie.runtime.embedding.java.TypedStructure;
-import jolie.runtime.embedding.java.UntypedStructure;
-import jolie.runtime.embedding.java.TypeValidationException;
-import jolie.runtime.embedding.java.util.*;
-
-import java.util.Arrays;
-import java.util.Map;
-import java.util.SequencedCollection;
-import java.util.List;
-import java.util.Optional;
-import java.util.Objects;
-import java.util.Set;
-import java.util.function.Function;
-
 /**
- * this class is a {@link TypedStructure} which can be described as follows:
+ * this class is a {@link jolie.runtime.embedding.java.TypedStructure} which can be described as follows:
  * <pre>
- * format[0,1]: {@link String}
- * date2: {@link String}
- * date1: {@link String}
+ * format[0,1]: {@link java.lang.String}
+ * date2: {@link java.lang.String}
+ * date1: {@link java.lang.String}
  * </pre>
  * 
- * @see JolieValue
- * @see JolieNative
+ * @see jolie.runtime.embedding.java.JolieValue
+ * @see jolie.runtime.embedding.java.JolieNative
  */
-public final class DiffDateRequestType extends TypedStructure {
+public final class DiffDateRequestType extends jolie.runtime.embedding.java.TypedStructure {
     
-    private static final Set<String> FIELD_KEYS = fieldKeys( DiffDateRequestType.class );
+    private static final java.util.Set<java.lang.String> FIELD_KEYS = fieldKeys( DiffDateRequestType.class );
     
-    @JolieName("format")
-    private final String format;
-    @JolieName("date2")
-    private final String date2;
-    @JolieName("date1")
-    private final String date1;
+    @jolie.runtime.embedding.java.util.JolieName("format")
+    private final java.lang.String format;
+    @jolie.runtime.embedding.java.util.JolieName("date2")
+    private final java.lang.String date2;
+    @jolie.runtime.embedding.java.util.JolieName("date1")
+    private final java.lang.String date1;
     
-    public DiffDateRequestType( String format, String date2, String date1 ) {
+    public DiffDateRequestType( java.lang.String format, java.lang.String date2, java.lang.String date1 ) {
         this.format = format;
-        this.date2 = ValueManager.validated( "date2", date2 );
-        this.date1 = ValueManager.validated( "date1", date1 );
+        this.date2 = jolie.runtime.embedding.java.util.ValueManager.validated( "date2", date2 );
+        this.date1 = jolie.runtime.embedding.java.util.ValueManager.validated( "date1", date1 );
     }
     
-    public Optional<String> format() { return Optional.ofNullable( format ); }
-    public String date2() { return date2; }
-    public String date1() { return date1; }
+    public java.util.Optional<java.lang.String> format() { return java.util.Optional.ofNullable( format ); }
+    public java.lang.String date2() { return date2; }
+    public java.lang.String date1() { return date1; }
     
-    public JolieVoid content() { return new JolieVoid(); }
+    public jolie.runtime.embedding.java.JolieNative.JolieVoid content() { return new jolie.runtime.embedding.java.JolieNative.JolieVoid(); }
     
-    public static DiffDateRequestType from( JolieValue j ) {
+    public static DiffDateRequestType from( jolie.runtime.embedding.java.JolieValue j ) throws jolie.runtime.embedding.java.TypeValidationException {
         return new DiffDateRequestType(
-            ValueManager.fieldFrom( j.getFirstChild( "format" ), c -> c.content() instanceof JolieString content ? content.value() : null ),
-            ValueManager.fieldFrom( j.getFirstChild( "date2" ), c -> c.content() instanceof JolieString content ? content.value() : null ),
-            ValueManager.fieldFrom( j.getFirstChild( "date1" ), c -> c.content() instanceof JolieString content ? content.value() : null )
+            jolie.runtime.embedding.java.util.ValueManager.fieldFrom( j.getFirstChild( "format" ), c -> c.content() instanceof jolie.runtime.embedding.java.JolieNative.JolieString content ? content.value() : null ),
+            jolie.runtime.embedding.java.util.ValueManager.fieldFrom( j.getFirstChild( "date2" ), c -> c.content() instanceof jolie.runtime.embedding.java.JolieNative.JolieString content ? content.value() : null ),
+            jolie.runtime.embedding.java.util.ValueManager.fieldFrom( j.getFirstChild( "date1" ), c -> c.content() instanceof jolie.runtime.embedding.java.JolieNative.JolieString content ? content.value() : null )
         );
     }
     
-    public static DiffDateRequestType fromValue( Value v ) throws TypeCheckingException {
-        ValueManager.requireChildren( v, FIELD_KEYS );
+    public static DiffDateRequestType fromValue( jolie.runtime.Value v ) throws jolie.runtime.typing.TypeCheckingException {
+        jolie.runtime.embedding.java.util.ValueManager.requireChildren( v, FIELD_KEYS );
         return new DiffDateRequestType(
-            ValueManager.singleFieldFrom( v, "format", JolieString::fieldFromValue ),
-            ValueManager.singleFieldFrom( v, "date2", JolieString::fieldFromValue ),
-            ValueManager.singleFieldFrom( v, "date1", JolieString::fieldFromValue )
+            jolie.runtime.embedding.java.util.ValueManager.singleFieldFrom( v, "format", jolie.runtime.embedding.java.JolieNative.JolieString::fieldFromValue ),
+            jolie.runtime.embedding.java.util.ValueManager.singleFieldFrom( v, "date2", jolie.runtime.embedding.java.JolieNative.JolieString::fieldFromValue ),
+            jolie.runtime.embedding.java.util.ValueManager.singleFieldFrom( v, "date1", jolie.runtime.embedding.java.JolieNative.JolieString::fieldFromValue )
         );
     }
     
-    public static Value toValue( DiffDateRequestType t ) {
-        final Value v = Value.create();
+    public static jolie.runtime.Value toValue( DiffDateRequestType t ) {
+        final jolie.runtime.Value v = jolie.runtime.Value.create();
         
         t.format().ifPresent( c -> v.getFirstChild( "format" ).setValue( c ) );
         v.getFirstChild( "date2" ).setValue( t.date2() );
