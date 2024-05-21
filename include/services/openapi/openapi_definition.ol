@@ -51,26 +51,17 @@ inputPort OpenApiDefinition {
 }
 
 define __clean_name {
-    _rep = __name_to_clean;
-    _rep.replacement = "_";
-    _rep.regex = "«|»";
-    replaceAll@StringUtils( _rep )( __cleaned_name )
-    _rep = __cleaned_name;
-    _rep.replacement = "_";
-    _rep.regex = "-";
-    replaceAll@StringUtils( _rep )( __cleaned_name )
+    replaceAll@StringUtils( __name_to_clean { .regex = "«|»|-" .replacement = "_" } )( __cleaned_name )
+    // put field names starting with digits or containing special chars under "" quotes
+    match@StringUtils( __cleaned_name { regex = "(^[0-9](.*)+)|((.*)[!@#$%&*()+=|<>?{}\\[\\]~-](.*))" } )( contains_special_chars )
+    if ( contains_special_chars ) {
+        __cleaned_name = "\"" + __cleaned_name + "\""
+    }
 }
 
 define __indentation {
     for( i = 0, i < request.indentation, i++ ) {
         indentation = indentation + "\t"
-    }
-}
-
-define _checkFieldCharacters {
-    match@StringUtils( __field { regex = "(.*)[!@#$%&*()+=|<>?{}\\[\\]~-](.*)" } )( contains_special_chars )
-    if ( contains_special_chars ) {
-        __field = "\"" + __field + "\""
     }
 }
 
@@ -247,7 +238,7 @@ main {
                 response = "type " + __cleaned_name + ": void {\n";
                 for( p = 0, p < #request.definition.parameters, p++ ) {
                     cur_par -> request.definition.parameters[ p ];
-                    __field = cur_par.name 
+                    __name_to_clean = cur_par.name 
 
                     /* path and query parameters must be differentiated from parameters with same name in schemas 
                     Ex: in a post path like /a/b/{userId}
@@ -272,11 +263,11 @@ main {
                         surname
                     }
                     */
-                    if ( cur_par.in == "path" ) { __field = "_p" + __field }
-                    if ( cur_par.in == "query" ) { __field = "_q" + __field }
-                    _checkFieldCharacters
+                    if ( cur_par.in == "path" ) { __name_to_clean = "_p" + __name_to_clean }
+                    if ( cur_par.in == "query" ) { __name_to_clean = "_q" + __name_to_clean }
+                    __clean_name
 
-                    response = response + "\t." + __field
+                    response = response + "\t." + __cleaned_name
                     if ( is_defined( cur_par.type ) ) {
                         if ( cur_par.type == "array" ) {
                                 if (  cur_par.required == "false" ) {
@@ -488,8 +479,12 @@ main {
 
         } else {
             foreach( property : request.definition.properties ) {
-                response = response + indentation;
-                response = response + "." + property;
+                __name_to_clean = property
+                __clean_name
+
+                response = response + indentation
+                response = response + "." + __cleaned_name
+
                 isreq_token = ""
                 if ( !is_required.( property ) ) { isreq_token = "?" }
                 if ( is_defined( request.definition.properties.( property ).("$ref") ) ) {
