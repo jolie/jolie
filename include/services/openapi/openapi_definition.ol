@@ -468,18 +468,31 @@ main {
     }]
 
     [ getJolieDefinitionFromOpenApiObject( request )( response ) {
-          __indentation;
-          // create required hasmap
-          for( isreq in request.definition.required ) {
-              is_required.( isreq ) = true
-          }
+        __indentation
+        // create required hashmap
+        for( isreq in request.definition.required ) {
+            is_required.( isreq ) = true
+        }
 
-          foreach( property : request.definition.properties ) {
-              response = response + indentation;
-              response = response + "." + property;
-              isreq_token = ""
-              if ( !is_required.( property ) ) { isreq_token = "?" }
-              if ( is_defined( request.definition.properties.( property ).("$ref")) ) {
+        if ( is_defined( request.definition.additionalProperties )
+          && is_defined( request.definition.additionalProperties.("$ref") ) ) {
+
+            spl = request.definition.additionalProperties.("$ref");
+            spl.regex = "/";
+            split@StringUtils( spl )( reference );
+            ref_name = reference.result[ #reference.result - 1 ]
+
+            println@Console("WARNING " + ref_name + ": currently we are unable to express the map syntax ('additionalProperties') in Jolie. For now generate 'undefined'")()
+
+            response = response + "undefined\n"
+
+        } else {
+            foreach( property : request.definition.properties ) {
+                response = response + indentation;
+                response = response + "." + property;
+                isreq_token = ""
+                if ( !is_required.( property ) ) { isreq_token = "?" }
+                if ( is_defined( request.definition.properties.( property ).("$ref") ) ) {
                     spl = request.definition.properties.( property ).("$ref");
                     spl.regex = "/";
                     split@StringUtils( spl )( reference );
@@ -501,7 +514,7 @@ main {
                             getJolieDefinitionFromOpenApiArray@MySelf( rq_arr )( array )
                             response = response + array.cardinality + ": " + array
                     }
-              } else {
+                } else {
                     if ( request.definition.properties.( property ).type == "array" ) {
 
                         undef( rq_arr )
@@ -535,8 +548,9 @@ main {
                         response = response + isreq_token + ":" + native + "\n"
 
                     }
-              }
-          }
+                }
+            }
+        }
     }]
 
     [ getJolieDefinitionFromOpenApiArray( request )( response ) {
