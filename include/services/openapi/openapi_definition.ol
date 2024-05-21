@@ -47,7 +47,6 @@ outputPort MySelf {
 
 inputPort OpenApiDefinition {
   Location: "local"
-  Protocol: sodep
   Interfaces: OpenApiDefinitionInterface
 }
 
@@ -282,7 +281,9 @@ main {
                         if ( cur_par.type == "array" ) {
                                 if (  cur_par.required == "false" ) {
                                     cur_par.schema.items.minItems = 0
-                                };
+                                }
+
+                                undef( rq_arr )
                                 rq_arr << {
                                     definition << cur_par,
                                     indentation = 1,
@@ -298,6 +299,8 @@ main {
                                 response = response + ":raw\n"
 
                         } else {
+
+                                undef( rq_n )
                                 rq_n.type = cur_par.type;
                                 if ( is_defined( cur_par.format ) )  {
                                     rq_n.format = cur_par.format
@@ -307,14 +310,18 @@ main {
                                     response = response + "?"
                                 };
                                 response = response + ":" + native + "\n"
+
                         }
 
                     } else if ( is_defined( cur_par.schema ) ) {
+
+                        undef( rq_arr )
                         rq_arr.schema << cur_par.schema
                         rq_arr.indentation = 1
                         rq_arr.array_def_list -> request.array_def_list
                         getJolieTransformationFromSchema@MySelf( rq_arr )( schema )
                         response = response + schema.cardinality + ": " + schema
+
                     }
                 }
                 response = response + "}\n"
@@ -334,6 +341,8 @@ main {
                         if ( request.array_def_list.( ref_name ) instanceof void ) {
                             response = ref_name + "\n"
                         } else {
+
+                            undef( rq_arr )
                             rq_arr << {
                                 definition << request.array_def_list.( ref_name ),
                                 indentation = request.indentation,
@@ -342,10 +351,12 @@ main {
                             getJolieDefinitionFromOpenApiArray@MySelf( rq_arr )( array )
                             response.cardinality = array.cardinality
                             response = array
+
                         }
                         
             } else if ( request.schema.type == "array" ) {
 
+                        undef( rq_arr )
                         rq_arr << {
                             definition << request.schema,
                             indentation = request.indentation,
@@ -360,6 +371,8 @@ main {
                         if ( #request.schema.properties == 0 ) {
                             response = "undefined \n"
                         } else {
+
+                            undef( rq_obj )
                             rq_obj << {
                                 definition << request.schema,
                                 indentation = request.indentation,
@@ -367,6 +380,7 @@ main {
                             }
                             getJolieDefinitionFromOpenApiObject@MySelf( rq_obj )( object );
                             response = "void {\n" + object + "}\n"
+
                         }
 
             } else if ( is_defined( request.schema.oneOf ) ) {
@@ -379,10 +393,14 @@ main {
                             branch_st = "\n| "
                         }
                         if ( is_defined( branch.type ) ) {
-                            rq_obj.definition -> branch; rq_obj.indentation = request.indentation;
+
+                            undef( rq_obj )
+                            rq_obj.definition -> branch
+                            rq_obj.indentation = request.indentation
                             rq_obj.array_def_list -> request.array_def_list
                             getJolieDefinitionFromOpenApiObject@MySelf( rq_obj )( object )
                             response = response + branch_st + "void {\n"  + object + "}"
+
                         } else if ( is_defined( branch.("$ref") ) ) {
                             split@StringUtils( branch.("$ref") { . regex="#/definitions/" } )( splitted_ref )
                             ref_name = splitted_ref.result[ 1 ]
@@ -395,8 +413,9 @@ main {
                     response = response + "\n"
 
             } else {
-
                         if ( #request.schema.properties == 0 ) {
+
+                            undef( nt )
                             if ( is_defined ( request.schema.anyOf ) ) {
                                 if ( is_defined ( request.schema.anyOf.type ) ) {
                                     nt.type = request.schema.anyOf.type
@@ -410,7 +429,10 @@ main {
                                 getJolieNativeTypeFromOpenApiNativeType@MySelf( nt )( native_type )
                             }
                             response = native_type + "\n"
+
                         } else {
+
+                            undef( rq_obj )
                             rq_obj << {
                                 definition << request.schema,
                                 indentation = request.indentation,
@@ -418,6 +440,7 @@ main {
                             }
                             getJolieDefinitionFromOpenApiObject@MySelf( rq_obj )( object )
                             response = "void {\n" + object + "}\n"
+
                         }
             }
           
@@ -428,6 +451,8 @@ main {
             install( DefinitionError => println@Console("Error for type " + __name_to_clean )() );
             __name_to_clean = request.name
             __clean_name
+
+            undef( rq_schema )
             rq_schema << {
                 schema << request.definition,
                 indentation = 1,
@@ -467,6 +492,7 @@ main {
 
                     } else {
 
+                            undef( rq_arr )
                             rq_arr << {
                                 definition << request.array_def_list.( ref_name ),
                                 indentation = 1,
@@ -477,6 +503,8 @@ main {
                     }
               } else {
                     if ( request.definition.properties.( property ).type == "array" ) {
+
+                        undef( rq_arr )
                         rq_arr << {
                             definition << request.definition.properties.( property )
                             indentation = request.indentation + 1
@@ -486,6 +514,8 @@ main {
                         response = response + array.cardinality + ": " + array
 
                     } else if ( request.definition.properties.( property ).type == "object" ) {
+
+                        undef( rq_obj )
                         rq_obj << {
                             definition << request.definition.properties.( property ),
                             indentation = request.indentation + 1,
@@ -495,12 +525,15 @@ main {
                         response = response + isreq_token +  ": " + object
 
                     } else {
+
+                        undef( rq_n )
                         rq_n.type = request.definition.properties.( property ).type;
                         if ( is_defined( request.definition.properties.( property ).format ) )  {
                             rq_n.format = request.definition.properties.( property ).format
                         };
                         getJolieNativeTypeFromOpenApiNativeType@MySelf( rq_n )( native );
                         response = response + isreq_token + ":" + native + "\n"
+
                     }
               }
           }
@@ -523,6 +556,7 @@ main {
                 __name_to_clean = ref_name; __clean_name;
                 response = response + __cleaned_name + "\n"
             } else {
+                undef( rq_arr )
                 rq_arr << {
                     definition << request.array_def_list.( ref_name ),
                     indentation = 1,
@@ -531,6 +565,7 @@ main {
                 getJolieDefinitionFromOpenApiArray@MySelf( rq_arr )( response )
             }
         } else if ( request.definition.items.type != "object" ) {
+              undef( rq_n )
               rq_n.type = request.definition.items.type
               if ( is_defined( request.definition.items.format ) ) {
                   rq_n.format = request.definition.items.format
