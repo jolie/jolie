@@ -229,9 +229,9 @@
                 },
                 "id": {
                     "type": "array",
+                    "minItems": 0,
+                    "maxItems": 1,
                     "items": {
-                        "minItems": 0,
-                        "maxItems": 1,
                         "type": "integer"
                     }
                 },
@@ -240,8 +240,8 @@
                 },
                 "items": {
                     "type": "array",
+                    "minItems": 0,
                     "items": {
-                        "minItems": 0,
                         "$ref": "#\/definitions\/OrderItem"
                     }
                 }
@@ -253,8 +253,8 @@
             "properties": {
                 "orders": {
                     "type": "array",
+                    "minItems": 0,
                     "items": {
-                        "minItems": 0,
                         "$ref": "#\/definitions\/Order"
                     }
                 }
@@ -265,8 +265,8 @@
             "properties": {
                 "users": {
                     "type": "array",
+                    "minItems": 0,
                     "items": {
-                        "minItems": 0,
                         "type": "object",
                         "properties": {
                             "country": {
