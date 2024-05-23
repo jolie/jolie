@@ -37,7 +37,6 @@ embedded {
 
 inputPort OpenApi2Jolie {
     Location: "local"
-    Protocol: sodep
     Interfaces: OpenApi2JolieInterface
 }
 
@@ -87,16 +86,14 @@ define _create_outputport_info {
 
 define __getFaultDefinition {
     splref = __link_name
-    splref.regex = "#/definitions/"
-    split@StringUtils( splref )( splrefres )
+    split@StringUtils( splref { regex = global.DEFINITIONS_PATH } )( splrefres )
     __jolietypename = splrefres.result[1]
     foreach( definition : openapi.definitions ) {
         if ( definition == __jolietypename ) {
             __fault_name = openapi.definitions.( definition ).properties.fault.pattern
             if ( is_defined( openapi.definitions.( definition ).properties.content.("$ref") ) ) {
                 splref = openapi.definitions.( definition ).properties.content.("$ref")
-                splref.regex = "#/definitions/"
-                split@StringUtils( splref )( splrefres )
+                split@StringUtils( splref { regex = global.DEFINITIONS_PATH } )( splrefres )
                 __fault_type = splrefres.result[1]
             } else {
                 // jolie generated type not found
@@ -114,6 +111,14 @@ main {
         port_name -> request.port_name
         openapi -> request.openapi
         _create_outputport_info
+
+        global.DEFINITIONS_PATH = "#/definitions/"
+        if ( is_defined( openapi.openapi ) && match@StringUtils( openapi.openapi { regex = "^3\\.(.*)" } ) ) {
+            println@Console("We are parsing in OpenAPI 3.0 mode")()
+            global.DEFINITIONS_PATH = "#/components/schemas/"
+            setDefinitionsPath@OpenApiDefinition( global.DEFINITIONS_PATH )( )
+            openapi.definitions -> openapi.components.schemas
+        }
 
         // create definition array
         foreach( definition : openapi.definitions ) {
