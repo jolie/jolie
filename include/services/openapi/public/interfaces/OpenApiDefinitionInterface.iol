@@ -190,6 +190,7 @@ type GetJolieNativeTypeFromOpenApiNativeTypeRequest {
 
 interface OpenApiDefinitionInterface {
   RequestResponse:
+      setDefinitionsPath( string )( void ),  
       definitionIsArray( DefinitionIsArrayRequest )( bool ),
       getOpenApiDefinition( GetOpenApiDefinitionRequest )( GetOpenApiDefinitionResponse ),
       getJolieTransformationFromSchema( GetJolieTransformationFromSchemaRequest )( GetJolieTransformationFromSchemaResponse ) throws DefinitionError,
@@ -200,6 +201,4 @@ interface OpenApiDefinitionInterface {
       getJolieDefinitionFromOpenApiArray( GetJolieDefinitionFromOpenApiArrayRequest )( GetJolieDefinitionFromOpenApiArrayResponse ),
       getJolieNativeTypeFromOpenApiNativeType( GetJolieNativeTypeFromOpenApiNativeTypeRequest )( string ),
       getReferenceName( string )( string )
-
-
 }

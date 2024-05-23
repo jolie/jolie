@@ -67,9 +67,14 @@ define __indentation {
 
 init {
   getLocalLocation@Runtime( )( MySelf.location )
+  global.DEFINITIONS_PATH = "#/definitions/"
 }
 
 main {
+  [ setDefinitionsPath( path )( ) {
+    global.DEFINITIONS_PATH = path
+  } ]
+
   [ definitionIsArray( request )( response ) {
       response = false
       if ( request.definition.type == "array" ) {
@@ -224,8 +229,7 @@ main {
           __clean_name;
           if ( #request.definition.parameters == 1 && is_defined( request.definition.parameters.schema.("$ref") ) ) {
                 splreq = request.definition.parameters.schema.("$ref")
-                splreq.regex = "#/definitions/"
-                split@StringUtils( splreq )( splres )
+                split@StringUtils( splreq { regex = global.DEFINITIONS_PATH } )( splres )
                 ref_name = splres.result[ 1 ]
                 if ( !(request.array_def_list.( ref_name ) instanceof void ) ) {
                     println@Console("Warning! definition " + ref_name + " directly points to an array that is not portable into a jolie type. Converted as a simple type")()
@@ -327,7 +331,7 @@ main {
 
             } else if ( is_defined( request.schema.("$ref") ) ) {
 
-                        split@StringUtils( request.schema.("$ref") { . regex="#/definitions/" } )( splitted_ref )
+                        split@StringUtils( request.schema.("$ref") { regex = global.DEFINITIONS_PATH } )( splitted_ref )
                         ref_name = splitted_ref.result[ 1 ]
                         if ( request.array_def_list.( ref_name ) instanceof void ) {
                             response = ref_name + "\n"
@@ -393,7 +397,7 @@ main {
                             response = response + branch_st + "void {\n"  + object + "}"
 
                         } else if ( is_defined( branch.("$ref") ) ) {
-                            split@StringUtils( branch.("$ref") { . regex="#/definitions/" } )( splitted_ref )
+                            split@StringUtils( branch.("$ref") { regex = global.DEFINITIONS_PATH } )( splitted_ref )
                             ref_name = splitted_ref.result[ 1 ]
                             if ( !( request.array_def_list.( ref_name ) instanceof void ) ) {
                                 println@Console("Warning! definition array " + ref_name + " cannot be converted from a oneOf branch. Converted as a simple type")()
