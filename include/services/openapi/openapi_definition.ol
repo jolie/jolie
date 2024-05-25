@@ -296,10 +296,7 @@ main {
                         } else {
 
                                 undef( rq_n )
-                                rq_n.type = cur_par.type;
-                                if ( is_defined( cur_par.format ) )  {
-                                    rq_n.format = cur_par.format
-                                };
+                                rq_n -> cur_par
                                 getJolieNativeTypeFromOpenApiNativeType@MySelf( rq_n )( native );
                                 if (  cur_par.required == "false" ) {
                                     response = response + "?"
@@ -413,14 +410,14 @@ main {
                             undef( nt )
                             if ( is_defined ( request.schema.anyOf ) ) {
                                 if ( is_defined ( request.schema.anyOf.type ) ) {
-                                    nt.type = request.schema.anyOf.type
+                                    nt -> request.schema.anyOf
                                     getJolieNativeTypeFromOpenApiNativeType@MySelf( nt )( native_type )
                                 } else {
                                     // FIXME: here we would need to parse all possible types ($ref), for now just generate "undefined"
                                     native_type = "undefined"
                                 }
                             } else {
-                                nt.type = request.schema.type
+                                nt -> request.schema
                                 getJolieNativeTypeFromOpenApiNativeType@MySelf( nt )( native_type )
                             }
                             response = native_type + "\n"
@@ -539,10 +536,7 @@ main {
                     } else {
 
                         undef( rq_n )
-                        rq_n.type = request.definition.properties.( property ).type;
-                        if ( is_defined( request.definition.properties.( property ).format ) )  {
-                            rq_n.format = request.definition.properties.( property ).format
-                        };
+                        rq_n -> request.definition.properties.( property )
                         getJolieNativeTypeFromOpenApiNativeType@MySelf( rq_n )( native );
                         response = response + isreq_token + ":" + native + "\n"
 
@@ -579,10 +573,7 @@ main {
             }
         } else if ( request.definition.items.type != "object" ) {
               undef( rq_n )
-              rq_n.type = request.definition.items.type
-              if ( is_defined( request.definition.items.format ) ) {
-                  rq_n.format = request.definition.items.format
-              }
+              rq_n -> request.definition.items
               getJolieNativeTypeFromOpenApiNativeType@MySelf( rq_n )( native )
               response = response + native + "\n"
         } else {
@@ -591,31 +582,76 @@ main {
     } ]
 
     [ getJolieNativeTypeFromOpenApiNativeType( request )( response ) {
-          if ( request.type instanceof void ) {
-              response = "void"
-          } else if ( request.type == "string" ) {
-              if ( request.format == "binary" ) {
-                  response = "raw"
-              } else {
-                  response = "string"
-              }
-          } else if ( request.type == "file" ) {
-              response = "raw"
-          } else if ( request.type == "boolean" ) {
-              response = "bool"
-          } else if ( request.type == "number" ) {
-              response = "double"
-          } else if ( request.type == "integer" ) {
-              if ( request.format == "int32" ) {
-                  response = "int"
-              };
-              if ( request.format == "int64" ) {
-                  response = "long"
-              };
-              if ( !is_defined( request.format ) ) {
-                  response = "int"
-              }
-          }
+        if ( request.type instanceof void ) {
+            response = "void"
+        } else if ( request.type == "string" ) {
+            if ( request.format == "binary" ) {
+                response = "raw"
+            } else {
+                response = "string"
+
+                if ( is_defined( request.pattern ) ) { // regex double-escape
+                    response = response + "( regex( \"" + replaceAll@StringUtils( request.pattern { regex = "\\\\" replacement = "\\\\\\\\" } ) + "\" ) )"
+                } else if ( is_defined( request.minLength ) && is_defined( request.maxLength ) ) {
+                    response = response + "( length( [" + request.minLength + ", " + request.maxLength + "] ) )"
+                } else if ( is_defined( request.enum ) ) {
+                    if ( request.enum[0] instanceof string ) {
+                        response = response + "( enum( ["
+                        for ( i = 0, i < #request.enum, i++ ) {
+                            response = response + "\"" + request.enum[i] + "\""
+                            if ( i != #request.enum - 1 ) {
+                                response = response + ", "
+                            }
+                        }
+                        response = response + "] ) )"
+                    } else { // null
+                        response = response + " | void"
+                    }
+                }
+            }
+        } else if ( request.type == "file" ) {
+            response = "raw"
+        } else if ( request.type == "boolean" ) {
+            response = "bool"
+        } else if ( request.type == "number" ) {
+            response = "double"
+
+            if ( is_defined( request.minimum ) ) {
+                if ( is_defined( request.maximum ) ) {
+                    response = response + "( ranges( [" + request.minimum + ", " + request.maximum + "] ) )"
+                } else {
+                    response = response + "( ranges( [" + request.minimum + ", *] ) )"
+                }
+            }
+        } else if ( request.type == "integer" ) {
+            if ( is_defined( request.format ) ) {
+                if ( request.format == "int32" ) {
+                    response = "int"
+                } else if ( request.format == "int64" ) {
+                    response = "long"
+                }
+            } else {
+                response = "int"
+            }
+            if ( is_defined( request.minimum ) ) {
+                min = long( request.minimum )
+                if ( request.format == "int64" ) {
+                    min = min + "L"
+                }
+                if ( is_defined( request.maximum ) ) {
+                    max = long( request.format )
+                    if ( request.format == "int64" ) {
+                        max = max + "L"
+                    }
+                    response = response + "( ranges( [" + min + ", " + max + "] ) )"
+                } else {
+                    response = response + "( ranges( [" + min + ", *] ) )"
+                }
+            }
+        }
+        if ( is_defined( request.example ) ) {
+            response = response + " // Example: " + request.example
+        }
     }]
 
     [ getReferenceName( request )( response ) {

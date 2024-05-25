@@ -184,8 +184,21 @@ type GetJolieDefinitionFromOpenApiArrayResponse: string {
 }
 
 type GetJolieNativeTypeFromOpenApiNativeTypeRequest {
-    type: string | void
+    type?: string
+    pattern?: string
+    minLength?: int
+    maxLength?: int
+    enum[0,*]: string | void
     format?: string
+    minimum?: int | long | double
+    maximum?: int | long | double
+    example?: string
+    name?: string // FIXME: silently ignore unneeded attributes
+    description?: string
+    in?: string
+    required?: bool
+    default?: undefined
+    allOf[0,*]: undefined
 }
 
 interface OpenApiDefinitionInterface {
