@@ -4,7 +4,7 @@ type Order: void {
 	.id?:long
 	.shipDate?:string
 	.complete?:bool
-	.status?:string
+	.status?:string( enum( ["placed", "approved", "delivered"] ) )
 }
 type User: void {
 	.firstName?:string
@@ -27,11 +27,11 @@ type Tag: void {
 }
 type Pet: void {
 	.photoUrls[0,*]: string
-	.name:string
+	.name:string // Example: doggie
 	.id?:long
 	.category?:Category
 	.tags[0,*]: Tag
-	.status?:string
+	.status?:string( enum( ["available", "pending", "sold"] ) )
 }
 type ApiResponse: void {
 	.code?:int
@@ -60,7 +60,7 @@ type updateUserRequest: void {
 }
 type updateUserResponse:undefined 
 type findPetsByStatusRequest: void {
-	._qstatus[0,*]: string
+	._qstatus[0,*]: string( enum( ["available", "pending", "sold"] ) )
 }
 type findPetsByStatusResponse: void {
 	._[0,*]:Pet
@@ -124,14 +124,15 @@ type deletePetRequest: void {
 }
 type deletePetResponse:undefined 
 type getOrderByIdRequest: void {
-	._porderId:long
+	._porderId:long( ranges( [1L, 0L] ) )
 }
 type getOrderByIdResponse:Order
 type deleteOrderRequest: void {
-	._porderId:long
+	._porderId:long( ranges( [1L, *] ) )
 }
 type deleteOrderResponse:undefined 
-interface SwaggerDemoOkInterface{
+
+interface SwaggerDemoOkInterface {
 RequestResponse:
 	addPet( addPetRequest )( addPetResponse ) throws Fault500( string )  Fault405( string ) ,
 	updatePet( updatePetRequest )( updatePetResponse ) throws Fault400(Pet)  Fault500( string )  Fault404( string )  Fault405( string ) ,
