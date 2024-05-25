@@ -59,6 +59,15 @@ define __clean_name {
     }
 }
 
+define __clean_type_name {
+    replaceAll@StringUtils( __name_to_clean { .regex = "«|»|-" .replacement = "_" } )( __cleaned_name )
+    // prefix type names starting with digits with an underscore "_"
+    match@StringUtils( __cleaned_name { regex = "(^[0-9](.*)+)" } )( contains_special_chars )
+    if ( contains_special_chars ) {
+        __cleaned_name = "_" + __cleaned_name
+    }
+}
+
 define __indentation {
     for( i = 0, i < request.indentation, i++ ) {
         indentation = indentation + "\t"
@@ -226,7 +235,7 @@ main {
 
     [ getJolieTypeFromOpenApiParameters( request )( response ) {
           __name_to_clean = request.name;
-          __clean_name;
+          __clean_type_name
           if ( #request.definition.parameters == 1 && is_defined( request.definition.parameters.schema.("$ref") ) ) {
                 splreq = request.definition.parameters.schema.("$ref")
                 split@StringUtils( splreq { regex = global.DEFINITIONS_PATH } )( splres )
@@ -420,7 +429,7 @@ main {
                                         ref_name = reference.result[ #reference.result - 1 ]
 
                                         __name_to_clean = ref_name
-                                        __clean_name
+                                        __clean_type_name
                                         native_type = __cleaned_name
                                     }
                                     if ( i > 0 ) {
@@ -459,7 +468,7 @@ main {
         scope( get_definition ) {
             install( DefinitionError => println@Console("Error for type " + __name_to_clean )() );
             __name_to_clean = request.name
-            __clean_name
+            __clean_type_name
 
             undef( rq_schema )
             rq_schema << {
@@ -490,7 +499,7 @@ main {
             ref_name = reference.result[ #reference.result - 1 ]
 
             __name_to_clean = ref_name
-            __clean_name
+            __clean_type_name
 
             println@Console("WARNING " + ref_name + ": currently we are unable to express the map syntax ('additionalProperties') in Jolie. For now generate 'undefined'")()
 
@@ -514,7 +523,7 @@ main {
                     if ( request.array_def_list.( ref_name ) instanceof void ) {
 
                             __name_to_clean = ref_name
-                            __clean_name;
+                            __clean_type_name
                             response = response + isreq_token + ":" + __cleaned_name + "\n"
 
                     } else {
@@ -578,7 +587,8 @@ main {
             split@StringUtils( spl )( reference );
             ref_name = reference.result[ #reference.result - 1 ]
             if ( request. array_def_list.( ref_name ) instanceof void ) {
-                __name_to_clean = ref_name; __clean_name;
+                __name_to_clean = ref_name
+                __clean_type_name
                 response = response + __cleaned_name + "\n"
             } else {
                 undef( rq_arr )
@@ -677,7 +687,7 @@ main {
           spl.regex = "/";
           split@StringUtils( spl )( reference );
           __name_to_clean = reference.result[ #reference.result - 1 ];
-          __clean_name;
+          __clean_type_name
           response = __cleaned_name
     }]
 }
