@@ -55,7 +55,7 @@ define doTest {
     f.filename = TESTFILE
     writeFile@File( f )( )
 
-     with( request_meta ) {
+    with( request_meta ) {
         .filename = TESTFILE
     }
     getInputPortMetaData@MetaJolie( request_meta )( metadata )
