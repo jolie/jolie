@@ -407,20 +407,37 @@ main {
             } else {
                         if ( #request.schema.properties == 0 ) {
 
-                            undef( nt )
-                            if ( is_defined ( request.schema.anyOf ) ) {
-                                if ( is_defined ( request.schema.anyOf.type ) ) {
-                                    nt -> request.schema.anyOf
-                                    getJolieNativeTypeFromOpenApiNativeType@MySelf( nt )( native_type )
-                                } else {
-                                    // FIXME: here we would need to parse all possible types ($ref), for now just generate "undefined"
-                                    native_type = "undefined"
+                            if ( is_defined( request.schema.anyOf ) ) {
+
+                                response = ""
+                                for ( i = 0, i < #request.schema.anyOf, i++ ) {
+                                    if ( is_defined( request.schema.anyOf[i].type ) ) {
+                                        undef( nt )
+                                        nt -> request.schema.anyOf[i]
+                                        getJolieNativeTypeFromOpenApiNativeType@MySelf( nt )( native_type )
+                                    } else if ( is_defined( request.schema.anyOf[i].("$ref") ) ) {
+                                        split@StringUtils( request.schema.anyOf[i].("$ref") { regex = "/" } )( reference )
+                                        ref_name = reference.result[ #reference.result - 1 ]
+
+                                        __name_to_clean = ref_name
+                                        __clean_name
+                                        native_type = __cleaned_name
+                                    }
+                                    if ( i > 0 ) {
+                                        response = response + " | "
+                                    }
+                                    response = response + native_type
                                 }
+                                response = response + "\n"
+
                             } else {
+
+                                undef( nt )
                                 nt -> request.schema
                                 getJolieNativeTypeFromOpenApiNativeType@MySelf( nt )( native_type )
+                                response = native_type + "\n"
+
                             }
-                            response = native_type + "\n"
 
                         } else {
 
@@ -469,10 +486,11 @@ main {
         if ( is_defined( request.definition.additionalProperties )
           && is_defined( request.definition.additionalProperties.("$ref") ) ) {
 
-            spl = request.definition.additionalProperties.("$ref");
-            spl.regex = "/";
-            split@StringUtils( spl )( reference );
+            split@StringUtils( request.definition.additionalProperties.("$ref") { regex = "/" } )( reference )
             ref_name = reference.result[ #reference.result - 1 ]
+
+            __name_to_clean = ref_name
+            __clean_name
 
             println@Console("WARNING " + ref_name + ": currently we are unable to express the map syntax ('additionalProperties') in Jolie. For now generate 'undefined'")()
 
