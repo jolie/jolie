@@ -24,13 +24,28 @@ package jolie.runtime;
 
 import jolie.lang.Constants;
 
+/**
+ * Exception thrown when an invalid identifier is encountered.
+ */
 public class InvalidIdException extends Exception {
 	private static final long serialVersionUID = Constants.serialVersionUID();
 
+	/**
+	 * Constructs a new InvalidIdException with the specified invalid identifier.
+	 *
+	 * @param id the invalid identifier
+	 */
 	public InvalidIdException( String id ) {
-		super( "invalid identifier: " + id );
+		super( "Invalid identifier: " + id );
 	}
 
+	/**
+	 * Fills in the execution stack trace. Since this exception is used for control flow,
+	 * filling in the stack trace is unnecessary and this method returns a reference to
+	 * this exception.
+	 *
+	 * @return a reference to this exception
+	 */
 	@Override
 	public synchronized Throwable fillInStackTrace() {
 		return this;
