@@ -97,6 +97,7 @@ main {
             .info -> request.info;
             .host = request.host;
             .basePath = request.basePath;
+            .paths = undefined
             if ( is_defined( request.schemes ) ) {
                 .schemes -> request.schemes
             };

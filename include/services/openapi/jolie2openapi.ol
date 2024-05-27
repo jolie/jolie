@@ -498,6 +498,9 @@ define __body {
               }
           }
       }
+      if ( ! is_defined( openapi.paths ) ) {
+        println@Console( "WARNING: No operation to be exported (= OpenAPI path) has been found. Has the input port been specified correctly?" )()
+      }
 }
 
 main {
