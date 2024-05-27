@@ -208,13 +208,10 @@ main {
                                 }
                           } else if ( is_defined( request.paths[ p ].( op ).parameters[ par ].in.other ) ) {
                                 getNativeType@JSONSchemaGenerator( request.paths[ p ].( op ).parameters[ par ].in.other.type.root_type )( resp_root_type );
+                                cur_par.ln << resp_root_type
                                 if ( request.paths[ p ].( op ).parameters[ par ].required ) {
                                     cur_par.ln.required = true
                                 }
-                                cur_par.ln.type = resp_root_type.type;
-                                if ( is_defined( resp_root_type.format ) ) {
-                                    cur_par.ln.format = resp_root_type.format
-                                };
                                 cur_par.ln.in = request.paths[ p ].( op ).parameters[ par ].in.other;
                                 if ( is_defined( request.paths[ p ].( op ).parameters[ par ].in.other.allowEmptyValue ) ) {
                                     cur_par.ln.allowEmptyValue << request.paths[ p ].( op ).parameters[ par ].in.other.allowEmptyValue

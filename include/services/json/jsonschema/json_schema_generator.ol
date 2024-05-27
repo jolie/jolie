@@ -41,6 +41,22 @@ inputPort JSONSchemaGenerator {
  Interfaces: JSONSchemaGeneratorInterface
 }
 
+define __number_refinements
+{
+  with ( __type ) {
+    if ( is_defined( .refined_type ) ) {
+      if ( is_defined( .refined_type.ranges ) ) {
+        if ( is_defined( .refined_type.ranges.min ) ) {
+          response.minimum = .refined_type.ranges.min
+        }
+        if ( is_defined( .refined_type.ranges.max ) ) {
+          response.maximum = .refined_type.ranges.max
+        }
+      }
+    }
+  }
+}
+
 init
 {
  getLocalLocation@Runtime( )( MySelf.location );
@@ -114,18 +130,41 @@ main
             }
         }
       }
- } ] { nullProcess }
+ } ]
 
 
 
  [ getNativeType( request )( response ) {
        if ( is_defined( request.string_type ) ) {
          response.type = "string"
+         with ( request.string_type ) {
+          if ( is_defined( .refined_type ) ) {
+            if ( is_defined( .refined_type.length ) ) {
+              response.minLength = .refined_type.length.min
+              response.maxLength = .refined_type.length.max
+            }
+            if ( is_defined( .refined_type.regex ) ) {
+              response.pattern = .refined_type.regex
+            }
+            if ( is_defined( .refined_type.enum ) ) {
+              response.enum << .refined_type.enum
+            }
+          }
+         }
        } else if ( is_defined( request.int_type ) ) {
          response.type = "integer"
+         __type -> request.int_type
+         __number_refinements
+       } else if ( is_defined( request.long_type ) ) {
+         response.type = "number";
+         response.format = "int64"
+         __type -> request.long_type
+         __number_refinements
        } else if ( is_defined( request.double_type ) ) {
          response.type = "number";
          response.format = "double"
+         __type -> request.double_type
+         __number_refinements
        } else if ( is_defined( request.any_type ) ) {
          response.type = "string"
        } else if ( is_defined( request.raw_type ) ) {
@@ -137,10 +176,7 @@ main
          nullProcess
        } else if ( is_defined( request.bool_type ) ) {
          response.type = "boolean"
-       } else if ( is_defined( request.long_type ) ) {
-         response.type = "number";
-         response.format = "int64"
-       } 
- } ] { nullProcess }
+       }
+ } ]
 
 }
