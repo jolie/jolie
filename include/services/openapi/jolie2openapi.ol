@@ -146,10 +146,17 @@ define __body {
       service_filename = request.filename;
       service_input_port = request.inputPort;
 
-      with( request_meta ) {
-        .filename = service_filename
-      };
-      getInputPortMetaData@MetaJolie( request_meta )( metadata )
+      scope( load_service ) {
+        install( InputPortMetaDataFault =>
+            println@Console("jolie service not found")()
+            throw( Error )
+        )
+        with( request_meta ) {
+            .filename = service_filename
+        }
+        getInputPortMetaData@MetaJolie( request_meta )( metadata )
+      }
+
       // finding input port index
       input_port_index = 0
       for( ip = 0, ip < #metadata.input, ip++ ) {
