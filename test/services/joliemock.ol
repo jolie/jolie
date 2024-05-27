@@ -24,8 +24,8 @@ define doTest {
     //println@Console( mockmd5 )()
 	stats@Runtime()( stats )
 	if ( stats.os.name == "Linux" ) {
-		if ( mockmd5 != "f27e5ffc8713b41a168bc4b8fd3995bd" ) {
-			throw( TestFailed, "md5 of mock does not correspond, expected 060d741172e34e7f8cfc9f61a3e11ac6, found " + mockmd5 )
+		if ( mockmd5 != "fdad38374ea1a6a5d8a3a67acf78053e" ) {
+			throw( TestFailed, "md5 of mock does not correspond, expected fdad38374ea1a6a5d8a3a67acf78053e, found " + mockmd5 )
 		}
 	}
 
@@ -52,25 +52,25 @@ type FaultTest2:void {
 type GetOrdersByItemRequest:void {
   .itemName[1,1]:string
   .quantity[1,1]:int
-  .userId[1,1]:string
-}|void {
+  .userId[1,1]:string( length( [ 1,50 ] ) )
+  }|void {
   .itemName[1,1]:string
-  .userId[1,1]:string
+  .userId[1,1]:string( length( [ 1,50 ] ) )
 }|void {
-  .userId[1,1]:string
-}
+  .userId[1,1]:string( length( [ 1,50 ] ) )
+}}
 
 type GetOrdersByItemResponse:Orders
 
 type GetOrdersRequest:void {
-  .maxItems[1,1]:int
-  .userId[1,1]:string
+  .maxItems[1,1]:int( ranges( [1,*]) )
+  .userId[1,1]:string( length( [ 1,50 ] ) )
 }
 
 type GetOrdersResponse:Orders
 
 type GetUsersRequest:void {
-  .country[1,1]:string
+  .country[1,1]:string( enum(["USA","UK" ] ) )
   .city[1,1]:string
   .surname[1,1]:string
 }
@@ -87,7 +87,7 @@ type GetUsersResponse:void {
 type Order:void {
   .date[1,1]:string
   .id[0,1]:int
-  .title[1,1]:string
+  .title[1,1]:string( regex( ".*" ) )
   .items[0,*]:OrderItem
 }
 
@@ -102,19 +102,19 @@ type Orders:void {
 }
 
 type PutOrderRequest:void {
-  .userId[1,1]:string
+  .userId[1,1]:string( length( [ 1,50 ] ) )
   .order[1,1]:Order
 }
 
 type PutOrderResponse:void
 
-interface DemoInterface {
+interface DEMOInterface {
 RequestResponse:
   deleteOrder( DeleteOrderRequest )( DeleteOrderResponse ),
   getOrders( GetOrdersRequest )( GetOrdersResponse ),
-  getOrdersByItem( GetOrdersByItemRequest )( GetOrdersByItemResponse ) throws FaultTest2 FaultTest( FaultTest1 )  ,
+  getOrdersByItem( GetOrdersByItemRequest )( GetOrdersByItemResponse ) throws FaultTest2 FaultTest(FaultTest1)  ,
   getUsers( GetUsersRequest )( GetUsersResponse ),
-  putOrder( PutOrderRequest )( PutOrderResponse ) throws FaultTest3( FaultTest2 )  
+  putOrder( PutOrderRequest )( PutOrderResponse ) throws FaultTest3(FaultTest2)
 }
 
 

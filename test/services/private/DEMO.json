@@ -73,13 +73,16 @@
                         "in": "query",
                         "name": "maxItems",
                         "type": "integer",
-                        "required": true
+                        "required": true,
+                        "minimum": 1
                     },
                     {
                         "in": "path",
                         "name": "userId",
                         "type": "string",
-                        "required": true
+                        "required": true,
+                        "minLength": 1,
+                        "maxLength": 50
                     }
                 ],
                 "tags": [
@@ -155,7 +158,11 @@
                         "in": "path",
                         "name": "country",
                         "type": "string",
-                        "required": true
+                        "required": true,
+                        "enum": [
+                            "USA",
+                            "UK"
+                        ]
                     },
                     {
                         "schema": {
@@ -236,7 +243,8 @@
                     }
                 },
                 "title": {
-                    "type": "string"
+                    "type": "string",
+                    "pattern": ".*"
                 },
                 "items": {
                     "type": "array",
@@ -290,7 +298,9 @@
             "type": "object",
             "properties": {
                 "userId": {
-                    "type": "string"
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 50
                 },
                 "order": {
                     "$ref": "#\/definitions\/Order"
@@ -301,7 +311,11 @@
             "type": "object",
             "properties": {
                 "country": {
-                    "type": "string"
+                    "type": "string",
+                    "enum": [
+                        "USA",
+                        "UK"
+                    ]
                 },
                 "city": {
                     "type": "string"
@@ -334,10 +348,13 @@
             "type": "object",
             "properties": {
                 "maxItems": {
-                    "type": "integer"
+                    "type": "integer",
+                    "minimum": 1
                 },
                 "userId": {
-                    "type": "string"
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 50
                 }
             }
         },
@@ -400,7 +417,9 @@
                             "type": "integer"
                         },
                         "userId": {
-                            "type": "string"
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 50
                         }
                     }
                 },
@@ -411,7 +430,9 @@
                             "type": "string"
                         },
                         "userId": {
-                            "type": "string"
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 50
                         }
                     }
                 },
@@ -419,7 +440,9 @@
                     "type": "object",
                     "properties": {
                         "userId": {
-                            "type": "string"
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 50
                         }
                     }
                 }
