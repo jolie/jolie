@@ -7,7 +7,7 @@ type OrderItem: void {
 }
 
 type Order: void {
-    .title: string
+    .title: string ( regex( ".*" ) )
     .id?: int
     .date: string
     .items*: OrderItem
@@ -18,31 +18,31 @@ type Orders: void {
 }
 
 type GetOrdersRequest: void {
-    .userId: string
-    .maxItems: int
+    .userId: string ( length( [1,50] ) )
+    .maxItems: int ( ranges( [1,*] ) )
 }
 
 type GetOrdersResponse: Orders
 
 type GetOrdersByItemRequest: void {
-    .userId: string
+    .userId: string ( length( [1,50] ) )
     .itemName: string
     .quantity: int
 }
 |
 void {
-    .userId: string
+    .userId: string ( length( [1,50] ) )
     .itemName: string
 }
 |
 void {
-    .userId: string
+    .userId: string ( length( [1,50] ) )
 }
 
 type GetOrdersByItemResponse: Orders
 
 type PutOrderRequest: void {
-    .userId: string
+    .userId: string ( length( [1,50] ) )
     .order: Order
 }
 
@@ -68,7 +68,7 @@ type FaultTest2: void {
 type GetUsersRequest: void {
     .city: string
     .surname: string
-    .country: string
+    .country: string ( enum ( [ "USA", "UK" ] ))
 }
 
 type GetUsersResponse: void {
