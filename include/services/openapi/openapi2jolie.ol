@@ -70,7 +70,7 @@ define _create_outputport_info {
                 found500 = false
                 foreach( res : openapi.paths.( path ).( method ).responses ) {
                     if ( res == "500" ) { found500 = true }
-                    if ( res == "200" ) {
+                    if ( startsWith@StringUtils( res { .prefix = "2" } ) ) { // 2xx codes
                         outputPort.interface.operation[ op_max ].response << openapi.paths.( path ).( method ).responses.( res )
                     } else {
                         outputPort.interface.operation[ op_max ].faults.( res ) << openapi.paths.( path ).( method ).responses.( res )
@@ -148,7 +148,7 @@ main {
 
             type_string = parameters;
 
-            type_string = type_string + "type " + outputPort.interface.operation[ o ] + "Response:";
+            type_string = type_string + "type " + outputPort.interface.operation[ o ] + "Response: ";
             if ( is_defined( outputPort.interface.operation[ o ].response.schema ) ) {
                 if ( is_defined( outputPort.interface.operation[ o ].response.schema.("$ref") ) ) {
                     getReferenceName@OpenApiDefinition( outputPort.interface.operation[ o ].response.schema.("$ref") )( ref );
@@ -157,7 +157,7 @@ main {
                     rq_arr.definition -> outputPort.interface.operation[ o ].response.schema;
                     rq_arr.indentation = 1;
                     getJolieDefinitionFromOpenApiArray@OpenApiDefinition( rq_arr )( array );
-                    type_string = type_string + " void {\n\t._" + array. cardinality + ":" + array + "}\n"
+                    type_string = type_string + "void {\n\t._" + array. cardinality + ":" + array + "}\n"
                 } else if ( outputPort.interface.operation[ o ].response.schema.type == "object" ) {
                     type_string = type_string + "undefined\n"
                 } else {
@@ -169,7 +169,7 @@ main {
                     type_string = type_string + native + "\n"
                 }
             } else {
-                type_string = type_string + "undefined \n"
+                type_string = type_string + "undefined\n"
             }
             ;
             interface_file = interface_file + type_string
