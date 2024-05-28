@@ -24,8 +24,6 @@ service Main{
     define resetDatabase{
         connect@Database( global.connection )()
         
-        checkConnection@Database()()
-
         // Setting transaction control to MVCC enables multiple transactions to happen on the same 
         update@Database("SET DATABASE TRANSACTION CONTROL MVCC;")()
         update@Database("CREATE TABLE IF NOT EXISTS testTable(id INTEGER, testString VARCHAR(50));")()
