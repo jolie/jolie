@@ -40,9 +40,8 @@ public class InvalidIdException extends Exception {
 	}
 
 	/**
-	 * Fills in the execution stack trace. Since this exception is used for control flow,
-	 * filling in the stack trace is unnecessary and this method returns a reference to
-	 * this exception.
+	 * Fills in the execution stack trace. Since this exception is used for control flow, filling in the
+	 * stack trace is unnecessary and this method returns a reference to this exception.
 	 *
 	 * @return a reference to this exception
 	 */
