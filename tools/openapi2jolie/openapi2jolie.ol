@@ -65,7 +65,7 @@ define _get_protocol_port {
     } else if ( protocol == "https" ) {
         protocol_port = "443"
     } else {
-        println@Console("Protocol not supported:" + protocol.result[0] )();
+        println@Console( "Protocol not supported/File not found: " + protocol )();
         throw( Error )
     }
 }
