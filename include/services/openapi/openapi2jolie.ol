@@ -191,20 +191,20 @@ main {
                         __link_name = outputPort.interface.operation[ o ].faults.( f ).schema.("$ref")
                         __getFaultDefinition
                         if ( __fault_name != ""  && __fault_type != "" ) {
-                            faultType = __fault_name + "(" + __fault_type + ")" 
+                            faultType = __fault_name + "( " + __fault_type + " )"
                         } else {
                             getReferenceName@OpenApiDefinition( outputPort.interface.operation[ o ].faults.( f ).schema.("$ref") )( ref );
-                            faultType = "Fault" + f + "(" + ref + ") "
+                            faultType = "Fault" + f + "( " + ref + " ) "
                         }
                     } else if ( is_defined( outputPort.interface.operation[ o ].faults.( f ).schema.oneOf ) ) {
                         for( of = 0, of < #outputPort.interface.operation[ o ].faults.( f ).schema.oneOf, of++ ) {
                             __link_name = outputPort.interface.operation[ o ].faults.( f ).schema.oneOf[ of ].("$ref")
                             __getFaultDefinition
                             if ( __fault_name != "" && __fault_type != "" ) {
-                                faultType = faultType + " " + __fault_name + "(" + __fault_type + ")" 
+                                faultType = faultType + " " + __fault_name + "( " + __fault_type + " )"
                             } else {
                                 getReferenceName@OpenApiDefinition( outputPort.interface.operation[ o ].faults.( f ).schema.oneOf[ of ].("$ref") )( ref );
-                                faultType = faultType + " Fault" + f + "_" + of + "(" + ref + ") "
+                                faultType = faultType + " Fault" + f + "_" + of + "( " + ref + " ) "
                             }
                         }
                     } else {
