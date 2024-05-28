@@ -77,13 +77,13 @@ init {
 }
 
 main {
-    if ( #args < 4 || #args > 5 ) {
-        println@Console("Usage: openapi2jolie <url|filepath> <service_name> <output_folder> <protocol http|https> [ <ssl.protocol> ]")();
+    if ( #args < 3 || #args > 5 ) {
+        println@Console("Usage: openapi2jolie <url|filepath> <service_name> <output_folder> [ <protocol http|https> [ <ssl.protocol> ] ]")();
         throw( Error )
     }
     ;
     println@Console("Generating client...")();
-    if ( args[ 3 ] == "http" || args[ 3 ] == "https" ) {
+    if ( #args > 3 ) {
         protocol = args[ 3 ]
         if ( args[ 3 ] == "https" && #args == 5 ) {
             ssl_protocol = args[ 4 ]
