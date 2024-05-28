@@ -50,6 +50,7 @@
 	</profiles>
 	<modules>
 		<module>extensions/private/WS-test</module>
+		<module>library/private/DB-test</module>
 	</modules>
 	<build>
 		<plugins>

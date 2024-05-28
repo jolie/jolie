@@ -1,43 +1,48 @@
 from ..test-unit import TestUnitInterface
 from database import Database
+from file import File
 
 service Main{
     inputPort TestUnitInput {
-		location: "local"
-		interfaces: TestUnitInterface
-	}
+        location: "local"
+        interfaces: TestUnitInterface
+    }
 
     embed Database as Database
-    
+    embed File as File
+
     init {
         global.connection << {
-			driver = "hsqldb_embedded"
-			database = "."
-			username = "jolie"
-			password = "hs"
-			host = ""
-		}
+            driver = "hsqldb_embedded"
+            database = "file:library/private/DB-test/testDatabase/"
+            username = ""
+            password = ""
+            host = ""
+        }
     }
 
     define resetDatabase{
         connect@Database( global.connection )()
+        
+        checkConnection@Database()()
 
         // Setting transaction control to MVCC enables multiple transactions to happen on the same 
         update@Database("SET DATABASE TRANSACTION CONTROL MVCC;")()
         update@Database("CREATE TABLE IF NOT EXISTS testTable(id INTEGER, testString VARCHAR(50));")()
-        update@Database("SET TABLE testTable SOURCE \"testTable.csv;fs=|\";" )()
         update@Database("DELETE FROM testTable WHERE true;")()
         update@Database("INSERT INTO testTable(id, testString) VALUES (1337, 'testUser');")()
     }
 
     main {
-		test()() {
+        test()() {
+            install (default => deleteDir@File( "library/private/DB-test/testDatabase/" )( ))
             resetDatabase
 
             /** Querying **/
             query@Database("SELECT * FROM testTable;")(queryResponse)
-            if (#queryResponse.row != 1 || queryResponse.row[0].id != "1337"){
-                throw( TestFailed, "Querying returned wrong result" )
+            wow << queryResponse.row[0]
+            if (#queryResponse.row != 1 || queryResponse.row[0].ID != 1337){
+                throw( TestFailed, "Querying returned an unexpected result" )
             }
             resetDatabase
 
@@ -51,7 +56,7 @@ service Main{
             /** Updating **/
             update@Database("UPDATE testTable SET teststring = 'UpdatedUsername' where id = 1337;")(numberRowsAffected)
             query@Database("SELECT * FROM testTable;")(queryResponse)
-            if (queryResponse.row[0].testString != "UpdatedUsername"){
+            if (queryResponse.row[0].TESTSTRING != "UpdatedUsername"){
                 throw( TestFailed, "Updating an entry did not execute correctly" )
             }
             resetDatabase
@@ -63,8 +68,29 @@ service Main{
             }
             executeTransaction@Database(statements)()
             query@Database("SELECT * FROM testTable;")(queryResponse)
-            if (#queryResponse.row != 1 || queryResponse.row[0].id != 42){
+            if (#queryResponse.row != 1 || queryResponse.row[0].ID != 42){
                 throw( TestFailed, "Executing a transaction using executeTransaction failed" )
+            }
+            resetDatabase
+
+            /** Query using templates **/
+            queryRequest = "SELECT * FROM testTable WHERE id = :id"
+            queryRequest.id = 1337
+            query@Database( queryRequest )( queryResponse )
+
+            if (#queryResponse.row != 1){
+                throw( TestFailed, "Something went wrong when querying using a template" )
+            }
+            resetDatabase
+
+            /** Update using templates **/
+            updateRequest = "UPDATE testTable SET testString = 'UpdatedUsername' WHERE id = :id"
+            updateRequest.id = 1337
+            update@Database(updateRequest)()
+            query@Database("SELECT testString FROM testTable WHERE id = 1337")( queryResponse )
+
+            if ( #queryResponse.row != 1 ){
+                throw( TestFailed, "Something went wrong when updating using a template" )
             }
             resetDatabase
 
@@ -99,7 +125,7 @@ service Main{
             })()
             query@Database("SELECT * FROM testTable;")(queryResponse)
 
-            if (queryResponse.queryResponse.row[0].id != 1337){
+            if (#queryResponse.row > 1){
                 throw( TestFailed, "Updates executed within a transaction should not be visible outside that transaction" )
             }
             rollbackTx@Database(txHandle)()
@@ -124,12 +150,12 @@ service Main{
                 update = "INSERT INTO testTable(id, testString) VALUES (42, 'NewTestUser');"
                 txHandle = txHandle
             })(o)
-            rollbackTx@Database(s.txHandle)()
+            rollbackTx@Database(txHandle)()
             scope (ShouldThrow){
                 install(TransactionException => {x = true})
                 query@Database({
                     query = "SELECT * FROM testTable;"
-                    txHandle = s.txHandle
+                    txHandle = txHandle
                 })(queryResponse)
             }
 
@@ -178,6 +204,8 @@ service Main{
             if (!is_defined(ShouldThrow.SQLException)){
                 throw( TestFailed, "Opening more transactions than connections in the connection pool did not fail" )
             }
+
+            deleteDir@File( "library/private/DB-test/testDatabase/" )( )
         }
     }
 }

@@ -180,7 +180,7 @@ public class DatabaseService extends JavaService {
 				if( !attributes.isEmpty() ) {
 					connectionString += ";" + attributes;
 				}
-				connectionPool = _createDataSource( request.getFirstChild( "connectionPoolConfig" ) );
+				connectionPool = _createDataSource( request.getFirstChild( "connectionPoolConfig" ), connectionString );
 				if( !"hsqldb".equals( driver ) ) { // driver == sqlite || driver == derby_embedded
 					connectionPool.setUsername( null );
 					connectionPool.setPassword( null );
@@ -196,7 +196,7 @@ public class DatabaseService extends JavaService {
 				if( encoding.isPresent() ) {
 					connectionString += "?characterEncoding=" + encoding.get();
 				}
-				connectionPool = _createDataSource( request.getFirstChild( "connectionPoolConfig" ) );
+				connectionPool = _createDataSource( request.getFirstChild( "connectionPoolConfig" ), connectionString );
 			}
 
 			interpreter().cleaner().register( this, () -> {
@@ -625,7 +625,7 @@ public class DatabaseService extends JavaService {
 		connectionPool.close();
 	}
 
-	private HikariDataSource _createDataSource( Value providedConfig ) {
+	private HikariDataSource _createDataSource( Value providedConfig, String connectionString ) {
 		HikariConfig config = new HikariConfig();
 		config.setUsername( username );
 		config.setPassword( password );
