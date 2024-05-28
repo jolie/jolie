@@ -293,8 +293,7 @@ main {
         client_file = client_file + "Interfaces: " + outputPort.interface + "HTTP\n}\n\n";
 
         client_file = client_file + "inputPort " + port_name + " {\n";
-        client_file = client_file + "Location:\"local\"\n";
-        client_file = client_file + "Protocol: sodep\n";
+        client_file = client_file + "Location: \"local\"\n";
         client_file = client_file + "Interfaces: " + outputPort.interface + "\n}\n\n";
 
         client_file = client_file + "init { install( default => nullProcess ) }\n"
