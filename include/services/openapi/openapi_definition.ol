@@ -616,8 +616,13 @@ main {
             } else {
                 response = "string"
 
-                if ( is_defined( request.pattern ) ) { // regex double-escape
-                    response = response + "( regex( \"" + replaceAll@StringUtils( request.pattern { regex = "\\\\" replacement = "\\\\\\\\" } ) + "\" ) )"
+                if ( is_defined( request.pattern ) ) {
+                    // remove regex double-escapements and ^ and $ (just not [^) since Jolie REs are already
+                    // whole-line matching
+                    regex = replaceAll@StringUtils( request.pattern { regex = "\\\\" replacement = "\\\\\\\\" } )
+                    regex = replaceAll@StringUtils( regex { regex = "^\\^|\\$" replacement = "" } )
+                    regex = replaceAll@StringUtils( regex { regex = "([^\\[])\\^" replacement = "$1" } )
+                    response = response + "( regex( \"" + regex + "\" ) )"
                 } else if ( is_defined( request.minLength ) && is_defined( request.maxLength ) ) {
                     response = response + "( length( [" + request.minLength + ", " + request.maxLength + "] ) )"
                 } else if ( is_defined( request.enum ) ) {

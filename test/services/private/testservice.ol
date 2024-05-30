@@ -9,7 +9,7 @@ type OrderItem: void {
 type Order: void {
     .title: string ( regex( ".*" ) )
     .id?: int
-    .date: string
+    .date: string ( regex( "[0-3][0-9]/[0-1][0-9]/20[0-9][0-9]|[0-3][0-9]\\.[0-1][0-9]\\.20[0-9][0-9]" ) )
     .items*: OrderItem
 }
 
@@ -92,7 +92,6 @@ interface DemoInterface {
 execution{ concurrent }
 inputPort DEMO {
   Location: "local"
-  Protocol: sodep
   Interfaces: DemoInterface
 }
 

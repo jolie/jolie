@@ -25,6 +25,7 @@ include "./JSONSchemaGeneratorInterface.iol"
 include "console.iol"
 include "file.iol"
 include "json_utils.iol"
+include "string_utils.iol"
 include "runtime.iol"
 
 execution{ concurrent }
@@ -144,7 +145,12 @@ main
               response.maxLength = .refined_type.length.max
             }
             if ( is_defined( .refined_type.regex ) ) {
-              response.pattern = .refined_type.regex
+              // OpenAPI needs REs embedded in ^...$ (choices need to put under parentheses)
+              if ( contains@StringUtils( .refined_type.regex { substring = "|" } ) ) {
+                response.pattern = "^(" + .refined_type.regex + ")$"
+              } else {
+                response.pattern = "^" + .refined_type.regex + "$"
+              }
             }
             if ( is_defined( .refined_type.enum ) ) {
               response.enum << .refined_type.enum
