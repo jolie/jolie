@@ -24,8 +24,8 @@ define doTest {
     //println@Console( mockmd5 )()
 	stats@Runtime()( stats )
 	if ( stats.os.name == "Linux" ) {
-		if ( mockmd5 != "fdad38374ea1a6a5d8a3a67acf78053e" ) {
-			throw( TestFailed, "md5 of mock does not correspond, expected fdad38374ea1a6a5d8a3a67acf78053e, found " + mockmd5 )
+		if ( mockmd5 != "663c50e2d6cd7901c1aa5e6d4dfb32b2" ) {
+			throw( TestFailed, "md5 of mock does not correspond, expected 663c50e2d6cd7901c1aa5e6d4dfb32b2, found " + mockmd5 )
 		}
 	}
 
@@ -85,7 +85,7 @@ type GetUsersResponse:void {
 }
 
 type Order:void {
-  .date[1,1]:string
+  .date[1,1]:string( regex( "[0-3][0-9]/[0-1][0-9]/20[0-9][0-9]|[0-3][0-9]\\.[0-1][0-9]\\.20[0-9][0-9]" ) )
   .id[0,1]:int
   .title[1,1]:string( regex( ".*" ) )
   .items[0,*]:OrderItem
@@ -127,7 +127,6 @@ execution{ concurrent }
 
 inputPort DEMO {
   Protocol:sodep
-  Location:"local"
   Interfaces:DemoInterface
 }
 

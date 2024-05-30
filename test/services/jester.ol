@@ -172,7 +172,7 @@ define doTest {
             with( .order ) {
                 .title = "title";
                 .id = 5;
-                .date = "date"
+                .date = "04.04.2004"
             }
         }
         putOrder@Test( rq )( rs )

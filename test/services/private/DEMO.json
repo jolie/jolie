@@ -232,7 +232,8 @@
             "type": "object",
             "properties": {
                 "date": {
-                    "type": "string"
+                    "type": "string",
+                    "pattern": "^([0-3][0-9]\/[0-1][0-9]\/20[0-9][0-9]|[0-3][0-9]\\.[0-1][0-9]\\.20[0-9][0-9])$"
                 },
                 "id": {
                     "type": "array",
@@ -244,7 +245,7 @@
                 },
                 "title": {
                     "type": "string",
-                    "pattern": ".*"
+                    "pattern": "^.*$"
                 },
                 "items": {
                     "type": "array",
