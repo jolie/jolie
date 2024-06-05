@@ -44,6 +44,7 @@ import jolie.net.LocalCommChannel;
 import jolie.runtime.embedding.JavaServiceHelpers;
 import jolie.runtime.embedding.RequestResponse;
 import jolie.runtime.embedding.java.Inject;
+import jolie.runtime.embedding.java.JolieValue;
 import jolie.runtime.embedding.java.OutputPort;
 import jolie.util.Pair;
 
@@ -102,6 +103,10 @@ public abstract class JavaService {
 			callOneWay( CommMessage.createRequest( operationName, "/", requestValue ) );
 		}
 
+		public void callOneWay( String operationName, JolieValue requestValue ) throws IOException {
+			callOneWay( CommMessage.createRequest( operationName, "/", JolieValue.toValue( requestValue ) ) );
+		}
+
 		public Value callRequestResponse( CommMessage request )
 			throws IOException, FaultException {
 			LocalCommChannel c = interpreter.commCore().getLocalCommChannel();
@@ -120,6 +125,12 @@ public abstract class JavaService {
 		public Value callRequestResponse( String operationName, Value requestValue )
 			throws IOException, FaultException {
 			return callRequestResponse( CommMessage.createRequest( operationName, "/", requestValue ) );
+		}
+
+		public JolieValue callRequestResponse( String operationName, JolieValue requestValue )
+			throws IOException, FaultException {
+			return JolieValue.fromValue( callRequestResponse(
+				CommMessage.createRequest( operationName, "/", JolieValue.toValue( requestValue ) ) ) );
 		}
 	}
 

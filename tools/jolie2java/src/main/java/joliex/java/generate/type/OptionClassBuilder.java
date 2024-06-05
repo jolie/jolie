@@ -46,8 +46,7 @@ public final class OptionClassBuilder extends TypeClassBuilder {
 
     private void appendConstructors() {
         if ( type != Native.VOID )
-            builder.newNewlineAppend( "public " ).append( className ).append( "( " ).append( typeName( type ) ).append( " option )" ).body( () ->
-                builder.newlineAppend( "this.option = " ).append( validateMandatoryField( "option", type instanceof Basic.Inline b ? b.refinement() : null ) ).append( ";" ) );
+            builder.newNewlineAppend( "public " ).append( className ).append( "{ " ).append( validateMandatoryField( "option", type instanceof Basic.Inline b ? b.refinement() : null ) ).append( "; }" );
     }
 
     private void appendMethods( Native n ) {

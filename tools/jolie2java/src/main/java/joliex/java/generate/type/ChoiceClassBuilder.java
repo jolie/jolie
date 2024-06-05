@@ -24,7 +24,7 @@ public class ChoiceClassBuilder extends TypeClassBuilder {
     }
 
     protected void appendDescriptionDocumentation() {
-        builder.newlineAppend( "this class is a choice type which can be described as follows:" );
+        builder.newlineAppend( "This is a sealed interface representing the following choice type:" );
     }
     
     protected void appendDefinitionDocumentation() {
@@ -85,7 +85,7 @@ public class ChoiceClassBuilder extends TypeClassBuilder {
         if ( choice.hasBuilder() )
             builder.newline()
                 .newlineAppend( "public static ListBuilder listBuilder() { return new ListBuilder(); }" )
-                .newlineAppend( "public static ListBuilder listBuilder( " ).append( ClassPath.SEQUENCEDCOLLECTION.parameterized( ClassPath.JOLIEVALUE ) ).append( " from ) { return new ListBuilder( from ); }" );
+                .newlineAppend( "public static ListBuilder listBuilder( " ).append( ClassPath.SEQUENCEDCOLLECTION.parameterized( ClassPath.JOLIEVALUE ) ).append( " from ) { return from != null ? new ListBuilder( from ) : listBuilder(); }" );
         // of() methods
         choice.numberedOptions().forKeyValue( (i,t) -> {
             if ( t == Native.VOID )
@@ -141,15 +141,18 @@ public class ChoiceClassBuilder extends TypeClassBuilder {
                 if ( t == Native.VOID )
                     builder.newline()
                         .newlineAppend( "public ListBuilder add" ).append( i ).append( "() { return add( new C" ).append( i ).append( "() ); }" )
+                        .newlineAppend( "public ListBuilder add" ).append( i ).append( "( int index ) { return add( index, new C" ).append( i ).append( "() ); }" )
                         .newlineAppend( "public ListBuilder set" ).append( i ).append( "( int index ) { return set( index, new C" ).append( i ).append( "() ); }" );
                 else
                     builder.newline()
                         .newlineAppend( "public ListBuilder add" ).append( i ).append( "( " ).append( typeName( t ) ).append( " option ) { return add( new C" ).append( i ).append( "( option ) ); }" )
+                        .newlineAppend( "public ListBuilder add" ).append( i ).append( "( int index, " ).append( typeName( t ) ).append( " option ) { return add( index, new C" ).append( i ).append( "( option ) ); }" )
                         .newlineAppend( "public ListBuilder set" ).append( i ).append( "( int index, " ).append( typeName( t ) ).append( " option ) { return set( index, new C" ).append( i ).append( "( option ) ); }" );
 
                 if ( t instanceof Structure s && s.hasBuilder() )
                     builder.newline()
                         .newlineAppend( "public ListBuilder add" ).append( i ).append( "( " ).append( ClassPath.FUNCTION.parameterized( qualifiedName( s ) + ".Builder", qualifiedName( s ) ) ).append( " b ) { return add" ).append( i ).append( "( b.apply( " ).append( qualifiedName( s ) ).append( ".builder() ) ); }" )
+                        .newlineAppend( "public ListBuilder add" ).append( i ).append( "( int index, " ).append( ClassPath.FUNCTION.parameterized( qualifiedName( s ) + ".Builder", qualifiedName( s ) )).append( " b ) { return add" ).append( i ).append( "( index, b.apply( " ).append( qualifiedName( s ) ).append( ".builder() ) ); }" )
                         .newlineAppend( "public ListBuilder set" ).append( i ).append( "( int index, " ).append( ClassPath.FUNCTION.parameterized( qualifiedName( s ) + ".Builder", qualifiedName( s ) )).append( " b ) { return set" ).append( i ).append( "( index, b.apply( " ).append( qualifiedName( s ) ).append( ".builder() ) ); }" );
             } );
             

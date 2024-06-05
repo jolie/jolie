@@ -72,8 +72,8 @@ public class UntypedStructureClassBuilder extends StructureClassBuilder {
     }
 
     protected void appendFromValueMethod() {
-        // TODO: make this more efficient
-        builder.newNewlineAppend( "public static " ).append( className ).append( " fromValue( " ).append( ClassPath.VALUE ).append( " v ) throws " ).append( ClassPath.TYPECHECKINGEXCEPTION ).append( " { return from( " ).append( ClassPath.JOLIEVALUE ).append( ".fromValue( v ) ); }" );
+        builder.newNewlineAppend( "public static " ).append( className ).append( " fromValue( " ).append( ClassPath.VALUE ).append( " v ) throws " ).append( ClassPath.TYPECHECKINGEXCEPTION ).body( () -> 
+            builder.newlineAppend( "return new " ).append( className ).append( "( " ).append( structure.contentType() == Native.VOID ? "" : structure.contentType().wrapperClass() + ".contentFromValue( v ), " ).append( ClassPath.VALUEMANAGER ).append( ".childrenFrom( v ) );" ) );
     }
 
     protected void appendToValueMethod() {

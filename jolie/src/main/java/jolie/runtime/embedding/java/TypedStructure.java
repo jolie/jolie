@@ -5,6 +5,7 @@ import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -19,8 +20,7 @@ public abstract class TypedStructure implements JolieValue {
 	private volatile SoftReference<Map<String,List<JolieValue>>> children = new SoftReference<>( null );
 	
 	public Map<String,List<JolieValue>> children() {
-		final Map<String,List<JolieValue>> c = children.get();
-		return c == null ? createChildren() : c;
+		return Objects.requireNonNullElseGet( children.get(), this::createChildren );
 	}
 
 	public boolean equals( Object obj ) { return obj != null && obj instanceof JolieValue j && content().equals( j.content() ) && children().equals( j.children() ); }

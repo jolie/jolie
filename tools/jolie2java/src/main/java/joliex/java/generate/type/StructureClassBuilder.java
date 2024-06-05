@@ -23,13 +23,13 @@ public abstract class StructureClassBuilder extends TypeClassBuilder {
 
 	private void appendStaticMethods() {
 		if ( structure.hasBuilder() )
-			appendConstructMethods();
+			appendBuildingMethods();
 		appendFromMethod();
 		appendFromValueMethod();
 		appendToValueMethod();
 	}
 
-	private void appendConstructMethods() {
+	private void appendBuildingMethods() {
 		builder.newNewlineAppend( "public static Builder builder() { return new Builder(); }" );
 
 		if ( structure.contentType() == Native.ANY ) {
@@ -39,11 +39,11 @@ public abstract class StructureClassBuilder extends TypeClassBuilder {
 		} else if ( structure.contentType() != Native.VOID )
 			builder.newlineAppend( "public static Builder builder( " ).append( structure.contentType().nativeClass() ).append( " contentValue ) { return builder().contentValue( contentValue ); }" );
 
-        builder.newlineAppend( "public static Builder builder( " ).append( ClassPath.JOLIEVALUE ).append( " from ) { return new Builder( from ); }" )
+        builder.newlineAppend( "public static Builder builder( " ).append( ClassPath.JOLIEVALUE ).append( " from ) { return from != null ? new Builder( from ) : builder(); }" )
 			.newline()
-			.newlineAppend( "public static " ).append( ClassPath.STRUCTURELISTBUILDER.parameterized( className, "Builder" ) ).append( " listBuilder() { return new " ).append( ClassPath.STRUCTURELISTBUILDER.parameterized( "" ) ).append( "( " ).append( className ).append( "::builder, " ).append( className ).append( "::builder ); }" )
+			.newlineAppend( "public static " ).append( ClassPath.STRUCTURELISTBUILDER.parameterized( className, "Builder" ) ).append( " listBuilder() { return new " ).append( ClassPath.STRUCTURELISTBUILDER.parameterized( "" ) ).append( "( " ).append( className ).append( "::builder ); }" )
         	.newlineAppend( "public static " ).append( ClassPath.STRUCTURELISTBUILDER.parameterized( className, "Builder" ) ).append( " listBuilder( " ).append( ClassPath.SEQUENCEDCOLLECTION.parameterized( "? extends " + ClassPath.JOLIEVALUE.get() ) ).append( " from )" ).body( () -> 
-				builder.newlineAppend( "return new " ).append( ClassPath.STRUCTURELISTBUILDER.parameterized( "" ) ).append( "( from, " ).append( className ).append( "::from, " ).append( className ).append( "::builder, " ).append( className ).append( "::builder );" ) );
+				builder.newlineAppend( "return from != null ? new " ).append( ClassPath.STRUCTURELISTBUILDER.parameterized( "" ) ).append( "( from, " ).append( className ).append( "::from, " ).append( className ).append( "::builder ) : listBuilder();" ) );
 	}
 
 	private final void appendInnerClasses() {

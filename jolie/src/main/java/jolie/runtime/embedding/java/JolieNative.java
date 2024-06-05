@@ -1,20 +1,59 @@
 package jolie.runtime.embedding.java;
 
 import java.util.SequencedCollection;
-import java.util.Optional;
+import java.util.Objects;
 import jolie.runtime.ByteArray;
 import jolie.runtime.Value;
 import jolie.runtime.JavaService.ValueConverter;
 import jolie.runtime.typing.TypeCheckingException;
 import jolie.runtime.embedding.java.util.AbstractListBuilder;
 
+/**
+ * Sealed interface representing the any type from Jolie.
+ * 
+ * @param <T> the native type of the data stored.
+ * 
+ * @see JolieValue
+ * @see #of()
+ * @see #of(Boolean)
+ * @see #of(Integer)
+ * @see #of(Long)
+ * @see #of(Double)
+ * @see #of(String)
+ * @see #of(ByteArray)
+ * 
+ * @apiNote Access to the data is intended to be done using enhanced switch expression like the following:
+ * 
+ * <pre>
+ * public void someOperation( JolieNative request ) {
+ *      switch ( request ) {
+ *          case JolieNative.JolieVoid() -> {...}
+ *          case JolieNative.JolieBool( Boolean r ) -> {...}
+ *          case JolieNative.JolieInt( Integer r ) -> {...}
+ *          case JolieNative.JolieLong( Long r ) -> {...}
+ *          case JolieNative.JolieDouble( Double r ) -> {...}
+ *          case JolieNative.JolieString( String r ) -> {...}
+ *          case JolieNative.JolieRaw( ByteArray r ) -> {...}
+ *      }
+ * }
+ * </pre>
+ */
 public sealed interface JolieNative<T> extends ValueConverter {
     
+    /**
+     * Returns the {@link Value} representation of the data wrapped by this class.
+     * This method is used internally to communicate data to the Jolie runtime.
+     * 
+     * @return the {@link Value} representation of the data wrapped by this class
+     */
     Value jolieRepr();
 
+    /**
+     * Returns the data wrapped by this class.
+     * @return the data wrapped by this class
+     */
     default T value() { return null; }
 
-    // TODO: should JolieVoid be a singleton?
     public static record JolieVoid() implements JolieNative<Void> {
         
         public Value jolieRepr() { return Value.create(); }
@@ -40,6 +79,8 @@ public sealed interface JolieNative<T> extends ValueConverter {
     }
 
     public static record JolieBool( Boolean value ) implements JolieNative<Boolean> {
+
+        public JolieBool { Objects.requireNonNull( value ); }
         
         public Value jolieRepr() { return Value.create( value ); }
 
@@ -48,7 +89,7 @@ public sealed interface JolieNative<T> extends ValueConverter {
         public String toString() { return value.toString(); }
 
         public static JolieBool from( JolieValue j ) throws TypeValidationException { 
-            if ( j.content() instanceof JolieBool content )
+            if ( Objects.requireNonNull( j ).content() instanceof JolieBool content )
                 return content;
             
             throw new TypeValidationException( "The content of the given JolieValue was of an unexpected type: " + j.content().getClass().getName() + ", expected JolieBool." );
@@ -73,6 +114,8 @@ public sealed interface JolieNative<T> extends ValueConverter {
     }
 
     public static record JolieInt( Integer value ) implements JolieNative<Integer> {
+
+        public JolieInt { Objects.requireNonNull( value ); }
         
         public Value jolieRepr() { return Value.create( value ); }
 
@@ -81,7 +124,7 @@ public sealed interface JolieNative<T> extends ValueConverter {
         public String toString() { return value.toString(); }
 
         public static JolieInt from( JolieValue j ) throws TypeValidationException { 
-            if ( j.content() instanceof JolieInt content )
+            if ( Objects.requireNonNull( j ).content() instanceof JolieInt content )
                 return content;
             
             throw new TypeValidationException( "The content of the given JolieValue was of an unexpected type: " + j.content().getClass().getName() + ", expected JolieInt." );
@@ -106,6 +149,8 @@ public sealed interface JolieNative<T> extends ValueConverter {
     }
 
     public static record JolieLong( Long value ) implements JolieNative<Long> {
+
+        public JolieLong { Objects.requireNonNull( value ); }
         
         public Value jolieRepr() { return Value.create( value ); }
 
@@ -114,7 +159,7 @@ public sealed interface JolieNative<T> extends ValueConverter {
         public String toString() { return value.toString(); }
 
         public static JolieLong from( JolieValue j ) throws TypeValidationException {
-            if ( j.content() instanceof JolieLong content )
+            if ( Objects.requireNonNull( j ).content() instanceof JolieLong content )
                 return content;
             
             throw new TypeValidationException( "The content of the given JolieValue was of an unexpected type: " + j.content().getClass().getName() + ", expected JolieLong." );
@@ -139,6 +184,8 @@ public sealed interface JolieNative<T> extends ValueConverter {
     }
 
     public static record JolieDouble( Double value ) implements JolieNative<Double> {
+
+        public JolieDouble { Objects.requireNonNull( value ); }
         
         public Value jolieRepr() { return Value.create( value ); }
 
@@ -147,7 +194,7 @@ public sealed interface JolieNative<T> extends ValueConverter {
         public String toString() { return value.toString(); }
 
         public static JolieDouble from( JolieValue j ) throws TypeValidationException { 
-            if ( j.content() instanceof JolieDouble content )
+            if ( Objects.requireNonNull( j ).content() instanceof JolieDouble content )
                 return content;
             
             throw new TypeValidationException( "The content of the given JolieValue was of an unexpected type: " + j.content().getClass().getName() + ", expected JolieDouble." );
@@ -172,6 +219,8 @@ public sealed interface JolieNative<T> extends ValueConverter {
     }
 
     public static record JolieString( String value ) implements JolieNative<String> {
+
+        public JolieString { Objects.requireNonNull( value ); }
         
         public Value jolieRepr() { return Value.create( value ); }
 
@@ -180,7 +229,7 @@ public sealed interface JolieNative<T> extends ValueConverter {
         public String toString() { return value; }
 
         public static JolieString from( JolieValue j ) throws TypeValidationException {
-            if ( j.content() instanceof JolieString content )
+            if ( Objects.requireNonNull( j ).content() instanceof JolieString content )
                 return content;
             
             throw new TypeValidationException( "The content of the given JolieValue was of an unexpected type: " + j.content().getClass().getName() + ", expected JolieString." );
@@ -205,6 +254,8 @@ public sealed interface JolieNative<T> extends ValueConverter {
     }
 
     public static record JolieRaw( ByteArray value ) implements JolieNative<ByteArray> {
+
+        public JolieRaw { Objects.requireNonNull( value ); }
         
         public Value jolieRepr() { return Value.create( value ); }
 
@@ -213,7 +264,7 @@ public sealed interface JolieNative<T> extends ValueConverter {
         public String toString() { return value.toString(); }
 
         public static JolieRaw from( JolieValue j ) throws TypeValidationException {
-            if ( j.content() instanceof JolieRaw content )
+            if ( Objects.requireNonNull( j ).content() instanceof JolieRaw content )
                 return content;
             
             throw new TypeValidationException( "The content of the given JolieValue was of an unexpected type: " + j.content().getClass().getName() + ", expected JolieRaw." );
@@ -240,30 +291,92 @@ public sealed interface JolieNative<T> extends ValueConverter {
     public static ListBuilder listBuilder() { return new ListBuilder(); }
     public static ListBuilder listBuilder( SequencedCollection<? extends JolieValue> c ) { return new ListBuilder( c ); }
 
+    /**
+     * Returns an empty {@link JolieNative}.
+     * 
+     * @return an empty {@link JolieNative}
+     */
     public static JolieVoid of() { return new JolieVoid(); }
-    public static JolieBool of( Boolean value ) { return Optional.ofNullable( value ).map( JolieBool::new ).orElse( null ); }
-    public static JolieInt of( Integer value ) { return Optional.ofNullable( value ).map( JolieInt::new ).orElse( null ); }
-    public static JolieLong of( Long value ) { return Optional.ofNullable( value ).map( JolieLong::new ).orElse( null ); }
-    public static JolieDouble of( Double value ) { return Optional.ofNullable( value ).map( JolieDouble::new ).orElse( null ); }
-    public static JolieString of( String value ) { return Optional.ofNullable( value ).map( JolieString::new ).orElse( null ); }
-    public static JolieRaw of( ByteArray value ) { return Optional.ofNullable( value ).map( JolieRaw::new ).orElse( null ); }
 
+    /**
+     * Returns a {@link JolieNative} wrapping the specified value.
+     * 
+     * @param value value to be wrapped
+     * @return a {@link JolieNative} wrapping the specified value
+     * @throws NullPointerException if {@code value} is {@code null}
+     */
+    public static JolieBool of( Boolean value ) { return new JolieBool( value ); }
+
+    /**
+     * Returns a {@link JolieNative} wrapping the specified value, or
+     * {@code null} if the specified value is {@code null}.
+     * 
+     * @param value value to be wrapped
+     * @return a {@link JolieNative} wrapping the specified value
+     * @throws NullPointerException if {@code value} is {@code null}
+     */
+    public static JolieInt of( Integer value ) { return new JolieInt( value ); }
+
+    /**
+     * Returns a {@link JolieNative} wrapping the specified value, or
+     * {@code null} if the specified value is {@code null}.
+     * 
+     * @param value value to be wrapped
+     * @return a {@link JolieNative} wrapping the specified value
+     * @throws NullPointerException if {@code value} is {@code null}
+     */
+    public static JolieLong of( Long value ) { return new JolieLong( value ); }
+
+    /**
+     * Returns a {@link JolieNative} wrapping the specified value, or
+     * {@code null} if the specified value is {@code null}.
+     * 
+     * @param value value to be wrapped
+     * @return a {@link JolieNative} wrapping the specified value
+     * @throws NullPointerException if {@code value} is {@code null}
+     */
+    public static JolieDouble of( Double value ) { return new JolieDouble( value ); }
+
+    /**
+     * Returns a {@link JolieNative} wrapping the specified value, or
+     * {@code null} if the specified value is {@code null}.
+     * 
+     * @param value value to be wrapped
+     * @return a {@link JolieNative} wrapping the specified value
+     * @throws NullPointerException if {@code value} is {@code null}
+     */
+    public static JolieString of( String value ) { return new JolieString( value ); }
+
+    /**
+     * Returns a {@link JolieNative} wrapping the specified value, or
+     * {@code null} if the specified value is {@code null}.
+     * 
+     * @param value value to be wrapped
+     * @return a {@link JolieNative} wrapping the specified value
+     * @throws NullPointerException if {@code value} is {@code null}
+     */
+    public static JolieRaw of( ByteArray value ) { return new JolieRaw( value ); }
+
+    /**
+     * Converts the specified {@link JolieValue} into an instance of this class.
+     * 
+     * @param j the {@link JolieValue} to convert
+     * @return the {@link JolieNative} representation of the specified {@link JolieValue}
+     * @implSpec returns the result of {@code j.content()}
+     */
     public static JolieNative<?> from( JolieValue j ) { return j.content(); }
     
     public static JolieNative<?> contentFromValue( Value v ) {
-        if ( v.valueObject() instanceof Boolean n )
-            return new JolieBool( n );
-        if ( v.valueObject() instanceof Integer n )
-            return new JolieInt( n );
-        if ( v.valueObject() instanceof Long n )
-            return new JolieLong( n );
-        if ( v.valueObject() instanceof Double n )
-            return new JolieDouble( n );
-        if ( v.valueObject() instanceof String n )
-            return new JolieString( n );
-        if ( v.valueObject() instanceof ByteArray n )
-            return new JolieRaw( n );
-        return new JolieVoid();
+        return switch ( v.valueObject() ) {
+            case null        -> new JolieVoid();
+            case Boolean n   -> new JolieBool( n );
+            case Integer n   -> new JolieInt( n );
+            case Long n      -> new JolieLong( n );
+            case Double n    -> new JolieDouble( n );
+            case String n    -> new JolieString( n );
+            case ByteArray n -> new JolieRaw( n );
+            default          -> throw new UnsupportedOperationException( "The provided Value had an unsupported root content type." );
+        };
     }
 
     public static JolieNative<?> fromValue( Value v ) throws TypeCheckingException { 
@@ -286,18 +399,88 @@ public sealed interface JolieNative<T> extends ValueConverter {
 
         protected ListBuilder self() { return this; }
 
+        /**
+         * Appends the specified element to the end of the list being built, or
+         * does nothing if the element is {@code null}.
+         * 
+         * @param value element to be appended to the list being built
+         * @return this builder
+         * 
+         * @see AbstractListBuilder#add(Object)
+         * @see JolieNative#of(Boolean)
+         * 
+         * @implSpec implemented as {@code add( JolieNative.of( value ) )}
+         */
         public ListBuilder add( Boolean value ) { return add( of( value ) ); }
-        public ListBuilder add( Integer value ) { return add( of( value ) ); }
-        public ListBuilder add( Long value ) { return add( of( value ) ); }
-        public ListBuilder add( Double value ) { return add( of( value ) ); }
-        public ListBuilder add( String value ) { return add( of( value ) ); }
-        public ListBuilder add( ByteArray value ) { return add( of( value ) ); }
 
-        public ListBuilder set( int index, Boolean value ) { return set( index, of( value ) ); }
-        public ListBuilder set( int index, Integer value ) { return set( index, of( value ) ); }
-        public ListBuilder set( int index, Long value ) { return set( index, of( value ) ); }
-        public ListBuilder set( int index, Double value ) { return set( index, of( value ) ); }
-        public ListBuilder set( int index, String value ) { return set( index, of( value ) ); }
-        public ListBuilder set( int index, ByteArray value ) { return set( index, of( value ) ); }
+        /**
+         * Appends the specified element to the end of the list being built, or
+         * does nothing if the element is {@code null}.
+         * 
+         * @param value element to be appended to the list being built
+         * @return this builder
+         * 
+         * @see AbstractListBuilder#add(Object)
+         * @see JolieNative#of(Integer)
+         * 
+         * @implSpec implemented as {@code add( JolieNative.of( value ) )}
+         */
+        public ListBuilder add( Integer value ) { return add( of( value ) ); }
+
+        /**
+         * Appends the specified element to the end of the list being built, or
+         * does nothing if the element is {@code null}.
+         * 
+         * @param value element to be appended to the list being built
+         * @return this builder
+         * 
+         * @see AbstractListBuilder#add(Object)
+         * @see JolieNative#of(Long)
+         * 
+         * @implSpec implemented as {@code add( JolieNative.of( value ) )}
+         */
+        public ListBuilder add( Long value ) { return add( of( value ) ); }
+
+        /**
+         * Appends the specified element to the end of the list being built, or
+         * does nothing if the element is {@code null}.
+         * 
+         * @param value element to be appended to the list being built
+         * @return this builder
+         * 
+         * @see AbstractListBuilder#add(Object)
+         * @see JolieNative#of(Double)
+         * 
+         * @implSpec implemented as {@code add( JolieNative.of( value ) )}
+         */
+        public ListBuilder add( Double value ) { return add( of( value ) ); }
+
+        /**
+         * Appends the specified element to the end of the list being built, or
+         * does nothing if the element is {@code null}.
+         * 
+         * @param value element to be appended to the list being built
+         * @return this builder
+         * 
+         * @see AbstractListBuilder#add(Object)
+         * @see JolieNative#of(String)
+         * 
+         * @implSpec implemented as {@code add( JolieNative.of( value ) )}
+         */
+        public ListBuilder add( String value ) { return add( of( value ) ); }
+
+        /**
+         * Appends the specified element to the end of the list being built, or
+         * does nothing if the element is {@code null}.
+         * 
+         * @param value element to be appended to the list being built
+         * @return this builder
+         * 
+         * @see AbstractListBuilder#add(Object)
+         * @see JolieNative#of(ByteArray)
+         * 
+         * @implSpec implemented as {@code add( JolieNative.of( value ) )}
+         */
+        public ListBuilder add( ByteArray value ) { return add( of( value ) ); }
     }
 }

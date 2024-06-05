@@ -1,11 +1,13 @@
 package jolie.runtime.embedding.java.util;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.SequencedCollection;
 import java.util.Set;
 import java.util.function.UnaryOperator;
+import java.util.stream.Collectors;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 import jolie.runtime.typing.TypeCheckingException;
@@ -16,14 +18,14 @@ public class ValueManager {
 	
 	public static <T> T validated( String n, T t ) throws TypeValidationException { 
 		if ( t == null )
-			throw new TypeValidationException( "Mandatory field \"" + n + "\" was unset." );
+			throw new TypeValidationException( "Mandatory field \"" + n + "\" cannot be null." );
 
 		return t;
 	}
 
 	public static <T> List<T> validated( String n, SequencedCollection<T> ts, int min, int max, UnaryOperator<T> op ) throws TypeValidationException {
 		final List<T> vts = ts == null 
-			? List.of() 
+			? List.of()
 			: ts.parallelStream()
 				.map( op::apply )
 				.map( Objects::requireNonNull )
@@ -81,6 +83,16 @@ public class ValueManager {
             .filter( Objects::nonNull )
             .findFirst()
             .orElseThrow( () -> new TypeCheckingException( "The given Value couldn't be converted to any of the option types." ) );
+	}
+
+	public static Map<String, List<JolieValue>> childrenFrom( Value v ) {
+		return v.children()
+			.entrySet()
+			.parallelStream()
+			.collect( Collectors.toUnmodifiableMap(
+				Map.Entry::getKey,
+				e -> e.getValue().stream().map( JolieValue::fromValue ).toList()
+			) );
 	}
 
 	public static <U,V extends JolieValue> ConversionFunction<U,V> castFunc( ConversionFunction<U,V> f ) { return f; }

@@ -43,7 +43,7 @@ import static org.junit.Assert.assertTrue;
  */
 public class JavaDocumentCreatorTest {
 
-	private static final Boolean DELETE_AFTER_TEST = true;
+	private static final Boolean DELETE_AFTER_TEST = false;
 
 	@BeforeClass
 	public static void setUpClass() throws IOException, ParserException, CodeCheckException, CommandLineException, ModuleException {

@@ -1,6 +1,5 @@
 package joliex.java.generate;
 
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Map;
@@ -98,7 +97,8 @@ public class JavaDocumentCreator {
                 name, 
                 operations, 
                 interfacePackage,
-                Files.exists( typeDirectory ) ? typePackage : null ) )
+                typePackage,
+                faultPackage ) )
             .forEach( builder -> JavaClassDirector.writeClass( interfaceDirectory, builder, true ) );
     }
 
@@ -109,9 +109,9 @@ public class JavaDocumentCreator {
                 serviceName, 
                 operationsMap,
                 servicePackage,
-                Files.exists( typeDirectory ) ? typePackage : null, 
-                Files.exists( faultDirectory ) ? faultPackage : null, 
-                Files.exists( interfaceDirectory ) ? interfacePackage : null ),
+                typePackage, 
+                faultPackage, 
+                interfacePackage ),
             generateService == GenerateService.ALWAYS );
     }
 

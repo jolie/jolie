@@ -13,7 +13,7 @@ public class BasicClassBuilder extends TypeClassBuilder {
     }
 
     protected void appendDescriptionDocumentation() {
-        builder.newlineAppend( "this record is a {@link " ).append( ClassPath.JOLIEVALUE ).append( "} which can be described as follows:" );
+        builder.newlineAppend( "this record is a {@link " ).append( ClassPath.JOLIEVALUE ).append( "} that can be described as follows:" );
     }
 
     protected void appendDefinitionDocumentation() {
@@ -37,9 +37,7 @@ public class BasicClassBuilder extends TypeClassBuilder {
     }
 
     private void appendConstructors() {
-        builder.newNewlineAppend( "public " ).append( className ).append( "( " ).append( basic.type().nativeClass() ).append( " contentValue )" ).body( () -> 
-            builder.newlineAppend( "this.contentValue = " ).append( validateMandatoryField( "contentValue", basic.refinement() ) ).append( ";" )
-        );
+        builder.newNewlineAppend( "public " ).append( className ).append( "{ " ).append( validateMandatoryField( "contentValue", basic.refinement() ) ).append( "; }" );
     }
 
     private void appendMethods() {

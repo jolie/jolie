@@ -259,8 +259,10 @@ public class TypedStructureClassBuilder extends StructureClassBuilder {
     private void appendBuilderMethods() {
         builder.newline();
 
+        final String contentField = structure.contentType() == Native.ANY ? "content" : "contentValue";
         if ( structure.contentType() != Native.VOID )
-            appendFieldSetter( structure.contentType() == Native.ANY ? "content" : "contentValue", structure.contentType().nativeType() );
+            appendFieldSetter( contentField, structure.contentType().nativeType() );
+        appendExtraSetters( contentField, structure.contentType() );
         
         structure.fields().forEach( f -> {
             if ( f.max() == 1 ) {
@@ -330,7 +332,7 @@ public class TypedStructureClassBuilder extends StructureClassBuilder {
         else if ( s.hasBuilder() )
             appendBuilderSetter( fieldName, ClassPath.LIST.parameterized( qualifiedName( s ) ),
                 ClassPath.STRUCTURELISTBUILDER.parameterized( qualifiedName( s ), qualifiedName( s ) + ".Builder" ), 
-                "new " + ClassPath.STRUCTURELISTBUILDER.parameterized( "" ) + "( " + qualifiedName( s ) + "::builder, " + qualifiedName( s ) + "::builder )" );
+                "new " + ClassPath.STRUCTURELISTBUILDER.parameterized( "" ) + "( " + qualifiedName( s ) + "::builder )" );
     }
 
     private void appendExtraListSetters( String fieldName, Choice c ) {
@@ -354,7 +356,7 @@ public class TypedStructureClassBuilder extends StructureClassBuilder {
     }
 
     private void appendValueSetter( String fieldName, String paramType, String paramName, String wrappingCall ) {
-        appendSetter( fieldName, paramType, paramName, () -> builder.append( "return " ).append( fieldName ).append( "( " ).append( wrappingCall ).append( " );" ) );
+        appendSetter( fieldName, paramType, paramName, () -> builder.append( "return " ).append( fieldName ).append( "( " ).append( paramName ).append( " == null ? null : " ).append( wrappingCall ).append( " );" ) );
     }
 
     private void appendSetter( String name, String paramType, String paramName, Runnable bodyAppender ) {
