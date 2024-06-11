@@ -319,9 +319,9 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.Protocol {
 		throws IOException {
 		HttpUtils.EncodedContent ret = new HttpUtils.EncodedContent();
 
-		if( !inInputPort && (method == Method.GET || method == Method.DELETE)
+		if( !inInputPort && method == Method.GET
 			|| inInputPort && sendType.isVoid() && !message.isFault() ) {
-			// no payload if we are building a GET or DELETE request (client) or an one-way respectively
+			// no payload if we are building a GET request (client) or an one-way respectively
 			// void-typed non-fault response (server)
 			return ret;
 		}
