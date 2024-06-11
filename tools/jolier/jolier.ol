@@ -73,7 +73,7 @@ main {
     /* preparing data */
     
 
-    if (#args == 1){
+    if (#args == 1) {
         if ( args[ 0 ] == "createHandler" ) {
 f.content ="type incomingHeaderHandlerRequest:void {
     .operation:string 
@@ -110,14 +110,13 @@ main {
     } ]
 }"
 
-      f.filename = "RestHandler.ol"
-      writeFile@File( f )()
-            }else{
-                println@Console("Argument " + args[ i ] + " not recognized")()
-                throw( Error )
-            }
-    } else{
-
+            f.filename = "RestHandler.ol"
+            writeFile@File( f )()
+        } else {
+            println@Console("Argument " + args[ i ] + " not recognized")()
+            throw( Error )
+        }
+    } else {
 
     service_filename = args[ 0 ]
     service_input_port = args[ 1 ]
@@ -126,7 +125,6 @@ main {
     debug = false
     headerHandler = false
     jester_http_location = "socket://" + router_host
-
 
     if ( #args > 3 ) {
         i = 3     
@@ -222,12 +220,12 @@ main {
                 getSurface@MetaRender( metadata.input[i] )( surfaceHeaderHandler)
             }
         }
-      f.content = surface + "\n"  + surfaceHeaderHandler + "\nembedded { Jolie: \"" + service_filename + "\" in " + service_input_port + " }\n"
+        f.content = surface + "\n"  + surfaceHeaderHandler + "\nembedded { Jolie: \"" + service_filename + "\" in " + service_input_port + " }\n"
                   + "\nembedded { Jolie: \"RestHandler.ol\" in HeaderPort }\n"
-      handler_string =" -C HANDLER=true"     
+        handler_string =" -C HANDLER=true"
     } else{
-      f.content = surface + "\nembedded { Jolie: \"" + service_filename + "\" in " + service_input_port + " }\n"
-      handler_string =" -C HANDLER=false"  
+        f.content = surface + "\nembedded { Jolie: \"" + service_filename + "\" in " + service_input_port + " }\n"
+        handler_string =" -C HANDLER=false"
     }
     
     f.filename = "jester_config.iol"
@@ -241,8 +239,9 @@ main {
         jester_https_location = jester_http_location
         jester_http_location = "local"
     }else{
-       jester_https_location = "local"
+        jester_https_location = "local"
     }
+
     loadEmbeddedService@Runtime( { .filepath = debug_string + handler_string + " -C API_ROUTER_HTTP=\"" + jester_http_location + 
                                                             "\" -C API_ROUTER_HTTPS=\"" + jester_https_location +
                                                             "\" -C KEY_STORE=\"" + jester_https_keyStore +
@@ -253,6 +252,6 @@ main {
                                                             "\" services/jester/router.ol", .type="Jolie"} )( Jester.location )
     config@Jester( config )()
     linkIn( lock )
+
     }
-    
 }
