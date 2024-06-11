@@ -116,7 +116,6 @@ constants {
 
 inputPort Jolie2OpenApi {
   Location: "local"
-  Protocol: sodep
   Interfaces: Jolie2OpenApiInterface
 }
 

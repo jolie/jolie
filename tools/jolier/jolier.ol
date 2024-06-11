@@ -94,9 +94,8 @@ RequestResponse:
 }
 
 inputPort HeaderPort {
-        Protocol: sodep
-        Location: \"local\"
-        Interfaces: HeaderHandlerInterface
+    Location: \"local\"
+    Interfaces: HeaderHandlerInterface
 }
 
 execution { concurrent }

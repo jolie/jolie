@@ -165,7 +165,6 @@ service RenderResponseType {
 
 inputPort JolieMock {
     Location: "local"
-    Protocol: sodep
     Interfaces: JolieMockInterface
 }
 

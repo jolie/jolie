@@ -10,7 +10,6 @@ outputPort MySelf {
 
 inputPort JesterUtils {
     Location: "local"
-    Protocol: sodep
     Interfaces: JesterUtilsInterface
 }
 

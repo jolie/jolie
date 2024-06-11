@@ -54,7 +54,6 @@ outputPort MyOPort {
 
 inputPort MyPort {
   Location: "local"
-  Protocol: sodep
   Interfaces: MyInterface
   Aggregates: MyOPort with InterfaceExtender
 }
