@@ -33,7 +33,6 @@ execution{ concurrent }
 
 outputPort MySelf {
  Location: "local"
- Protocol: sodep
  Interfaces: JSONSchemaGeneratorInterface
 }
 

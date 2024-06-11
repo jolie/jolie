@@ -52,7 +52,6 @@ embedded {
 
 inputPort JesterConfigurator {
   Location: "local"
-  Protocol: sodep
   Interfaces: JesterConfiguratorInterface
 }
 

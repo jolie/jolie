@@ -160,7 +160,6 @@ RequestResponse:
 
 inputPort Test {
 	Location:"local"
-	Protocol: sodep
 	Interfaces: SwaggerDemoOkInterface, SwaggerDemoInterface
 }
 
