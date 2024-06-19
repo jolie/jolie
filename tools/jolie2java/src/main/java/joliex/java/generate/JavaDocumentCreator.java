@@ -5,7 +5,7 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Stream;
-
+import javax.lang.model.SourceVersion;
 import jolie.lang.parse.util.ProgramInspector;
 import joliex.java.generate.operation.ExceptionClassBuilder;
 import joliex.java.generate.operation.InterfaceClassBuilder;
@@ -133,8 +133,8 @@ public class JavaDocumentCreator {
 
         final String name = getAbsoluteName( basePackage, packageName );
 
-        if ( !name.matches( "\\w+(\\.\\w+)*" ) )
-            throw new IllegalArgumentException( "The absolute name of a package must match the regex \"\\w+(\\.\\w+)*\", got=\"" + name + "\"." );
+        if ( !SourceVersion.isName( name ) )
+            throw new IllegalArgumentException( "The absolute name of a package must be syntactically valid qualified name, got=\"" + name + "\"." );
 
         return name;
     }

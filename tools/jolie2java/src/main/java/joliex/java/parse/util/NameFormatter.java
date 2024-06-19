@@ -25,20 +25,20 @@ public class NameFormatter {
 
     public static String requireValidClassName( String name, Set<String> namingScope ) {
         if ( RESERVED_CLASS_NAMES.contains( name ) )
-            throw new InvalidNameException( "Class name was reserved, qualified name=\"" + qualifiedName( name, namingScope ) + "\"." );
+            throw new InvalidNameException( "Class name was reserved, got (qualified): \"" + qualifiedName( name, namingScope ) + "\"." );
 
-        if ( !name.matches( "[A-Z][\\w|\\d]*\\w[\\w|\\d]*" ) )
-            throw new InvalidNameException( "Class name must match the regex \"[A-Z][\\w|\\d]*\\w[\\w|\\d]*\", qualified name=\"" + qualifiedName( name, namingScope ) + "\"." );
+        if ( !(SourceVersion.isIdentifier( name ) && (Character.isUpperCase( name.charAt(0) ) || name.startsWith( "_" ))) )
+            throw new InvalidNameException( "Class names must be a valid identifier starting with an uppercase letter or underscore, got (qualified): \"" + qualifiedName( name, namingScope ) + "\"." );
 
         return name;
     }
 
     public static String requireValidFieldName( String name ) {
         if ( RESERVED_FIELD_NAMES.contains( name ) || SourceVersion.isKeyword( name ) )
-            throw new InvalidNameException( "Field name was reserved, name=\"" + name + "\"." );
+            throw new InvalidNameException( "Field name was reserved, got: \"" + name + "\"." );
 
-        if ( !name.matches( "[a-z][\\w|\\d]*" ) )
-            throw new InvalidNameException( "Field names must match the regex \"[a-z][\\w|\\d]*\", name=\"" + name + "\"." );
+        if ( !(SourceVersion.isIdentifier( name ) && (Character.isLowerCase( name.charAt(0) ) || name.startsWith( "_" ))) )
+            throw new InvalidNameException( "Field names must be a valid identifier starting with a lowercase letter or underscore, got: \"" + name + "\"." );
 
         return name;
     }
