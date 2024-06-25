@@ -11,13 +11,13 @@ import joliex.java.parse.ast.JolieType.Native;
 public class ExceptionClassBuilder extends JavaClassBuilder {
 
     private final Fault fault;
-    private final String faultsPackage;
+    private final String packageName;
 
     private final Optional<String> typeName;
 
-    public ExceptionClassBuilder( Fault fault, String faultsPackage, String typesPackage ) {
+    public ExceptionClassBuilder( Fault fault, String packageName, String typesPackage ) {
         this.fault = fault;
-        this.faultsPackage = faultsPackage;
+        this.packageName = packageName;
         
         typeName = Optional.ofNullable( switch( fault.type() ) {
             case Native n -> n == Native.VOID ? null : n.nativeType();
@@ -29,7 +29,7 @@ public class ExceptionClassBuilder extends JavaClassBuilder {
     public String className() { return fault.className(); }
 
     public void appendPackage() { 
-        builder.append( "package " ).append( faultsPackage ).append( ";" );
+        builder.append( "package " ).append( packageName ).append( ";" );
     }
 
     public void appendDefinition() {

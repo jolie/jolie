@@ -20,15 +20,15 @@ import joliex.java.Jolie2JavaCommandLineParser;
 
 public class ClassManager {
 
-	public static final String PACKAGENAME = "com.test";
-	public static final String TYPEPACKAGE = ".types";
-	public static final String FAULTPACKAGE = "com.test.faults";
-	public static final String INTERFACEPACKAGE = ".";
-	public static final Path OUTPUTDIRECTORY = Path.of( "./target", "generated-test-sources" );
+	public static final Path OUTPUT_DIRECTORY = Path.of( "./target", "generated-test-sources" );
+	public static final String PACKAGE_NAME = "com.test";
+	public static final String SOURCES_PACKAGE = ".spec";
+	public static final String TYPE_PACKAGE = PACKAGE_NAME + SOURCES_PACKAGE + ".types";
+	public static final String FAULT_PACKAGE = PACKAGE_NAME + SOURCES_PACKAGE + ".faults";
 	private static final URLClassLoader CLASSLOADER;
 
 	static {
-		try { CLASSLOADER = URLClassLoader.newInstance( new URL[] { OUTPUTDIRECTORY.toUri().toURL() } ); } 
+		try { CLASSLOADER = URLClassLoader.newInstance( new URL[] { OUTPUT_DIRECTORY.toUri().toURL() } ); } 
 		catch( MalformedURLException e ) { throw new RuntimeException( e ); }
 	}
 
@@ -36,17 +36,14 @@ public class ClassManager {
 		deleteClasses();
 
 		final Jolie2JavaCommandLineParser cmdParser = Jolie2JavaCommandLineParser.create( 
-			new String[] { "src/test/resources/TestInterface.iol" },
+			new String[] { "src/test/resources/main.ol" },
 			Jolie2Java.class.getClassLoader() );
 
 		final ProgramInspector inspector = Jolie2Java.getInspector( cmdParser );
 
-		final JavaDocumentCreator jdc = new JavaDocumentCreator(
-			OUTPUTDIRECTORY.toString(), PACKAGENAME, 
-			TYPEPACKAGE, FAULTPACKAGE, INTERFACEPACKAGE, 
-			null, GenerateService.ALWAYS );
+		final JavaDocumentCreator jdc = new JavaDocumentCreator( OUTPUT_DIRECTORY.toString(), null, false );
 
-		jdc.generateClasses( inspector );
+		jdc.translateServices( inspector );
 	}
 
 	public static void compileClasses() throws IOException {
@@ -64,7 +61,7 @@ public class ClassManager {
 				return this.sb.toString();
 			}
 		};
-		final String[] filesToBeCompiled = Files.walk( OUTPUTDIRECTORY )
+		final String[] filesToBeCompiled = Files.walk( OUTPUT_DIRECTORY )
 			.filter( Files::isRegularFile )
 			.map( Path::toString )
 			.toArray( String[]::new );
@@ -74,7 +71,7 @@ public class ClassManager {
 	}
 
 	public static void deleteClasses() throws IOException {
-		Files.walkFileTree( OUTPUTDIRECTORY, new SimpleFileVisitor<>() {
+		Files.walkFileTree( OUTPUT_DIRECTORY, new SimpleFileVisitor<>() {
 			@Override
 			public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
 			  	Files.deleteIfExists(file);
@@ -102,10 +99,10 @@ public class ClassManager {
 	}
 
 	public static Class<?> getTypeClass( String className ) throws ClassNotFoundException {
-		return getClass( PACKAGENAME + TYPEPACKAGE, className );
+		return getClass( TYPE_PACKAGE, className );
 	}
 
 	public static Class<?> getInterfaceClass( String className ) throws ClassNotFoundException {
-		return getClass( PACKAGENAME, className );
+		return getClass( PACKAGE_NAME + SOURCES_PACKAGE, className );
 	}
 }

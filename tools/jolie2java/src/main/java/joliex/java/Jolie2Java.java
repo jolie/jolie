@@ -1,7 +1,6 @@
 package joliex.java;
 
 import java.io.IOException;
-
 import jolie.Interpreter;
 import jolie.JolieURLStreamHandlerFactory;
 import jolie.cli.CommandLineException;
@@ -10,7 +9,6 @@ import jolie.lang.parse.SemanticVerifier;
 import jolie.lang.parse.ast.Program;
 import jolie.lang.parse.util.ParsingUtils;
 import jolie.lang.parse.util.ProgramInspector;
-import joliex.java.generate.GenerateService;
 import joliex.java.generate.JavaDocumentCreator;
 
 public class Jolie2Java {
@@ -22,25 +20,18 @@ public class Jolie2Java {
 	public static void main( String[] args ) {
 		try {
 			final Jolie2JavaCommandLineParser cmdParser = Jolie2JavaCommandLineParser.create( args, Jolie2Java.class.getClassLoader() );
-
-			if ( cmdParser.outputDirectory() == null ) {
-				System.out.println( cmdParser.getHelpString() );
-				return;
-			}
-
 			final ProgramInspector inspector = getInspector( cmdParser );
 			final JavaDocumentCreator jdc = new JavaDocumentCreator(
 				cmdParser.outputDirectory(),
-				cmdParser.packageName(),
-				cmdParser.typePackage(),
-				cmdParser.faultPackage(),
-				cmdParser.interfacePackage(),
-				cmdParser.serviceName(),
-				GenerateService.create( cmdParser.generateService() )
+				cmdParser.sourcesPackage(),
+				cmdParser.overwriteServices()
 			);
-			
-			jdc.generateClasses( inspector );
 
+			switch ( cmdParser.translationTarget() ) {
+				case 1 -> jdc.translateInterfaces( inspector );
+				case 2 -> jdc.translateTypes( inspector );
+				default -> jdc.translateServices( inspector );
+			}
 			System.out.println( "Generation done!" );
 		} 
 		catch( CommandLineException e ) { System.out.println( e.getMessage() ); }

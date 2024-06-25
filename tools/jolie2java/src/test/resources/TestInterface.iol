@@ -287,7 +287,7 @@ RequestResponse:
   testFlatStructureVectors( FlatStructureVectorsType )( FlatStructureVectorsType ),
 
   testChoice( ChoiceSimpleType )( ChoiceSimpleType )
-    throws TestFault3( string ),
+    throws TestFaultString( string ),
 
   testChoiceLinkedTypes( ChoiceLinkedType )( ChoiceLinkedType ),
 
@@ -298,20 +298,20 @@ RequestResponse:
   testInlineChoiceStructureType( InlineChoiceStructureType )( InlineChoiceStructureType ),
 
   testRootValue1( RootValue1Type )( RootValue1Type )
-    throws TestFault2,
+    throws TestFaultUndefined,
 
   testRootValue2( RootValue2Type )( RootValue2Type )
-    throws TestFault2,
+    throws TestFaultUndefined,
 
   testRootValue3( RootValue3Type )( RootValue3Type ),
 
   testRootValue4( RootValue4Type )( RootValue4Type )
-    throws TestFault2,
+    throws TestFaultUndefined,
 
   testRootValue5( RootValue5Type )( RootValue5Type ),
 
   testRootValue6( RootValue6Type )( RootValue6Type )
-    throws TestFault2,
+    throws TestFaultUndefined,
 
   testRootValue7( RootValue7Type)( RootValue7Type ),
 
@@ -326,29 +326,26 @@ RequestResponse:
   testRawType( RawType )( RawType ),
 
   testIntType( IntType )( IntType )
-      throws TestFault( InLineStructureType ),
+      throws TestFaultInlineStructure( InLineStructureType ),
 
   testBoolType( BoolType )( BoolType ) 
       throws  TestFault( TestFaultType ) 
               TestFault2( TestFaultType2 )
               TestFault3( TestFaultType3 ),
 
-  testNatives( string )( string ) throws TestFaultNatives( double ),
+  testNatives( string )( string ) throws TestFaultNativesDouble( double ),
 
-  testNatives2( double )( double ) throws TestFaultNatives( double ),
+  testNatives2( double )( double ) throws TestFaultNativesDouble( double ),
 
-  testNatives3( int )( int ) throws TestFaultNatives( double ),
+  testNatives3( int )( int ) throws TestFaultNativesDouble( double ),
 
-  testNatives4( raw )( raw ) throws TestFaultNatives( raw ),
+  testNatives4( raw )( raw ) throws TestFaultNativesRaw( raw ),
 
   testVoid( void )( void ) throws TestFaultVoid( void ),
 
   testUndefined( undefined )( undefined ) throws TestUndefined( undefined ),
 
-  testAny( any )( any ) throws TestAny( any )
+  testAny( any )( any ) throws TestAny( any ),
 
-
-
-
-
+  testUnbuildable( c123 )( UnbuildableInlinedChoice )
 }

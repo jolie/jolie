@@ -1,6 +1,5 @@
 package joliex.java.parse;
 
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -34,8 +33,8 @@ public class TypeFactory {
     private static final boolean HAS_BUILDER_DEFAULT = true;
     private final ConcurrentMap<String, CompletableFuture<JolieType>> typeMap = new ConcurrentHashMap<>();
 
-    public Stream<JolieType> getAll( TypeDefinition[] typeDefinitions ) {
-        return Arrays.stream( typeDefinitions ).parallel().map( this::get );
+    public Stream<JolieType> getAll() {
+        return typeMap.values().parallelStream().map( CompletableFuture::join );
     }
 
     public JolieType get( TypeDefinition typeDefinition ) {

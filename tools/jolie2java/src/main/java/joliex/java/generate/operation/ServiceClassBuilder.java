@@ -13,20 +13,20 @@ import joliex.java.parse.ast.JolieType.Definition.Structure;
 
 public class ServiceClassBuilder extends JavaClassBuilder {
     
-    private final String className;
     private final Map<String, Collection<JolieOperation>> operationsMap;
-    private final String servicePackage;
+    private final String className;
+    private final String packageName;
     private final String typesPackage;
     private final String faultsPackage;
-    private final String interfacesPackage;
+    private final String interfacePackage;
 
-    public ServiceClassBuilder( String className, Map<String, Collection<JolieOperation>> operationsMap, String servicePackage, String typesPackage, String faultsPackage, String interfacesPackage ) {
-        this.className = className;
+    public ServiceClassBuilder( Map<String, Collection<JolieOperation>> operationsMap, String className, String packageName, String typesPackage, String faultsPackage, String interfacePackage ) {
         this.operationsMap = operationsMap;
-        this.servicePackage = servicePackage;
+        this.className = className;
+        this.packageName = packageName;
         this.typesPackage = typesPackage;
         this.faultsPackage = faultsPackage;
-        this.interfacesPackage = interfacesPackage;
+        this.interfacePackage = interfacePackage;
     }
 
     public String className() {
@@ -34,11 +34,11 @@ public class ServiceClassBuilder extends JavaClassBuilder {
     }
 
     public void appendPackage() {
-        builder.append( "package " ).append( servicePackage ).append( ";" );
+        builder.append( "package " ).append( packageName ).append( ";" );
     }
 
     public void appendDefinition() {
-        builder.newNewlineAppend( "public final class " ).append( className ).append( " extends " ).append( ClassPath.JAVASERVICE ).append( " implements " ).append( operationsMap.keySet().stream().map( k -> interfacesPackage + "." + k ).reduce( (s1, s2) -> s1 + ", " + s2 ).get() )
+        builder.newNewlineAppend( "public final class " ).append( className ).append( " extends " ).append( ClassPath.JAVASERVICE ).append( " implements " ).append( operationsMap.keySet().parallelStream().map( k -> interfacePackage + "." + k ).reduce( (s1, s2) -> s1 + ", " + s2 ).get() )
             .body( () -> operationsMap.values().stream().flatMap( Collection::stream ).forEach( this::appendMethod ) );
     }
 
