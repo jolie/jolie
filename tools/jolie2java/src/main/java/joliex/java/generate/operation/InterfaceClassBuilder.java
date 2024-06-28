@@ -2,7 +2,9 @@ package joliex.java.generate.operation;
 
 import java.util.Collection;
 import joliex.java.generate.JavaClassBuilder;
+import joliex.java.generate.util.ClassPath;
 import joliex.java.parse.ast.JolieOperation;
+import joliex.java.parse.ast.JolieType.Native;
 
 public class InterfaceClassBuilder extends JavaClassBuilder {
     
@@ -37,6 +39,9 @@ public class InterfaceClassBuilder extends JavaClassBuilder {
         operation.possibleDocumentation().ifPresent( s -> 
             builder.commentBlock( () -> builder.newlineAppend( s ) )
         );
+
+        if ( operation instanceof JolieOperation.RequestResponse && operation.response() == Native.VOID )
+            builder.newlineAppend( "@" ).append( ClassPath.REQUESTRESPONSE );
 
         builder.newlineAppend( operation.responseType( typesPackage ) ).append( " " ).append( operation.name() ).append( operation.requestType( typesPackage ).map( t -> "( " + t + " request )" ).orElse( "()" ) ).append( operation.faults().parallelStream().map( f -> faultsPackage + "." + f.className() ).reduce( (n1, n2) -> n1 + ", " + n2 ).map( s -> " throws " + s ).orElse( "" ) ).append( ";" );
     }

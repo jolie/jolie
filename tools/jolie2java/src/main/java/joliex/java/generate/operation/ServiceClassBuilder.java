@@ -43,12 +43,7 @@ public class ServiceClassBuilder extends JavaClassBuilder {
     }
 
     private void appendMethod( JolieOperation operation ) {
-        builder.newline();
-
-        if ( operation instanceof JolieOperation.RequestResponse && operation.response() == Native.VOID )
-            builder.newlineAppend( "@" ).append( ClassPath.REQUESTRESPONSE );
-
-        builder.newlineAppend( "public " ).append( operation.responseType( typesPackage ) ).append( " " ).append( operation.name() ).append( operation.requestType( typesPackage ).map( t -> "( " + t + " request )" ).orElse( "()" ) ).append( operation.faults().parallelStream().map( f -> faultsPackage + "." + f.className() ).reduce( (n1, n2) -> n1 + ", " + n2 ).map( s -> " throws " + s ).orElse( "" ) )
+        builder.newNewlineAppend( "public " ).append( operation.responseType( typesPackage ) ).append( " " ).append( operation.name() ).append( operation.requestType( typesPackage ).map( t -> "( " + t + " request )" ).orElse( "()" ) ).append( operation.faults().parallelStream().map( f -> faultsPackage + "." + f.className() ).reduce( (n1, n2) -> n1 + ", " + n2 ).map( s -> " throws " + s ).orElse( "" ) )
             .body( () -> {
                 appendRequestUnpacking( operation );
                 appendDefaultResponse( operation );
