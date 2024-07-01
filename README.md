@@ -40,7 +40,7 @@ Thank you to all our contributors!
 
 # Code status :monocle_face:
 
-[![Language grade: Java](https://img.shields.io/lgtm/grade/java/g/jolie/jolie.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/jolie/jolie/context:java) ![Java CI](https://github.com/jolie/jolie/workflows/Java%20CI/badge.svg)
+![Java CI](https://github.com/jolie/jolie/workflows/Java%20CI/badge.svg)
 
 # Get in touch :wave:
 
