@@ -29,6 +29,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -44,6 +45,7 @@ import jolie.net.LocalCommChannel;
 import jolie.runtime.embedding.JavaServiceHelpers;
 import jolie.runtime.embedding.RequestResponse;
 import jolie.runtime.embedding.java.Inject;
+import jolie.runtime.embedding.java.JolieValue;
 import jolie.runtime.embedding.java.OutputPort;
 import jolie.util.Pair;
 
@@ -102,6 +104,10 @@ public abstract class JavaService {
 			callOneWay( CommMessage.createRequest( operationName, "/", requestValue ) );
 		}
 
+		public void callOneWay( String operationName, JolieValue requestValue ) throws IOException {
+			callOneWay( CommMessage.createRequest( operationName, "/", JolieValue.toValue( requestValue ) ) );
+		}
+
 		public Value callRequestResponse( CommMessage request )
 			throws IOException, FaultException {
 			LocalCommChannel c = interpreter.commCore().getLocalCommChannel();
@@ -120,6 +126,12 @@ public abstract class JavaService {
 		public Value callRequestResponse( String operationName, Value requestValue )
 			throws IOException, FaultException {
 			return callRequestResponse( CommMessage.createRequest( operationName, "/", requestValue ) );
+		}
+
+		public JolieValue callRequestResponse( String operationName, JolieValue requestValue )
+			throws IOException, FaultException {
+			return JolieValue.fromValue( callRequestResponse(
+				CommMessage.createRequest( operationName, "/", JolieValue.toValue( requestValue ) ) ) );
 		}
 	}
 
@@ -276,48 +288,27 @@ public abstract class JavaService {
 	}
 
 	private void checkMethod( Map< String, JavaOperation > ops, Method method, Method parameterConstructor ) {
-		final Class< ? > returnType;
-		final Class< ? >[] exceptions;
-		final Method returnValueConstructor;
+		final Class< ? > returnType = method.getReturnType();
+		final Method toValueConverter;
+		final JavaOperationCallable callable;
 
-		returnType = method.getReturnType();
-		if( void.class.isAssignableFrom( returnType ) ) {
-			final boolean isRequestResponse = method.getAnnotation( RequestResponse.class ) != null;
-			exceptions = method.getExceptionTypes();
-			if( isRequestResponse ) { // && ( exceptions.length == 0 || (exceptions.length == 1 &&
-										// FaultException.class.isAssignableFrom( exceptions[0]) ) ) ) {
-				ops.put(
-					method.getName(),
-					new JavaOperation(
-						method,
-						parameterConstructor,
-						null,
-						JavaService::requestResponseCallable ) );
-			} else if( exceptions.length == 0 ) {
-				ops.put(
-					method.getName(),
-					new JavaOperation(
-						method,
-						parameterConstructor,
-						null,
-						JavaService::oneWayCallable ) );
-			}
+		if( !void.class.isAssignableFrom( returnType ) ) {
+			toValueConverter = getToValueConverter( returnType );
+			callable = JavaService::requestResponseCallable;
 		} else {
-			returnValueConstructor = getToValueConverter( returnType );
-			if( returnValueConstructor != null ) {
-				exceptions = method.getExceptionTypes();
-				if( exceptions.length == 0 ||
-					(exceptions.length == 1 && FaultException.class.isAssignableFrom( exceptions[ 0 ] )) ) {
-					ops.put(
-						getMethodName( method ),
-						new JavaOperation(
-							method,
-							parameterConstructor,
-							returnValueConstructor,
-							JavaService::requestResponseCallable ) );
-				}
-			}
+			toValueConverter = null;
+			callable = method.getExceptionTypes().length > 0 || hasRequestResponseAnnotation( method )
+				? JavaService::requestResponseCallable
+				: JavaService::oneWayCallable;
 		}
+
+		ops.put(
+			method.getName(),
+			new JavaOperation(
+				method,
+				parameterConstructor,
+				toValueConverter,
+				callable ) );
 	}
 
 	private static Object[] getArguments( final JavaOperation javaOperation, final CommMessage message )
@@ -331,6 +322,20 @@ public abstract class JavaService {
 				throw new IllegalAccessException( e.getMessage() );
 			}
 		}
+	}
+
+	private static boolean hasRequestResponseAnnotation( Method method ) {
+		if( method.getAnnotation( RequestResponse.class ) != null )
+			return true;
+
+		return Arrays.stream( method.getDeclaringClass().getInterfaces() ).anyMatch( c -> {
+			try {
+				return c.getDeclaredMethod( method.getName(), method.getParameterTypes() )
+					.getAnnotation( RequestResponse.class ) != null;
+			} catch( NoSuchMethodException | SecurityException e ) {
+				return false;
+			}
+		} );
 	}
 
 	public Value receivedValue() {

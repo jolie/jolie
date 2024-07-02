@@ -18,7 +18,9 @@
  */
  type NewType: void {
     .a: string
-    .b*: int {
+    ///@JavaName("bfield")
+    .b*: int { 
+      ///@JavaName("cfield")
         .c: long {
             .d: raw
             .e: FlatStructureType
@@ -50,10 +52,12 @@ type FlatStructureVectorsType: void {
 
 
 type InLineStructureType: void {
+  ///@JavaName("afield")
 	.a: void {
 		.b: string
 		.c: int
     .f: double
+    ///@JavaName("efield")
     .e: string {
         .ab: raw
         .bc: string
@@ -66,6 +70,7 @@ type InLineStructureType: void {
 	.aa: string {
 		.z:int
         .c:double
+        ///@JavaName("ffield")
         .f: void {
 			.rm: string
 		}
@@ -73,10 +78,12 @@ type InLineStructureType: void {
 }
 
 type InLineStructureVectorsType: void {
+  ///@JavaName("afield")
 	.a*: void {
 		.b[2,10]: string
 		.c: int
         .f[7,9]: double
+        ///@JavaName("efield")
         .e[1,8]: string {
       			.ab: raw
       			.bc[3,4]: string
@@ -89,6 +96,7 @@ type InLineStructureVectorsType: void {
 	.aa?: string {
 		.z[4,5]:int
         .c[1,3]:double
+        ///@JavaName("ffield")
         .f*: void {
 			.rm: string
 		}
@@ -100,10 +108,12 @@ type LinkedTypeStructureType: void {
   .b: InLineStructureVectorsType
   .c: FlatStructureType
   .d: NewType
+  .e: InlinedLinkStructureType
 }
 
 type LinkedTypeStructureVectorsType: void {
   .a*: InLineStructureType
+  ///@JavaName("bfield")
   .b?: void {
     .bb[2,10]: InLineStructureVectorsType
   }
@@ -116,7 +126,9 @@ type ChoiceSimpleType: string | int | double | void
 type ChoiceLinkedType: LinkedTypeStructureType | int | InLineStructureType | void | FlatStructureType | FlatStructureVectorsType | string
 
 type ChoiceInlineType: void {
+  ///@JavaName("afield")
   .a: string {
+    ///@JavaName("bfield")
     .b: string {
       .c: string
     }
@@ -126,7 +138,9 @@ type ChoiceInlineType: void {
 int
 |
 string {
-  .d*:int {
+  ///@JavaName("dfield")
+  .d[1,*]:int {
+    ///@JavaName("efield")
     .e[3,5]:double {
       .f: raw
     }
@@ -140,33 +154,84 @@ void {
 |
 string
 
-
-
-type RootValue1Type: string {
-  .field: string
+type LinkedChoiceStructureType: void {
+  .a*: ChoiceSimpleType
+  .b*: ChoiceInlineType
+  .c*: ChoiceLinkedType
 }
 
+type RefinedLongType: long( ranges( [2L, 5L], [7L, 12L] ) )
+
+type InlineChoiceStructureType: any {
+  ///@JavaName("afield")
+  .a: int( ranges( [0,10], [100,1000], [10000,*] ) ) | RefinedLongType | double( ranges( [1.1,1.1] ) )
+  ///@JavaName("bfield")
+  .b: FlatStructureType | InLineStructureType | bool {?}
+  ///@JavaName("cfield")
+  .c: ChoiceLinkedType | ChoiceInlineType
+  ///@JavaName("dfield")
+  .d: InlineChoiceStructureType | void
+}
+
+type RefinedStringType: string( enum( ["Hello", "World", "!"] ) )
+
+///@InlineLink(true)
+type InlinedLinkType: RefinedStringType
+
+type InlinedLinkStructureType: void {
+  .inlinedString: RefinedStringType //<@InlineLink(true)
+  .inlinedLink?: InlinedLinkType
+  .inlinedLinkString: InlinedLinkType //<@InlineLink(true)
+}
+
+///@GenerateBuilder(false)
+type UnbuildableInlinedChoice: long | ChoiceSimpleType
+
+///@JavaName("UnbuildableLinkStructureType")
+type c123 {
+  .a[2,3]: RootValue4Type
+  .b?: RootValue8Type
+  .c*: UnbuildableInlinedChoice
+  .d: void {?} //< @GenerateBuilder(false) @JavaName("dfield")
+}
+
+///@GenerateBuilder(false)
+type RootValue1Type: bool {
+  .field: bool
+}
+
+///@GenerateBuilder(false)
 type RootValue2Type: int {
   .field: int
 }
 
-type RootValue3Type: double {
-  .field: double
-}
-
-type RootValue4Type: raw {
-  .field: raw
-}
-
-type RootValue5Type: long {
+///@GenerateBuilder(false)
+type RootValue3Type: long {
   .field: long
 }
 
-type RootValue6Type: bool {
-  .field: bool
+///@GenerateBuilder(false)
+type RootValue4Type: double {
+  .field: double
 }
 
-type RootValue7Type: any {
+///@GenerateBuilder(false)
+type RootValue5Type: string {
+  .field: string
+}
+
+///@GenerateBuilder(false)
+type RootValue6Type: raw {
+  .field: raw
+}
+
+///@GenerateBuilder(false)
+type RootValue7Type: void {
+  .field: void
+}
+
+///@GenerateBuilder(false)
+type RootValue8Type: any {
   .field: any
 }
 
@@ -191,8 +256,10 @@ type TestFaultType: void {
 type TestFaultType2: string
 
 type TestFaultType3: void {
+  ///@JavaName("ffield")
   .f: void {
     .a: string
+    ///@JavaName("bfield")
     .b: int {
       .c:bool
     }
@@ -220,27 +287,31 @@ RequestResponse:
   testFlatStructureVectors( FlatStructureVectorsType )( FlatStructureVectorsType ),
 
   testChoice( ChoiceSimpleType )( ChoiceSimpleType )
-    throws TestFault3( string ),
+    throws TestFaultString( string ),
 
   testChoiceLinkedTypes( ChoiceLinkedType )( ChoiceLinkedType ),
 
   testChoiceInlineTypes( ChoiceInlineType )( ChoiceInlineType ),
 
+  testLinkedChoiceStructureType( LinkedChoiceStructureType )( LinkedChoiceStructureType ),
+
+  testInlineChoiceStructureType( InlineChoiceStructureType )( InlineChoiceStructureType ),
+
   testRootValue1( RootValue1Type )( RootValue1Type )
-    throws TestFault2,
+    throws TestFaultUndefined,
 
   testRootValue2( RootValue2Type )( RootValue2Type )
-    throws TestFault2,
+    throws TestFaultUndefined,
 
   testRootValue3( RootValue3Type )( RootValue3Type ),
 
   testRootValue4( RootValue4Type )( RootValue4Type )
-    throws TestFault2,
+    throws TestFaultUndefined,
 
   testRootValue5( RootValue5Type )( RootValue5Type ),
 
   testRootValue6( RootValue6Type )( RootValue6Type )
-    throws TestFault2,
+    throws TestFaultUndefined,
 
   testRootValue7( RootValue7Type)( RootValue7Type ),
 
@@ -255,29 +326,26 @@ RequestResponse:
   testRawType( RawType )( RawType ),
 
   testIntType( IntType )( IntType )
-      throws TestFault( InLineStructureType ),
+      throws TestFaultInlineStructure( InLineStructureType ),
 
   testBoolType( BoolType )( BoolType ) 
       throws  TestFault( TestFaultType ) 
               TestFault2( TestFaultType2 )
               TestFault3( TestFaultType3 ),
 
-  testNatives( string )( string ) throws TestFaultNatives( double ),
+  testNatives( string )( string ) throws TestFaultNativesDouble( double ),
 
-  testNatives2( double )( double ) throws TestFaultNatives( double ),
+  testNatives2( double )( double ) throws TestFaultNativesDouble( double ),
 
-  testNatives3( int )( int ) throws TestFaultNatives( double ),
+  testNatives3( int )( int ) throws TestFaultNativesDouble( double ),
 
-  testNatives4( raw )( raw ) throws TestFaultNatives( raw ),
+  testNatives4( raw )( raw ) throws TestFaultNativesRaw( raw ),
 
   testVoid( void )( void ) throws TestFaultVoid( void ),
 
   testUndefined( undefined )( undefined ) throws TestUndefined( undefined ),
 
-  testAny( any )( any ) throws TestAny( any )
+  testAny( any )( any ) throws TestAny( any ),
 
-
-
-
-
+  testUnbuildable( c123 )( UnbuildableInlinedChoice )
 }
