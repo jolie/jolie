@@ -60,7 +60,7 @@ public class ValueUtils {
 
 	private static void compareValues( Value v1, Value v2, int level, String from ) throws AssertionError {
 		assertTrue( 
-			"level " + level + ", Root values are different: " + v1.toString() + "," + v2.toString(),
+			"level " + level + ", Root values are different: " + (v1.valueObject() == null ? "null" : v1.valueObject().toString()) + "," + (v2.valueObject() == null ? "null" : v2.valueObject().toString()),
 			checkRootValue( v1, v2 ) 
 		);
 
@@ -118,7 +118,6 @@ public class ValueUtils {
 				+ v2.isLong() + ",isDouble:" + v2.isDouble() + ",isByteArray:" + v2.isByteArray() );
 		}
 		return resp;
-
 	}
 
 	private static boolean compareByteArrays( ByteArray b1, ByteArray b2 ) {
