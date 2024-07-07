@@ -20,6 +20,7 @@
 package interpreter;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import org.junit.jupiter.api.Test;
 import jolie.runtime.Value;
 
@@ -32,5 +33,26 @@ class ValueTests {
 		var v2 = Value.create( i2 );
 		v1.add( v2 );
 		assertEquals( v1.intValue(), i1 + i2, "wrong addition result" );
+	}
+
+	@Test
+	void equalsHashCode() {
+		var i1 = 222345;
+		var i2 = 551231;
+		var v1 = Value.create( i1 );
+		var v2 = Value.create( i2 );
+		var v3 = Value.create( i1 );
+		assertNotEquals( v1, v2, "wrong equals() implementation" );
+		assertEquals( v1, v3, "wrong equals() implementation" );
+		assertNotEquals( v1, Value.UNDEFINED_VALUE, "wrong equals() implementation" );
+		assertNotEquals( v2, Value.UNDEFINED_VALUE, "wrong equals() implementation" );
+		assertEquals( Value.UNDEFINED_VALUE, Value.UNDEFINED_VALUE, "wrong equals() implementation" );
+
+		assertNotEquals( v1.hashCode(), v2.hashCode(), "wrong hashCode() implementation" );
+		assertEquals( v1.hashCode(), v3.hashCode(), "wrong hashCode() implementation" );
+		assertNotEquals( v1.hashCode(), Value.UNDEFINED_VALUE.hashCode(), "wrong hashCode() implementation" );
+		assertNotEquals( v2.hashCode(), Value.UNDEFINED_VALUE.hashCode(), "wrong hashCode() implementation" );
+		assertEquals( Value.UNDEFINED_VALUE.hashCode(), Value.UNDEFINED_VALUE.hashCode(),
+			"wrong hashCode() implementation" );
 	}
 }
