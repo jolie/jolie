@@ -29,19 +29,31 @@ public sealed interface JolieType {
     
             public static record Inline( String name, Native type, NativeRefinement refinement ) implements Basic {
     
+                @Override
                 public boolean equals( Object obj ) { return obj != null && obj instanceof Basic other && name.equals( other.name() ); }
+                
+                @Override
                 public int hashCode() { return name.hashCode(); }
             }
     
             public static record Link( Inline definition ) implements Basic {
     
+                @Override
                 public String name() { return definition.name(); }
+
+                @Override
                 public Native type() { return definition.type(); }
+
+                @Override
                 public NativeRefinement refinement() { return definition.refinement(); }
                 
+                @Override
                 public boolean isLink() { return true; }
     
+                @Override
                 public boolean equals( Object obj ) { return definition.equals( obj ); }
+                
+                @Override
                 public int hashCode() { return definition.hashCode(); }
             }
         }
@@ -60,32 +72,53 @@ public sealed interface JolieType {
 
                 public static record Typed( String name, Native contentType, NativeRefinement nativeRefinement, CompletableFuture<List<Field>> fieldsFuture, boolean hasBuilder ) implements Inline {
                     
+                    @Override
                     public List<Field> fields() { return fieldsFuture.join(); }
 
+                    @Override
                     public boolean equals( Object obj ) { return obj != null && obj instanceof Structure other && name.equals( other.name() ); }
+                    
+                    @Override
                     public int hashCode() { return name.hashCode(); }
                 }
 
                 public static record Untyped( String name, Native contentType, NativeRefinement nativeRefinement, boolean hasBuilder ) implements Inline {
                     
+                    @Override
                     public List<Field> fields() { return List.of(); }
 
+                    @Override
                     public boolean equals( Object obj ) { return obj != null && obj instanceof Structure other && name.equals( other.name() ); }
+                    
+                    @Override
                     public int hashCode() { return name.hashCode(); }
                 }
             }
     
             public static record Link( Inline definition ) implements Structure {
-    
+                
+                @Override
                 public String name() { return definition.name(); }
+                
+                @Override
                 public Native contentType() { return definition.contentType(); }
+                
+                @Override
                 public NativeRefinement nativeRefinement() { return definition.nativeRefinement(); }
+                
+                @Override
                 public List<Field> fields() { return definition.fields(); }
+                
+                @Override
                 public boolean hasBuilder() { return definition.hasBuilder(); }
                 
+                @Override
                 public boolean isLink() { return true; }
     
+                @Override
                 public boolean equals( Object obj ) { return definition.equals( obj ); }
+                
+                @Override
                 public int hashCode() { return definition.hashCode(); }
             }
 
@@ -94,10 +127,17 @@ public sealed interface JolieType {
                 private static final Undefined INSTANCE = new Undefined();
         
                 private Undefined() {}
-        
+                
+                @Override
                 public String name() { return ClassPath.JOLIEVALUE.get(); }
+                
+                @Override
                 public Native contentType() { return Native.ANY; }
+                
+                @Override
                 public NativeRefinement nativeRefinement() { return null; }
+                
+                @Override
                 public List<Field> fields() { return List.of(); }
         
                 public static Undefined getInstance() { return INSTANCE; }
@@ -114,20 +154,34 @@ public sealed interface JolieType {
     
             public static record Inline( String name, CompletableFuture<List<JolieType>> optionsFuture, boolean hasBuilder ) implements Choice {
                 
+                @Override
                 public List<JolieType> options() { return optionsFuture.join(); }
+                
+                @Override
                 public boolean equals( Object obj ) { return obj != null && obj instanceof Choice other && name.equals( other.name() ); }
+                
+                @Override
                 public int hashCode() { return name.hashCode(); } 
             }
     
             public static record Link( Inline definition ) implements Choice {
-    
+                
+                @Override
                 public String name() { return definition.name(); }
+                
+                @Override
                 public List<JolieType> options() { return definition.options(); }
+                
+                @Override
                 public boolean hasBuilder() { return definition.hasBuilder(); }
                 
+                @Override
                 public boolean isLink() { return true; }
     
+                @Override
                 public boolean equals( Object obj ) { return definition.equals( obj ); }
+                
+                @Override
                 public int hashCode() { return definition.hashCode(); }
             }
         }
@@ -192,6 +246,7 @@ public sealed interface JolieType {
 
         public Stream<ClassPath> nativeClasses() { return nativeClassesOf( this ).map( Native::nativeClass ); }
 
+        @Override
         public String toString() {
             return StringUtils.capitalize( super.toString().toLowerCase() );
         }

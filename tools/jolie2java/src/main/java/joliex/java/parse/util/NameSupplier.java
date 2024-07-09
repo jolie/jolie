@@ -21,6 +21,7 @@ public class NameSupplier implements Supplier<String> {
 		return new NameSupplier( name, new HashSet<>( scope ) );
 	}
 
+	@Override
 	public String get() {
 		return cachedName != null ? cachedName : cacheName(); 
 	}

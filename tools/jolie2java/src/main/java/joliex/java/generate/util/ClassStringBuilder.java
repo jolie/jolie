@@ -8,7 +8,7 @@ public class ClassStringBuilder {
     private int indentation = 0;
     private String linePrefix = "";
 
-    public ClassStringBuilder append( Object obj ) { return append( String.valueOf( obj ) ); }
+    public ClassStringBuilder append( ClassPath path ) { return append( path.get() ); }
   
     public ClassStringBuilder append( String str ) { builder.append(str); return this; }
 
@@ -66,6 +66,7 @@ public class ClassStringBuilder {
         return newlineAppend( "<pre>" ).run( appender ).newlineAppend( "</pre>" );
     }
 
+    @Override
     public String toString() throws ClassBuilderException {
         if ( indentation != 0 )
             throw new ClassBuilderException( "The indentation of this ClassStringBuilder wasn't 0 when 'toString()' was called." );

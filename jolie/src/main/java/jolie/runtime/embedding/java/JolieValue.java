@@ -486,14 +486,16 @@ public interface JolieValue extends ValueConverter {
         private InlineBuilder() {}
         private InlineBuilder( JolieValue j ) { super( j ); }
 
+        @Override
         protected InlineBuilder self() { return this; }
 
+        @Override
         public JolieValue build() { return super.build(); }
     }
 
     public static class NestedBuilder<R> extends Builder<NestedBuilder<R>> {
 
-        private Function<JolieValue,R> doneFunction;
+        private final Function<JolieValue,R> doneFunction;
 
         private NestedBuilder( Function<JolieValue,R> doneFunction ) { this.doneFunction = doneFunction; }
         private NestedBuilder( JolieValue j, Function<JolieValue,R> doneFunction ) { 
@@ -501,6 +503,7 @@ public interface JolieValue extends ValueConverter {
             this.doneFunction = doneFunction;
         }
 
+        @Override
         protected NestedBuilder<R> self() { return this; }
 
         /**
@@ -751,14 +754,16 @@ public interface JolieValue extends ValueConverter {
         private InlineListBuilder() {}
         private InlineListBuilder( SequencedCollection<? extends JolieValue> c ) { super( c ); }
 
+        @Override
         protected InlineListBuilder self() { return this; }
 
+        @Override
         public List<JolieValue> build() { return super.build(); }
     }
     
     public static class NestedListBuilder<R> extends ListBuilder<NestedListBuilder<R>> {
         
-        private Function<List<JolieValue>,R> doneFunction;
+        private final Function<List<JolieValue>,R> doneFunction;
 
         private NestedListBuilder( Function<List<JolieValue>,R> doneFunction ) { this.doneFunction = doneFunction; }
         private NestedListBuilder( SequencedCollection<? extends JolieValue> c, Function<List<JolieValue>,R> doneFunction ) { 
@@ -766,6 +771,7 @@ public interface JolieValue extends ValueConverter {
             this.doneFunction = doneFunction;
         }
 
+        @Override
         protected NestedListBuilder<R> self() { return this; }
 
         /**

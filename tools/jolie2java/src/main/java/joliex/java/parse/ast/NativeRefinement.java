@@ -23,12 +23,9 @@ public sealed interface NativeRefinement {
 
             public String minString() { return min + (min instanceof Long ? "L" : ""); }
             public String maxString() { return max + (max instanceof Long ? "L" : ""); }
-    
-            public boolean equals( Object obj ) {
-                return obj != null && obj instanceof Interval other && min == other.min() && max == other.max();
-            }
         }
 
+        @Override
         public String definitionString() {
             return intervals.parallelStream()
                 .map( i -> "[" + i.minString() + ", " + i.maxString() + "]" )
@@ -37,6 +34,10 @@ public sealed interface NativeRefinement {
                 .orElseThrow();
         }
 
+        @Override
+        public int hashCode() { return intervals.hashCode(); }
+
+        @Override
         public boolean equals( Object obj ) {
             return obj != null && obj instanceof Ranges other && intervals.size() == other.intervals().size() && intervals.containsAll( other.intervals() );
         }
@@ -44,10 +45,15 @@ public sealed interface NativeRefinement {
 
     public static record Length( int min, int max ) implements NativeRefinement {
         
+        @Override
         public String definitionString() {
             return "length( [" + min + ", " + max + "] )";
         }
 
+        @Override
+        public int hashCode() { return min + max; }
+
+        @Override
         public boolean equals( Object obj ) {
             return obj != null && obj instanceof Length other && min == other.min() && max == other.max();
         }
@@ -55,10 +61,15 @@ public sealed interface NativeRefinement {
 
     public static record Enumeration( List<String> values ) implements NativeRefinement {
 
+        @Override
         public String definitionString() {
             return "enum( [" + values.stream().reduce( (v1, v2) -> v1 + ", " + v2 ).orElseThrow() + "] )";
         }
 
+        @Override
+        public int hashCode() { return values.hashCode(); }
+
+        @Override
         public boolean equals( Object obj ) {
             return obj != null && obj instanceof Enumeration other && values.size() == other.values().size() && values.containsAll( other.values() );
         }
@@ -66,10 +77,15 @@ public sealed interface NativeRefinement {
 
     public static record Regex( String regex ) implements NativeRefinement {
 
+        @Override
         public String definitionString() {
             return "regex( " + regex + " )";
         }
 
+        @Override
+        public int hashCode() { return regex.hashCode(); }
+
+        @Override
         public boolean equals( Object obj ) {
             return obj != null && obj instanceof Regex other && regex.equals( other.regex() );
         }

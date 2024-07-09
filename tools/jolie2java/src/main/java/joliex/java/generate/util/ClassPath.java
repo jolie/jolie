@@ -51,6 +51,7 @@ public enum ClassPath implements Supplier<String> {
 		this.absoluteName = absoluteName;
 	}
 
+	@Override
 	public String get() { return absoluteName; }
 
 	@Override

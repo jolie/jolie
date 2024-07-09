@@ -56,10 +56,16 @@ public sealed interface JolieNative<T> extends ValueConverter {
 
     public static record JolieVoid() implements JolieNative<Void> {
         
+        @Override
         public Value jolieRepr() { return Value.create(); }
 
+        @Override
         public boolean equals( Object obj ) { return obj != null && obj instanceof JolieVoid; }
+        
+        @Override
         public int hashCode() { return 0; }
+        
+        @Override
         public String toString() { return ""; }
 
         public static JolieVoid from( JolieValue j ) { return new JolieVoid(); }
@@ -82,10 +88,16 @@ public sealed interface JolieNative<T> extends ValueConverter {
 
         public JolieBool { Objects.requireNonNull( value ); }
         
+        @Override
         public Value jolieRepr() { return Value.create( value ); }
 
+        @Override
         public boolean equals( Object obj ) { return obj instanceof JolieBool b && value.equals( b.value() ); }
+
+        @Override
         public int hashCode() { return value.hashCode(); }
+        
+        @Override
         public String toString() { return value.toString(); }
 
         public static JolieBool from( JolieValue j ) throws TypeValidationException { 
@@ -117,10 +129,16 @@ public sealed interface JolieNative<T> extends ValueConverter {
 
         public JolieInt { Objects.requireNonNull( value ); }
         
+        @Override
         public Value jolieRepr() { return Value.create( value ); }
 
+        @Override
         public boolean equals( Object obj ) { return obj instanceof JolieInt n && value.equals( n.value() ); }
+
+        @Override
         public int hashCode() { return value.hashCode(); }
+        
+        @Override
         public String toString() { return value.toString(); }
 
         public static JolieInt from( JolieValue j ) throws TypeValidationException { 
@@ -152,10 +170,16 @@ public sealed interface JolieNative<T> extends ValueConverter {
 
         public JolieLong { Objects.requireNonNull( value ); }
         
+        @Override
         public Value jolieRepr() { return Value.create( value ); }
 
+        @Override
         public boolean equals( Object obj ) { return obj instanceof JolieLong n && value.equals( n.value() ); }
+
+        @Override
         public int hashCode() { return value.hashCode(); }
+        
+        @Override
         public String toString() { return value.toString(); }
 
         public static JolieLong from( JolieValue j ) throws TypeValidationException {
@@ -187,10 +211,16 @@ public sealed interface JolieNative<T> extends ValueConverter {
 
         public JolieDouble { Objects.requireNonNull( value ); }
         
+        @Override
         public Value jolieRepr() { return Value.create( value ); }
 
+        @Override
         public boolean equals( Object obj ) { return obj instanceof JolieDouble n && value.equals( n.value() ); }
+
+        @Override
         public int hashCode() { return value.hashCode(); }
+        
+        @Override
         public String toString() { return value.toString(); }
 
         public static JolieDouble from( JolieValue j ) throws TypeValidationException { 
@@ -222,10 +252,16 @@ public sealed interface JolieNative<T> extends ValueConverter {
 
         public JolieString { Objects.requireNonNull( value ); }
         
+        @Override
         public Value jolieRepr() { return Value.create( value ); }
 
+        @Override
         public boolean equals( Object obj ) { return obj instanceof JolieString n && value.equals( n.value() ); }
+
+        @Override
         public int hashCode() { return value.hashCode(); }
+        
+        @Override
         public String toString() { return value; }
 
         public static JolieString from( JolieValue j ) throws TypeValidationException {
@@ -257,10 +293,16 @@ public sealed interface JolieNative<T> extends ValueConverter {
 
         public JolieRaw { Objects.requireNonNull( value ); }
         
+        @Override
         public Value jolieRepr() { return Value.create( value ); }
 
+        @Override
         public boolean equals( Object obj ) { return obj instanceof JolieRaw n && value.equals( n.value() ); }
+
+        @Override
         public int hashCode() { return value.hashCode(); }
+        
+        @Override
         public String toString() { return value.toString(); }
 
         public static JolieRaw from( JolieValue j ) throws TypeValidationException {
@@ -397,6 +439,7 @@ public sealed interface JolieNative<T> extends ValueConverter {
         private ListBuilder() {}
         private ListBuilder( SequencedCollection<? extends JolieValue> c ) { super( c, JolieNative::from ); }
 
+        @Override
         protected ListBuilder self() { return this; }
 
         /**

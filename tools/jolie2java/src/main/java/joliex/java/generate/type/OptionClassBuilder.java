@@ -19,6 +19,7 @@ public final class OptionClassBuilder extends TypeClassBuilder {
         this.superName = superName;
     }
 
+    @Override
     public void appendDefinition() {
         appendSignature();
         builder.body( this::appendBody );

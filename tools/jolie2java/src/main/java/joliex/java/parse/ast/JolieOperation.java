@@ -36,18 +36,18 @@ public sealed interface JolieOperation {
 
     public static record OneWay( String name, JolieType request, String documentation ) implements JolieOperation {
         
+        @Override
         public JolieType response() { return Native.VOID; }
 
+        @Override
         public Optional<String> possibleDocumentation() { return Optional.ofNullable( documentation ); }
     }
 
     public static record RequestResponse( String name, JolieType request, JolieType response, List<Fault> faults, String documentation ) implements JolieOperation {
 
+        @Override
         public Optional<String> possibleDocumentation() { return Optional.ofNullable( documentation ); }
 
-        public static record Fault( String name, JolieType type, String className ) {
-
-            public boolean equals( Object obj ) { return obj != null && obj instanceof Fault f && name.equals( f.name() ) && type.equals( f.type() ); }
-        }
+        public static record Fault( String name, JolieType type, String className ) {}
     }
 }

@@ -26,6 +26,7 @@ public abstract class TypeClassBuilder extends JavaClassBuilder {
         this.typesPackage = typesPackage;
     }
 
+    @Override
     public String className() { return className; }
 
     @Override
