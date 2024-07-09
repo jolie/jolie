@@ -23,10 +23,12 @@ public class ChoiceClassBuilder extends TypeClassBuilder {
         this.choice = choice;
     }
 
+    @Override
     protected void appendDescriptionDocumentation() {
         builder.newlineAppend( "This is a sealed interface representing the following choice type:" );
     }
     
+    @Override
     protected void appendDefinitionDocumentation() {
         choice.options()
             .parallelStream()
@@ -40,6 +42,7 @@ public class ChoiceClassBuilder extends TypeClassBuilder {
             .ifPresent( s -> builder.newlineAppend( className ).append( ": " ).append( s ) );
     }
 
+    @Override
     protected void appendSeeDocumentation() {
         builder.newline();
         StreamEx.of( ClassPath.JOLIEVALUE, ClassPath.JOLIENATIVE )
@@ -56,10 +59,12 @@ public class ChoiceClassBuilder extends TypeClassBuilder {
         );
     }
 
+    @Override
     protected void appendSignature( boolean isInnerClass ) {
         builder.newlineAppend( "public " ).append( isInnerClass ? "static " : "" ).append( "sealed interface " ).append( className ).append( " extends " ).append( ClassPath.JOLIEVALUE );
     }
 
+    @Override
     protected void appendBody() {
         appendMethods();
         appendOptionClasses();

@@ -32,10 +32,12 @@ public class TypedStructureClassBuilder extends StructureClassBuilder {
                 .toList();
     }
 
+    @Override
     protected void appendDescriptionDocumentation() {
         builder.newlineAppend( "this class is a {@link " ).append( ClassPath.TYPEDSTRUCTURE ).append( "} which can be described as follows:" );
     }
 
+    @Override
     protected void appendDefinitionDocumentation() {
         if ( structure.contentType() != Native.VOID )
             builder.newNewlineAppend( structure.contentType() == Native.ANY ? "content" : "contentValue" ).append( ": {@link " ).append( structure.contentType().nativeClass() ).append( "}" ).append( structure.possibleRefinement().map( r -> "( " + r.definitionString() + " )" ).orElse( "" ) )
@@ -52,6 +54,7 @@ public class TypedStructureClassBuilder extends StructureClassBuilder {
         );
     }
 
+    @Override
     protected void appendSeeDocumentation() {
         builder.newline();
         StreamEx.of( ClassPath.JOLIEVALUE, ClassPath.JOLIENATIVE )
@@ -67,10 +70,12 @@ public class TypedStructureClassBuilder extends StructureClassBuilder {
             builder.newlineAppend( "@see #builder()" );
     }
 
+    @Override
     protected void appendSignature( boolean isInnerClass ) {
         builder.newlineAppend( "public " ).append( isInnerClass ? "static " : "" ).append( "final class " ).append( className ).append( " extends " ).append( ClassPath.TYPEDSTRUCTURE );
     }
 
+    @Override
     protected void appendAttributes() {
         appendStaticAttributes();
         appendFieldAttributes();
@@ -96,6 +101,7 @@ public class TypedStructureClassBuilder extends StructureClassBuilder {
             .forEachOrdered( builder::newlineAppend );
     }
 
+    @Override
     protected void appendConstructors() {
         final String parameters = recordFields.parallelStream()
             .map( f -> new StringBuilder()
@@ -131,6 +137,7 @@ public class TypedStructureClassBuilder extends StructureClassBuilder {
         } );
     }
 
+    @Override
     protected void appendMethods() {
         builder.newline();
         recordFields.forEach( f -> {
@@ -146,6 +153,7 @@ public class TypedStructureClassBuilder extends StructureClassBuilder {
             builder.newNewlineAppend( "public " ).append( structure.contentType().wrapperClass() ).append( " content() { return new " ).append( structure.contentType().wrapperClass() ).append( structure.contentType() == Native.VOID ? "()" : "( contentValue )" ).append( "; }" );
     }
 
+    @Override
     protected void appendFromMethod() {
         builder.newNewlineAppend( "public static " ).append( className ).append( " from( " ).append( ClassPath.JOLIEVALUE ).append( " j ) throws " ).append( ClassPath.TYPEVALIDATIONEXCEPTION ).body( () ->
             builder.newlineAppend( "return new " ).append( className ).append( "(" ).indented( () -> {
@@ -163,6 +171,7 @@ public class TypedStructureClassBuilder extends StructureClassBuilder {
             .newlineAppend( ");" ) );
     }
 
+    @Override
     protected void appendFromValueMethod() {
         builder.newNewlineAppend( "public static " ).append( className ).append( " fromValue( " ).append( ClassPath.VALUE ).append( " v ) throws " ).append( ClassPath.TYPECHECKINGEXCEPTION ).body( () ->
             builder.newlineAppend( ClassPath.VALUEMANAGER.get() ).append( ".requireChildren( v, FIELD_KEYS );" )
@@ -186,6 +195,7 @@ public class TypedStructureClassBuilder extends StructureClassBuilder {
                 .newlineAppend( ");" ) );
     }
 
+    @Override
     protected void appendToValueMethod() {
         builder.newNewlineAppend( "public static " ).append( ClassPath.VALUE ).append( " toValue( " ).append( className ).append( " t )" ).body( () -> {
             builder.newlineAppend( "final " ).append( ClassPath.VALUE ).append( " v = " ).append( switch ( structure.contentType() ) {
@@ -214,6 +224,7 @@ public class TypedStructureClassBuilder extends StructureClassBuilder {
         } );
     }
 
+    @Override
     protected void appendBuilder() {
         builder.newNewlineAppend( "public static class Builder" ).body( () -> {
             appendBuilderAttributes();
@@ -363,6 +374,7 @@ public class TypedStructureClassBuilder extends StructureClassBuilder {
         builder.newlineAppend( "public Builder " ).append( name ).append( "( " ).append( paramType ).append( " " ).append( paramName ).append( " ) { " ).run( bodyAppender ).append( " }" );
     }
 
+    @Override
     protected void appendTypeClasses() {
         structure.fields()
             .parallelStream()

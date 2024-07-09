@@ -53,7 +53,12 @@ public abstract class AbstractListBuilder<B,E> {
 	 * @return this builder
 	 * @see List#add(Object)
 	 */
-	public final B add( E e ) { if ( e != null ) elements.add( e ); return self(); }
+	public final B add( E e ) {
+		if ( e != null ) 
+			elements.add( e );
+
+		return self();
+	}
 
 	/**
 	 * Inserts the specified element into the list being built at the specified position,
@@ -64,7 +69,12 @@ public abstract class AbstractListBuilder<B,E> {
 	 * @return this builder
 	 * @see List#add(int,Object)
 	 */
-	public final B add( int index, E e ) { if ( e != null ) elements.add( index, e ); return self(); }
+	public final B add( int index, E e ) {
+		if ( e != null ) 
+			elements.add( index, e );
+
+		return self();
+	}
 
 	/**
 	 * Adds an element as the first element of the list being built, or

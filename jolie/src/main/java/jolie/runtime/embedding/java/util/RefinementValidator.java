@@ -9,7 +9,7 @@ public class RefinementValidator {
 		if ( value == null )
 			return value;
 
-		for ( int i = 0; i < intervals.length; i += 2 ) {
+		for ( int i = 0; i < intervals.length-1; i += 2 ) {
 			if ( value.compareTo( intervals[i] ) >= 0 && value.compareTo( intervals[i+1] ) <= 0 )
 				return value;
 		}

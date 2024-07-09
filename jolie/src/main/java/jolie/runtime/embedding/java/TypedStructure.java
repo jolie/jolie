@@ -19,12 +19,16 @@ public abstract class TypedStructure implements JolieValue {
 
 	private volatile SoftReference<Map<String,List<JolieValue>>> children = new SoftReference<>( null );
 	
+	@Override
 	public Map<String,List<JolieValue>> children() {
 		return Objects.requireNonNullElseGet( children.get(), this::createChildren );
 	}
 
+	@Override
 	public boolean equals( Object obj ) { return obj != null && obj instanceof JolieValue j && content().equals( j.content() ) && children().equals( j.children() ); }
-    public int hashCode() {
+    
+	@Override
+	public int hashCode() {
 		if ( children().isEmpty() )
 			return content().hashCode();
 
@@ -33,6 +37,8 @@ public abstract class TypedStructure implements JolieValue {
         hash = 31 * hash + children().hashCode();
         return hash;
     }
+
+	@Override
     public String toString() {
         return (content() instanceof JolieNative.JolieString ? "\"" + content().toString() + "\"" : content().toString())
             + children()

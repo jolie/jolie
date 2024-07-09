@@ -28,9 +28,8 @@ public class Jolie2JavaCommandLineParser extends CommandLineParser {
 
 		@Override
         public int onUnrecognizedArgument( List<String> argumentsList, int index ) throws CommandLineException {
-            
             switch( argumentsList.get( index ) ) {
-                case "--translationTarget" -> { index++; translationTarget = Integer.parseInt( argumentsList.get( index ) ); }
+                case "--translationTarget" -> { index++; try { translationTarget = Integer.parseInt( argumentsList.get( index ) ); } catch ( NumberFormatException e ) {} }
                 case "--overwriteServices" -> { index++; overwriteServices = Boolean.parseBoolean( argumentsList.get( index ) ); }
                 case "--outputDirectory" -> { index++; outputDirectory = argumentsList.get( index ); }
                 case "--sourcesPackage" -> { index++; sourcesPackage = argumentsList.get( index ); }

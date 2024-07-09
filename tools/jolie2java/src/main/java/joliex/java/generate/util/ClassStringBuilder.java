@@ -8,11 +8,11 @@ public class ClassStringBuilder {
     private int indentation = 0;
     private String linePrefix = "";
 
-    public ClassStringBuilder append( String str ) { builder.append( str ); return this; }
+    public ClassStringBuilder append( Object obj ) { return append( String.valueOf( obj ) ); }
+  
+    public ClassStringBuilder append( String str ) { builder.append(str); return this; }
 
     public ClassStringBuilder append( int i ) { return append( String.valueOf( i ) ); }
-
-    public ClassStringBuilder append( Object obj ) { return append( obj.toString() ); }
 
     public ClassStringBuilder indent() {
         indentation += INDENTSTEP;

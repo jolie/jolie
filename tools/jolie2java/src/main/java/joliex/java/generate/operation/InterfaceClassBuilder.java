@@ -22,12 +22,15 @@ public class InterfaceClassBuilder extends JavaClassBuilder {
         this.faultsPackage = faultsPackage;
     }
 
+    @Override
     public String className() { return className; }
 
+    @Override
     public void appendPackage() {
         builder.append( "package " ).append( packageName ).append( ";" );
     }
 
+    @Override
     public void appendDefinition() {
         builder.newNewlineAppend( "public interface " ).append( className() )
             .body( () -> operations.forEach( this::appendMethod ) );

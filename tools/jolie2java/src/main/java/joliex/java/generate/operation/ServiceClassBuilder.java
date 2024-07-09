@@ -29,14 +29,17 @@ public class ServiceClassBuilder extends JavaClassBuilder {
         this.interfacePackage = interfacePackage;
     }
 
+    @Override
     public String className() {
         return className;
     }
 
+    @Override
     public void appendPackage() {
         builder.append( "package " ).append( packageName ).append( ";" );
     }
 
+    @Override
     public void appendDefinition() {
         builder.newNewlineAppend( "public final class " ).append( className ).append( " extends " ).append( ClassPath.JAVASERVICE ).append( " implements " ).append( operationsMap.keySet().parallelStream().map( k -> interfacePackage + "." + k ).reduce( (s1, s2) -> s1 + ", " + s2 ).get() )
             .body( () -> operationsMap.values().stream().flatMap( Collection::stream ).forEach( this::appendMethod ) );

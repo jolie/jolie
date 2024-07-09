@@ -13,6 +13,7 @@ public abstract class StructureClassBuilder extends TypeClassBuilder {
         this.structure = structure;
     }
 
+	@Override
 	protected void appendBody() {
 		appendAttributes();
 		appendConstructors();

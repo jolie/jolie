@@ -18,10 +18,12 @@ public class UntypedStructureClassBuilder extends StructureClassBuilder {
         } );
     }
 
+    @Override
     protected void appendDescriptionDocumentation() {
         builder.newlineAppend( "this class is an {@link " ).append( ClassPath.UNTYPEDSTRUCTURE ).append( "} which can be described as follows:" );
     }
 
+    @Override
     protected void appendDefinitionDocumentation() {
         if ( structure.contentType() != Native.VOID )
             builder.newNewlineAppend( structure.contentType() == Native.ANY ? "content" : "contentValue" )
@@ -32,6 +34,7 @@ public class UntypedStructureClassBuilder extends StructureClassBuilder {
             builder.newNewlineAppend( "void { ? }" );
     }
 
+    @Override
     protected void appendSeeDocumentation() {
         builder.newline()
             .newlineAppend( "@see " ).append( ClassPath.JOLIEVALUE )
@@ -39,12 +42,15 @@ public class UntypedStructureClassBuilder extends StructureClassBuilder {
             .newlineAppend( "@see #builder()" );
     }
 
+    @Override
     protected void appendSignature( boolean isInnerClass ) {
         builder.newlineAppend( "public " ).append( isInnerClass ? "static " : "" ).append( "final class " ).append( className ).append( " extends " ).append( ClassPath.UNTYPEDSTRUCTURE.parameterized( structure.contentType().wrapperType() ) );
     }
 
+    @Override
     protected void appendAttributes() {}
 
+    @Override
     protected void appendConstructors() {
         switch ( structure.contentType() ) {
             case ANY    -> builder.newNewlineAppend( "public " ).append( className ).append( "( " ).append( structure.contentType().wrapperType() ).append( " content, " ).append( ClassPath.childrenMap() ).append( " children ) { super( content, children ); }" );
@@ -53,6 +59,7 @@ public class UntypedStructureClassBuilder extends StructureClassBuilder {
         }
     }
 
+    @Override
     protected void appendMethods() {
         contentFieldName.ifPresent( n -> {
             if ( structure.contentType() != Native.ANY )
@@ -60,6 +67,7 @@ public class UntypedStructureClassBuilder extends StructureClassBuilder {
         } );
     }
 
+    @Override
     protected void appendFromMethod() {
         builder.newNewlineAppend( "public static " ).append( className ).append( " from( " ).append( ClassPath.JOLIEVALUE ).append( " j ) throws " ).append( ClassPath.TYPEVALIDATIONEXCEPTION ).body( () -> 
             builder.newlineAppend( "return new " ).append( className ).append( "( " )
@@ -71,15 +79,18 @@ public class UntypedStructureClassBuilder extends StructureClassBuilder {
                 .append( "j.children() );" ) );
     }
 
+    @Override
     protected void appendFromValueMethod() {
         builder.newNewlineAppend( "public static " ).append( className ).append( " fromValue( " ).append( ClassPath.VALUE ).append( " v ) throws " ).append( ClassPath.TYPECHECKINGEXCEPTION ).body( () -> 
             builder.newlineAppend( "return new " ).append( className ).append( "( " ).append( structure.contentType() == Native.VOID ? "" : structure.contentType().wrapperClass() + ".contentFromValue( v ), " ).append( ClassPath.VALUEMANAGER ).append( ".childrenFrom( v ) );" ) );
     }
 
+    @Override
     protected void appendToValueMethod() {
         builder.newNewlineAppend( "public static " ).append( ClassPath.VALUE ).append( " toValue( " ).append( className ).append( " t ) { return " ).append( ClassPath.JOLIEVALUE ).append( ".toValue( t ); }" );
     }
 
+    @Override
     protected void appendBuilder() {
         builder.newNewlineAppend( "public static class Builder extends " ).append( ClassPath.UNTYPEDBUILDER.parameterized( "Builder" ) ).body( () -> {
             appendBuilderAttributes();
@@ -115,5 +126,6 @@ public class UntypedStructureClassBuilder extends StructureClassBuilder {
         builder.newNewlineAppend( "public " ).append( className ).append( " build() { return new " ).append( className ).append( "( " ).append( switch ( structure.contentType() ) { case VOID -> ""; case ANY -> "content == null ? new " + ClassPath.JOLIEVOID.get() + "() : content, "; default -> "contentValue, "; } ).append( "children ); }" );
     }
 
+    @Override
     protected void appendTypeClasses() {}
 }

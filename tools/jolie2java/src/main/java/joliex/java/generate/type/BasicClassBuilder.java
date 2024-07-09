@@ -12,24 +12,29 @@ public class BasicClassBuilder extends TypeClassBuilder {
         this.basic = basic; 
     }
 
+    @Override
     protected void appendDescriptionDocumentation() {
         builder.newlineAppend( "this record is a {@link " ).append( ClassPath.JOLIEVALUE ).append( "} that can be described as follows:" );
     }
 
+    @Override
     protected void appendDefinitionDocumentation() {
         builder.newlineAppend( "contentValue: {@link " ).append( basic.type().nativeClass() ).append( "}( " ).append( basic.refinement().definitionString() ).append( " )" );
     }
 
+    @Override
     protected void appendSeeDocumentation() {
         builder.newline()
             .newlineAppend( "@see " ).append( ClassPath.JOLIEVALUE )
             .newlineAppend( "@see " ).append( ClassPath.JOLIENATIVE );
     }
 
+    @Override
     protected void appendSignature( boolean isInnerClass ) {
         builder.newlineAppend( "public " ).append( isInnerClass ? "static " : "" ).append( "record " ).append( className ).append( "( " ).append( basic.type().nativeClass() ).append( " contentValue ) implements " ).append( ClassPath.JOLIEVALUE );
     }
 
+    @Override
     protected void appendBody() {
         appendConstructors();
         appendMethods();

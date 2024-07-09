@@ -19,23 +19,31 @@ public final class OptionClassBuilder extends TypeClassBuilder {
         this.superName = superName;
     }
 
-    public void appendHeader() {}
-
     public void appendDefinition() {
         appendSignature();
         builder.body( this::appendBody );
     }
-
+    
+    @Override
     protected void appendDocumentation() {}
+    
+    @Override
     protected void appendDescriptionDocumentation() {}
+    
+    @Override
     protected void appendDefinitionDocumentation() {}
+
+    @Override
     protected void appendSeeDocumentation() {}
 
+    @Override
     protected void appendSignature( boolean isInnerClass ) { appendSignature(); }
+
     private void appendSignature() {
         builder.newlineAppend( "public static record " ).append( className ).append( type == Native.VOID ? "()" : "( " + typeName( type ) + " option )" ).append( " implements " ).append( superName );
     }
 
+    @Override
     protected void appendBody() {
         appendConstructors();
         switch ( storedType( type ) ) {

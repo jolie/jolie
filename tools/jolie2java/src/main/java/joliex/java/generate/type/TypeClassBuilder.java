@@ -28,10 +28,12 @@ public abstract class TypeClassBuilder extends JavaClassBuilder {
 
     public String className() { return className; }
 
+    @Override
     public final void appendPackage() {
         builder.append( "package " ).append( typesPackage ).append( ";" );
     }
 
+    @Override
     public void appendDefinition() { appendDefinition( false ); }
 
     public void appendDefinition( boolean isInnerClass ) {

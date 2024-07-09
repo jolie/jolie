@@ -95,7 +95,7 @@ public sealed interface JolieType {
         
                 private Undefined() {}
         
-                public String name() { return "JolieValue"; }
+                public String name() { return ClassPath.JOLIEVALUE.get(); }
                 public Native contentType() { return Native.ANY; }
                 public NativeRefinement nativeRefinement() { return null; }
                 public List<Field> fields() { return List.of(); }

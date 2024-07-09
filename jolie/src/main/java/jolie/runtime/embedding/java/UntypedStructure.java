@@ -19,10 +19,16 @@ public class UntypedStructure<T extends JolieNative<?>> implements JolieValue {
         this.children = Objects.requireNonNullElse( children, EMPTY_CHILDREN );
     }
 
+    @Override
     public T content() { return content; }
+
+    @Override
     public Map<String, List<JolieValue>> children() { return children; }
 
+    @Override
     public boolean equals( Object obj ) { return obj != null && obj instanceof JolieValue j && content.equals( j.content() ) && children.equals( j.children() ); }
+    
+    @Override
     public int hashCode() {
         if ( children.isEmpty() )
             return content.hashCode();
@@ -32,6 +38,8 @@ public class UntypedStructure<T extends JolieNative<?>> implements JolieValue {
         hash = 31 * hash + children.hashCode();
         return hash;
     }
+
+    @Override
     public String toString() {
         return (content instanceof JolieNative.JolieString ? "\"" + content.toString() + "\"" : content.toString())
             + children.entrySet()

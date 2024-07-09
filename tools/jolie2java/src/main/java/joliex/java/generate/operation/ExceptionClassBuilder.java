@@ -21,17 +21,20 @@ public class ExceptionClassBuilder extends JavaClassBuilder {
         
         typeName = Optional.ofNullable( switch( fault.type() ) {
             case Native n -> n == Native.VOID ? null : n.nativeType();
-            case Undefined d -> ClassPath.JOLIEVALUE.get();
+            case Undefined d -> d.name();
             case Definition d -> typesPackage + "." + d.name();
         } );
     }
 
+    @Override
     public String className() { return fault.className(); }
 
+    @Override
     public void appendPackage() { 
         builder.append( "package " ).append( packageName ).append( ";" );
     }
 
+    @Override
     public void appendDefinition() {
         builder.newNewlineAppend( "public class " ).append( className() ).append( " extends " ).append( ClassPath.FAULTEXCEPTION ).body( () -> {
             appendAttributes();
@@ -50,7 +53,7 @@ public class ExceptionClassBuilder extends JavaClassBuilder {
                 tn -> builder.newlineAppend( "super( \"" ).append( fault.name() ).append( "\", " )
                         .append( switch ( fault.type() ) { 
                             case Native n -> n == Native.ANY ? ClassPath.JOLIENATIVE.get() + ".toValue( fault )" : ClassPath.VALUE.get() + ".create( fault )";
-                            case Definition d -> tn + ".toValue( fault )";
+                            default -> tn + ".toValue( fault )";
                         } ).append( " );" )
                     .newlineAppend( "this.fault = " ).append( ClassPath.OBJECTS ).append( ".requireNonNull( fault );" ),
                 () -> builder.newlineAppend( "super( \"" ).append( fault.name() ).append( "\" );" )

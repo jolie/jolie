@@ -21,6 +21,7 @@ public class StructureListBuilder<E extends JolieValue, B> extends AbstractListB
 		this.builder = builder;
 	}
 	
+	@Override
 	protected StructureListBuilder<E,B> self() { return this; }
 
 	/**
