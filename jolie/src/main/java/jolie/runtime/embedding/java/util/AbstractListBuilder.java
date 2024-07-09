@@ -32,11 +32,11 @@ public abstract class AbstractListBuilder<B,E> {
 	 * @param <T> the type returned by the given function
 	 * @param f the function to apply to this Builder
 	 * @return the result of applying the given function {@code f} to this Builder
-	 * @apiNote The following is an example of using this method to make adding multiple elements easier:
+	 * @custom.apiNote The following is an example of using this method to make adding multiple elements easier:
 	 * <pre>
 	 * JolieNative.listBuilder()
 	 * 		.chain( b -> {
-	 * 			for ( int i = 0; i < 10; i++ )
+	 * 			for ( int i = 0; i {@literal <} 10; i++ )
 	 * 				b.add( i );
 	 * 			return b;
 	 * 		} )
@@ -118,6 +118,7 @@ public abstract class AbstractListBuilder<B,E> {
 	 * Inserts all of the elements in the specified collection 
 	 * into the list being built at the specified position.
 	 * 
+	 * @param index index at which to insert the first element from the specified collection
 	 * @param c collection containing elements to be added to this list
 	 * @return this builder
 	 * @throws NullPointerException if the specified collection or any of its elements are {@code null}

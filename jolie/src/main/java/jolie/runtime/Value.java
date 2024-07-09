@@ -30,7 +30,6 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
@@ -538,9 +537,8 @@ public abstract class Value implements Expression, Cloneable {
 
 	@Override
 	public int hashCode() {
-		return isLink() ? super.hashCode()
-			: Objects.requireNonNullElse( valueObject(),
-				UNDEFINED_VALUE ).hashCode();
+		return isLink() || !isDefined() ? super.hashCode()
+			: valueObject().hashCode();
 	}
 
 	public final boolean isInt() {

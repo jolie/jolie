@@ -22,7 +22,7 @@ import jolie.runtime.embedding.java.util.AbstractListBuilder;
  * @see #of(String)
  * @see #of(ByteArray)
  * 
- * @apiNote Access to the data is intended to be done using enhanced switch expression like the following:
+ * @custom.apiNote Access to the data is intended to be done using enhanced switch expression like the following:
  * 
  * <pre>
  * public void someOperation( JolieNative request ) {
@@ -362,7 +362,7 @@ public sealed interface JolieNative<T> extends ValueConverter {
      * 
      * @param j the {@link JolieValue} to convert
      * @return the {@link JolieNative} representation of the specified {@link JolieValue}
-     * @implSpec returns the result of {@code j.content()}
+     * @custom.implSpec returns the result of {@code j.content()}
      */
     public static JolieNative<?> from( JolieValue j ) { return j.content(); }
     
@@ -409,7 +409,7 @@ public sealed interface JolieNative<T> extends ValueConverter {
          * @see AbstractListBuilder#add(Object)
          * @see JolieNative#of(Boolean)
          * 
-         * @implSpec implemented as {@code add( JolieNative.of( value ) )}
+         * @custom.implSpec implemented as {@code add( JolieNative.of( value ) )}
          */
         public ListBuilder add( Boolean value ) { return add( of( value ) ); }
 
@@ -423,7 +423,7 @@ public sealed interface JolieNative<T> extends ValueConverter {
          * @see AbstractListBuilder#add(Object)
          * @see JolieNative#of(Integer)
          * 
-         * @implSpec implemented as {@code add( JolieNative.of( value ) )}
+         * @custom.implSpec implemented as {@code add( JolieNative.of( value ) )}
          */
         public ListBuilder add( Integer value ) { return add( of( value ) ); }
 
@@ -437,7 +437,7 @@ public sealed interface JolieNative<T> extends ValueConverter {
          * @see AbstractListBuilder#add(Object)
          * @see JolieNative#of(Long)
          * 
-         * @implSpec implemented as {@code add( JolieNative.of( value ) )}
+         * @custom.implSpec implemented as {@code add( JolieNative.of( value ) )}
          */
         public ListBuilder add( Long value ) { return add( of( value ) ); }
 
@@ -451,7 +451,7 @@ public sealed interface JolieNative<T> extends ValueConverter {
          * @see AbstractListBuilder#add(Object)
          * @see JolieNative#of(Double)
          * 
-         * @implSpec implemented as {@code add( JolieNative.of( value ) )}
+         * @custom.implSpec implemented as {@code add( JolieNative.of( value ) )}
          */
         public ListBuilder add( Double value ) { return add( of( value ) ); }
 
@@ -465,7 +465,7 @@ public sealed interface JolieNative<T> extends ValueConverter {
          * @see AbstractListBuilder#add(Object)
          * @see JolieNative#of(String)
          * 
-         * @implSpec implemented as {@code add( JolieNative.of( value ) )}
+         * @custom.implSpec implemented as {@code add( JolieNative.of( value ) )}
          */
         public ListBuilder add( String value ) { return add( of( value ) ); }
 
@@ -479,7 +479,7 @@ public sealed interface JolieNative<T> extends ValueConverter {
          * @see AbstractListBuilder#add(Object)
          * @see JolieNative#of(ByteArray)
          * 
-         * @implSpec implemented as {@code add( JolieNative.of( value ) )}
+         * @custom.implSpec implemented as {@code add( JolieNative.of( value ) )}
          */
         public ListBuilder add( ByteArray value ) { return add( of( value ) ); }
     }

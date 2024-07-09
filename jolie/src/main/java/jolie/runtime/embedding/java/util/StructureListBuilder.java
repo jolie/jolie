@@ -6,7 +6,11 @@ import java.util.function.Supplier;
 import jolie.runtime.embedding.java.JolieValue;
 
 /**
- * Specialization of an {@link AbstractListBuilder} to build lists of {@link TypedStructure}s or {@link UntypedStructure}s.
+ * Specialization of an {@link AbstractListBuilder} to build lists of 
+ * {@link jolie.runtime.embedding.java.TypedStructure}s or {@link jolie.runtime.embedding.java.UntypedStructure}s.
+ * 
+ * @param <E> the type being built
+ * @param <B> the builder class of the type being built
  */
 public class StructureListBuilder<E extends JolieValue, B> extends AbstractListBuilder<StructureListBuilder<E,B>, E> {
 	

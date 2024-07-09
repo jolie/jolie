@@ -58,7 +58,7 @@ public interface JolieValue extends ValueConverter {
      * @return the nodes with the specified name, or 
      * {@code null} if this data tree contains no nodes with the name
      * 
-     * @apiNote equivalent to calling {@code children().get( name )}
+     * @custom.apiNote equivalent to calling {@code children().get( name )}
      * 
      * @see #children()
      * @see #getChildOrDefault(String, List)
@@ -78,7 +78,7 @@ public interface JolieValue extends ValueConverter {
      * @return the list of nodes with the specified name, or 
      * {@code defaultValue} if this data tree contains no nodes with the name
      * 
-     * @apiNote equivalent to calling {@code children().getOrDefault( name, defaultValue )}
+     * @custom.apiNote equivalent to calling {@code children().getOrDefault( name, defaultValue )}
      * 
      * @see #children()
      * @see #getChild(String)
@@ -121,7 +121,7 @@ public interface JolieValue extends ValueConverter {
      * 
      * @see #builder()
      * 
-     * @implSpec implemented as {@code builder().content( content )}
+     * @custom.implSpec implemented as {@code builder().content( content )}
      */
     public static InlineBuilder builder( JolieNative<?> content ) { return builder().content( content ); }
 
@@ -134,7 +134,7 @@ public interface JolieValue extends ValueConverter {
      * @see #builder(JolieNative)
      * @see JolieNative#of(Boolean)
      * 
-     * @implSpec implemented as {@code builder().content( JolieNative.of( contentValue ) )}
+     * @custom.implSpec implemented as {@code builder().content( JolieNative.of( contentValue ) )}
      */
     public static InlineBuilder builder( Boolean contentValue ) { return builder( JolieNative.of( contentValue ) ); }
 
@@ -147,7 +147,7 @@ public interface JolieValue extends ValueConverter {
      * @see #builder(JolieNative)
      * @see JolieNative#of(Integer)
      * 
-     * @implSpec implemented as {@code builder().content( JolieNative.of( contentValue ) )}
+     * @custom.implSpec implemented as {@code builder().content( JolieNative.of( contentValue ) )}
      */
     public static InlineBuilder builder( Integer contentValue ) { return builder( JolieNative.of( contentValue ) ); }
 
@@ -160,7 +160,7 @@ public interface JolieValue extends ValueConverter {
      * @see #builder(JolieNative)
      * @see JolieNative#of(Long)
      * 
-     * @implSpec implemented as {@code builder().content( JolieNative.of( contentValue ) )}
+     * @custom.implSpec implemented as {@code builder().content( JolieNative.of( contentValue ) )}
      */
     public static InlineBuilder builder( Long contentValue ) { return builder( JolieNative.of( contentValue ) ); }
 
@@ -173,7 +173,7 @@ public interface JolieValue extends ValueConverter {
      * @see #builder(JolieNative)
      * @see JolieNative#of(Double)
      * 
-     * @implSpec implemented as {@code builder().content( JolieNative.of( contentValue ) )}
+     * @custom.implSpec implemented as {@code builder().content( JolieNative.of( contentValue ) )}
      */
     public static InlineBuilder builder( Double contentValue ) { return builder( JolieNative.of( contentValue ) ); }
 
@@ -186,7 +186,7 @@ public interface JolieValue extends ValueConverter {
      * @see #builder(JolieNative)
      * @see JolieNative#of(String)
      * 
-     * @implSpec implemented as {@code builder().content( JolieNative.of( contentValue ) )}
+     * @custom.implSpec implemented as {@code builder().content( JolieNative.of( contentValue ) )}
      */
     public static InlineBuilder builder( String contentValue ) { return builder( JolieNative.of( contentValue ) ); }
 
@@ -199,7 +199,7 @@ public interface JolieValue extends ValueConverter {
      * @see #builder(JolieNative)
      * @see JolieNative#of(ByteArray)
      * 
-     * @implSpec implemented as {@code builder().content( JolieNative.of( contentValue ) )}
+     * @custom.implSpec implemented as {@code builder().content( JolieNative.of( contentValue ) )}
      */
     public static InlineBuilder builder( ByteArray contentValue ) { return builder( JolieNative.of( contentValue ) ); }
 
@@ -211,7 +211,7 @@ public interface JolieValue extends ValueConverter {
      * 
      * @see #builder()
      * 
-     * @implNote if {@code from} is not {@code null} then {@code builder( from ).build()} returns a new {@link JolieValue} that is equivalent to {@code from}, 
+     * @custom.implNote if {@code from} is not {@code null} then {@code builder( from ).build()} returns a new {@link JolieValue} that is equivalent to {@code from}, 
      * otherwise it returns an empty {@link JolieValue}
      */
     public static InlineBuilder builder( JolieValue from ) { return from != null ? new InlineBuilder( from ) : builder(); }
@@ -231,7 +231,7 @@ public interface JolieValue extends ValueConverter {
      * 
      * @see #listBuilder()
      * 
-     * @implNote if {@code from} is not {@code null} then {@code listBuilder( from ).build()} returns a new {@link List} that is equivalent to {@code from}, 
+     * @custom.implNote if {@code from} is not {@code null} then {@code listBuilder( from ).build()} returns a new {@link List} that is equivalent to {@code from}, 
      * otherwise it returns an empty {@link List}
      */
     public static InlineListBuilder listBuilder( SequencedCollection<? extends JolieValue> from ) { return from != null ? new InlineListBuilder( from ) : listBuilder(); }
@@ -261,7 +261,7 @@ public interface JolieValue extends ValueConverter {
      * @see #of(JolieNative)
      * @see JolieNative#of(Boolean)
      * 
-     * @implspec implemented as {@code of( JolieNative.of( contentValue ) )}
+     * @custom.implSpec implemented as {@code of( JolieNative.of( contentValue ) )}
      */
     public static JolieValue of( Boolean contentValue ) { return of( JolieNative.of( contentValue ) ); }
 
@@ -275,7 +275,7 @@ public interface JolieValue extends ValueConverter {
      * @see #of(JolieNative)
      * @see JolieNative#of(Integer)
      * 
-     * @implspec implemented as {@code of( JolieNative.of( contentValue ) )}
+     * @custom.implSpec implemented as {@code of( JolieNative.of( contentValue ) )}
      */
     public static JolieValue of( Integer contentValue ) { return of( JolieNative.of( contentValue ) ); }
 
@@ -289,7 +289,7 @@ public interface JolieValue extends ValueConverter {
      * @see #of(JolieNative)
      * @see JolieNative#of(Long)
      * 
-     * @implspec implemented as {@code of( JolieNative.of( contentValue ) )}
+     * @custom.implSpec implemented as {@code of( JolieNative.of( contentValue ) )}
      */
     public static JolieValue of( Long contentValue ) { return of( JolieNative.of( contentValue ) ); }
 
@@ -303,7 +303,7 @@ public interface JolieValue extends ValueConverter {
      * @see #of(JolieNative)
      * @see JolieNative#of(Double)
      * 
-     * @implspec implemented as {@code of( JolieNative.of( contentValue ) )}
+     * @custom.implSpec implemented as {@code of( JolieNative.of( contentValue ) )}
      */
     public static JolieValue of( Double contentValue ) { return of( JolieNative.of( contentValue ) ); }
 
@@ -317,7 +317,7 @@ public interface JolieValue extends ValueConverter {
      * @see #of(JolieNative)
      * @see JolieNative#of(String)
      * 
-     * @implspec implemented as {@code of( JolieNative.of( contentValue ) )}
+     * @custom.implSpec implemented as {@code of( JolieNative.of( contentValue ) )}
      */
     public static JolieValue of( String contentValue ) { return of( JolieNative.of( contentValue ) ); }
 
@@ -331,7 +331,7 @@ public interface JolieValue extends ValueConverter {
      * @see #of(JolieNative)
      * @see JolieNative#of(ByteArray)
      * 
-     * @implspec implemented as {@code of( JolieNative.of( contentValue ) )}
+     * @custom.implSpec implemented as {@code of( JolieNative.of( contentValue ) )}
      */
     public static JolieValue of( ByteArray contentValue ) { return of( JolieNative.of( contentValue ) ); }
 
@@ -343,7 +343,7 @@ public interface JolieValue extends ValueConverter {
      * @see #of(JolieNative)
      * @see JolieNative#of()
      * 
-     * @implspec implemented as {@code of( JolieNative.of() )}
+     * @custom.implSpec implemented as {@code of( JolieNative.of() )}
      */
     public static JolieValue of() { return of( JolieNative.of() ); }
 
@@ -393,7 +393,7 @@ public interface JolieValue extends ValueConverter {
          * @see #content(JolieNative)
          * @see JolieNative#of(Boolean)
          * 
-         * @implSpec implemented as {@code content( JolieNative.of( value ) )}
+         * @custom.implSpec implemented as {@code content( JolieNative.of( value ) )}
          */
         public B content( Boolean value ) { return content( JolieNative.of( value ) ); }
 
@@ -406,7 +406,7 @@ public interface JolieValue extends ValueConverter {
          * @see #content(JolieNative)
          * @see JolieNative#of(Integer)
          * 
-         * @implSpec implemented as {@code content( JolieNative.of( value ) )}
+         * @custom.implSpec implemented as {@code content( JolieNative.of( value ) )}
          */
         public B content( Integer value ) { return content( JolieNative.of( value ) ); }
 
@@ -419,7 +419,7 @@ public interface JolieValue extends ValueConverter {
          * @see #content(JolieNative)
          * @see JolieNative#of(Long)
          * 
-         * @implSpec implemented as {@code content( JolieNative.of( value ) )}
+         * @custom.implSpec implemented as {@code content( JolieNative.of( value ) )}
          */
         public B content( Long value ) { return content( JolieNative.of( value ) ); }
 
@@ -432,7 +432,7 @@ public interface JolieValue extends ValueConverter {
          * @see #content(JolieNative)
          * @see JolieNative#of(Double)
          * 
-         * @implSpec implemented as {@code content( JolieNative.of( value ) )}
+         * @custom.implSpec implemented as {@code content( JolieNative.of( value ) )}
          */
         public B content( Double value ) { return content( JolieNative.of( value ) ); }
 
@@ -445,7 +445,7 @@ public interface JolieValue extends ValueConverter {
          * @see #content(JolieNative)
          * @see JolieNative#of(String)
          * 
-         * @implSpec implemented as {@code content( JolieNative.of( value ) )}
+         * @custom.implSpec implemented as {@code content( JolieNative.of( value ) )}
          */
         public B content( String value ) { return content( JolieNative.of( value ) ); }
 
@@ -458,7 +458,7 @@ public interface JolieValue extends ValueConverter {
          * @see #content(JolieNative)
          * @see JolieNative#of(ByteArray)
          * 
-         * @implSpec implemented as {@code content( JolieNative.of( value ) )}
+         * @custom.implSpec implemented as {@code content( JolieNative.of( value ) )}
          */
         public B content( ByteArray value ) { return content( JolieNative.of( value ) ); }
 
@@ -470,7 +470,7 @@ public interface JolieValue extends ValueConverter {
          * 
          * @see #content(JolieNative)
          * 
-         * @implNote if {@code content} is the current content then this is equivalent to {@code content( operator.apply( content ) )}
+         * @custom.implNote if {@code content} is the current content then this is equivalent to {@code content( operator.apply( content ) )}
          */
         public B content( UnaryOperator<JolieNative<?>> operator ) { return content( operator.apply( content ) ); }
 
@@ -522,10 +522,10 @@ public interface JolieValue extends ValueConverter {
          * @param contentEntry element to be appended to the list being built
          * @return this builder
          * 
-         * @see AbstractListBuilder#add(JolieValue)
+         * @see jolie.runtime.embedding.java.util.AbstractListBuilder#add(Object)
          * @see JolieValue#of(JolieNative)
          * 
-         * @implSpec implemented as {@code add( JolieValue.of( contentEntry ) )}
+         * @custom.implSpec implemented as {@code add( JolieValue.of( contentEntry ) )}
          */
         public B add( JolieNative<?> contentEntry ) { return add( JolieValue.of( contentEntry ) ); }
 
@@ -539,7 +539,7 @@ public interface JolieValue extends ValueConverter {
          * @see #add(JolieNative)
          * @see JolieNative#of(Boolean)
          * 
-         * @implSpec implemented as {@code add( JolieNative.of( contentEntry ) )}
+         * @custom.implSpec implemented as {@code add( JolieNative.of( contentEntry ) )}
          */
         public B add( Boolean valueEntry ) { return add( JolieNative.of( valueEntry ) ); }
 
@@ -553,7 +553,7 @@ public interface JolieValue extends ValueConverter {
          * @see #add(JolieNative)
          * @see JolieNative#of(Integer)
          * 
-         * @implSpec implemented as {@code add( JolieNative.of( contentEntry ) )}
+         * @custom.implSpec implemented as {@code add( JolieNative.of( contentEntry ) )}
          */
         public B add( Integer valueEntry ) { return add( JolieNative.of( valueEntry ) ); }
 
@@ -567,7 +567,7 @@ public interface JolieValue extends ValueConverter {
          * @see #add(JolieNative)
          * @see JolieNative#of(Long)
          * 
-         * @implSpec implemented as {@code add( JolieNative.of( contentEntry ) )}
+         * @custom.implSpec implemented as {@code add( JolieNative.of( contentEntry ) )}
          */
         public B add( Long valueEntry ) { return add( JolieNative.of( valueEntry ) ); }
 
@@ -581,7 +581,7 @@ public interface JolieValue extends ValueConverter {
          * @see #add(JolieNative)
          * @see JolieNative#of(Double)
          * 
-         * @implSpec implemented as {@code add( JolieNative.of( contentEntry ) )}
+         * @custom.implSpec implemented as {@code add( JolieNative.of( contentEntry ) )}
          */
         public B add( Double valueEntry ) { return add( JolieNative.of( valueEntry ) ); }
 
@@ -595,7 +595,7 @@ public interface JolieValue extends ValueConverter {
          * @see #add(JolieNative)
          * @see JolieNative#of(String)
          * 
-         * @implSpec implemented as {@code add( JolieNative.of( contentEntry ) )}
+         * @custom.implSpec implemented as {@code add( JolieNative.of( contentEntry ) )}
          */
         public B add( String valueEntry ) { return add( JolieNative.of( valueEntry ) ); }
 
@@ -609,7 +609,7 @@ public interface JolieValue extends ValueConverter {
          * @see #add(JolieNative)
          * @see JolieNative#of(ByteArray)
          * 
-         * @implSpec implemented as {@code add( JolieNative.of( contentEntry ) )}
+         * @custom.implSpec implemented as {@code add( JolieNative.of( contentEntry ) )}
          */
         public B add( ByteArray valueEntry ) { return add( JolieNative.of( valueEntry ) ); }
         
@@ -628,7 +628,7 @@ public interface JolieValue extends ValueConverter {
          * 
          * @see #builder()
          * 
-         * @implSpec implemented as {@code builder().content( content )}
+         * @custom.implSpec implemented as {@code builder().content( content )}
          */
         public NestedBuilder<B> builder( JolieNative<?> content ) { return builder().content( content ); }
 
@@ -641,7 +641,7 @@ public interface JolieValue extends ValueConverter {
          * @see #builder(JolieNative)
          * @see JolieNative#of(Boolean)
          * 
-         * @implSpec implemented as {@code builder( JolieNative.of( contentValue ) )}
+         * @custom.implSpec implemented as {@code builder( JolieNative.of( contentValue ) )}
          */
         public NestedBuilder<B> builder( Boolean contentValue ) { return builder( JolieNative.of( contentValue ) ); }
 
@@ -654,7 +654,7 @@ public interface JolieValue extends ValueConverter {
          * @see #builder(JolieNative)
          * @see JolieNative#of(Integer)
          * 
-         * @implSpec implemented as {@code builder( JolieNative.of( contentValue ) )}
+         * @custom.implSpec implemented as {@code builder( JolieNative.of( contentValue ) )}
          */
         public NestedBuilder<B> builder( Integer contentValue ) { return builder( JolieNative.of( contentValue ) ); }
 
@@ -667,7 +667,7 @@ public interface JolieValue extends ValueConverter {
          * @see #builder(JolieNative)
          * @see JolieNative#of(Long)
          * 
-         * @implSpec implemented as {@code builder( JolieNative.of( contentValue ) )}
+         * @custom.implSpec implemented as {@code builder( JolieNative.of( contentValue ) )}
          */
         public NestedBuilder<B> builder( Long contentValue ) { return builder( JolieNative.of( contentValue ) ); }
 
@@ -680,7 +680,7 @@ public interface JolieValue extends ValueConverter {
          * @see #builder(JolieNative)
          * @see JolieNative#of(Double)
          * 
-         * @implSpec implemented as {@code builder( JolieNative.of( contentValue ) )}
+         * @custom.implSpec implemented as {@code builder( JolieNative.of( contentValue ) )}
          */
         public NestedBuilder<B> builder( Double contentValue ) { return builder( JolieNative.of( contentValue ) ); }
 
@@ -693,7 +693,7 @@ public interface JolieValue extends ValueConverter {
          * @see #builder(JolieNative)
          * @see JolieNative#of(String)
          * 
-         * @implSpec implemented as {@code builder( JolieNative.of( contentValue ) )}
+         * @custom.implSpec implemented as {@code builder( JolieNative.of( contentValue ) )}
          */
         public NestedBuilder<B> builder( String contentValue ) { return builder( JolieNative.of( contentValue ) ); }
 
@@ -706,7 +706,7 @@ public interface JolieValue extends ValueConverter {
          * @see #builder(JolieNative)
          * @see JolieNative#of(ByteArray)
          * 
-         * @implSpec implemented as {@code builder( JolieNative.of( contentValue ) )}
+         * @custom.implSpec implemented as {@code builder( JolieNative.of( contentValue ) )}
          */
         public NestedBuilder<B> builder( ByteArray contentValue ) { return builder( JolieNative.of( contentValue ) ); }
 
@@ -717,7 +717,7 @@ public interface JolieValue extends ValueConverter {
          * @param from the node that should serve as the starting point for the returned builder
          * @return a {@link JolieValue.NestedBuilder} that can be used to build the node that should be added to the list being built
          * 
-         * @implNote when {@code from} is not {@code null} calling {@code builder( from ).done()} is equivalent to {@code add( from )}
+         * @custom.implNote when {@code from} is not {@code null} calling {@code builder( from ).done()} is equivalent to {@code add( from )}
          * otherwise it is equivalent to {@code builder().done()}
          */
         public NestedBuilder<B> builder( JolieValue from ) { return from != null ? nestedBuilder( from, this::add ) : builder(); }
@@ -741,7 +741,7 @@ public interface JolieValue extends ValueConverter {
          * 
          * @see #rebuilder(int)
          * 
-         * @implNote implemented as {@code rebuilder( index ).content( contentOperator )}
+         * @custom.implNote implemented as {@code rebuilder( index ).content( contentOperator )}
          */
         public NestedBuilder<B> rebuilder( int index, UnaryOperator<JolieNative<?>> contentOperator ) { return rebuilder( index ).content( contentOperator ); }
     }

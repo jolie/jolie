@@ -27,11 +27,11 @@ public abstract class UntypedBuilder<B> {
 	 * @param <T> the type returned by the given function
 	 * @param f the function to apply to this Builder
 	 * @return the result of applying the given function {@code f} to this Builder
-	 * @apiNote The following is an example of using this method to make populating the builder easier:
+	 * @custom.apiNote The following is an example of using this method to make populating the builder easier:
 	 * <pre>
 	 * JolieValue.builder()
 	 * 		.chain( b -> {
-	 * 			for ( int i = 0; i < 10; i++ )
+	 * 			for ( int i = 0; i {@literal <} 10; i++ )
 	 * 				b.putAs( "field" + i, i );
 	 * 			return b;
 	 * 		} )
@@ -65,7 +65,7 @@ public abstract class UntypedBuilder<B> {
      * 
      * @see #put(String,SequencedCollection)
      * 
-     * @implNote if {@code childEntry} isn't {@code null} then this equivalent to {@code put( name, List.of( childEntry ) )}
+     * @custom.implNote if {@code childEntry} isn't {@code null} then this equivalent to {@code put( name, List.of( childEntry ) )}
      */
     public final B putAs( String name, JolieValue childEntry ) {
         if ( childEntry != null )
@@ -83,7 +83,7 @@ public abstract class UntypedBuilder<B> {
      * 
      * @see #putAs(String,JolieValue)
      * 
-     * @implSpec implemented as {@code putAs( name, JolieValue.of( contentEntry ) )}
+     * @custom.implSpec implemented as {@code putAs( name, JolieValue.of( contentEntry ) )}
      */
     public final B putAs( String name, JolieNative<?> contentEntry ) { return putAs( name, JolieValue.of( contentEntry ) ); }
 
@@ -96,7 +96,7 @@ public abstract class UntypedBuilder<B> {
      * 
      * @see #putAs(String,JolieNative)
      * 
-     * @implSpec implemented as {@code putAs( name, JolieNative.of( valueEntry ) )}
+     * @custom.implSpec implemented as {@code putAs( name, JolieNative.of( valueEntry ) )}
      */
     public final B putAs( String name, Boolean valueEntry ) { return putAs( name, JolieNative.of( valueEntry ) ); }
 
@@ -109,7 +109,7 @@ public abstract class UntypedBuilder<B> {
      * 
      * @see #putAs(String,JolieNative)
      * 
-     * @implSpec implemented as {@code putAs( name, JolieNative.of( valueEntry ) )}
+     * @custom.implSpec implemented as {@code putAs( name, JolieNative.of( valueEntry ) )}
      */
     public final B putAs( String name, Integer valueEntry ) { return putAs( name, JolieNative.of( valueEntry ) ); }
 
@@ -122,7 +122,7 @@ public abstract class UntypedBuilder<B> {
      * 
      * @see #putAs(String,JolieNative)
      * 
-     * @implSpec implemented as {@code putAs( name, JolieNative.of( valueEntry ) )}
+     * @custom.implSpec implemented as {@code putAs( name, JolieNative.of( valueEntry ) )}
      */
     public final B putAs( String name, Long valueEntry ) { return putAs( name, JolieNative.of( valueEntry ) ); }
 
@@ -135,7 +135,7 @@ public abstract class UntypedBuilder<B> {
      * 
      * @see #putAs(String,JolieNative)
      * 
-     * @implSpec implemented as {@code putAs( name, JolieNative.of( valueEntry ) )}
+     * @custom.implSpec implemented as {@code putAs( name, JolieNative.of( valueEntry ) )}
      */
     public final B putAs( String name, Double valueEntry ) { return putAs( name, JolieNative.of( valueEntry ) ); }
 
@@ -148,7 +148,7 @@ public abstract class UntypedBuilder<B> {
      * 
      * @see #putAs(String,JolieNative)
      * 
-     * @implSpec implemented as {@code putAs( name, JolieNative.of( valueEntry ) )}
+     * @custom.implSpec implemented as {@code putAs( name, JolieNative.of( valueEntry ) )}
      */
     public final B putAs( String name, String valueEntry ) { return putAs( name, JolieNative.of( valueEntry ) ); }
 
@@ -161,7 +161,7 @@ public abstract class UntypedBuilder<B> {
      * 
      * @see #putAs(String,JolieNative)
      * 
-     * @implSpec implemented as {@code putAs( name, JolieNative.of( valueEntry ) )}
+     * @custom.implSpec implemented as {@code putAs( name, JolieNative.of( valueEntry ) )}
      */
     public final B putAs( String name, ByteArray valueEntry ) { return putAs( name, JolieNative.of( valueEntry ) ); }
 
@@ -200,7 +200,7 @@ public abstract class UntypedBuilder<B> {
      * 
      * @see #builder(String)
      * 
-     * @implSpec implemented as {@code builder( name ).content( content )}
+     * @custom.implSpec implemented as {@code builder( name ).content( content )}
      */
     public final JolieValue.NestedBuilder<B> builder( String name, JolieNative<?> content ) { return builder( name ).content( content ); }
 
@@ -213,7 +213,7 @@ public abstract class UntypedBuilder<B> {
      * 
      * @see #builder(String,JolieNative)
      * 
-     * @implSpec implemented as {@code builder( name, JolieNative.of( content ) )}
+     * @custom.implSpec implemented as {@code builder( name, JolieNative.of( content ) )}
      */
     public final JolieValue.NestedBuilder<B> builder( String name, Boolean contentValue ) { return builder( name, JolieNative.of( contentValue ) ); }
 
@@ -226,7 +226,7 @@ public abstract class UntypedBuilder<B> {
      * 
      * @see #builder(String,JolieNative)
      * 
-     * @implSpec implemented as {@code builder( name, JolieNative.of( content ) )}
+     * @custom.implSpec implemented as {@code builder( name, JolieNative.of( content ) )}
      */
     public final JolieValue.NestedBuilder<B> builder( String name, Integer contentValue ) { return builder( name, JolieNative.of( contentValue ) ); }
 
@@ -239,7 +239,7 @@ public abstract class UntypedBuilder<B> {
      * 
      * @see #builder(String,JolieNative)
      * 
-     * @implSpec implemented as {@code builder( name, JolieNative.of( content ) )}
+     * @custom.implSpec implemented as {@code builder( name, JolieNative.of( content ) )}
      */
     public final JolieValue.NestedBuilder<B> builder( String name, Long contentValue ) { return builder( name, JolieNative.of( contentValue ) ); }
 
@@ -252,7 +252,7 @@ public abstract class UntypedBuilder<B> {
      * 
      * @see #builder(String,JolieNative)
      * 
-     * @implSpec implemented as {@code builder( name, JolieNative.of( content ) )}
+     * @custom.implSpec implemented as {@code builder( name, JolieNative.of( content ) )}
      */
     public final JolieValue.NestedBuilder<B> builder( String name, Double contentValue ) { return builder( name, JolieNative.of( contentValue ) ); }
 
@@ -265,7 +265,7 @@ public abstract class UntypedBuilder<B> {
      * 
      * @see #builder(String,JolieNative)
      * 
-     * @implSpec implemented as {@code builder( name, JolieNative.of( content ) )}
+     * @custom.implSpec implemented as {@code builder( name, JolieNative.of( content ) )}
      */
     public final JolieValue.NestedBuilder<B> builder( String name, String contentValue ) { return builder( name, JolieNative.of( contentValue ) ); }
 
@@ -278,7 +278,7 @@ public abstract class UntypedBuilder<B> {
      * 
      * @see #builder(String,JolieNative)
      * 
-     * @implSpec implemented as {@code builder( name, JolieNative.of( content ) )}
+     * @custom.implSpec implemented as {@code builder( name, JolieNative.of( content ) )}
      */
     public final JolieValue.NestedBuilder<B> builder( String name, ByteArray contentValue ) { return builder( name, JolieNative.of( contentValue ) ); }
 
@@ -292,7 +292,7 @@ public abstract class UntypedBuilder<B> {
      * 
      * @see #builder(String,JolieNative)
      * 
-     * @implNote calling {@code builder( name, from ).done()} will result in the node with the specified name being equivalent to {@code from}
+     * @custom.implNote calling {@code builder( name, from ).done()} will result in the node with the specified name being equivalent to {@code from}
      */
     public final JolieValue.NestedBuilder<B> builder( String name, JolieValue from ) { return JolieValue.nestedBuilder( from, e -> putAs( name, e ) ); }
 
@@ -305,7 +305,7 @@ public abstract class UntypedBuilder<B> {
      * 
      * @see #listBuilder(String,SequencedCollection)
      * 
-     * @implNote if {@code from} is the non-empty collection of nodes currently mapped to the specified name then this is equivalent to {@code listBuilder( name, from )}
+     * @custom.implNote if {@code from} is the non-empty collection of nodes currently mapped to the specified name then this is equivalent to {@code listBuilder( name, from )}
      * otherwise it is equivalent to {@code listBuilder( name )}
      */
     public final JolieValue.NestedListBuilder<B> listRebuilder( String name ) { return listBuilder( name, children.getOrDefault( name, List.of() ) ); }
@@ -319,7 +319,7 @@ public abstract class UntypedBuilder<B> {
      * 
      * @see #builder(String,JolieValue)
      * 
-     * @implNote if {@code from} is the non-empty collection of nodes currently mapped to the specified name then this is equivalent to {@code builder( name, from.getFirst() )}
+     * @custom.implNote if {@code from} is the non-empty collection of nodes currently mapped to the specified name then this is equivalent to {@code builder( name, from.getFirst() )}
      * otherwise it is equivalent to {@code builder( name )}
      */
     public final JolieValue.NestedBuilder<B> rebuilder( String name ) { 
@@ -335,7 +335,7 @@ public abstract class UntypedBuilder<B> {
      * @param name name of the nodes being computed
      * @param remappingFunction the function to compute the nodes.
      * @return this builder
-     * @implNote {@code null} is provided as the nodes when no nodes with the specified names exist
+     * @custom.implNote {@code null} is provided as the nodes when no nodes with the specified names exist
      */
     public final B compute( String name, BiFunction<? super String, ? super List<JolieValue>, ? extends SequencedCollection<? extends JolieValue>> remappingFunction ) {
         children.compute( name, remappingFunction.andThen( ls -> ls == null ? null : makeChild( ls ) ) );
@@ -348,7 +348,7 @@ public abstract class UntypedBuilder<B> {
      * @param name name of the node being computed
      * @param remappingFunction the function to compute the node.
      * @return this builder
-     * @implNote {@code null} is provided as the node when no nodes with the specified names exist, and
+     * @custom.implNote {@code null} is provided as the node when no nodes with the specified names exist, and
      * if multiple nodes with the specified name existed previously the first one will be provided and only the computed node will have the specified name afterwards
      */
     public final B computeAs( String name, BiFunction<? super String, ? super JolieValue, ? extends JolieValue> remappingFunction ) {

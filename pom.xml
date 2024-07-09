@@ -81,6 +81,30 @@
 					<artifactId>maven-compiler-plugin</artifactId>
 					<version>3.8.1</version>
 				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-javadoc-plugin</artifactId>
+					<version>2.10.4</version>
+					<configuration>
+						<tags>
+							<tag>
+								<name>custom.apiNote</name>
+								<placement>a</placement>
+								<head>API Note:</head>
+							</tag>
+							<tag>
+								<name>custom.implSpec</name>
+								<placement>a</placement>
+								<head>Implementation Requirements:</head>
+							</tag>
+							<tag>
+								<name>custom.implNote</name>
+								<placement>a</placement>
+								<head>Implementation Note:</head>
+							</tag>
+						</tags>
+					</configuration>
+				</plugin>
 			</plugins>
 		</pluginManagement>
 		<plugins>
@@ -432,7 +456,6 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-javadoc-plugin</artifactId>
-						<version>2.10.4</version>
 						<executions>
 							<execution>
 								<id>attach-javadocs</id>
