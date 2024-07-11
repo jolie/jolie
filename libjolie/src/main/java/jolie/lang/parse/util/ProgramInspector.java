@@ -36,48 +36,48 @@ import jolie.lang.parse.ast.types.TypeDefinition;
  * A {@code ProgramInspector} offers methods for accessing the data structures of a
  * {@link jolie.lang.parse.ast.Program} easily. For instance, it is possible to obtain directly the
  * list of interfaces and ports defined in the referred JOLIE program.
- * 
+ *
  * @author Fabrizio Montesi
  */
 public interface ProgramInspector {
 	/**
 	 * Returns an array with all the sources parsed for generating the program.
-	 * 
+	 *
 	 * @return an array with all the sources parsed for generating the program
 	 */
 	URI[] getSources();
 
 	/**
 	 * Returns an array of all the interfaces defined in the program.
-	 * 
+	 *
 	 * @return an array of all the interfaces defined in the program
 	 */
 	InterfaceDefinition[] getInterfaces();
 
 	/**
 	 * Returns an array of all the input ports defined in the program.
-	 * 
+	 *
 	 * @return an array of all the input ports defined in the program
 	 */
 	InputPortInfo[] getInputPorts();
 
 	/**
 	 * Returns an array of all the output ports defined in the program.
-	 * 
+	 *
 	 * @return an array of all the output ports defined in the program
 	 */
 	OutputPortInfo[] getOutputPorts();
 
 	/**
 	 * Returns an array of all the types defined in the program.
-	 * 
+	 *
 	 * @return an array of all the types defined in the program
 	 */
 	TypeDefinition[] getTypes();
 
 	/**
 	 * Returns an array of all the input ports defined in the specified source.
-	 * 
+	 *
 	 * @param source the target source
 	 * @return an array of all the input ports defined in the specified source
 	 */
@@ -85,7 +85,7 @@ public interface ProgramInspector {
 
 	/**
 	 * Returns an array of all the output ports defined in the specified source.
-	 * 
+	 *
 	 * @param source the target source
 	 * @return an array of all the output ports defined in the specified source
 	 */
@@ -93,7 +93,7 @@ public interface ProgramInspector {
 
 	/**
 	 * Returns an array of all the interfaces defined in the specified source.
-	 * 
+	 *
 	 * @param source the target source
 	 * @return an array of all the interfaces defined in the specified source
 	 */
@@ -101,7 +101,7 @@ public interface ProgramInspector {
 
 	/**
 	 * Returns an array of all the types defined in the specified source.
-	 * 
+	 *
 	 * @param source the target source
 	 * @return an array of all the types defined in the specified source
 	 */
@@ -109,7 +109,7 @@ public interface ProgramInspector {
 
 	/**
 	 * Returns an array of all the embedded service nodes in the specified source.
-	 * 
+	 *
 	 * @param source the target source
 	 * @return an array of all the embedded service nodes defined in the specified source
 	 */
@@ -117,7 +117,7 @@ public interface ProgramInspector {
 
 	/**
 	 * Returns an array of all the embedded service nodes defined in the program.
-	 * 
+	 *
 	 * @return an array of all the embedded service nodes defined in the program
 	 */
 	EmbeddedServiceNode[] getEmbeddedServices();

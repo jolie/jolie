@@ -28,7 +28,7 @@ import java.util.Objects;
  * MetadataKey and the values can be of any type. It provides methods to put, get, check for the
  * existence of, and remove key-value pairs. Metadata keys (see {@link MetadataKey}) are used to
  * ensure type safety.
- * 
+ *
  * @author Fabrizio Montesi
  */
 public final class Metadata {

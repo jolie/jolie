@@ -29,7 +29,7 @@ import jolie.runtime.expression.Expression;
 /**
  * Divide a VariablePath's value with an expression value, assigning the resulting value to the
  * VariablePath.
- * 
+ *
  * @see Expression
  * @see VariablePath
  * @author Karoly Szanto

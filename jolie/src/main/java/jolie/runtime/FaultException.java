@@ -28,7 +28,7 @@ import jolie.lang.Constants;
 
 /**
  * Java representation for a Jolie fault.
- * 
+ *
  * @author Fabrizio Montesi
  */
 public class FaultException extends Exception {
@@ -41,7 +41,7 @@ public class FaultException extends Exception {
 	 * {@code FaultException( faultName, Value.create( t.getMessage() ) )}, but it also adds a
 	 * {@code stackTrace} subnode to the value of this fault containing the stack trace of the passed
 	 * {@link Throwable} t.
-	 * 
+	 *
 	 * @param faultName the name of the fault
 	 * @param t the {@link Throwable} whose message and stack trace should be read
 	 */
@@ -54,7 +54,7 @@ public class FaultException extends Exception {
 
 	/**
 	 * Constructor. Shortcut for {@code FaultException( t.getClass().getSimpleName(), t )}.
-	 * 
+	 *
 	 * @param t
 	 */
 	public FaultException( Throwable t ) {
@@ -63,7 +63,7 @@ public class FaultException extends Exception {
 
 	/**
 	 * Constructor. Shortcut for {@code FaultException( faultName, Value.create( message ) )}
-	 * 
+	 *
 	 * @param faultName
 	 * @param message
 	 */
@@ -73,7 +73,7 @@ public class FaultException extends Exception {
 
 	/**
 	 * Constructor.
-	 * 
+	 *
 	 * @param faultName the name of the fault
 	 * @param value the {@link Value} containing the fault data
 	 */
@@ -85,7 +85,7 @@ public class FaultException extends Exception {
 
 	/**
 	 * Constructor. Shortcut for {@code FaultException( faultName, Value.create() )}
-	 * 
+	 *
 	 * @param faultName
 	 */
 	public FaultException( String faultName ) {
@@ -103,7 +103,7 @@ public class FaultException extends Exception {
 
 	/**
 	 * Returns the {@link Value} of this fault.
-	 * 
+	 *
 	 * @return the {@link Value} of this fault.
 	 */
 	public Value value() {
@@ -112,7 +112,7 @@ public class FaultException extends Exception {
 
 	/**
 	 * Returns the name of this fault instance.
-	 * 
+	 *
 	 * @return the name of this fault instance
 	 */
 	public String faultName() {

@@ -25,7 +25,7 @@ import jolie.lang.Constants;
 
 /**
  * Thrown by Interpreter if the interpretation tree could not be built.
- * 
+ *
  * @author Fabrizio Montesi
  */
 public class InterpreterException extends Exception {
@@ -33,7 +33,7 @@ public class InterpreterException extends Exception {
 
 	/**
 	 * Constructor
-	 * 
+	 *
 	 * @param message the message of this <code>InterpreterException</code>
 	 */
 	public InterpreterException( String message ) {
@@ -42,7 +42,7 @@ public class InterpreterException extends Exception {
 
 	/**
 	 * Constructor
-	 * 
+	 *
 	 * @param cause the <code>Throwable</code> that caused this <code>InterpreterException</code>
 	 */
 	public InterpreterException( Throwable cause ) {
@@ -51,7 +51,7 @@ public class InterpreterException extends Exception {
 
 	/**
 	 * Constructor
-	 * 
+	 *
 	 * @param message the message of this <code>InterpreterException</code>
 	 * @param cause the <code>Throwable</code> that caused this <code>InterpreterException</code>
 	 */

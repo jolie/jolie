@@ -31,7 +31,7 @@ import jolie.net.ports.OutputPort;
 
 /**
  * A <code>CommChannelFactory</code> using TCP/IP sockets as backend.
- * 
+ *
  * @author Fabrizio Montesi
  */
 public class SocketCommChannelFactory extends CommChannelFactory {

@@ -32,7 +32,7 @@ import jolie.tracer.Tracer;
 
 /**
  * Assigns an expression value to a VariablePath.
- * 
+ *
  * @see Expression
  * @see VariablePath
  * @author Fabrizio Montesi
@@ -44,7 +44,7 @@ public class AssignmentProcess implements Process, Expression {
 
 	/**
 	 * Constructor.
-	 * 
+	 *
 	 * @param varPath the variable which will receive the value
 	 * @param expression the expression of which the evaluation will be stored in the variable
 	 */

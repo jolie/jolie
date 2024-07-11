@@ -88,7 +88,7 @@ public class ModuleFinderImpl implements ModuleFinder {
 		/**
 		 * Given WDIR = current working directory P = importing tokens FIRST = first token of import path
 		 * REST = the rest of importing tokens
-		 * 
+		 *
 		 * 1. Check if FIRST.jap is in WDIR/lib. If so, resolve REST inside of it. 2. Try to resolve P from
 		 * the packages directory, up one level, until system root 3. Try to resolve P from the list of
 		 * packages directories passing through -p flag.
@@ -133,7 +133,7 @@ public class ModuleFinderImpl implements ModuleFinder {
 
 	/**
 	 * Perform a lookup for Jolie's executable source code (.ol file)
-	 * 
+	 *
 	 * @param basePath path to perform lookup
 	 * @param importPath import target
 	 *
@@ -156,7 +156,7 @@ public class ModuleFinderImpl implements ModuleFinder {
 	/**
 	 * Perform a lookup for Jolie's executable source code (.ol file) at `packages` folder for each
 	 * parent directory from basePath.
-	 * 
+	 *
 	 * @param basePath a path to perform lookup
 	 *
 	 * @return source object to be parsed by module parser.

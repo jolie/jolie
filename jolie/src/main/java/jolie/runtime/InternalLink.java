@@ -34,7 +34,7 @@ import jolie.process.LinkInProcess;
 
 /**
  * Internal synchronization link for parallel processes.
- * 
+ *
  * @author Fabrizio Montesi
  */
 public class InternalLink extends AbstractIdentifiableObject {

@@ -60,7 +60,7 @@ import jolie.runtime.ValueVector;
 
 /**
  * Utilities for interactions and transformations with XML.
- * 
+ *
  * @author Fabrizio Montesi
  */
 public class XmlUtils {
@@ -72,7 +72,7 @@ public class XmlUtils {
 
 	/**
 	 * Transforms a jolie.Value object to an XML Document instance preserving types.
-	 * 
+	 *
 	 * @see Document
 	 * @param value the source Value
 	 * @param rootNodeName the name to give to the root node of the document
@@ -87,7 +87,7 @@ public class XmlUtils {
 
 	/**
 	 * Transforms a jolie.Value object to an XML Document instance.
-	 * 
+	 *
 	 * @see Document
 	 * @param value the source Value
 	 * @param rootNodeName the name to give to the root node of the document
@@ -101,7 +101,7 @@ public class XmlUtils {
 
 	/**
 	 * Transforms a jolie.Value object to an XML Document instance.
-	 * 
+	 *
 	 * @see Document
 	 * @param value the source Value
 	 * @param element the root element where to start
@@ -192,7 +192,7 @@ public class XmlUtils {
 	/**
 	 * Transforms a jolie.Value object to an XML Document instance following a given XML Type
 	 * Definition.
-	 * 
+	 *
 	 * @see Document
 	 * @param value the source Value
 	 * @param rootNodeName the name to give to the root node of the document.
@@ -450,7 +450,7 @@ public class XmlUtils {
 
 	/**
 	 * Transforms an XML Document to a Value representation
-	 * 
+	 *
 	 * @see Document
 	 * @param document the source XML document
 	 * @param value the Value receiving the JOLIE representation of document
@@ -515,7 +515,7 @@ public class XmlUtils {
 
 	/*
 	 * author Claudio Guidi 7/1/2011
-	 * 
+	 *
 	 * @return the type of the JOLIE_TYPE
 	 */
 	private static String insertAttributesForStoring( Value value, Node node ) {

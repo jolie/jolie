@@ -58,7 +58,7 @@ import java.util.regex.Pattern;
 
 /**
  * Handles the communications mechanisms for an Interpreter instance.
- * 
+ *
  * Each CommCore is related to an Interpreter, and each Interpreter owns one and only CommCore
  * instance.
  *
@@ -78,7 +78,7 @@ public class CommCore {
 
 	/**
 	 * Returns the Interpreter instance this CommCore refers to.
-	 * 
+	 *
 	 * @return the Interpreter instance this CommCore refers to
 	 */
 	public Interpreter interpreter() {
@@ -87,7 +87,7 @@ public class CommCore {
 
 	/**
 	 * Constructor.
-	 * 
+	 *
 	 * @param interpreter the Interpreter to refer to for this CommCore operations
 	 * @param connectionsLimit if more than zero, specifies an upper bound to the connections handled in
 	 *        parallel.
@@ -133,7 +133,7 @@ public class CommCore {
 
 	/**
 	 * Returns the Logger used by this CommCore.
-	 * 
+	 *
 	 * @return the Logger used by this CommCore
 	 */
 	public Logger logger() {
@@ -142,7 +142,7 @@ public class CommCore {
 
 	/**
 	 * Returns the connectionsLimit of this CommCore.
-	 * 
+	 *
 	 * @return the connectionsLimit of this CommCore
 	 */
 	public int connectionsLimit() {
@@ -266,7 +266,7 @@ public class CommCore {
 
 	/**
 	 * Adds an input port to this <code>CommCore</code>. This method is not thread-safe.
-	 * 
+	 *
 	 * @param inputPort the {@link InputPort} to add
 	 * @param protocolFactory the <code>CommProtocolFactory</code> to use for the input port
 	 * @param protocolConfigurationProcess the protocol configuration process to execute for configuring
@@ -522,7 +522,7 @@ public class CommCore {
 
 	/**
 	 * Schedules the receiving of a message on this <code>CommCore</code> instance.
-	 * 
+	 *
 	 * @param channel the <code>CommChannel</code> to use for receiving the message
 	 * @param port the <code>Port</code> responsible for the message receiving
 	 */
@@ -634,7 +634,7 @@ public class CommCore {
 	/**
 	 * Registers a <code>CommChannel</code> for input polling. The registered channel must implement the
 	 * {@link PollableCommChannel <code>PollableCommChannel</code>} interface.
-	 * 
+	 *
 	 * @param channel the channel to register for polling
 	 * @throws java.io.IOException in case the channel could not be registered for polling
 	 * @see CommChannel
@@ -815,7 +815,7 @@ public class CommCore {
 		selectorThreads()[ i ].register( channel, i );
 		/*
 		 * final TimeoutHandler handler = new TimeoutHandler( interpreter.persistentConnectionTimeout() ) {
-		 * 
+		 *
 		 * @Override public void onTimeout() { try { if ( isSelecting( channel ) ) {
 		 * selectorThread().unregister( channel ); channel.setToBeClosed( true ); channel.close(); } }
 		 * catch( IOException e ) { interpreter.logSevere( e ); } } }; channel.setSelectionTimeoutHandler(

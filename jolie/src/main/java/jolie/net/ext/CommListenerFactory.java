@@ -30,7 +30,7 @@ import jolie.net.ports.InputPort;
 
 /**
  * A factory for delegating the creation of communication listeners to extensions.
- * 
+ *
  * @author Fabrizio Montesi
  */
 public abstract class CommListenerFactory {
@@ -46,7 +46,7 @@ public abstract class CommListenerFactory {
 
 	/**
 	 * Creates and returns a valid communication listener.
-	 * 
+	 *
 	 * @param interpreter the interpreter to refer to
 	 * @param protocolFactory the protocol factory the listener has to use
 	 * @param inputPort the input port for this listener

@@ -818,7 +818,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Pr
 					 * if( hasParameter( "header") ) { if ( getParameterFirstValue( "header" ).hasChildren() ) { //
 					 * Prepare SOAP Header getting data from parameter .header SOAPHeader soapHeader =
 					 * soapEnvelope.getHeader();
-					 * 
+					 *
 					 * } }
 					 */
 					SOAPBodyElement opBody = soapBody.addBodyElement( operationName );

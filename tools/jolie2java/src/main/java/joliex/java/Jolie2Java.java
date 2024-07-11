@@ -19,28 +19,32 @@ public class Jolie2Java {
 
 	public static void main( String[] args ) {
 		try {
-			final Jolie2JavaCommandLineParser cmdParser = Jolie2JavaCommandLineParser.create( args, Jolie2Java.class.getClassLoader() );
+			final Jolie2JavaCommandLineParser cmdParser =
+				Jolie2JavaCommandLineParser.create( args, Jolie2Java.class.getClassLoader() );
 			final ProgramInspector inspector = getInspector( cmdParser );
 			final JavaDocumentCreator jdc = new JavaDocumentCreator(
 				cmdParser.outputDirectory(),
 				cmdParser.sourcesPackage(),
-				cmdParser.overwriteServices()
-			);
+				cmdParser.overwriteServices() );
 
-			switch ( cmdParser.translationTarget() ) {
-				case 1 -> jdc.translateInterfaces( inspector );
-				case 2 -> jdc.translateTypes( inspector );
-				default -> jdc.translateServices( inspector );
+			switch( cmdParser.translationTarget() ) {
+			case 1 -> jdc.translateInterfaces( inspector );
+			case 2 -> jdc.translateTypes( inspector );
+			default -> jdc.translateServices( inspector );
 			}
 			System.out.println( "Generation done!" );
-		} 
-		catch( CommandLineException e ) { System.out.println( e.getMessage() ); }
-		catch( IOException | CodeCheckException e ) { e.printStackTrace(); }
+		} catch( CommandLineException e ) {
+			System.out.println( e.getMessage() );
+		} catch( IOException | CodeCheckException e ) {
+			e.printStackTrace();
+		}
 	}
 
-	public static ProgramInspector getInspector( Jolie2JavaCommandLineParser cmdParser ) throws CommandLineException, IOException, CodeCheckException  {
+	public static ProgramInspector getInspector( Jolie2JavaCommandLineParser cmdParser )
+		throws CommandLineException, IOException, CodeCheckException {
 		final Interpreter.Configuration interpreterConfiguration = cmdParser.getInterpreterConfiguration();
-		final SemanticVerifier.Configuration semanticConfiguration = new SemanticVerifier.Configuration( interpreterConfiguration.executionTarget() );
+		final SemanticVerifier.Configuration semanticConfiguration =
+			new SemanticVerifier.Configuration( interpreterConfiguration.executionTarget() );
 
 		semanticConfiguration.setCheckForMain( false );
 
@@ -53,8 +57,7 @@ public class Jolie2Java {
 			interpreterConfiguration.jolieClassLoader(),
 			interpreterConfiguration.constants(),
 			semanticConfiguration,
-			true
-		);
+			true );
 
 		return ParsingUtils.createInspector( program );
 	}

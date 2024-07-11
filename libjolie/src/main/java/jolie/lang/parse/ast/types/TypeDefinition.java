@@ -38,7 +38,7 @@ import jolie.util.Range;
 
 /**
  * Representation for a type definition.
- * 
+ *
  * @author Fabrizio Montesi
  */
 public abstract class TypeDefinition extends OLSyntaxNode implements DocumentedNode, ImportableSymbol {
@@ -49,7 +49,7 @@ public abstract class TypeDefinition extends OLSyntaxNode implements DocumentedN
 
 	/**
 	 * Constructor
-	 * 
+	 *
 	 * @param context the parsing context for this AST node
 	 * @param name the name identifier for this type definition
 	 * @param cardinality the cardinality of this type
@@ -220,7 +220,7 @@ public abstract class TypeDefinition extends OLSyntaxNode implements DocumentedN
 
 	/**
 	 * Checks if this TypeDeclaration is equivalent to other
-	 * 
+	 *
 	 * @author Fabrizio Montesi
 	 */
 	public boolean isEquivalentTo( TypeDefinition other ) {
@@ -230,7 +230,7 @@ public abstract class TypeDefinition extends OLSyntaxNode implements DocumentedN
 
 	/**
 	 * introduced for checking also recursive type equalness
-	 * 
+	 *
 	 * @author Claudio Guidi
 	 */
 	private boolean isEquivalentTo_recursive( TypeDefinition other, Set< String > recursiveTypeChecked ) {

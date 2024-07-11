@@ -59,10 +59,10 @@ import org.w3c.dom.NodeList;
 
 /**
  * Implements the XML-RPC over HTTP protocol.
- * 
+ *
  * @author Claudio Guidi 2009 - Fabrizio Montesi: optimizations and refactoring to use the
  *         Element-based API
- * 
+ *
  */
 
 /*
@@ -80,7 +80,7 @@ import org.w3c.dom.NodeList;
  *
  * Input: All the array in an input XMLRPC message will be translated into Jolie by means of arrays
  * of the keyword array.
- * 
+ *
  */
 public class XmlRpcProtocol extends SequentialCommProtocol implements HttpUtils.Protocol {
 	private String inputId = null;

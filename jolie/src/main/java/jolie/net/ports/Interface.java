@@ -34,7 +34,7 @@ import jolie.runtime.typing.Type;
 /**
  * Represents the (runtime) interface of a port, holding data about the types of the operations
  * defined within.
- * 
+ *
  * @author Fabrizio Montesi
  */
 public class Interface {

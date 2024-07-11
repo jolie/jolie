@@ -33,8 +33,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Logger;
-import jolie.lang.CodeCheckMessage;
+
 import jolie.lang.CodeCheckException;
+import jolie.lang.CodeCheckMessage;
 import jolie.lang.Constants;
 import jolie.lang.Constants.ExecutionMode;
 import jolie.lang.Constants.OperandType;
@@ -106,7 +107,24 @@ import jolie.lang.parse.ast.courier.CourierChoiceStatement;
 import jolie.lang.parse.ast.courier.CourierDefinitionNode;
 import jolie.lang.parse.ast.courier.NotificationForwardStatement;
 import jolie.lang.parse.ast.courier.SolicitResponseForwardStatement;
-import jolie.lang.parse.ast.expression.*;
+import jolie.lang.parse.ast.expression.AndConditionNode;
+import jolie.lang.parse.ast.expression.ConstantBoolExpression;
+import jolie.lang.parse.ast.expression.ConstantDoubleExpression;
+import jolie.lang.parse.ast.expression.ConstantIntegerExpression;
+import jolie.lang.parse.ast.expression.ConstantLongExpression;
+import jolie.lang.parse.ast.expression.ConstantStringExpression;
+import jolie.lang.parse.ast.expression.FreshValueExpressionNode;
+import jolie.lang.parse.ast.expression.IfExpressionNode;
+import jolie.lang.parse.ast.expression.InlineTreeExpressionNode;
+import jolie.lang.parse.ast.expression.InstanceOfExpressionNode;
+import jolie.lang.parse.ast.expression.IsTypeExpressionNode;
+import jolie.lang.parse.ast.expression.NotExpressionNode;
+import jolie.lang.parse.ast.expression.OrConditionNode;
+import jolie.lang.parse.ast.expression.ProductExpressionNode;
+import jolie.lang.parse.ast.expression.SolicitResponseExpressionNode;
+import jolie.lang.parse.ast.expression.SumExpressionNode;
+import jolie.lang.parse.ast.expression.VariableExpressionNode;
+import jolie.lang.parse.ast.expression.VoidExpressionNode;
 import jolie.lang.parse.ast.types.TypeChoiceDefinition;
 import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
@@ -120,7 +138,7 @@ import jolie.util.Pair;
 
 /**
  * Checks the well-formedness and validity of a JOLIE program.
- * 
+ *
  * @see Program
  * @author Fabrizio Montesi
  */
@@ -201,7 +219,7 @@ public class SemanticVerifier implements UnitOLVisitor {
 
 	/**
 	 * Returns the symbolTables. Used by the languageserver for vscode extension
-	 * 
+	 *
 	 * @return symbolTebles
 	 */
 	public Map< URI, SymbolTable > symbolTables() {
@@ -358,7 +376,7 @@ public class SemanticVerifier implements UnitOLVisitor {
 	public void validate()
 		throws CodeCheckException {
 		program.accept( this );
-		if( services.values().size() == 0 ) {
+		if( services.values().isEmpty() ) {
 			// this is an jolie's internal service (service with Interfaces)
 			if( configuration.checkForMain && !mainDefined ) {
 				error( program, "Main procedure is not defined" );

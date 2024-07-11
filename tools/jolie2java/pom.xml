@@ -20,23 +20,6 @@
 	<description>Tool to generate java project from Jolie interface</description>
 	<build>
 		<plugins>
-			<!-- skip PMD since it doesn't support java 21 atm -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-pmd-plugin</artifactId>
-				<version>3.21.2</version>
-                <configuration>
-                    <skip>true</skip>
-                </configuration>
-            </plugin>
-			<!-- skip code formatting -->
-			<plugin>
-				<groupId>net.revelc.code.formatter</groupId>
-				<artifactId>formatter-maven-plugin</artifactId>
-                <configuration>
-                    <skip>true</skip>
-                </configuration>
-			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-dependency-plugin</artifactId>

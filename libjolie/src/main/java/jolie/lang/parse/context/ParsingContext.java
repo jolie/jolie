@@ -30,14 +30,14 @@ import java.util.List;
 /**
  * A {@code ParsingContext} allows for the retrieval of information regarding the context in which
  * an {@link jolie.lang.parse.ast.OLSyntaxNode} was parsed.
- * 
+ *
  * @author Fabrizio Montesi
  * @see jolie.lang.parse.ast.OLSyntaxNode
  */
 public interface ParsingContext extends Serializable {
 	/**
 	 * Returns an URI for the source from which the node has been read.
-	 * 
+	 *
 	 * @return an URI for the source from which the node has been read.
 	 */
 	URI source();
@@ -45,56 +45,56 @@ public interface ParsingContext extends Serializable {
 	/**
 	 * Returns the simple name of the source from which the node has been read. This could be, e.g., the
 	 * simple name of a file (instead of its complete absolute path).
-	 * 
+	 *
 	 * @return the simple name of the source from which the node has been read
 	 */
 	String sourceName();
 
 	/**
 	 * Returns the startLine at which the node has been read.
-	 * 
+	 *
 	 * @return the startLine at which the node has been read
 	 */
 	int startLine();
 
 	/**
 	 * Returns the endLine at which the node has been read.
-	 * 
+	 *
 	 * @return the endLine at which the node has been read
 	 */
 	int endLine();
 
 	/**
 	 * Returns the startColumn at which the node has been read.
-	 * 
+	 *
 	 * @return the startColumn at which the node has been read
 	 */
 	int startColumn();
 
 	/**
 	 * Returns the endColumn at which the node has been read.
-	 * 
+	 *
 	 * @return the endColumn at which the node has been read
 	 */
 	int endColumn();
 
 	/**
 	 * Returns the code as a List of strings, which were read
-	 * 
+	 *
 	 * @return the code as a List of strings, which were read
 	 */
 	List< String > enclosingCode();
 
 	/**
 	 * Returns the code as a List of strings, which were read, with line numbers
-	 * 
+	 *
 	 * @return the code as a List of strings, which were read, with line numbers
 	 */
 	List< String > enclosingCodeWithLineNumbers();
 
 	/**
 	 * Returns a string interpretations of the ParsingContext
-	 * 
+	 *
 	 * @return a string interpretations of the ParsingContext
 	 */
 	@Override

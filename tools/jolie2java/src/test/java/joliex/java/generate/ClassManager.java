@@ -28,14 +28,17 @@ public class ClassManager {
 	private static final URLClassLoader CLASSLOADER;
 
 	static {
-		try { CLASSLOADER = URLClassLoader.newInstance( new URL[] { OUTPUT_DIRECTORY.toUri().toURL() } ); } 
-		catch( MalformedURLException e ) { throw new RuntimeException( e ); }
+		try {
+			CLASSLOADER = URLClassLoader.newInstance( new URL[] { OUTPUT_DIRECTORY.toUri().toURL() } );
+		} catch( MalformedURLException e ) {
+			throw new RuntimeException( e );
+		}
 	}
 
 	public static void generateClasses() throws CommandLineException, IOException, CodeCheckException {
 		deleteClasses();
 
-		final Jolie2JavaCommandLineParser cmdParser = Jolie2JavaCommandLineParser.create( 
+		final Jolie2JavaCommandLineParser cmdParser = Jolie2JavaCommandLineParser.create(
 			new String[] { "src/test/resources/main.ol" },
 			Jolie2Java.class.getClassLoader() );
 
@@ -65,7 +68,7 @@ public class ClassManager {
 			.filter( Files::isRegularFile )
 			.map( Path::toString )
 			.toArray( String[]::new );
-			
+
 		compiler.run( null, null, output, filesToBeCompiled );
 		System.out.println( output );
 	}
@@ -73,36 +76,36 @@ public class ClassManager {
 	public static void deleteClasses() throws IOException {
 		Files.walkFileTree( OUTPUT_DIRECTORY, new SimpleFileVisitor<>() {
 			@Override
-			public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-			  	Files.deleteIfExists(file);
-			  	return FileVisitResult.CONTINUE;
+			public FileVisitResult visitFile( Path file, BasicFileAttributes attrs ) throws IOException {
+				Files.deleteIfExists( file );
+				return FileVisitResult.CONTINUE;
 			}
-		 
+
 			@Override
-			public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
-			  	Files.deleteIfExists(file);
-			  	return FileVisitResult.CONTINUE;
+			public FileVisitResult visitFileFailed( Path file, IOException exc ) throws IOException {
+				Files.deleteIfExists( file );
+				return FileVisitResult.CONTINUE;
 			}
-		 
+
 			@Override
-			public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
-				if (exc != null)
+			public FileVisitResult postVisitDirectory( Path dir, IOException exc ) throws IOException {
+				if( exc != null )
 					throw exc;
-				Files.deleteIfExists(dir);
-			 	return FileVisitResult.CONTINUE;
+				Files.deleteIfExists( dir );
+				return FileVisitResult.CONTINUE;
 			}
 		} );
 	}
 
-	public static Class<?> getClass( String packageName, String className ) throws ClassNotFoundException {
+	public static Class< ? > getClass( String packageName, String className ) throws ClassNotFoundException {
 		return Class.forName( packageName + "." + className, true, CLASSLOADER );
 	}
 
-	public static Class<?> getTypeClass( String className ) throws ClassNotFoundException {
+	public static Class< ? > getTypeClass( String className ) throws ClassNotFoundException {
 		return getClass( TYPE_PACKAGE, className );
 	}
 
-	public static Class<?> getInterfaceClass( String className ) throws ClassNotFoundException {
+	public static Class< ? > getInterfaceClass( String className ) throws ClassNotFoundException {
 		return getClass( PACKAGE_NAME + SOURCES_PACKAGE, className );
 	}
 }

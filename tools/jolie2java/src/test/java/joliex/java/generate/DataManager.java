@@ -41,46 +41,115 @@ public class DataManager {
 	private static final Value LINKEDCHOICESTRUCTURETYPE;
 
 	static {
-		UNDEFINEDVALUE 					= makeUndefinedValue();
-		EXCEPTIONVALUE 					= makeExceptionValue();
-		FLATSTRUCTURETYPE 				= makeFlatStructureType();
-		FLATSTRUCTUREVECTORSTYPE 		= makeFlatStructureVectorsType();
-		INLINESTRUCTURETYPE 			= makeInlineStructureType();
-		INLINESTRUCTUREVECTORSTYPE 		= makeInlineStructureVectorsType();
-		CHOICEINLINETYPE1 				= makeChoiceInlineType1();
-		CHOICEINLINETYPE2 				= makeChoiceInlineType2();
-		CHOICEINLINETYPE3 				= makeChoiceInlineType3();
-		INLINECHOICESTRUCTURETYPE 		= makeInlineChoiceStructureType();
-		INLINEDLINKSTRUCTURETYPE 		= makeInlinedLinkStructureType();
-		NEWTYPE 						= makeNewType();
-		LINKEDTYPESTRUCTURETYPE 		= makeLinkedTypeStructureType();
-		LINKEDTYPESTRUCTUREVECTORSTYPE 	= makeLinkedTypeStructureVectorsType();
-		LINKEDCHOICESTRUCTURETYPE 		= makeLinkedChoiceStructureType();
+		UNDEFINEDVALUE = makeUndefinedValue();
+		EXCEPTIONVALUE = makeExceptionValue();
+		FLATSTRUCTURETYPE = makeFlatStructureType();
+		FLATSTRUCTUREVECTORSTYPE = makeFlatStructureVectorsType();
+		INLINESTRUCTURETYPE = makeInlineStructureType();
+		INLINESTRUCTUREVECTORSTYPE = makeInlineStructureVectorsType();
+		CHOICEINLINETYPE1 = makeChoiceInlineType1();
+		CHOICEINLINETYPE2 = makeChoiceInlineType2();
+		CHOICEINLINETYPE3 = makeChoiceInlineType3();
+		INLINECHOICESTRUCTURETYPE = makeInlineChoiceStructureType();
+		INLINEDLINKSTRUCTURETYPE = makeInlinedLinkStructureType();
+		NEWTYPE = makeNewType();
+		LINKEDTYPESTRUCTURETYPE = makeLinkedTypeStructureType();
+		LINKEDTYPESTRUCTUREVECTORSTYPE = makeLinkedTypeStructureVectorsType();
+		LINKEDCHOICESTRUCTURETYPE = makeLinkedChoiceStructureType();
 	}
 
-	public static Value getBoolValue() { return BOOLVALUE; }
-	public static Value getIntValue() { return INTVALUE; }
-	public static Value getLongValue() { return LONGVALUE; }
-	public static Value getDoubleValue() { return DOUBLEVALUE; }
-	public static Value getStringValue() { return STRINGVALUE; }
-	public static Value getRawValue() { return RAWVALUE; }
-	public static Value getVoidValue() { return VOIDVALUE; }
-	public static Value getRefinedStringType() { return REFINEDSTRINGTYPE; }
-	public static Value getUndefinedValue() { return UNDEFINEDVALUE; }
-	public static Value getExceptionValue() { return EXCEPTIONVALUE; }
-	public static Value getFlatStructureType() { return FLATSTRUCTURETYPE; }
-	public static Value getFlatStructureVectorsType() { return FLATSTRUCTUREVECTORSTYPE; }
-	public static Value getInlineStructureType() { return INLINESTRUCTURETYPE; }
-	public static Value getInlineStructureVectorsType() { return INLINESTRUCTUREVECTORSTYPE; }
-	public static Value getChoiceInlineType1() { return CHOICEINLINETYPE1; }
-	public static Value getChoiceInlineType2() { return CHOICEINLINETYPE2; }
-	public static Value getChoiceInlineType3() { return CHOICEINLINETYPE3; }
-	public static Value getInlineChoiceStructureType() { return INLINECHOICESTRUCTURETYPE; }
-	public static Value getInlinedLinkStructureType() { return INLINEDLINKSTRUCTURETYPE; }
-	public static Value getNewType() { return NEWTYPE; }
-	public static Value getLinkedTypeStructureType() { return LINKEDTYPESTRUCTURETYPE; }
-	public static Value getLinkedTypeStructureVectorsType() { return LINKEDTYPESTRUCTUREVECTORSTYPE; }
-	public static Value getLinkedChoiceStructureType() { return LINKEDCHOICESTRUCTURETYPE; }
+	public static Value getBoolValue() {
+		return BOOLVALUE;
+	}
+
+	public static Value getIntValue() {
+		return INTVALUE;
+	}
+
+	public static Value getLongValue() {
+		return LONGVALUE;
+	}
+
+	public static Value getDoubleValue() {
+		return DOUBLEVALUE;
+	}
+
+	public static Value getStringValue() {
+		return STRINGVALUE;
+	}
+
+	public static Value getRawValue() {
+		return RAWVALUE;
+	}
+
+	public static Value getVoidValue() {
+		return VOIDVALUE;
+	}
+
+	public static Value getRefinedStringType() {
+		return REFINEDSTRINGTYPE;
+	}
+
+	public static Value getUndefinedValue() {
+		return UNDEFINEDVALUE;
+	}
+
+	public static Value getExceptionValue() {
+		return EXCEPTIONVALUE;
+	}
+
+	public static Value getFlatStructureType() {
+		return FLATSTRUCTURETYPE;
+	}
+
+	public static Value getFlatStructureVectorsType() {
+		return FLATSTRUCTUREVECTORSTYPE;
+	}
+
+	public static Value getInlineStructureType() {
+		return INLINESTRUCTURETYPE;
+	}
+
+	public static Value getInlineStructureVectorsType() {
+		return INLINESTRUCTUREVECTORSTYPE;
+	}
+
+	public static Value getChoiceInlineType1() {
+		return CHOICEINLINETYPE1;
+	}
+
+	public static Value getChoiceInlineType2() {
+		return CHOICEINLINETYPE2;
+	}
+
+	public static Value getChoiceInlineType3() {
+		return CHOICEINLINETYPE3;
+	}
+
+	public static Value getInlineChoiceStructureType() {
+		return INLINECHOICESTRUCTURETYPE;
+	}
+
+	public static Value getInlinedLinkStructureType() {
+		return INLINEDLINKSTRUCTURETYPE;
+	}
+
+	public static Value getNewType() {
+		return NEWTYPE;
+	}
+
+	public static Value getLinkedTypeStructureType() {
+		return LINKEDTYPESTRUCTURETYPE;
+	}
+
+	public static Value getLinkedTypeStructureVectorsType() {
+		return LINKEDTYPESTRUCTUREVECTORSTYPE;
+	}
+
+	public static Value getLinkedChoiceStructureType() {
+		return LINKEDCHOICESTRUCTURETYPE;
+	}
+
 	public static Value getRootValue( int index ) {
 		Value returnValue = Value.create();
 		Value field = returnValue.getFirstChild( "field" );
@@ -124,10 +193,10 @@ public class DataManager {
 	private static JolieValue buildUndefinedValue() {
 		return JolieValue.builder()
 			.builder( "a", TESTBOOL )
-				.builder( "b", TESTSTRING )
-					.putAs( "c", TESTDOUBLE )
-					.done()
-				.done()
+			.builder( "b", TESTSTRING )
+			.putAs( "c", TESTDOUBLE )
+			.done()
+			.done()
 			.build();
 	}
 
@@ -225,25 +294,25 @@ public class DataManager {
 	public static JolieValue buildInlineStructureType() {
 		return JolieValue.builder()
 			.builder( "a" )
-				.putAs( "b", TESTSTRING )
-				.putAs( "c", TESTINT )
-				.putAs( "f", TESTDOUBLE )
-				.builder( "e", TESTSTRING )
-					.putAs( "ab", TESTRAW )
-					.putAs( "bc", TESTSTRING )
-					.builder( "fh", TESTSTRING )
-						.putAs( "abc", TESTSTRING )
-						.putAs( "def", TESTLONG )
-						.done()
-					.done()
-				.done()
+			.putAs( "b", TESTSTRING )
+			.putAs( "c", TESTINT )
+			.putAs( "f", TESTDOUBLE )
+			.builder( "e", TESTSTRING )
+			.putAs( "ab", TESTRAW )
+			.putAs( "bc", TESTSTRING )
+			.builder( "fh", TESTSTRING )
+			.putAs( "abc", TESTSTRING )
+			.putAs( "def", TESTLONG )
+			.done()
+			.done()
+			.done()
 			.builder( "aa", TESTSTRING )
-				.putAs( "z", TESTINT )
-				.putAs( "c", TESTDOUBLE )
-				.builder( "f" )
-					.putAs( "rm", TESTSTRING )
-					.done()
-				.done()
+			.putAs( "z", TESTINT )
+			.putAs( "c", TESTDOUBLE )
+			.builder( "f" )
+			.putAs( "rm", TESTSTRING )
+			.done()
+			.done()
 			.build();
 	}
 
@@ -294,7 +363,7 @@ public class DataManager {
 	public static JolieValue buildInlineStructureVectorsType() {
 		return JolieValue.builder()
 			.listBuilder( "a" ).chain( alb -> {
-				for ( int x = 0; x < 10; x++ )
+				for( int x = 0; x < 10; x++ )
 					alb.builder()
 						.put( "b", Collections.nCopies( 10, JolieValue.of( TESTSTRING ) ) )
 						.putAs( "c", TESTINT )
@@ -319,14 +388,14 @@ public class DataManager {
 				return alb.done();
 			} )
 			.builder( "aa", TESTSTRING )
-				.put( "z", Collections.nCopies( 5, JolieValue.of( TESTINT ) ) )
-				.put( "c", Collections.nCopies( 3, JolieValue.of( TESTDOUBLE ) ) )
-				.listBuilder( "f" ).chain( flb -> {
-					for ( int i = 0; i < 100; i++ )
-						flb.builder().putAs( "rm", TESTSTRING ).done();
-					return flb.done();
-				} )
-				.done()
+			.put( "z", Collections.nCopies( 5, JolieValue.of( TESTINT ) ) )
+			.put( "c", Collections.nCopies( 3, JolieValue.of( TESTDOUBLE ) ) )
+			.listBuilder( "f" ).chain( flb -> {
+				for( int i = 0; i < 100; i++ )
+					flb.builder().putAs( "rm", TESTSTRING ).done();
+				return flb.done();
+			} )
+			.done()
 			.build();
 	}
 
@@ -367,7 +436,7 @@ public class DataManager {
 		testValue.setFirstChild( "a", TESTLONG );
 		testValue.getChildren( "b" ).add( getFlatStructureType() );
 		testValue.getChildren( "c" ).add( getChoiceInlineType3() );
-		
+
 		final Value d = testValue.getFirstChild( "d" );
 		d.setValue( TESTBOOL );
 		d.setFirstChild( "a", TESTDOUBLE );
@@ -437,7 +506,7 @@ public class DataManager {
 	private static Value makeLinkedChoiceStructureType() {
 		final Value testValue = Value.create();
 		ValueVector vv;
-		
+
 		vv = testValue.getChildren( "a" );
 		vv.add( Value.create( TESTDOUBLE ) );
 		vv.add( Value.create( TESTSTRING ) );

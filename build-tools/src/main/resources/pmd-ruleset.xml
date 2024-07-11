@@ -8,6 +8,13 @@
 
 	<rule ref="category/java/bestpractices.xml">
 		<!-- To be added -->
+		<exclude name="UnusedPrivateMethod" />
+		<exclude name="UnusedFormalParameter" />
+		<exclude name="UseTryWithResources" />
+		<exclude name="UseCollectionIsEmpty" />
+		<exclude name="LiteralsFirstInComparisons" />
+		<exclude name="UnusedAssignment" />
+		<exclude name="UnusedLocalVariable" />
 		<exclude name="OneDeclarationPerLine" />
 		<exclude name="AvoidReassigningParameters" />
 		<exclude name="AvoidPrintStackTrace" />
@@ -19,7 +26,7 @@
 		<exclude name="GuardLogStatement" />
 		<exclude name="SwitchStmtsShouldHaveDefault" />
 		<exclude name="SystemPrintln" />
-		<exclude name="PositionLiteralsFirstInComparisons" />
+		<exclude name="LiteralsFirstInComparisons" />
 
 		<!-- Under evaluation -->
 		<exclude name="ConstantsInInterface" />
@@ -35,7 +42,14 @@
 
 	<rule ref="category/java/codestyle.xml">
 		<!-- To be added -->
+		<exclude name="UnnecessaryBoxing" />
+		<exclude name="EmptyControlStatement" />
+		<exclude name="UnnecessaryCast" />
+		<exclude name="GenericsNaming" />
 		<exclude name="LocalVariableNamingConventions" />
+		<exclude name="UnnecessaryReturn" />
+		<exclude name="UseDiamondOperator" />
+		<exclude name="UseExplicitTypes" />
 		<exclude name="ControlStatementBraces" />
 		<exclude name="CallSuperInConstructor" />
 		<exclude name="FormalParameterNamingConventions" />
@@ -51,7 +65,6 @@
 		<exclude name="UseUnderscoresInNumericLiterals" />
 		<exclude name="UseShortArrayInitializer" />
 		<exclude name="CommentDefaultAccessModifier" />
-		<exclude name="DefaultPackage" />
 
 		<!-- Under evaluation -->
 		<exclude name="UnnecessaryConstructor" />
@@ -71,6 +84,9 @@
 
 	<rule ref="category/java/design.xml">
 		<!-- To be added -->
+		<exclude name="AvoidThrowingNullPointerException" />
+		<exclude name="MutableStaticState" />
+		<exclude name="CognitiveComplexity" />
 		<exclude name="SimplifyConditional" />
 		<exclude name="UseObjectForClearerAPI" />
 		<exclude name="SignatureDeclareThrowsException" />
@@ -95,13 +111,11 @@
 		<exclude name="ExcessiveParameterList" />
 		<exclude name="AvoidRethrowingException" />
 		<exclude name="CouplingBetweenObjects" />
-		<exclude name="ExcessiveMethodLength" />
 		<exclude name="LawOfDemeter" />
 		<exclude name="GodClass" />
 		<exclude name="ExcessivePublicCount" />
 		<exclude name="ExcessiveImports" />
 		<exclude name="TooManyFields" />
-		<exclude name="ExcessiveClassLength" />
 		<exclude name="LoosePackageCoupling" />
 
 		<!-- Excluded -->
@@ -111,25 +125,28 @@
 
 	<rule ref="category/java/errorprone.xml">
 		<!-- To be added -->
+		<exclude name="AvoidAccessibilityAlteration" />
+		<exclude name="AssignmentToNonFinalStatic" />
+		<exclude name="TestClassWithoutTestCases" />
+		<exclude name="DoNotTerminateVM" />
+		<exclude name="ReturnEmptyCollectionRatherThanNull" />
+		<exclude name="ImplicitSwitchFallThrough" />
+		<exclude name="NonSerializableClass" />
 		<exclude name="CloseResource" />
 		<exclude name="AvoidInstanceofChecksInCatchClause" />
 		<exclude name="ConstructorCallsOverridableMethod" />
-		<exclude name="MissingBreakInSwitch" />
 		<exclude name="AssignmentInOperand" />
 		<exclude name="SimpleDateFormatNeedsLocale" />
 		<exclude name="EmptyCatchBlock" />
 		<exclude name="SuspiciousEqualsMethodName" />
 		<exclude name="MissingStaticMethodInNonInstantiatableClass" />
-		<exclude name="CloneThrowsCloneNotSupportedException" />
 		<exclude name="ProperCloneImplementation" />
 		<exclude name="CompareObjectsWithEquals" />
 		<exclude name="UseProperClassLoader" />
 		<exclude name="NullAssignment" />
 		<exclude name="AvoidDuplicateLiterals" />
 		<exclude name="MissingSerialVersionUID" />
-		<exclude name="BeanMembersShouldSerialize" />
 		<exclude name="AvoidLiteralsInIfCondition" />
-		<exclude name="DataflowAnomalyAnalysis" />
 		<exclude name="UseLocaleWithCaseConversions" />
 
 		<!-- Under evaluation -->
@@ -137,7 +154,6 @@
 		
 		<!-- Excluded -->
 		<exclude name="AvoidFieldNameMatchingMethodName" />
-		<exclude name="DoNotCallSystemExit" />
 	</rule>
 	
 	<rule ref="category/java/multithreading.xml">
@@ -154,7 +170,8 @@
 	
 	<rule ref="category/java/performance.xml">
 		<!-- To be added -->
-		<exclude name="SimplifyStartsWith" />
+		<exclude name="StringInstantiation" />
+		<exclude name="ConsecutiveAppendsShouldReuse" />
 		<exclude name="InsufficientStringBufferDeclaration" />
 		<exclude name="AvoidFileStream" />
 		<exclude name="AppendCharacterWithChar" />

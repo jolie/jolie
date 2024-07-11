@@ -36,7 +36,7 @@ import jolie.runtime.Value;
 
 /**
  * Starter class of the Interpreter.
- * 
+ *
  * @author Fabrizio Montesi
  */
 public class Jolie {
@@ -62,7 +62,7 @@ public class Jolie {
 
 	/**
 	 * Entry point of program execution.
-	 * 
+	 *
 	 * @param args the command line arguments TODO Standardize the exit codes.
 	 */
 	public static void main( String[] args ) {

@@ -20,8 +20,8 @@
 
 package jolie.lang;
 
-import java.util.List;
 import java.util.Iterator;
+import java.util.List;
 
 public class CodeCheckException extends Exception {
 	private static final long serialVersionUID = Constants.serialVersionUID();
@@ -30,7 +30,7 @@ public class CodeCheckException extends Exception {
 
 	/**
 	 * Contructs a CodeCheckException from a list of CodeCheckMessages
-	 * 
+	 *
 	 * @param messageList
 	 */
 	public CodeCheckException( List< CodeCheckMessage > messageList ) {
@@ -39,7 +39,7 @@ public class CodeCheckException extends Exception {
 
 	/**
 	 * Returns the list of CodeCheckMessages from the CodeCheckException
-	 * 
+	 *
 	 * @return
 	 */
 	public List< CodeCheckMessage > messages() {
@@ -54,7 +54,7 @@ public class CodeCheckException extends Exception {
 		Iterator< CodeCheckMessage > iterator = messageList.iterator();
 		StringBuilder messageString = new StringBuilder();
 		while( iterator.hasNext() ) {
-			CodeCheckMessage currentMessage = (CodeCheckMessage) iterator.next();
+			CodeCheckMessage currentMessage = iterator.next();
 			messageString
 				.append( currentMessage.toString() );
 		}

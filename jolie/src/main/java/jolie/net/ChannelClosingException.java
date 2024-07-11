@@ -27,7 +27,7 @@ import jolie.lang.Constants;
 
 /**
  * An IOException for denoting that the channel has been closed.
- * 
+ *
  * @author Fabrizio Montesi
  */
 public class ChannelClosingException extends IOException {
@@ -42,7 +42,7 @@ public class ChannelClosingException extends IOException {
 
 	/**
 	 * Constructor.
-	 * 
+	 *
 	 * @param message the message for this exception
 	 */
 	public ChannelClosingException( String message ) {

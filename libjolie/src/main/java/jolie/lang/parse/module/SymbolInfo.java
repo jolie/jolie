@@ -63,7 +63,7 @@ public abstract class SymbolInfo {
 
 	/**
 	 * constructor for SymbolInfo
-	 * 
+	 *
 	 * @param context context where symbol is declared
 	 * @param name symbol name
 	 * @param scope scope of the symbol origin

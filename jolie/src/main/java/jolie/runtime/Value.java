@@ -334,7 +334,7 @@ class CSetValue extends ValueImpl {
 
 /**
  * Handles JOLIE internal data representation.
- * 
+ *
  * @author Fabrizio Montesi 2007 - Claudio Guidi: added support for double values 2008 - Fabrizio
  *         Montesi: new system for internal value storing
  */
@@ -404,7 +404,7 @@ public abstract class Value implements Expression, Cloneable {
 	/**
 	 * Makes this value an identical copy (by value) of the parameter, considering also its sub-tree. In
 	 * case of a sub-link, its pointed Value tree is copied.
-	 * 
+	 *
 	 * @param value The value to be copied.
 	 */
 	public final void deepCopy( Value value ) {

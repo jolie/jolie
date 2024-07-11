@@ -41,7 +41,7 @@ public interface XsdToJolieConverter {
 
 	/**
 	 * Converts a schema set into a list of JOLIE type definitions.
-	 * 
+	 *
 	 * @return a list of JOLIE type definitions obtained by reading the passed schema set.
 	 * @throws ConversionException if an unsupported XSD element is encountered
 	 * @see TypeDefinition

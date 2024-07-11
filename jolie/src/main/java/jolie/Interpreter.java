@@ -106,7 +106,7 @@ import jolie.tracer.TracerUtils;
 /**
  * The Jolie interpreter engine. Multiple Interpreter instances can be run in the same JavaVM; this
  * is used, e.g., for service embedding.
- * 
+ *
  * @author Fabrizio Montesi
  */
 public class Interpreter {
@@ -353,7 +353,7 @@ public class Interpreter {
 
 	/**
 	 * Returns the option arguments passed to this Interpreter.
-	 * 
+	 *
 	 * @return the option arguments passed to this Interpreter
 	 */
 	public String[] optionArgs() {
@@ -362,7 +362,7 @@ public class Interpreter {
 
 	/**
 	 * Returns the include paths this Interpreter is considering.
-	 * 
+	 *
 	 * @return the include paths this Interpreter is considering
 	 */
 	public String[] includePaths() {
@@ -371,7 +371,7 @@ public class Interpreter {
 
 	/**
 	 * Registers a session starter on this <code>Interpreter</code>.
-	 * 
+	 *
 	 * @param guard the input guard for this session starter
 	 * @param body the body of this session starter
 	 */
@@ -381,7 +381,7 @@ public class Interpreter {
 
 	/**
 	 * Returns the output ports of this Interpreter.
-	 * 
+	 *
 	 * @return the output ports of this Interpreter
 	 */
 	public Collection< OutputPort > outputPorts() {
@@ -390,7 +390,7 @@ public class Interpreter {
 
 	/**
 	 * Returns the InputOperation identified by key.
-	 * 
+	 *
 	 * @param key the name of the InputOperation to return
 	 * @return the InputOperation identified by key
 	 * @throws jolie.runtime.InvalidIdException if this Interpreter does not own the requested
@@ -409,7 +409,7 @@ public class Interpreter {
 	/**
 	 * As {@link #getInputOperation(String) getInputOperation}, with the additional constraint that key
 	 * must identify a OneWayOperation.
-	 * 
+	 *
 	 * @param key the name of the OneWayOperation to return
 	 * @return the OneWayOperation identified by key
 	 * @throws jolie.runtime.InvalidIdException if this Interpreter does not own the requested
@@ -427,7 +427,7 @@ public class Interpreter {
 	/**
 	 * As {@link #getInputOperation(String) getInputOperation}, with the additional constraint that key
 	 * must identify a RequestResponseOperation.
-	 * 
+	 *
 	 * @param key the name of the RequestResponseOperation to return
 	 * @return the RequestResponseOperation identified by key
 	 * @throws jolie.runtime.InvalidIdException if this Interpreter does not own the requested
@@ -444,7 +444,7 @@ public class Interpreter {
 
 	/**
 	 * Returns the OutputPort identified by key.
-	 * 
+	 *
 	 * @param key the name of the OutputPort to return
 	 * @return the OutputPort identified by key
 	 * @throws jolie.runtime.InvalidIdException if this Interpreter does not own the requested
@@ -460,7 +460,7 @@ public class Interpreter {
 
 	/**
 	 * Removes a registered OutputPort.
-	 * 
+	 *
 	 * @param key the name of the OutputPort to remove
 	 */
 	public synchronized void removeOutputPort( String key ) {
@@ -469,7 +469,7 @@ public class Interpreter {
 
 	/**
 	 * Returns the Definition identified by key.
-	 * 
+	 *
 	 * @param key the name of the Definition to return
 	 * @return the Definition identified by key
 	 * @throws jolie.runtime.InvalidIdException if this Interpreter does not own the requested
@@ -485,7 +485,7 @@ public class Interpreter {
 
 	/**
 	 * Registers an <code>OutputPort</code> on this interpreter.
-	 * 
+	 *
 	 * @param key the name of the <code>OutputPort</code> to register
 	 * @param value the <code>OutputPort</code> to register
 	 */
@@ -495,7 +495,7 @@ public class Interpreter {
 
 	/**
 	 * Registers a defined sub-routine on this interpreter.
-	 * 
+	 *
 	 * @param key the name of the defined sub-routine to register
 	 * @param value the defined sub-routine to register
 	 */
@@ -505,7 +505,7 @@ public class Interpreter {
 
 	/**
 	 * Registers an <code>InputOperation</code> on this interpreter.
-	 * 
+	 *
 	 * @param key the name of the <code>InputOperation</code> to register
 	 * @param value the <code>InputOperation</code> to register
 	 */
@@ -515,7 +515,7 @@ public class Interpreter {
 
 	/**
 	 * Registers an <code>EmbeddedServiceLoader</code> on this interpreter.
-	 * 
+	 *
 	 * @param n the <code>EmbeddedServiceLoader</code> to register
 	 */
 	public void addEmbeddedServiceLoader( EmbeddedServiceLoader n ) {
@@ -524,7 +524,7 @@ public class Interpreter {
 
 	/**
 	 * Returns the <code>EmbeddedServiceLoader</code> instances registered on this interpreter.
-	 * 
+	 *
 	 * @return the <code>EmbeddedServiceLoader</code> instances registered on this interpreter
 	 */
 	public Collection< EmbeddedServiceLoader > embeddedServiceLoaders() {
@@ -556,7 +556,7 @@ public class Interpreter {
 	 * The fact that the interpreter cannot receive any more messages after entering exiting mode can
 	 * cause deadlocks if a session is waiting for a message to finish its execution. Use this method
 	 * with caution.
-	 * 
+	 *
 	 * @param terminationTimeout the timeout for the wait of the termination of running processes
 	 */
 	public void exit( long terminationTimeout ) {
@@ -595,7 +595,7 @@ public class Interpreter {
 
 	/**
 	 * Returns <code>true</code> if this interpreter is in exiting mode, <code>false</code> otherwise.
-	 * 
+	 *
 	 * @return <code>true</code> if this interpreter is in exiting mode, <code>false</code> otherwise
 	 * @see #exit()
 	 */
@@ -606,7 +606,7 @@ public class Interpreter {
 	/**
 	 * Logs an unhandled fault using the logger of this interpreter. This method is used by sessions
 	 * that had to terminate due to a fault which could not be handled, due to a missing fault handler.
-	 * 
+	 *
 	 * @param fault the <code>FaultException</code> that could not be handled
 	 */
 	public void logUnhandledFault( FaultException fault ) {
@@ -644,7 +644,7 @@ public class Interpreter {
 
 	/**
 	 * Logs an information message using the logger of this interpreter (logger level: fine).
-	 * 
+	 *
 	 * @param message the message to logLevel
 	 */
 	public void logFine( String message ) {
@@ -671,7 +671,7 @@ public class Interpreter {
 
 	/**
 	 * Logs an information message using the logger of this interpreter (logger level: fine).
-	 * 
+	 *
 	 * @param t the <code>Throwable</code> object whose stack trace has to be logged
 	 */
 	public void logFine( Throwable t ) {
@@ -680,7 +680,7 @@ public class Interpreter {
 
 	/**
 	 * Logs a severe error message using the logger of this interpreter.
-	 * 
+	 *
 	 * @param message the message to logLevel
 	 */
 	public void logSevere( String message ) {
@@ -689,7 +689,7 @@ public class Interpreter {
 
 	/**
 	 * Logs a warning message using the logger of this interpreter.
-	 * 
+	 *
 	 * @param message the message to logLevel
 	 */
 	public void logWarning( String message ) {
@@ -699,7 +699,7 @@ public class Interpreter {
 	/**
 	 * Logs a severe error message, created by reading the stack trace of the passed
 	 * <code>Throwable</code>, using the logger of this interpreter.
-	 * 
+	 *
 	 * @param t the <code>Throwable</code> object whose stack trace has to be logged
 	 */
 	public void logSevere( Throwable t ) {
@@ -709,7 +709,7 @@ public class Interpreter {
 	/**
 	 * Logs a warning message, created by reading the stack trace of the passed <code>Throwable</code>,
 	 * using the logger of this interpreter.
-	 * 
+	 *
 	 * @param t the <code>Throwable</code> object whose stack trace has to be logged
 	 */
 	public void logWarning( Throwable t ) {
@@ -718,7 +718,7 @@ public class Interpreter {
 
 	/**
 	 * Returns the execution mode of this Interpreter.
-	 * 
+	 *
 	 * @return the execution mode of this Interpreter
 	 * @see Constants.ExecutionMode
 	 */
@@ -728,7 +728,7 @@ public class Interpreter {
 
 	/**
 	 * Sets the execution mode of this Interpreter.
-	 * 
+	 *
 	 * @param mode the execution mode to set
 	 * @see Constants.ExecutionMode
 	 */
@@ -738,7 +738,7 @@ public class Interpreter {
 
 	/**
 	 * Adds a correlation set to this interpreter.
-	 * 
+	 *
 	 * @param set the correlation set to add
 	 */
 	public void addCorrelationSet( CorrelationSet set ) {
@@ -754,7 +754,7 @@ public class Interpreter {
 
 	/**
 	 * Returns the correlation sets of this Interpreter.
-	 * 
+	 *
 	 * @return the correlation sets of this Interpreter
 	 */
 	public List< CorrelationSet > correlationSets() {
@@ -763,7 +763,7 @@ public class Interpreter {
 
 	/**
 	 * Returns the Interpreter the current thread is referring to.
-	 * 
+	 *
 	 * @return the Interpreter the current thread is referring to
 	 */
 	public static Interpreter getInstance() {
@@ -777,7 +777,7 @@ public class Interpreter {
 
 	/**
 	 * Returns the JolieClassLoader this Interpreter is using.
-	 * 
+	 *
 	 * @return the JolieClassLoader this Interpreter is using
 	 */
 	public JolieClassLoader getClassLoader() {
@@ -786,7 +786,7 @@ public class Interpreter {
 
 	/**
 	 * returns this interpreter's configuration
-	 * 
+	 *
 	 * @return
 	 */
 	public Configuration configuration() {
@@ -897,7 +897,7 @@ public class Interpreter {
 
 	/**
 	 * Returns the parent directory of the program executed by this Interpreter.
-	 * 
+	 *
 	 * @return the parent directory of the program executed by this Interpreter.
 	 */
 	public File programDirectory() {
@@ -910,7 +910,7 @@ public class Interpreter {
 
 	/**
 	 * Returns the receiving value from Service node's embed statement.
-	 * 
+	 *
 	 * @return the receiving value from Service node's embed statement.
 	 */
 	public Value receivingEmbeddedValue() {
@@ -919,7 +919,7 @@ public class Interpreter {
 
 	/**
 	 * Returns the program filename this interpreter was launched with.
-	 * 
+	 *
 	 * @return the program filename this interpreter was launched with
 	 */
 	public String programFilename() {
@@ -928,7 +928,7 @@ public class Interpreter {
 
 	/**
 	 * Returns the path at which the file to be interpreted has been found
-	 * 
+	 *
 	 * @return the path at which the file to be interpreted has been found
 	 */
 	public String programFilepath() {
@@ -939,7 +939,7 @@ public class Interpreter {
 	 * Returns the global lock registered on this interpreter with the passed identifier. If a global
 	 * lock with such identifier is not registered, a new one is automatically created, registered and
 	 * returned.
-	 * 
+	 *
 	 * @param id the global lock identifier
 	 * @return the global lock registered on this interpreter with the specified identifier
 	 */
@@ -953,7 +953,7 @@ public class Interpreter {
 
 	/**
 	 * Returns the {@code global} value of this Interpreter.
-	 * 
+	 *
 	 * @return the {@code global} value of this Interpreter
 	 */
 	public Value globalValue() {
@@ -966,7 +966,7 @@ public class Interpreter {
 
 	/**
 	 * Returns the {@link SessionThread} of the Interpreter that started the program execution.
-	 * 
+	 *
 	 * @return the {@link SessionThread} of the Interpreter that started the program execution
 	 */
 	public SessionThread initThread() {
@@ -977,7 +977,7 @@ public class Interpreter {
 	 * Starts this interpreter, returning a <code>Future</code> which can be interrogated to know when
 	 * the interpreter start procedure has been completed and the interpreter is ready to receive
 	 * messages.
-	 * 
+	 *
 	 * @return a <code>Future</code> which can be interrogated to know when the interpreter start
 	 *         procedure has been completed and the interpreter is ready to receive messages.
 	 */
@@ -1070,7 +1070,7 @@ public class Interpreter {
 	 * input code.
 	 *
 	 * Note that you must shutdown the CommCore of this Interpreter manually after calling this method.
-	 * 
+	 *
 	 * @throws IOException if a Parser propagates a Scanner exception
 	 * @throws InterpreterException if the interpretation tree could not be built
 	 */
@@ -1087,7 +1087,7 @@ public class Interpreter {
 
 	/**
 	 * Runs an asynchronous task in this Interpreter internal thread pool.
-	 * 
+	 *
 	 * @param r the Runnable object to execute
 	 */
 	public void execute( Runnable r ) {
@@ -1155,7 +1155,7 @@ public class Interpreter {
 
 	/**
 	 * Returns the CommCore of this Interpreter.
-	 * 
+	 *
 	 * @return the CommCore of this Interpreter
 	 */
 	public CommCore commCore() {
@@ -1236,7 +1236,7 @@ public class Interpreter {
 					semanticVerifier.constantFlags(),
 					semanticVerifier.correlationFunctionInfo(),
 					initValue ))
-						.build();
+					.build();
 			}
 
 		} catch( IOException | ParserException | ClassNotFoundException | ModuleException e ) {
@@ -1246,7 +1246,7 @@ public class Interpreter {
 
 	/**
 	 * Starts a service session.
-	 * 
+	 *
 	 * @param message the message triggering the session start
 	 * @param channel the channel of the message triggering the session start
 	 * @return {@code true} if the service session is started, {@code false} otherwise

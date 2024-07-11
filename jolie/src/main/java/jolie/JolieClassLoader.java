@@ -46,7 +46,7 @@ import jolie.runtime.embedding.EmbeddedServiceLoaderFactory;
 
 /**
  * JolieClassLoader is used to resolve the loading of JOLIE extensions and external libraries.
- * 
+ *
  * @author Fabrizio Montesi
  */
 public final class JolieClassLoader extends URLClassLoader {
@@ -72,7 +72,7 @@ public final class JolieClassLoader extends URLClassLoader {
 
 	/**
 	 * Constructor
-	 * 
+	 *
 	 * @param urls the urls to use for the lookup of libraries
 	 * @param parent the parent class loader to use for lookup fallback
 	 * @throws java.io.IOException if the initialization fails, e.g. if a required dependency in some
@@ -158,7 +158,7 @@ public final class JolieClassLoader extends URLClassLoader {
 	/**
 	 * Creates and returns an {@link EmbeddedServiceLoader}, selecting it from the built-in and
 	 * externally loaded Jolie extensions.
-	 * 
+	 *
 	 * @param name
 	 * @param interpreter
 	 * @return
@@ -189,7 +189,7 @@ public final class JolieClassLoader extends URLClassLoader {
 	/**
 	 * Creates and returns a <code>CommChannelFactory</code>, selecting it from the built-in and
 	 * externally loaded JOLIE extensions.
-	 * 
+	 *
 	 * @param name the identifier of the factory to create
 	 * @param commCore the <code>CommCore</code> instance to use for constructing the factory
 	 * @return the requested factory
@@ -229,7 +229,7 @@ public final class JolieClassLoader extends URLClassLoader {
 	/**
 	 * Creates and returns a <code>CommListenerFactory</code>, selecting it from the built-in and
 	 * externally loaded JOLIE extensions.
-	 * 
+	 *
 	 * @param name the identifier of the factory to create
 	 * @param commCore the <code>CommCore</code> instance to use for constructing the factory
 	 * @return the requested factory
@@ -264,7 +264,7 @@ public final class JolieClassLoader extends URLClassLoader {
 	/**
 	 * Creates and returns a <code>CommProtocolFactory</code>, selecting it from the built-in and
 	 * externally loaded JOLIE extensions.
-	 * 
+	 *
 	 * @param name the identifier of the factory to create
 	 * @param commCore the <code>CommCore</code> instance to use for constructing the factory
 	 * @return the requested factory
@@ -321,7 +321,7 @@ public final class JolieClassLoader extends URLClassLoader {
 
 	/**
 	 * Adds a Jar file to the pool of resource to look into for extensions.
-	 * 
+	 *
 	 * @param jarName the Jar filename
 	 * @throws java.net.MalformedURLException
 	 * @throws java.io.IOException if the Jar file could not be found or if jarName does not refer to a

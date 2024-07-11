@@ -7,51 +7,59 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import jolie.runtime.embedding.java.util.ValueManager;
 
-public class UntypedStructure<T extends JolieNative<?>> implements JolieValue {
+public class UntypedStructure< T extends JolieNative< ? > > implements JolieValue {
 
-    private static final Map<String, List<JolieValue>> EMPTY_CHILDREN = Map.of();
+	private static final Map< String, List< JolieValue > > EMPTY_CHILDREN = Map.of();
 
-    private final T content;
-    private final Map<String, List<JolieValue>> children;
+	private final T content;
+	private final Map< String, List< JolieValue > > children;
 
-    public UntypedStructure( T content, Map<String, List<JolieValue>> children ) throws TypeValidationException {
-        this.content = ValueManager.validated( "content", content );
-        this.children = Objects.requireNonNullElse( children, EMPTY_CHILDREN );
-    }
+	public UntypedStructure( T content, Map< String, List< JolieValue > > children ) throws TypeValidationException {
+		this.content = ValueManager.validated( "content", content );
+		this.children = Objects.requireNonNullElse( children, EMPTY_CHILDREN );
+	}
 
-    @Override
-    public T content() { return content; }
+	@Override
+	public T content() {
+		return content;
+	}
 
-    @Override
-    public Map<String, List<JolieValue>> children() { return children; }
+	@Override
+	public Map< String, List< JolieValue > > children() {
+		return children;
+	}
 
-    @Override
-    public boolean equals( Object obj ) { return obj != null && obj instanceof JolieValue j && content.equals( j.content() ) && children.equals( j.children() ); }
-    
-    @Override
-    public int hashCode() {
-        if ( children.isEmpty() )
-            return content.hashCode();
-            
-        int hash = 7;
-        hash = 31 * hash + content.hashCode();
-        hash = 31 * hash + children.hashCode();
-        return hash;
-    }
+	@Override
+	public boolean equals( Object obj ) {
+		return obj != null && obj instanceof JolieValue j && content.equals( j.content() )
+			&& children.equals( j.children() );
+	}
 
-    @Override
-    public String toString() {
-        return (content instanceof JolieNative.JolieString ? "\"" + content.toString() + "\"" : content.toString())
-            + children.entrySet()
-                .parallelStream()
-                .flatMap( e -> {
-                    final List<JolieValue> ls = e.getValue();
-                    return ls.size() == 1
-                        ? Stream.of( e.getKey() + " = " + ls.getFirst().toString() )
-                        : IntStream.range( 0, ls.size() ).mapToObj( i -> e.getKey() + "[" + i + "] = " + ls.get( i ).toString() );
-                } )
-                .reduce( ( s1, s2 ) -> s1 + "\n" + s2 )
-                .map( s -> "\n" + s.indent( 4 ) )
-                .orElse( "" );
-    }
+	@Override
+	public int hashCode() {
+		if( children.isEmpty() )
+			return content.hashCode();
+
+		int hash = 7;
+		hash = 31 * hash + content.hashCode();
+		hash = 31 * hash + children.hashCode();
+		return hash;
+	}
+
+	@Override
+	public String toString() {
+		return (content instanceof JolieNative.JolieString ? "\"" + content.toString() + "\"" : content.toString())
+			+ children.entrySet()
+				.parallelStream()
+				.flatMap( e -> {
+					final List< JolieValue > ls = e.getValue();
+					return ls.size() == 1
+						? Stream.of( e.getKey() + " = " + ls.getFirst().toString() )
+						: IntStream.range( 0, ls.size() )
+							.mapToObj( i -> e.getKey() + "[" + i + "] = " + ls.get( i ).toString() );
+				} )
+				.reduce( ( s1, s2 ) -> s1 + "\n" + s2 )
+				.map( s -> "\n" + s.indent( 4 ) )
+				.orElse( "" );
+	}
 }

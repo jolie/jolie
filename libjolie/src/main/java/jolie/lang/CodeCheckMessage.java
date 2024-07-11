@@ -33,7 +33,7 @@ public class CodeCheckMessage {
 
 	/**
 	 * Private contructer of codeCheckMessage
-	 * 
+	 *
 	 * @param context
 	 * @param description
 	 * @param help
@@ -46,7 +46,7 @@ public class CodeCheckMessage {
 
 	/**
 	 * public contructer of CodeCheckMessage, for when the message includes a help message
-	 * 
+	 *
 	 * @param context
 	 * @param description
 	 * @param help
@@ -64,7 +64,7 @@ public class CodeCheckMessage {
 	/**
 	 * Public contructer of CodeCheckMessage, when information is in a OLSyntaxNode, help message
 	 * included
-	 * 
+	 *
 	 * @param node
 	 * @param message
 	 * @param help
@@ -83,7 +83,7 @@ public class CodeCheckMessage {
 
 	/**
 	 * Public contructer of CodeCheckMessage, which du not include help in the message
-	 * 
+	 *
 	 * @param context
 	 * @param description
 	 * @return
@@ -95,7 +95,7 @@ public class CodeCheckMessage {
 	/**
 	 * Public contructer of CodeCheckMessage, when information is in a OLSyntaxNode, no help message
 	 * included
-	 * 
+	 *
 	 * @param node
 	 * @param message
 	 * @return
@@ -155,7 +155,7 @@ public class CodeCheckMessage {
 
 	/**
 	 * Get an optional of help from the CodeCheckMessage
-	 * 
+	 *
 	 * @return
 	 */
 	public Optional< String > help() {
@@ -164,7 +164,7 @@ public class CodeCheckMessage {
 
 	/**
 	 * Get an optional of the context from the CodeCheckMessage
-	 * 
+	 *
 	 * @return
 	 */
 	public Optional< ParsingContext > context() {
@@ -173,7 +173,7 @@ public class CodeCheckMessage {
 
 	/**
 	 * Get an optional of the description from the CodeCheckMessage
-	 * 
+	 *
 	 * @return
 	 */
 	public Optional< String > description() {

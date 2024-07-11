@@ -15,115 +15,133 @@ import jolie.lang.parse.ast.types.refinements.BasicTypeRefinementStringRegex;
 
 public sealed interface NativeRefinement {
 
-    String definitionString();
+	String definitionString();
 
-    public static record Ranges( List<Interval> intervals ) implements NativeRefinement {
+	public static record Ranges(List< Interval > intervals) implements NativeRefinement {
 
-        public static record Interval( Number min, Number max ) {
+		public static record Interval(Number min, Number max) {
 
-            public String minString() { return min + (min instanceof Long ? "L" : ""); }
-            public String maxString() { return max + (max instanceof Long ? "L" : ""); }
-        }
+			public String minString() {
+				return min + (min instanceof Long ? "L" : "");
+			}
 
-        @Override
-        public String definitionString() {
-            return intervals.parallelStream()
-                .map( i -> "[" + i.minString() + ", " + i.maxString() + "]" )
-                .reduce( (s1, s2) -> s1 + ", " + s2 )
-                .map( s -> "ranges( " + s + " )" )
-                .orElseThrow();
-        }
+			public String maxString() {
+				return max + (max instanceof Long ? "L" : "");
+			}
+		}
 
-        @Override
-        public int hashCode() { return intervals.hashCode(); }
+		@Override
+		public String definitionString() {
+			return intervals.parallelStream()
+				.map( i -> "[" + i.minString() + ", " + i.maxString() + "]" )
+				.reduce( ( s1, s2 ) -> s1 + ", " + s2 )
+				.map( s -> "ranges( " + s + " )" )
+				.orElseThrow();
+		}
 
-        @Override
-        public boolean equals( Object obj ) {
-            return obj != null && obj instanceof Ranges other && intervals.size() == other.intervals().size() && intervals.containsAll( other.intervals() );
-        }
-    }
+		@Override
+		public int hashCode() {
+			return intervals.hashCode();
+		}
 
-    public static record Length( int min, int max ) implements NativeRefinement {
-        
-        @Override
-        public String definitionString() {
-            return "length( [" + min + ", " + max + "] )";
-        }
+		@Override
+		public boolean equals( Object obj ) {
+			return obj != null && obj instanceof Ranges other && intervals.size() == other.intervals().size()
+				&& intervals.containsAll( other.intervals() );
+		}
+	}
 
-        @Override
-        public int hashCode() { return min + max; }
+	public static record Length(int min, int max) implements NativeRefinement {
 
-        @Override
-        public boolean equals( Object obj ) {
-            return obj != null && obj instanceof Length other && min == other.min() && max == other.max();
-        }
-    }
+		@Override
+		public String definitionString() {
+			return "length( [" + min + ", " + max + "] )";
+		}
 
-    public static record Enumeration( List<String> values ) implements NativeRefinement {
+		@Override
+		public int hashCode() {
+			return min + max;
+		}
 
-        @Override
-        public String definitionString() {
-            return "enum( [" + values.stream().reduce( (v1, v2) -> v1 + ", " + v2 ).orElseThrow() + "] )";
-        }
+		@Override
+		public boolean equals( Object obj ) {
+			return obj != null && obj instanceof Length other && min == other.min() && max == other.max();
+		}
+	}
 
-        @Override
-        public int hashCode() { return values.hashCode(); }
+	public static record Enumeration(List< String > values) implements NativeRefinement {
 
-        @Override
-        public boolean equals( Object obj ) {
-            return obj != null && obj instanceof Enumeration other && values.size() == other.values().size() && values.containsAll( other.values() );
-        }
-    }
+		@Override
+		public String definitionString() {
+			return "enum( [" + values.stream().reduce( ( v1, v2 ) -> v1 + ", " + v2 ).orElseThrow() + "] )";
+		}
 
-    public static record Regex( String regex ) implements NativeRefinement {
+		@Override
+		public int hashCode() {
+			return values.hashCode();
+		}
 
-        @Override
-        public String definitionString() {
-            return "regex( " + regex + " )";
-        }
+		@Override
+		public boolean equals( Object obj ) {
+			return obj != null && obj instanceof Enumeration other && values.size() == other.values().size()
+				&& values.containsAll( other.values() );
+		}
+	}
 
-        @Override
-        public int hashCode() { return regex.hashCode(); }
+	public static record Regex(String regex) implements NativeRefinement {
 
-        @Override
-        public boolean equals( Object obj ) {
-            return obj != null && obj instanceof Regex other && regex.equals( other.regex() );
-        }
-    }
+		@Override
+		public String definitionString() {
+			return "regex( " + regex + " )";
+		}
 
-    public static NativeRefinement merge( NativeRefinement r1, NativeRefinement r2 ) {
-        if ( r1 == null || r2 == null )
-            return null;
+		@Override
+		public int hashCode() {
+			return regex.hashCode();
+		}
 
-        if ( r1 instanceof Ranges nr1 && r2 instanceof Ranges nr2 )
-            return new Ranges( Stream.concat( nr1.intervals().stream(), nr2.intervals().stream() ).toList() );
+		@Override
+		public boolean equals( Object obj ) {
+			return obj != null && obj instanceof Regex other && regex.equals( other.regex() );
+		}
+	}
 
-        throw new IllegalArgumentException( "Tried to merge refinements which weren't ranges." );
-    }
+	public static NativeRefinement merge( NativeRefinement r1, NativeRefinement r2 ) {
+		if( r1 == null || r2 == null )
+			return null;
 
-    public static NativeRefinement create( Collection<BasicTypeRefinement<?>> refinements ) {
-        return refinements.stream()
-            .map( NativeRefinement::create )
-            .reduce( NativeRefinement::merge )
-            .orElse( null );
-    }
+		if( r1 instanceof Ranges nr1 && r2 instanceof Ranges nr2 )
+			return new Ranges( Stream.concat( nr1.intervals().stream(), nr2.intervals().stream() ).toList() );
 
-    public static NativeRefinement create( BasicTypeRefinement<?> refinement ) {
-        return switch ( refinement ) {
+		throw new IllegalArgumentException( "Tried to merge refinements which weren't ranges." );
+	}
 
-            case BasicTypeRefinementStringLength r -> new Length( r.getMin(), r.getMax() );
+	public static NativeRefinement create( Collection< BasicTypeRefinement< ? > > refinements ) {
+		return refinements.stream()
+			.map( NativeRefinement::create )
+			.reduce( NativeRefinement::merge )
+			.orElse( null );
+	}
 
-            case BasicTypeRefinementStringList r -> new Enumeration( r.getList() );
+	public static NativeRefinement create( BasicTypeRefinement< ? > refinement ) {
+		return switch( refinement ) {
 
-            case BasicTypeRefinementStringRegex r -> new Regex( Matcher.quoteReplacement( r.getRegex() ) );
+		case BasicTypeRefinementStringLength r -> new Length( r.getMin(), r.getMax() );
 
-            case BasicTypeRefinementIntegerRanges r -> new Ranges( r.getRanges().parallelStream().map( i -> new Ranges.Interval( i.getMin(), i.getMax() ) ).toList() );
+		case BasicTypeRefinementStringList r -> new Enumeration( r.getList() );
 
-            case BasicTypeRefinementLongRanges r -> new Ranges( r.getRanges().parallelStream().map( i -> new Ranges.Interval( i.getMin(), i.getMax() ) ).toList() );
+		case BasicTypeRefinementStringRegex r -> new Regex( Matcher.quoteReplacement( r.getRegex() ) );
 
-            case BasicTypeRefinementDoubleRanges r -> new Ranges( r.getRanges().parallelStream().map( i -> new Ranges.Interval( i.getMin(), i.getMax() ) ).toList() );
+		case BasicTypeRefinementIntegerRanges r -> new Ranges(
+			r.getRanges().parallelStream().map( i -> new Ranges.Interval( i.getMin(), i.getMax() ) ).toList() );
 
-            default -> throw new UnsupportedOperationException( "Got unexpected basic type refinement." );
-        };
-    }
+		case BasicTypeRefinementLongRanges r -> new Ranges(
+			r.getRanges().parallelStream().map( i -> new Ranges.Interval( i.getMin(), i.getMax() ) ).toList() );
+
+		case BasicTypeRefinementDoubleRanges r -> new Ranges(
+			r.getRanges().parallelStream().map( i -> new Ranges.Interval( i.getMin(), i.getMax() ) ).toList() );
+
+		default -> throw new UnsupportedOperationException( "Got unexpected basic type refinement." );
+		};
+	}
 }

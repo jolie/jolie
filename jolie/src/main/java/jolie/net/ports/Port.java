@@ -31,14 +31,14 @@ import jolie.runtime.typing.OperationTypeDescription;
 public interface Port {
 	/**
 	 * Returns the {@link VariablePath} pointing to the protocol configuration of this port.
-	 * 
+	 *
 	 * @return the {@link VariablePath} pointing to the protocol configuration of this port.
 	 */
 	VariablePath protocolConfigurationPath();
 
 	/**
 	 * Returns the {@link Interface} exposed directly by this port.
-	 * 
+	 *
 	 * @return the {@link Interface} exposed directly by this port.
 	 */
 	Interface getInterface();
@@ -46,7 +46,7 @@ public interface Port {
 	/**
 	 * Returns the {@link OperationTypeDescription} of the named operation, also considering the type
 	 * modifications given by eventual aggregations.
-	 * 
+	 *
 	 * @param operationName the name of the operation.
 	 * @param resourcePath the resource path of the operation (in case of redirection).
 	 * @return the {@link OperationTypeDescription} of the named operation.

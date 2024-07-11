@@ -24,7 +24,7 @@ import java.util.function.Supplier;
 
 /**
  * Utility class to store lazily-instantiated values.
- * 
+ *
  * @author Fabrizio Montesi
  * @param <T> the type of the stored value
  */
@@ -33,7 +33,7 @@ public class Lazy< T > implements Supplier< T > {
 
 	/**
 	 * Constructor
-	 * 
+	 *
 	 * @param initSupplier code for initialising the value the first time it is requested
 	 */
 	public Lazy( Supplier< T > initSupplier ) {

@@ -41,7 +41,7 @@ import jolie.runtime.typing.Type;
 
 /**
  * @author Fabrizio Montesi
- * 
+ *
  *         TODO: this shouldn't be polled
  */
 public class JavaScriptCommChannel extends CommChannel implements PollableCommChannel {

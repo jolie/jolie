@@ -4,11 +4,15 @@ import joliex.java.generate.util.ClassStringBuilder;
 
 public abstract class JavaClassBuilder {
 
-    protected final ClassStringBuilder builder = new ClassStringBuilder();
+	protected final ClassStringBuilder builder = new ClassStringBuilder();
 
-    public abstract String className();
-    public abstract void appendPackage();
-    public abstract void appendDefinition();
+	public abstract String className();
 
-    public String getResult() { return builder.toString(); }
+	public abstract void appendPackage();
+
+	public abstract void appendDefinition();
+
+	public String getResult() {
+		return builder.toString();
+	}
 }

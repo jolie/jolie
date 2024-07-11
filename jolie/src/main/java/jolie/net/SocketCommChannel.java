@@ -40,7 +40,7 @@ import jolie.util.Helpers;
 
 /**
  * A CommChannel using a socket to implement communications.
- * 
+ *
  * @author Fabrizio Montesi
  */
 public class SocketCommChannel extends SelectableStreamingCommChannel {
@@ -52,7 +52,7 @@ public class SocketCommChannel extends SelectableStreamingCommChannel {
 
 	/**
 	 * Constructor.
-	 * 
+	 *
 	 * @param socketChannel the SocketChannel underlying this SocketCommChannel
 	 * @param location the location for this channel
 	 * @param protocol the CommProtocol to use to send and receive messages
@@ -74,7 +74,7 @@ public class SocketCommChannel extends SelectableStreamingCommChannel {
 
 	/**
 	 * Returns the SocketChannel underlying this SocketCommChannel
-	 * 
+	 *
 	 * @return the SocketChannel underlying this SocketCommChannel
 	 */
 	@Override
@@ -89,7 +89,7 @@ public class SocketCommChannel extends SelectableStreamingCommChannel {
 
 	/**
 	 * Receives a message from the channel.
-	 * 
+	 *
 	 * @return the received CommMessage
 	 * @throws java.io.IOException
 	 * @see CommMessage
@@ -106,7 +106,7 @@ public class SocketCommChannel extends SelectableStreamingCommChannel {
 
 	/**
 	 * Sends a message through the channel.
-	 * 
+	 *
 	 * @param message the CommMessage to send
 	 * @see CommMessage
 	 * @throws IOException if an error sending the message occurs

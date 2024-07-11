@@ -32,7 +32,7 @@ import jolie.lang.parse.ast.VariablePathNode;
 import jolie.lang.parse.context.ParsingContext;
 
 /**
- * 
+ *
  * @author Fabrizio Montesi
  */
 public class CourierChoiceStatement extends OLSyntaxNode {

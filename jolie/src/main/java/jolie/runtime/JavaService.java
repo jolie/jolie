@@ -34,6 +34,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
+
 import jolie.Interpreter;
 import jolie.lang.parse.ast.OLSyntaxNode;
 import jolie.lang.parse.ast.OutputPortInfo;
@@ -157,14 +158,12 @@ public abstract class JavaService {
 		this.operations = Collections.unmodifiableMap( ops );
 	}
 
-	private static String getMethodName( Method method ) {
-		Identifier identifier = method.getAnnotation( Identifier.class );
-		if( identifier == null ) {
-			return method.getName();
-		}
-
-		return identifier.value();
-	}
+	/*
+	 * private static String getMethodName( Method method ) { Identifier identifier =
+	 * method.getAnnotation( Identifier.class ); if( identifier == null ) { return method.getName(); }
+	 *
+	 * return identifier.value(); }
+	 */
 
 	// Warning: this MUST NOT contain void.
 	/*

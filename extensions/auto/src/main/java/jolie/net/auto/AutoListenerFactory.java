@@ -35,7 +35,7 @@ import jolie.util.Helpers;
 
 /**
  * Listener factory for the auto communication medium.
- * 
+ *
  * @author Fabrizio Montesi
  */
 @AndJarDeps( { "ini4j.jar", "jolie-js.jar", "json-simple.jar" } )

@@ -760,7 +760,7 @@ public class SymbolReferenceResolver {
 	/**
 	 * Scans through inputPorts with 'local' location in the service node n, and assign the interfaces
 	 * and operation to an outputPort op
-	 * 
+	 *
 	 * @param n service to perform operations binding
 	 * @param op target outputport
 	 */
@@ -789,7 +789,7 @@ public class SymbolReferenceResolver {
 
 	/**
 	 * perform a lookup in the module record collection for the original symbol of an importing symbol
-	 * 
+	 *
 	 * @param symbolInfo an importing symbol
 	 * @param lookedSources a set of sources that are already considered
 	 */
@@ -851,7 +851,7 @@ public class SymbolReferenceResolver {
 
 	/**
 	 * resolve LinkedType of each ModuleRecord AST node in the Map.
-	 * 
+	 *
 	 * @throws ModuleException if the linked type cannot find its referencing node
 	 */
 	private void resolveLinkedTypes() throws ModuleException {
@@ -863,7 +863,7 @@ public class SymbolReferenceResolver {
 
 	/**
 	 * Resolve symbols the is imported from external modules and resolve linked type's pointer
-	 * 
+	 *
 	 * @throws ModuleException if the process is failed
 	 */
 	public static void resolve( CrawlerResult moduleMap ) throws ModuleException {
@@ -901,10 +901,10 @@ public class SymbolReferenceResolver {
 
 	/**
 	 * retrieves InterfaceDefinitions from ServiceNode's inputPorts declared with 'local' location
-	 * 
+	 *
 	 * @param node a service node object
 	 * @return InterfaceDefinition[] list of interfaces of local incoming communication port
-	 * 
+	 *
 	 */
 	private static InterfacesAndOperations getInterfacesFromInputPortLocal(
 		ServiceNode node ) {

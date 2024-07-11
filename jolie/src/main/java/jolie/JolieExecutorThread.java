@@ -35,7 +35,7 @@ public class JolieExecutorThread extends Thread implements InterpreterThread {
 
 	/**
 	 * Sets the <code>ExecutionThread</code> this thread must refer to.
-	 * 
+	 *
 	 * @param thread the <code>ExecutionThread</code> this thread must refer to for variable state
 	 *        resolution
 	 */
@@ -46,7 +46,7 @@ public class JolieExecutorThread extends Thread implements InterpreterThread {
 	/**
 	 * Returns the <code>ExecutionThread</code> this thread is referring to for variable state
 	 * resolution.
-	 * 
+	 *
 	 * @return the <code>ExecutionThread</code> this thread is referring to for variable state
 	 *         resolution
 	 */

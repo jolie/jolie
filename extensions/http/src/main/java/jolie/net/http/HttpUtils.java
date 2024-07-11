@@ -69,11 +69,11 @@ import jolie.xml.XmlUtils;
 
 /**
  * Utilities for handling HTTP messages.
- * 
+ *
  * @author Fabrizio Montesi
  */
 public class HttpUtils {
-	public static final String CRLF = new String( new char[] { 13, 10 } );
+	public static final String CRLF = String.valueOf( new char[] { 13, 10 } );
 	public static final String BOUNDARY = "----jol13h77p77bound4r155";
 	public static final String URL_DECODER_ENC = StandardCharsets.UTF_8.toString();
 	public static final String DEFAULT_CONTENT_CHARSET = StandardCharsets.UTF_8.toString();

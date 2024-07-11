@@ -253,7 +253,7 @@ public class DatabaseService extends JavaService {
 
 			try( PreparedStatement stm = new NamedStatementParser( tx, request.getFirstChild( "update" ).strValue(),
 				request.getFirstChild( "update" ) )
-					.getPreparedStatement(); ) {
+				.getPreparedStatement(); ) {
 				resultValue.setValue( stm.executeUpdate() );
 				openTxs.put( txHandle, tx );
 			} catch( SQLException e ) {
@@ -456,7 +456,7 @@ public class DatabaseService extends JavaService {
 				currResultValue = Value.create();
 				try( PreparedStatement stm = new NamedStatementParser( connection, statementValue.strValue(),
 					statementValue )
-						.getPreparedStatement() ) {
+					.getPreparedStatement() ) {
 					updateCount = -1;
 					if( stm.execute() == true ) {
 						updateCount = stm.getUpdateCount();
@@ -526,7 +526,7 @@ public class DatabaseService extends JavaService {
 			Connection tx = _getOpenTransaction( txHandle );
 			try( PreparedStatement stm = new NamedStatementParser( tx, request.getFirstChild( "query" ).strValue(),
 				request.getFirstChild( "query" ) )
-					.getPreparedStatement(); ) {
+				.getPreparedStatement(); ) {
 				resultValue = _executeQuery( stm, request.getFirstChild( "query" ) );
 				openTxs.put( txHandle, tx );
 			} catch( SQLException e ) {

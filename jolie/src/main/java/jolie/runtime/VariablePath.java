@@ -33,7 +33,7 @@ import java.util.Optional;
 /**
  * Represents a variable path, e.g. a.b[3], offering mechanisms for referring to the object pointed
  * by it.
- * 
+ *
  * @author Fabrizio Montesi
  */
 public class VariablePath implements Expression {

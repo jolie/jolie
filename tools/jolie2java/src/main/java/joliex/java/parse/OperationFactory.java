@@ -17,42 +17,45 @@ import one.util.streamex.EntryStream;
 
 public class OperationFactory {
 
-    private final TypeFactory typeFactory;
-    private final ConcurrentHashMap<String, Fault> faultMap = new ConcurrentHashMap<>();
+	private final TypeFactory typeFactory;
+	private final ConcurrentHashMap< String, Fault > faultMap = new ConcurrentHashMap<>();
 
-    public OperationFactory( TypeFactory typeFactory ) { this.typeFactory = typeFactory; }
+	public OperationFactory( TypeFactory typeFactory ) {
+		this.typeFactory = typeFactory;
+	}
 
-    public JolieOperation createOperation( OperationDeclaration operationDeclaration ) {
-        return switch ( operationDeclaration ) {
-            case OneWayOperationDeclaration ow -> new OneWay(
-                ow.id(),
-                typeFactory.get( ow.requestType() ),
-                ow.getDocumentation().map( s -> s.isEmpty() ? null : s ).orElse( null ) );
+	public JolieOperation createOperation( OperationDeclaration operationDeclaration ) {
+		return switch( operationDeclaration ) {
+		case OneWayOperationDeclaration ow -> new OneWay(
+			ow.id(),
+			typeFactory.get( ow.requestType() ),
+			ow.getDocumentation().map( s -> s.isEmpty() ? null : s ).orElse( null ) );
 
-            case RequestResponseOperationDeclaration rr -> new RequestResponse( 
-                rr.id(),
-                typeFactory.get( rr.requestType() ),
-                typeFactory.get( rr.responseType() ),
-                EntryStream.of( rr.faults() )
-                    .parallel()
-                    .mapKeyValue( this::createFault )
-                    .toList(),
-                rr.getDocumentation().map( s -> s.isEmpty() ? null : s ).orElse( null ) );
+		case RequestResponseOperationDeclaration rr -> new RequestResponse(
+			rr.id(),
+			typeFactory.get( rr.requestType() ),
+			typeFactory.get( rr.responseType() ),
+			EntryStream.of( rr.faults() )
+				.parallel()
+				.mapKeyValue( this::createFault )
+				.toList(),
+			rr.getDocumentation().map( s -> s.isEmpty() ? null : s ).orElse( null ) );
 
-            default -> throw new UnsupportedOperationException( "Got unexpected operation declaration." );
-        };
-    }
+		default -> throw new UnsupportedOperationException( "Got unexpected operation declaration." );
+		};
+	}
 
-    private Fault createFault( String name, TypeDefinition typeDefinition ) {
-        final JolieType type = typeFactory.get( typeDefinition );
-        return faultMap.compute( name, (n,f) -> {
-            if ( f == null )
-                return new Fault( n, type, NameFormatter.requireValidClassName( n, Set.of() ) );
+	private Fault createFault( String name, TypeDefinition typeDefinition ) {
+		final JolieType type = typeFactory.get( typeDefinition );
+		return faultMap.compute( name, ( n, f ) -> {
+			if( f == null )
+				return new Fault( n, type, NameFormatter.requireValidClassName( n, Set.of() ) );
 
-            if ( f.type().equals( type ) )
-                return f;
+			if( f.type().equals( type ) )
+				return f;
 
-            throw new IllegalArgumentException( "Having multiple faults with the same name but different types is not allowed." );
-        });
-    }
+			throw new IllegalArgumentException(
+				"Having multiple faults with the same name but different types is not allowed." );
+		} );
+	}
 }

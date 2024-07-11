@@ -161,7 +161,7 @@ class ModuleCrawler {
 
 	/**
 	 * crawl module's dependencies required for resolving symbols
-	 * 
+	 *
 	 * @param mainRecord root ModuleRecord object to begin the dependency crawling
 	 * @param parsingConfiguration configuration for parsing Jolie module
 	 * @param finder Jolie module finder

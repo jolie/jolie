@@ -36,7 +36,7 @@ public class NativeJolieThread extends Thread implements InterpreterThread {
 
 	/**
 	 * Constructor
-	 * 
+	 *
 	 * @param interpreter the <code>Interpreter</code> this thread will refer to
 	 * @param name the suffix name for this thread
 	 * @see Interpreter
@@ -48,7 +48,7 @@ public class NativeJolieThread extends Thread implements InterpreterThread {
 
 	/**
 	 * Constructor
-	 * 
+	 *
 	 * @param interpreter the <code>Interpreter</code> this thread will refer to
 	 * @see Interpreter
 	 */

@@ -46,7 +46,7 @@ public class SymbolTable {
 
 	/**
 	 * A constructor of SymbolTable
-	 * 
+	 *
 	 * @param source source of Jolie module
 	 */
 	protected SymbolTable( URI source ) {
@@ -60,7 +60,7 @@ public class SymbolTable {
 
 	/**
 	 * resolve a wildcard symbol by replace it with an array of symbols
-	 * 
+	 *
 	 * @param wildCardSymbol a wildcard symbol in symbol table to replace
 	 * @param sourceSymbols array of symbols in parsed wildcardSymbol's module
 	 * @throws DuplicateSymbolException when adding name duplicate name to the symbol
@@ -84,10 +84,10 @@ public class SymbolTable {
 
 	/**
 	 * create and add a local Symbol with corresponding ASTNode to the table
-	 * 
+	 *
 	 * @param name Symbol name in local execution context
 	 * @param node an AST node implementing SymbolNode
-	 * 
+	 *
 	 * @throws DuplicateSymbolException when adding name duplicate name to the symbol
 	 */
 	protected void addSymbol( String name, ImportableSymbol node ) throws DuplicateSymbolException {
@@ -102,11 +102,11 @@ public class SymbolTable {
 
 	/**
 	 * create and add an external Symbol with its module target to the table
-	 * 
+	 *
 	 * @param context Context where symbol is declare
 	 * @param name importing Symbol name
 	 * @param importPath a object represent importing path to module where the symbol reside
-	 * 
+	 *
 	 * @throws DuplicateSymbolException when adding name duplicate name to the symbol
 	 */
 	protected void addSymbol( ParsingContext context, String name, ImportPath importPath )
@@ -121,12 +121,12 @@ public class SymbolTable {
 	/**
 	 * create and add an external Symbol to the symboltable with an alias for using in local execution
 	 * context
-	 * 
+	 *
 	 * @param context Context where symbol is declare
 	 * @param name Symbol name
 	 * @param importPath a object represent importing path to module where the symbol reside
 	 * @param originalSymbolName Name for binding result to local environment
-	 * 
+	 *
 	 * @throws DuplicateSymbolException when adding name duplicate name to the symbol
 	 */
 	protected void addSymbolWithAlias( ParsingContext context, String name, ImportPath importPath,
@@ -140,9 +140,9 @@ public class SymbolTable {
 
 	/**
 	 * add an wildcard Symbol to table
-	 * 
+	 *
 	 * @param importPath a object represent importing path to module where the symbol reside
-	 * 
+	 *
 	 */
 	protected void addWildcardSymbol( ParsingContext context, ImportPath importPath ) {
 		this.symbols.put( importPath.toString(),

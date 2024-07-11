@@ -61,7 +61,7 @@ import jolie.util.UriUtils;
 
 /**
  * A parser for JOLIE's command line arguments, providing methods for accessing them.
- * 
+ *
  * @author Fabrizio Montesi
  */
 public class CommandLineParser implements AutoCloseable {
@@ -116,7 +116,7 @@ public class CommandLineParser implements AutoCloseable {
 
 	/**
 	 * Returns the usage help message of Jolie.
-	 * 
+	 *
 	 * @return the usage help message of Jolie.
 	 */
 	protected String getHelpString() {
@@ -214,7 +214,7 @@ public class CommandLineParser implements AutoCloseable {
 
 	/**
 	 * Constructor
-	 * 
+	 *
 	 * @param args the command line arguments
 	 * @param parentClassLoader the ClassLoader to use for finding resources
 	 * @throws CommandLineException if the command line is not valid or asks for simple information.
@@ -228,7 +228,7 @@ public class CommandLineParser implements AutoCloseable {
 
 	/**
 	 * Constructor
-	 * 
+	 *
 	 * @param args the command line arguments
 	 * @param parentClassLoader the ClassLoader to use for finding resources
 	 * @param argHandler
@@ -242,7 +242,7 @@ public class CommandLineParser implements AutoCloseable {
 
 	/**
 	 * Constructor
-	 * 
+	 *
 	 * @param args the command line arguments
 	 * @param parentClassLoader the ClassLoader to use for finding resources
 	 * @param ignoreFile do not open file that is given as parameter (used for internal services)
@@ -256,7 +256,7 @@ public class CommandLineParser implements AutoCloseable {
 
 	/**
 	 * Constructor
-	 * 
+	 *
 	 * @param args the command line arguments
 	 * @param parentClassLoader the ClassLoader to use for finding resources
 	 * @param argHandler
@@ -837,13 +837,13 @@ public class CommandLineParser implements AutoCloseable {
 	/**
 	 * A handler for unrecognized arguments, meant to be implemented by classes that wants to extend the
 	 * behaviour of {@link CommandLineParser}.
-	 * 
+	 *
 	 * @author Fabrizio Montesi
 	 */
 	public interface ArgumentHandler {
 		/**
 		 * Called when {@link CommandLineParser} cannot recognize a command line argument.
-		 * 
+		 *
 		 * @param argumentsList the argument list.
 		 * @param index the index at which the unrecognized argument has been found in the list.
 		 * @return the new index at which the {@link CommandLineParser} should continue parsing the

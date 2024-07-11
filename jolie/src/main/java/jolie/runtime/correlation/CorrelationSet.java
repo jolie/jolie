@@ -62,7 +62,7 @@ public class CorrelationSet {
 
 	/**
 	 * Returns the list of {@link CorrelationPair} defined for the operation.
-	 * 
+	 *
 	 * @param operationName the operation name the list is defined for.
 	 * @return the list of {@link CorrelationPair} defined for the operation, or {@code null} if no such
 	 *         list is defined.

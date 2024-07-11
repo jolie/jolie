@@ -148,13 +148,13 @@ public class Scanner {
 		ERROR				///< Scanner error
 	}
 	// @formatter:off
-	
+
 	/*
 	 * Map of unreserved keywords,
 	 * which can be considered as IDs in certain places (e.g. variables).
 	 */
 	private static final Map< String, TokenType > UNRESERVED_KEYWORDS = new HashMap<>();
-	
+
 	static {
 		// Initialise the unreserved keywords map.
 		UNRESERVED_KEYWORDS.put( "OneWay", TokenType.OP_OW );
@@ -495,7 +495,7 @@ public class Scanner {
 
 	/**
 	 * Used for getting the string of the line, where the error occured, with line number.
-	 * 
+	 *
 	 * @return current line in file, with line number
 	 */
 	public List<String> codeLineWithLineNumber() {
@@ -555,7 +555,7 @@ public class Scanner {
 	/**
 	 * Returns the value minus one, because errorcolumn is set to currentcolumn while reading, and thus has 1 added to it
 	 * because the current column has already moved to the next characer of where the word started we are reading
-	 * @return the starting index of the token which is erroneous 
+	 * @return the starting index of the token which is erroneous
 	 */
 	public int errorColumn() {
 		return errorColumn-1;
@@ -795,7 +795,7 @@ public class Scanner {
 	{
 		return ch;
 	}
-	
+
 	// The lowercase _or_ names are intentional and help reading.
 	@SuppressWarnings("PMD")
 	private enum State
@@ -1147,7 +1147,7 @@ public class Scanner {
 						state = State.REAL; // It's a REAL
 					}
 					break;
-				case REAL: // REAL "."[0-9]+ 
+				case REAL: // REAL "."[0-9]+
 					if ( ch == 'E' || ch == 'e' ) {
 						state = State.SCIENTIFIC_NOTATION_FIRST_AFTER_E;
 					} else if ( !Character.isDigit( ch ) ) {

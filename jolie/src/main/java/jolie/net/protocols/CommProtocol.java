@@ -37,7 +37,7 @@ import jolie.runtime.VariablePath;
  * A CommProtocol implements a protocol for sending and receiving data under the form of CommMessage
  * objects. This class should not be extended directly; see {@link ConcurrentCommProtocol
  * ConcurrentCommProtocol} and {@link SequentialCommProtocol SequentialCommProtocol} instead.
- * 
+ *
  * @author Fabrizio Montesi
  */
 public abstract class CommProtocol {
@@ -118,7 +118,7 @@ public abstract class CommProtocol {
 
 	/**
 	 * Shortcut for checking if a parameter intValue() equals 1
-	 * 
+	 *
 	 * @param id the parameter identifier
 	 */
 	protected boolean checkBooleanParameter( String id ) {
@@ -127,7 +127,7 @@ public abstract class CommProtocol {
 
 	/**
 	 * Shortcut for checking if a parameter intValue() equals 1
-	 * 
+	 *
 	 * @param id the parameter identifier
 	 */
 	protected boolean checkBooleanParameter( String id, boolean defaultValue ) {
@@ -140,7 +140,7 @@ public abstract class CommProtocol {
 
 	/**
 	 * Shortcut for checking if a string parameter has a given value
-	 * 
+	 *
 	 * @param id the parameter identifier
 	 * @param value the value for checking the parameter with
 	 * @return {@code true} if the parameter has the expected value, {@code false} otherwise
@@ -155,7 +155,7 @@ public abstract class CommProtocol {
 
 	/**
 	 * Shortcut for <code>getParameterFirstValue( id ).strValue()</code>
-	 * 
+	 *
 	 * @param id the parameter identifier
 	 */
 	protected String getStringParameter( String id ) {
@@ -216,7 +216,7 @@ public abstract class CommProtocol {
 
 	/**
 	 * Shortcut for <code>getParameterFirstValue( id ).intValue()</code>
-	 * 
+	 *
 	 * @param id the parameter identifier
 	 */
 	protected int getIntParameter( String id ) {

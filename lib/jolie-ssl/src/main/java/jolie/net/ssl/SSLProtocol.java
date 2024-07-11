@@ -56,7 +56,7 @@ import jolie.runtime.VariablePath;
 
 /**
  * Commodity class for supporting the implementation of SSL-based protocols through wrapping.
- * 
+ *
  * @author Fabrizio Montesi 2010: complete rewrite 2015: major fixups
  */
 public class SSLProtocol extends SequentialCommProtocol {

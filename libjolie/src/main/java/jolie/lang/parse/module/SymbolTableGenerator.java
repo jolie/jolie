@@ -452,7 +452,7 @@ public class SymbolTableGenerator {
 	 * Jolie's program and read the definition of types and interfaces and create a SymbolInfo node for
 	 * the AST. The import statement is consumed here to create an external SymbolInfo to be resolve
 	 * later by SymbolReferenceResolver class
-	 * 
+	 *
 	 * @param program a Jolie AST
 	 * @throws ModuleException when the duplication of SymbolDeclaration is detected.
 	 */

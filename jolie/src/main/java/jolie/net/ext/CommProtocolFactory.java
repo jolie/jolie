@@ -30,7 +30,7 @@ import jolie.runtime.VariablePath;
 
 /**
  * A factory for delegating the creation of protocol instances to extensions.
- * 
+ *
  * @author Fabrizio Montesi
  */
 abstract public class CommProtocolFactory {
@@ -38,7 +38,7 @@ abstract public class CommProtocolFactory {
 
 	/**
 	 * Constructor
-	 * 
+	 *
 	 * @param commCore the CommCore to refer to for creating CommProtocol instances.
 	 */
 	public CommProtocolFactory( CommCore commCore ) {
@@ -51,7 +51,7 @@ abstract public class CommProtocolFactory {
 
 	/**
 	 * Creates a CommProtocol instance meant for an input port.
-	 * 
+	 *
 	 * @param configurationPath the configuration VariablePath the returned CommProtocol must refer to
 	 * @param location the location the returned CommProtocol must refer to
 	 * @return a CommProtocol instance
@@ -62,7 +62,7 @@ abstract public class CommProtocolFactory {
 
 	/**
 	 * Creates a CommProtocol instance meant for an output port.
-	 * 
+	 *
 	 * @param configurationPath the configuration VariablePath the returned CommProtocol must refer to
 	 * @param location the location the returned CommProtocol must refer to
 	 * @return a CommProtocol instance

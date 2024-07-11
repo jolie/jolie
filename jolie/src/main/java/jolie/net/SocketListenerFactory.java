@@ -30,7 +30,7 @@ import jolie.net.ports.InputPort;
 
 /**
  * A factory for <code>SocketListener</code>.
- * 
+ *
  * @see SocketListener
  * @author Fabrizio Montesi
  */

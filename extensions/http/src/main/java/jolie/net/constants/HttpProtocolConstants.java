@@ -28,7 +28,7 @@ import java.util.Set;
 
 /**
  * Http Global constants.
- * 
+ *
  * @author Claudio Guidi
  */
 public final class HttpProtocolConstants {

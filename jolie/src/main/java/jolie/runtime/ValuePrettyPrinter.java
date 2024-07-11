@@ -33,7 +33,7 @@ import jolie.lang.NativeType;
 
 /**
  * Pretty printer for {@link Value} objects. This class is not thread safe.
- * 
+ *
  * @author Fabrizio Montesi
  */
 public class ValuePrettyPrinter {

@@ -89,7 +89,7 @@ import jolie.xml.XmlUtils;
 
 /**
  * HTTP protocol implementation
- * 
+ *
  * @author Fabrizio Montesi 14 Nov 2012 - Saverio Giallorenzo - Fabrizio Montesi: support for status
  *         codes
  */
@@ -481,7 +481,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.Protocol {
 	}
 
 	private void send_appendResponseUserHeader( CommMessage message, StringBuilder headerBuilder ) {
-		Value responseHeaderParameters = null;
+		Value responseHeaderParameters;
 		if( hasOperationSpecificParameter( message.operationName(), HttpUtils.Parameters.RESPONSE_USER ) ) {
 			responseHeaderParameters =
 				getOperationSpecificParameterFirstValue( message.operationName(), HttpUtils.Parameters.RESPONSE_USER );
@@ -832,7 +832,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.Protocol {
 			String compressionTypes = getStringParameter(
 				HttpUtils.Parameters.COMPRESSION_TYPES,
 				"text/html text/css text/plain text/xml text/x-js application/json application/javascript application/x-www-form-urlencoded application/xhtml+xml application/xml x-font/otf x-font/ttf application/x-font-ttf" )
-					.toLowerCase();
+				.toLowerCase();
 			if( compression && !compressionTypes.equals( "*" )
 				&& !compressionTypes.contains( encodedContent.contentType ) ) {
 				compression = false;

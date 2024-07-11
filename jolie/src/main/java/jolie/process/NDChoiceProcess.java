@@ -42,9 +42,9 @@ import jolie.util.Pair;
  * waits for the receiving of a communication on one of its InputProcess objects. When a
  * communication is received, the following happens: \li the communication is resolved by the
  * corresponding InputProcess instance. \li the paired Process object is executed.
- * 
+ *
  * After that, the ChoiceProcess terminates, so the other pairs are ignored.
- * 
+ *
  * @author Fabrizio Montesi
  */
 public class NDChoiceProcess implements Process {
@@ -53,7 +53,7 @@ public class NDChoiceProcess implements Process {
 
 	/**
 	 * Constructor
-	 * 
+	 *
 	 * @param branches
 	 */
 	public NDChoiceProcess( Pair< InputOperationProcess, Process >[] branches ) {
@@ -88,7 +88,7 @@ public class NDChoiceProcess implements Process {
 
 	/**
 	 * Runs the non-deterministic choice behaviour.
-	 * 
+	 *
 	 * @throws jolie.runtime.FaultException
 	 * @throws jolie.runtime.ExitingException
 	 */

@@ -45,7 +45,7 @@ public class ModuleRecordCache {
 
 	/**
 	 * Register dependency graph of the module's URI and its dependencies
-	 * 
+	 *
 	 * @param moduleURI target module
 	 * @param dependencies list of dependencies needed by moduleURI
 	 */
@@ -73,7 +73,7 @@ public class ModuleRecordCache {
 
 	/**
 	 * Handle dependency graph when removing a cache entry
-	 * 
+	 *
 	 * @param source target module to remove cache
 	 */
 	private void removeDependencies( URI source ) {

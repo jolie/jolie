@@ -30,7 +30,7 @@ import jolie.runtime.Value;
 
 /**
  * Provides the support for a "logical and" chain of other conditions.
- * 
+ *
  * @author Fabrizio Montesi
  * @see Condition
  */
@@ -51,7 +51,7 @@ public class AndCondition implements Expression {
 	 * Applies the "logical and" rule. Implemented as short and: starting from left, the first condition
 	 * that evaluates as false makes this "logical and" condition evaluation returning false, without
 	 * checking the other conditions.
-	 * 
+	 *
 	 * @return true if every condition is satisfied, false otherwise.
 	 */
 	@Override

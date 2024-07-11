@@ -75,7 +75,7 @@ import java.util.function.BiPredicate;
 
 /**
  * Builds an interpretation tree by visiting a Jolie abstract syntax tree.
- * 
+ *
  * @author Fabrizio Montesi
  * @see UnitOLVisitor
  */
@@ -119,7 +119,7 @@ public class OOITBuilder implements UnitOLVisitor {
 
 	/**
 	 * Constructor.
-	 * 
+	 *
 	 * @param interpreter the Interpreter requesting the interpretation tree building
 	 * @param program the Program to generate the interpretation tree from
 	 * @param isConstantMap
@@ -168,10 +168,10 @@ public class OOITBuilder implements UnitOLVisitor {
 
 	/**
 	 * Launches the build process.
-	 * 
+	 *
 	 * The Program passed to the constructor gets visited and the Interpreter passed to the constructor
 	 * is set with the necessary references to the interpretation tree.
-	 * 
+	 *
 	 * @return true if the build process is successful, false otherwise
 	 */
 	public boolean build() {

@@ -344,7 +344,7 @@ public abstract class Type {
 
 	/**
 	 * Returns a type that extends t1 with t2.
-	 * 
+	 *
 	 * @param t1
 	 * @param t2
 	 * @return a new type that extends t1 with t2.

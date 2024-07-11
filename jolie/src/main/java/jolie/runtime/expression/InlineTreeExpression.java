@@ -30,7 +30,7 @@ import jolie.runtime.VariablePath;
 
 /**
  * Implements inline tree definitions.
- * 
+ *
  * @author Fabrizio Montesi
  */
 public class InlineTreeExpression implements Expression {

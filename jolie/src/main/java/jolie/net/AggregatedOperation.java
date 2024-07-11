@@ -48,7 +48,7 @@ import jolie.runtime.typing.TypeCheckingException;
 /**
  * An AggregatedOperation instance contains information about an operation that is aggregated by an
  * input port.
- * 
+ *
  * @author Fabrizio Montesi
  */
 public abstract class AggregatedOperation {
@@ -201,7 +201,7 @@ public abstract class AggregatedOperation {
 				State state = initThread.state().clone();
 				Process p = new RequestResponseProcess( operation, inputVariablePath, outputVariablePath,
 					courierProcess, context )
-						.receiveMessage( new SessionMessage( requestMessage, channel ), state );
+					.receiveMessage( new SessionMessage( requestMessage, channel ), state );
 				new SessionThread( p, state, initThread ).start();
 			} catch( TypeCheckingException e ) {
 				interpreter.logWarning(
@@ -303,7 +303,7 @@ public abstract class AggregatedOperation {
 
 	/**
 	 * Returns the operation type of this operation
-	 * 
+	 *
 	 * @return the operation type of this operation
 	 * @see OperationType
 	 */
@@ -313,7 +313,7 @@ public abstract class AggregatedOperation {
 
 	/**
 	 * Returns the name of this operation.
-	 * 
+	 *
 	 * @return the name of this operation.
 	 */
 	public String name() {

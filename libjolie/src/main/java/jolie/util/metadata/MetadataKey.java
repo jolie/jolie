@@ -23,7 +23,7 @@ import java.util.Objects;
 
 /**
  * A metadata key.
- * 
+ *
  * @author Fabrizio Montesi
  * @param <T> the type of values associated to this metadata key
  */

@@ -35,7 +35,7 @@ import joliex.metaservice.MetaServiceChannel;
 
 /**
  * This class executes a MetaService service in the local Java Virtual Machine.
- * 
+ *
  * @author Fabrizio Montesi
  */
 public class EmbeddedMetaService extends MetaService {
@@ -73,7 +73,7 @@ public class EmbeddedMetaService extends MetaService {
 
 	/**
 	 * Creates an embedded MetaService instance, executing a JOLIE interpreter in the local JVM.
-	 * 
+	 *
 	 * @param jolieHome the path pointing to the local JOLIE installation directory.
 	 */
 	public EmbeddedMetaService( String jolieHome )
@@ -96,7 +96,7 @@ public class EmbeddedMetaService extends MetaService {
 
 	/**
 	 * Creates an embedded MetaService instance, executing a JOLIE interpreter in the local JVM.
-	 * 
+	 *
 	 * @param jolieHome the path pointing to the local JOLIE installation directory.
 	 * @param metaserviceFilepath the path pointing to the metaservice source file to load.
 	 */

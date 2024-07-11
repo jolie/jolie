@@ -28,7 +28,7 @@ import jolie.runtime.Value;
 
 /**
  * The MetaService class is a bridge to a MetaService JOLIE service.
- * 
+ *
  * @TODO: support nested paths
  * @author Fabrizio Montesi
  */
@@ -47,7 +47,7 @@ abstract public class MetaService {
 
 	/**
 	 * Shuts down this MetaService instance.
-	 * 
+	 *
 	 * @throws java.io.IOException
 	 */
 	public void shutdown()
@@ -57,7 +57,7 @@ abstract public class MetaService {
 
 	/**
 	 * Adds a redirection.
-	 * 
+	 *
 	 * @param resourcePrefix the first part of the resource name the redirection will be published
 	 *        under, e.g. if resourceName="MediaPlayer" then the redirection will be published in
 	 *        /MediaPlayer or in /MediaPlayer-s, where s is a string.
@@ -83,7 +83,7 @@ abstract public class MetaService {
 
 	/**
 	 * Removes a redirection.
-	 * 
+	 *
 	 * @param resourceName the resource name identifying the redirection to remove.
 	 */
 	public void removeRedirection( String resourceName )
@@ -100,7 +100,7 @@ abstract public class MetaService {
 	/**
 	 * Starts an embedded jolie service reading its source code file, publishes it and returns the
 	 * created resource name.
-	 * 
+	 *
 	 * @param resourcePrefix the first part of the resource name the redirection will be published
 	 *        under, e.g. if resourceName="MediaPlayer" then the redirection will be published in
 	 *        /MediaPlayer or in /MediaPlayer-s, where s is a string.
@@ -124,7 +124,7 @@ abstract public class MetaService {
 
 	/**
 	 * Unloads an embedded JOLIE service.
-	 * 
+	 *
 	 * @param resourceName the resource name identifying the embedded service to remove.
 	 */
 	public void unloadEmbeddedJolieService( String resourceName )

@@ -29,27 +29,33 @@ import jolie.runtime.typing.TypeCheckingException;
 
 public class ValueUtils {
 
-	public static JolieValue invokeFromValue( Class< ? > cls, Value v ) throws TypeCheckingException, IllegalAccessException, InvocationTargetException, NoSuchMethodException, SecurityException {
+	public static JolieValue invokeFromValue( Class< ? > cls, Value v ) throws TypeCheckingException,
+		IllegalAccessException, InvocationTargetException, NoSuchMethodException, SecurityException {
 		return JolieValue.class.cast( cls.getMethod( "fromValue", Value.class ).invoke( null, v ) );
 	}
 
-	public static Value invokeToValue( Class< ? > cls, JolieValue t ) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException, SecurityException {
+	public static Value invokeToValue( Class< ? > cls, JolieValue t )
+		throws IllegalAccessException, InvocationTargetException, NoSuchMethodException, SecurityException {
 		return Value.class.cast( cls.getMethod( "toValue", cls ).invoke( null, t ) );
 	}
 
-	public static JolieValue invokeFrom( Class< ? > cls, JolieValue t ) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException, SecurityException {
+	public static JolieValue invokeFrom( Class< ? > cls, JolieValue t )
+		throws IllegalAccessException, InvocationTargetException, NoSuchMethodException, SecurityException {
 		return JolieValue.class.cast( cls.getMethod( "from", JolieValue.class ).invoke( null, t ) );
 	}
 
-	public static Object invokeBuilder( Class< ? > cls, JolieValue t ) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException, SecurityException {
+	public static Object invokeBuilder( Class< ? > cls, JolieValue t )
+		throws IllegalAccessException, InvocationTargetException, NoSuchMethodException, SecurityException {
 		return cls.getMethod( "builder", JolieValue.class ).invoke( null, t );
 	}
 
-	public static void invokeSetter( Object builder, String field, Object argument ) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException, SecurityException {
+	public static void invokeSetter( Object builder, String field, Object argument )
+		throws IllegalAccessException, InvocationTargetException, NoSuchMethodException, SecurityException {
 		builder.getClass().getMethod( field, argument.getClass() ).invoke( builder, argument );
 	}
 
-	public static JolieValue invokeBuild( Object builder ) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException, SecurityException {
+	public static JolieValue invokeBuild( Object builder )
+		throws IllegalAccessException, InvocationTargetException, NoSuchMethodException, SecurityException {
 		return JolieValue.class.cast( builder.getClass().getMethod( "build" ).invoke( builder ) );
 	}
 
@@ -59,18 +65,21 @@ public class ValueUtils {
 	}
 
 	private static void compareValues( Value v1, Value v2, int level, String from ) throws AssertionError {
-		assertTrue( 
-			"level " + level + ", Root values are different: " + (v1.valueObject() == null ? "null" : v1.valueObject().toString()) + "," + (v2.valueObject() == null ? "null" : v2.valueObject().toString()),
-			checkRootValue( v1, v2 ) 
-		);
+		assertTrue(
+			"level " + level + ", Root values are different: "
+				+ (v1.valueObject() == null ? "null" : v1.valueObject().toString()) + ","
+				+ (v2.valueObject() == null ? "null" : v2.valueObject().toString()),
+			checkRootValue( v1, v2 ) );
 
 		for( Entry< String, ValueVector > entry : v1.children().entrySet() ) {
-			assertTrue( 
-				"level " + level + ", from " + from + ", field " + entry.getKey() + ": not present", 
+			assertTrue(
+				"level " + level + ", from " + from + ", field " + entry.getKey() + ": not present",
 				v2.hasChildren( entry.getKey() ) );
 
-			assertTrue( 
-				"level " + level + ", from " + from + ", field " + entry.getKey() + ": The number of subnodes is different, " + entry.getValue().size() + " compared to " + v2.getChildren( entry.getKey() ).size(),
+			assertTrue(
+				"level " + level + ", from " + from + ", field " + entry.getKey()
+					+ ": The number of subnodes is different, " + entry.getValue().size() + " compared to "
+					+ v2.getChildren( entry.getKey() ).size(),
 				entry.getValue().size() == v2.getChildren( entry.getKey() ).size() );
 
 			for( int i = 0; i < entry.getValue().size(); i++ )

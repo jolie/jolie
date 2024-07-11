@@ -50,7 +50,7 @@ public class RunProcess implements Process {
 		 * OLParseTreeOptimizer( program )).optimize(); SemanticVerifier semanticVerifier = new
 		 * SemanticVerifier( program ); if ( !semanticVerifier.validate() ) { throw new FaultException(
 		 * "fInvalidCode" ); }
-		 * 
+		 *
 		 * Interpreter parentInterpreter = Interpreter.getInstance(); Interpreter runInterpreter = new
 		 * Interpreter( parentInterpreter.args() ); (new OOITBuilder( runInterpreter, program,
 		 * semanticVerifier.isConstantMap() )).build(); } catch( IOException e ) { throw new FaultException(
