@@ -33,7 +33,7 @@ jobs:
       matrix:
         platform:
           - linux/amd64
-          - linux/arm64
+          # - linux/arm64
         
     steps:
       - name: Checkout
@@ -73,10 +73,10 @@ jobs:
             type=semver,pattern={{version}},suffix=-dev
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v1
+        uses: docker/setup-qemu-action@v3
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
+        uses: docker/setup-buildx-action@v3
 
       - name: Login to DockerHub
         uses: docker/login-action@v2
@@ -85,7 +85,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Build and push (runtime images)
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: docker/Dockerfile
@@ -95,7 +95,7 @@ jobs:
           labels: ${{ steps.meta_rt.outputs.labels }}
         
       - name: Build and push (runtime Alpine images)
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: docker/Dockerfile.alpine
@@ -105,7 +105,7 @@ jobs:
           labels: ${{ steps.meta_alpine.outputs.labels }}
       
       - name: Build and push (dev images)
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: docker/Dockerfile.dev
