@@ -83,8 +83,8 @@ jobs:
         with:
           context: .
           file: docker/Dockerfile
-          #platforms: linux/amd64,linux/arm64
-          platforms: linux/amd64
+          platforms: linux/amd64,linux/arm64
+          # platforms: linux/amd64
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta_rt.outputs.tags }}
           labels: ${{ steps.meta_rt.outputs.labels }}
