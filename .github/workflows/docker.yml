@@ -31,11 +31,9 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        arch:
-          - name: linux/amd64
-            platform: linux/amd64
-          - name: linux/arm64
-            platform: linux/arm64
+        platform:
+          - linux/amd64
+          - linux/arm64
         
     steps:
       - name: Checkout
@@ -91,7 +89,7 @@ jobs:
         with:
           context: .
           file: docker/Dockerfile
-          platforms: ${{ matrix.arch.platform }}
+          platforms: ${{ matrix.platform }}
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta_rt.outputs.tags }}
           labels: ${{ steps.meta_rt.outputs.labels }}
@@ -101,7 +99,7 @@ jobs:
         with:
           context: .
           file: docker/Dockerfile.alpine
-          platforms: ${{ matrix.arch.platform }}
+          platforms: ${{ matrix.platform }}
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta_alpine.outputs.tags }}
           labels: ${{ steps.meta_alpine.outputs.labels }}
@@ -111,7 +109,7 @@ jobs:
         with:
           context: .
           file: docker/Dockerfile.dev
-          platforms: ${{ matrix.arch.platform }}
+          platforms: ${{ matrix.platform }}
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta_dev.outputs.tags }}
           labels: ${{ steps.meta_dev.outputs.labels }}
