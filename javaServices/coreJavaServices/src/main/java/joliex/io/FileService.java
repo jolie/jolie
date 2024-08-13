@@ -1,23 +1,21 @@
-/***************************************************************************
- *   Copyright (C) 2008-2019 by Fabrizio Montesi <famontesi@gmail.com>     *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU Library General Public License as       *
- *   published by the Free Software Foundation; either version 2 of the    *
- *   License, or (at your option) any later version.                       *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU Library General Public     *
- *   License along with this program; if not, write to the                 *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                         *
- *   For details about the authors of this software, see the AUTHORS file. *
- ***************************************************************************/
+/*
+ * Copyright (C) 2008-2024 Fabrizio Montesi <famontesi@gmail.com>
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+ * MA 02110-1301  USA
+ */
 
 package joliex.io;
 
@@ -51,12 +49,12 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Comparator;
+import java.util.Map;
 import java.util.Properties;
 import java.util.function.BiPredicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
-
 import javax.activation.FileTypeMap;
 import javax.activation.MimetypesFileTypeMap;
 import javax.xml.parsers.DocumentBuilder;
@@ -68,14 +66,14 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-
-import com.sun.xml.xsom.XSSchemaSet;
-import com.sun.xml.xsom.parser.XSOMParser;
-
+import org.snakeyaml.engine.v2.api.Load;
+import org.snakeyaml.engine.v2.api.LoadSettings;
+import org.snakeyaml.engine.v2.exceptions.YamlEngineException;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
-
+import com.sun.xml.xsom.XSSchemaSet;
+import com.sun.xml.xsom.parser.XSOMParser;
 import jolie.Interpreter;
 import jolie.jap.JapURLConnection;
 import jolie.js.JsUtils;
@@ -92,7 +90,8 @@ import jolie.runtime.typing.Type;
  *
  * @author Fabrizio Montesi
  */
-@AndJarDeps( { "jolie-xml.jar", "xsom.jar", "jolie-js.jar", "json-simple.jar", "javax.activation.jar" } )
+@AndJarDeps( { "jolie-xml.jar", "xsom.jar", "jolie-js.jar", "json-simple.jar", "javax.activation.jar",
+	"snakeyaml-engine.jar" } )
 public class FileService extends JavaService {
 	private final static Pattern FILE_KEYWORD_PATTERN = Pattern.compile( "(#+)file\\s+(.*)" );
 	private final DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
@@ -178,6 +177,57 @@ public class FileService extends JavaService {
 			isr = new InputStreamReader( istream, charset );
 		}
 		JsUtils.parseJsonIntoValue( isr, value, strictEncoding );
+	}
+
+	private static void readYaml( InputStream istream, Value value, boolean isStream )
+		throws IOException {
+		try {
+			Load load = new Load( LoadSettings.builder().build() );
+
+			if( isStream ) {
+				for( Object yamlDoc : load.loadAllFromInputStream( istream ) ) {
+					yamlObjectToValue( yamlDoc, value.getNewChild( "documents" ) );
+				}
+			} else {
+				yamlObjectToValue( load.loadFromInputStream( istream ), value );
+			}
+		} catch( YamlEngineException e ) {
+			throw new IOException( e );
+		}
+	}
+
+	private static void yamlObjectToValue( Object o, Value v ) {
+		switch( o ) {
+		case Boolean x -> v.setValue( x );
+		case Integer x -> v.setValue( x );
+		case Long x -> v.setValue( x );
+		case Double x -> v.setValue( x );
+		case String x -> v.setValue( x );
+		case Iterable< ? > x -> yamlObjectToValueVector( x, v.getChildren( "_" ) );
+		case Map< ?, ? > x -> {
+			x.forEach( ( k, nestedObj ) -> {
+				yamlObjectToValueVector( nestedObj, v.getChildren( k.toString() ) );
+			} );
+		}
+		default -> {
+		}
+		}
+	}
+
+	private static void yamlObjectToValueVector( Object o, ValueVector vec ) {
+		switch( o ) {
+		case Iterable< ? > x -> {
+			x.forEach( element -> yamlObjectToValue( element, vec.get( vec.size() ) ) );
+		}
+		case Boolean x -> yamlObjectToValue( x, vec.first() );
+		case Integer x -> yamlObjectToValue( x, vec.first() );
+		case Long x -> yamlObjectToValue( x, vec.first() );
+		case Double x -> yamlObjectToValue( x, vec.first() );
+		case String x -> yamlObjectToValue( x, vec.first() );
+		case Map< ?, ? > x -> yamlObjectToValue( x, vec.first() );
+		default -> {
+		}
+		}
 	}
 
 	private void readXMLIntoValue( InputStream istream, Value value, Charset charset, boolean skipMixedElement )
@@ -404,6 +454,11 @@ public class FileService extends JavaService {
 						}
 					}
 					readJsonIntoValue( istream, retValue, charset, strictEncoding );
+					break;
+				case "yaml":
+					istream = new BufferedInputStream( istream );
+					readYaml( istream, retValue,
+						request.getFirstChild( "format" ).firstChildOrDefault( "stream", Value::boolValue, false ) );
 					break;
 				default:
 					readTextIntoValue( istream, size, retValue, charset );
