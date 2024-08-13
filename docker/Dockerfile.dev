@@ -23,14 +23,14 @@ FROM maven:3-eclipse-temurin-21 as JolieBuild
 # Compile and install Jolie. We need it for running the release tools.
 COPY . /jolie-git
 WORKDIR /jolie-git
-RUN mvn -T 1C -Dmaven.test.skip -DskipTests -pl '!test' clean install
+RUN mvn -T 1C -Dmaven.test.skip -DskipTests -Dpmd.skip=true -pl '!test' clean install
 RUN cp -avr /jolie-git/dist/jolie/ /usr/lib/jolie/
 RUN cp -a /jolie-git/dist/launchers/unix/.  /usr/bin/
 ENV JOLIE_HOME /usr/lib/jolie
 
 # Compile the Jolie installer
 WORKDIR /jolie-git/release-tools/installer
-RUN mvn -T 1C -Dmaven.test.skip -DskipTests clean install
+RUN mvn -T 1C -Dmaven.test.skip -DskipTests -Dpmd.skip=true clean install
 
 # Use the release tools to generate jolie-installer.jar
 RUN apt-get update && apt-get install -y zip
