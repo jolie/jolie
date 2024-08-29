@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Fabrizio Montesi <famontesi@gmail.com>
+ * Copyright (C) 2024 Fabrizio Montesi <famontesi@gmail.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -17,25 +17,26 @@
  * MA 02110-1301  USA
  */
 
-package jolie.net;
+type Params {
+	location: string
+	protocol: string { ? }
+}
 
-import java.io.IOException;
-import jolie.Interpreter;
-import jolie.net.ext.CommListenerFactory;
-import jolie.net.ext.CommProtocolFactory;
-import jolie.net.ports.InputPort;
+interface LocalSocketServerInterface {
+RequestResponse:
+	twice( int )( int )
+}
 
-public class LocalSocketListenerFactory extends CommListenerFactory {
-	public LocalSocketListenerFactory( CommCore commCore ) {
-		super( commCore );
+service LocalSocketServer( params: Params ) {
+	execution: concurrent
+
+	inputPort input {
+		location: params.location
+		protocol: params.protocol
+		interfaces: LocalSocketServerInterface
 	}
 
-	@Override
-	public CommListener createListener(
-		Interpreter interpreter,
-		CommProtocolFactory protocolFactory,
-		InputPort inputPort )
-		throws IOException {
-		return new LocalSocketListener( interpreter, protocolFactory, inputPort );
+	main {
+		twice( x )( x * 2 )
 	}
 }

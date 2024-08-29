@@ -32,6 +32,7 @@ import jolie.runtime.Value;
 import jolie.runtime.expression.Expression;
 
 public class JolieServiceNodeLoader extends ServiceNodeLoader {
+	private volatile Interpreter loadedInterpreter = null;
 
 	protected JolieServiceNodeLoader( Expression channelDest, Interpreter currInterpreter, ServiceNode serviceNode,
 		Expression passingParameter ) {
@@ -64,9 +65,17 @@ public class JolieServiceNodeLoader extends ServiceNodeLoader {
 			Exception e = f.get();
 			if( e == null ) {
 				setChannel( interpreter.commCore().getLocalCommChannel() );
+				loadedInterpreter = interpreter;
 			}
 		} catch( IOException | InterruptedException | ExecutionException e ) {
 			throw new EmbeddedServiceLoadingException( e );
+		}
+	}
+
+	@Override
+	public void exit() {
+		if( loadedInterpreter != null ) {
+			loadedInterpreter.exit();
 		}
 	}
 }

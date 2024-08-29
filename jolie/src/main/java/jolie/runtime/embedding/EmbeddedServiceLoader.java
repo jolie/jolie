@@ -99,6 +99,8 @@ public abstract class EmbeddedServiceLoader {
 		}
 	}
 
+	public void exit() {}
+
 	public abstract void load()
 		throws EmbeddedServiceLoadingException;
 
@@ -215,6 +217,5 @@ public abstract class EmbeddedServiceLoader {
 		public Expression parameter() {
 			return this.parameter;
 		}
-
 	}
 }

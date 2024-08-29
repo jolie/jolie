@@ -247,7 +247,9 @@ public class RuntimeService extends JavaService {
 				configuration = new EmbeddedServiceLoader.ExternalEmbeddedNativeCodeConfiguration(
 					request.getFirstChild( "code" ).strValue() );
 			}
-			EmbeddedServiceLoader.create( interpreter(), configuration, channel ).load();
+			EmbeddedServiceLoader loader = EmbeddedServiceLoader.create( interpreter(), configuration, channel );
+			interpreter().addEmbeddedServiceLoader( loader );
+			loader.load();
 			return channel;
 		} catch( EmbeddedServiceLoaderCreationException | EmbeddedServiceLoadingException e ) {
 			throw new FaultException( "RuntimeException", e );

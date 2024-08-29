@@ -1,88 +1,102 @@
-/***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU Library General Public License as       *
- *   published by the Free Software Foundation; either version 2 of the    *
- *   License, or (at your option) any later version.                       *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU Library General Public     *
- *   License along with this program; if not, write to the                 *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                         *
- *   For details about the authors of this software, see the AUTHORS file. *
- ***************************************************************************/
+/*
+ * Copyright (C) 2007-2024 Fabrizio Montesi <famontesi@gmail.com>
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+ * MA 02110-1301  USA
+ */
 
 package jolie.net;
 
-import cx.ath.matthew.unix.UnixServerSocket;
-import cx.ath.matthew.unix.UnixSocket;
-import cx.ath.matthew.unix.UnixSocketAddress;
-import java.io.File;
 import java.io.IOException;
-import java.io.FileNotFoundException;
+import java.net.StandardProtocolFamily;
+import java.net.UnixDomainSocketAddress;
+import java.nio.channels.AsynchronousCloseException;
 import java.nio.channels.ClosedByInterruptException;
-
+import java.nio.channels.ServerSocketChannel;
+import java.nio.channels.SocketChannel;
+import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
+import java.nio.file.Path;
 import jolie.Interpreter;
 import jolie.net.ext.CommProtocolFactory;
 import jolie.net.ports.InputPort;
 
 public class LocalSocketListener extends CommListener {
-	final private UnixServerSocket serverSocket;
-	final private UnixSocketAddress socketAddress;
+	private final ServerSocketChannel serverChannel;
+	private final Path socketPath;
 
 	public LocalSocketListener(
 		Interpreter interpreter,
 		CommProtocolFactory protocolFactory,
 		InputPort inputPort )
 		throws IOException {
-		super( interpreter, protocolFactory, inputPort );
+		super(
+			interpreter,
+			protocolFactory,
+			inputPort );
 
-		String path = inputPort.location().getPath();
-		if( path == null || path.isEmpty() ) {
-			throw new FileNotFoundException( "Local socket path not specified!" );
+		serverChannel = ServerSocketChannel.open( StandardProtocolFamily.UNIX );
+		try {
+			socketPath = Path.of( inputPort.location().getPath() );
+			serverChannel.bind( UnixDomainSocketAddress.of( socketPath ) );
+		} catch( InvalidPathException | IOException e ) {
+			final IOException exception =
+				new IOException( e.getMessage() + " [with location: " + inputPort.location().toString() + "]" );
+			exception.setStackTrace( e.getStackTrace() );
+			throw exception;
 		}
-		socketAddress = new UnixSocketAddress( path,
-			inputPort.location().getHost() != null && inputPort.location().getHost().equals( "abs" ) );
-		serverSocket = new UnixServerSocket( socketAddress );
 	}
 
 	@Override
 	public void onShutdown() {
-		if( !socketAddress.isAbstract() ) {
-			new File( socketAddress.getPath() ).delete();
+		if( serverChannel.isOpen() ) {
+			try {
+				serverChannel.close();
+			} catch( IOException e ) {
+			}
+		}
+		try {
+			Files.deleteIfExists( socketPath );
+		} catch( IOException e ) {
+			interpreter().logWarning( e );
 		}
 	}
 
+	// TODO (dedup): This is actually the same as in SocketListener.java.
 	@Override
 	public void run() {
 		try {
-			UnixSocket socket;
-			CommChannel channel;
-			while( (socket = serverSocket.accept()) != null ) {
-				channel = new LocalSocketCommChannel(
-					socket,
+			SocketChannel socketChannel;
+			while( (socketChannel = serverChannel.accept()) != null ) {
+				final CommChannel channel = new SocketCommChannel(
+					socketChannel,
 					inputPort().location(),
 					createProtocol() );
 				channel.setParentInputPort( inputPort() );
 				interpreter().commCore().scheduleReceive( channel, inputPort() );
-				channel = null; // Dispose for garbage collection
 			}
-			serverSocket.close();
-		} catch( ClosedByInterruptException ce ) {
+		} catch( ClosedByInterruptException e ) {
 			try {
-				serverSocket.close();
-			} catch( IOException e ) {
-				e.printStackTrace();
+				serverChannel.close();
+			} catch( IOException ioe ) {
+				interpreter().logWarning( ioe );
 			}
+		} catch( AsynchronousCloseException e ) {
+			// Closed by CommCore shutdown
 		} catch( IOException e ) {
-			e.printStackTrace();
+			interpreter().logWarning( e );
 		}
 	}
 }

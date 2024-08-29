@@ -573,6 +573,9 @@ public class Interpreter {
 		} finally {
 			exitingLock.unlock();
 		}
+
+		embeddedServiceLoaders.forEach( EmbeddedServiceLoader::exit );
+
 		final List< Runnable > pendingTimedTasks = scheduledExecutor.shutdownNow();
 		execute( () -> pendingTimedTasks.forEach( Runnable::run ) );
 		processExecutorService.shutdown();
@@ -1123,7 +1126,6 @@ public class Interpreter {
 				future.complete( e );
 			}
 			runCode();
-			// commCore.shutdown();
 			exit();
 		}
 

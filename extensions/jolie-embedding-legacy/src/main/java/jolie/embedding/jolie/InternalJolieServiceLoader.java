@@ -77,4 +77,8 @@ public class InternalJolieServiceLoader extends EmbeddedServiceLoader {
 	public Interpreter interpreter() {
 		return interpreter;
 	}
+
+	public void exit() {
+		interpreter.exit();
+	}
 }

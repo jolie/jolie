@@ -32,7 +32,6 @@ import java.nio.channels.Channels;
 import java.nio.channels.IllegalBlockingModeException;
 import java.nio.channels.SelectableChannel;
 import java.nio.channels.SocketChannel;
-
 import jolie.Interpreter;
 import jolie.net.protocols.CommProtocol;
 import jolie.util.Helpers;
@@ -64,7 +63,9 @@ public class SocketCommChannel extends SelectableStreamingCommChannel {
 		throws IOException {
 		super( location, protocol );
 		this.socketChannel = socketChannel;
-		socketChannel.socket().setSoLinger( true, SO_LINGER );
+		if( "socket".equals( location.getScheme() ) ) {
+			socketChannel.socket().setSoLinger( true, SO_LINGER );
+		}
 		// this.istream = new PreBufferedInputStream( new BufferedInputStream( Channels.newInputStream(
 		// socketChannel ) ) );
 		this.istream = new PreBufferedInputStream( Channels.newInputStream( socketChannel ) );
