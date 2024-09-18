@@ -21,6 +21,8 @@
 
 package jolie.process;
 
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
 import jolie.Interpreter;
 import jolie.net.ports.OutputPort;
 import jolie.runtime.ExitingException;
@@ -31,15 +33,54 @@ import jolie.runtime.embedding.EmbeddedServiceLoader;
 import jolie.runtime.embedding.EmbeddedServiceLoadingException;
 
 public class InitDefinitionProcess extends DefinitionProcess {
+
+	/**
+	 * A `CompletableFuture` that holds the result of the execution.
+	 *
+	 * It is completed with either `null` if the initialization of the service is successful or an
+	 * `Exception` if an error occurs.
+	 */
+	private final CompletableFuture< Exception > executionDone;
+
 	public InitDefinitionProcess( Process process ) {
 		super( process );
+		this.executionDone = new CompletableFuture<>();
 	}
 
+	public Future< Exception > getFuture() {
+		return executionDone;
+	}
+
+	/**
+	 * Runs the initialization process.
+	 *
+	 * This method overrides the `run()` method from the parent class and performs the following steps:
+	 * 1. Iterates through the communication core's protocol configurations and calls their `run()`
+	 * method, to initialize input ports configurations of the service. 2. Iterates through the
+	 * interpreter's output ports and calls their `configurationProcess().run()` method, to initialize
+	 * all output ports configurations of the service. 3. Loads all embedded services using the
+	 * `embeddedServiceLoaders`. 4. Optimizes the location of all output ports. 5. Clears the embedded
+	 * service loaders. 6. If the interpreter is an internal service, copies the output port locations
+	 * from the parent service. (This is marked as a hack and deprecated for future releases). 7.
+	 * Attempts to complete the `executionDone` future with either `null` (success) or an `Exception`
+	 * (failure). This set the completion of the initialise phase. 8. Calls the parent class's `run()`
+	 * method to start the execution of init block.
+	 *
+	 * @throws FaultException If an error occurs during the initialization process.
+	 */
 	@Override
-	public void run()
-		throws FaultException {
+	public void run() throws FaultException {
 		Interpreter interpreter = Interpreter.getInstance();
 		try {
+			for( Process p : interpreter.commCore().protocolConfigurations() ) {
+				try {
+					p.run();
+				} catch( ExitingException e ) {
+					interpreter.logSevere( e );
+					assert false;
+				}
+			}
+
 			for( OutputPort outputPort : interpreter.outputPorts() ) {
 				try {
 					outputPort.configurationProcess().run();
@@ -62,15 +103,6 @@ public class InitDefinitionProcess extends DefinitionProcess {
 
 			interpreter.embeddedServiceLoaders().clear(); // Clean up for GC
 
-			for( Process p : interpreter.commCore().protocolConfigurations() ) {
-				try {
-					p.run();
-				} catch( ExitingException e ) {
-					interpreter.logSevere( e );
-					assert false;
-				}
-			}
-
 			// If an internal service, copy over the output port locations from the parent service
 			if( interpreter.parentInterpreter() != null ) {
 				Value parentInitRoot = interpreter.parentInterpreter().initThread().state().root();
@@ -91,11 +123,14 @@ public class InitDefinitionProcess extends DefinitionProcess {
 			}
 
 			try {
+				this.executionDone.complete( null );
 				super.run();
 			} catch( ExitingException e ) {
+				this.executionDone.complete( e );
 			}
 		} catch( EmbeddedServiceLoadingException e ) {
 			interpreter.logSevere( e );
+			this.executionDone.complete( e );
 		}
 	}
 }

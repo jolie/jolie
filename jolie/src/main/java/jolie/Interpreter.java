@@ -82,6 +82,7 @@ import jolie.net.CommMessage;
 import jolie.net.SessionMessage;
 import jolie.net.ports.OutputPort;
 import jolie.process.DefinitionProcess;
+import jolie.process.InitDefinitionProcess;
 import jolie.process.InputOperationProcess;
 import jolie.process.SequentialProcess;
 import jolie.runtime.FaultException;
@@ -111,6 +112,15 @@ import jolie.tracer.TracerUtils;
  */
 public class Interpreter {
 	private final class InitSessionThread extends SessionThread {
+
+		/**
+		 * Creates a new `InitSessionThread` object.
+		 *
+		 * @param interpreter The interpreter instance for the Jolie service.
+		 * @param process Initialization process to be execute.
+		 * @param state The state of the execution, at this stage, it is a argument passed to initialize the
+		 *        service.
+		 */
 		public InitSessionThread( Interpreter interpreter, jolie.process.Process process, jolie.State state ) {
 			super( interpreter, process, state );
 			addSessionListener( new SessionListener() {
@@ -1004,7 +1014,9 @@ public class Interpreter {
 		} else {
 			sessionStarters = Collections.unmodifiableMap( sessionStarters );
 			try {
-				initExecutionThread = new InitSessionThread( this, getDefinition( "init" ), initState );
+				InitDefinitionProcess initProcess = (InitDefinitionProcess) getDefinition( "init" );
+				var future = initProcess.getFuture();
+				initExecutionThread = new InitSessionThread( this, initProcess, initState );
 
 				commCore.init();
 
@@ -1023,7 +1035,11 @@ public class Interpreter {
 				correlationEngine.onSingleExecutionSessionStart( initExecutionThread );
 				// initExecutionThread.addSessionListener( correlationEngine );
 				initExecutionThread.start();
-			} catch( InvalidIdException e ) {
+				Exception e = future.get();
+				if( e != null ) {
+					throw new InterpreterException( e );
+				}
+			} catch( InvalidIdException | InterruptedException | ExecutionException e ) {
 				assert false;
 			}
 		}
