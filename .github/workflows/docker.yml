@@ -37,7 +37,7 @@ jobs:
         
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Docker meta (runtime images)
         id: meta_rt
