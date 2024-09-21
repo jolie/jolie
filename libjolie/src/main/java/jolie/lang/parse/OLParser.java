@@ -41,6 +41,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 //import jolie.lang.CodeCheckMessage;
@@ -482,25 +483,27 @@ public class OLParser extends AbstractParser {
 	/*
 	 * set maxNumberOfParameters = null to unbound the list
 	 */
-	private ArrayList< Integer > parseListOfInteger( Integer minNumberOfParameters, Integer maxNumberOfParameters,
-		String predicate ) throws IOException, ParserException {
-		ArrayList< Integer > arrayList = new ArrayList<>();
+	private < N extends Number > ArrayList< N > parseListOfNumber( Integer minNumberOfParameters,
+		Integer maxNumberOfParameters,
+		String predicate, Scanner.TokenType type, Function< String, N > valueOfFunc, N minValue, N maxValue )
+		throws IOException, ParserException {
+		ArrayList< N > arrayList = new ArrayList<>();
 		eat( Scanner.TokenType.LSQUARE, "a list of parameters is expected" );
 		while( token.type() != Scanner.TokenType.RSQUARE ) {
-			if( token.type() != Scanner.TokenType.INT && token.type() != Scanner.TokenType.ASTERISK && token.type() != Scanner.TokenType.MINUS ) {
-				throwException( "Expected a parameter of type integer, found " + token.content() );
+			if( token.type() != type && token.type() != Scanner.TokenType.ASTERISK && token.type() != Scanner.TokenType.MINUS ) {
+				throwException( "Expected a parameter of type " + type.name() + ", found " + token.content() );
 			}
-			if( token.type() == Scanner.TokenType.INT ) {
-				arrayList.add( Integer.valueOf( token.content() ) );
+			if( token.type() == type ) {
+				arrayList.add( valueOfFunc.apply( token.content() ) );
 			} else if( token.type() == Scanner.TokenType.MINUS ) {
 				nextToken();
 				if( token.type() == Scanner.TokenType.ASTERISK ) {
-					arrayList.add( Integer.MIN_VALUE );
+					arrayList.add( minValue );
 				} else {
-					throwException( "Expected a parameter of type integer, found " + token.content() );
+					throwException( "Expected *, found " + token.content() );
 				}
 			} else {
-				arrayList.add( Integer.MAX_VALUE );
+				arrayList.add( maxValue );
 			}
 			nextToken();
 			if( token.type() == Scanner.TokenType.COMMA ) {
@@ -519,6 +522,16 @@ public class OLParser extends AbstractParser {
 		}
 
 		return arrayList;
+	}
+
+
+	/*
+	 * set maxNumberOfParameters = null to unbound the list
+	 */
+	private ArrayList< Integer > parseListOfInteger( Integer minNumberOfParameters, Integer maxNumberOfParameters,
+		String predicate ) throws IOException, ParserException {
+		return parseListOfNumber( minNumberOfParameters, maxNumberOfParameters, predicate, Scanner.TokenType.INT,
+			Integer::valueOf, Integer.MIN_VALUE, Integer.MAX_VALUE );
 	}
 
 	/*
@@ -558,42 +571,8 @@ public class OLParser extends AbstractParser {
 	 */
 	private ArrayList< Double > parseListOfDouble( Integer minNumberOfParameters, Integer maxNumberOfParameters,
 		String predicate ) throws IOException, ParserException {
-		ArrayList< Double > arrayList = new ArrayList<>();
-		eat( Scanner.TokenType.LSQUARE, "a list of parameters is expected" );
-		while( token.type() != Scanner.TokenType.RSQUARE ) {
-			if( token.type() != Scanner.TokenType.DOUBLE && token.type() != Scanner.TokenType.ASTERISK && token.type() != Scanner.TokenType.MINUS ) {
-				throwException( "Expected a parameter of type double, found " + token.content() );
-			}
-			if( token.type() == Scanner.TokenType.DOUBLE ) {
-				arrayList.add( Double.valueOf( token.content() ) );
-			} else if( token.type() == Scanner.TokenType.MINUS ) {
-				nextToken();
-				if( token.type() == Scanner.TokenType.ASTERISK ) {
-					arrayList.add( Double.MIN_VALUE );
-				} else {
-					throwException( "Expected a parameter of type double, found " + token.content() );
-				}
-			} else {
-				arrayList.add( Double.MAX_VALUE );
-			}
-			nextToken();
-			if( token.type() == Scanner.TokenType.COMMA ) {
-				nextToken();
-			}
-		}
-		eat( Scanner.TokenType.RSQUARE, "] expected" );
-
-		if( arrayList.size() < minNumberOfParameters ) {
-			throwException(
-				"Expected minimum number of parameters for predicate " + predicate + ", " + minNumberOfParameters );
-		}
-
-		if( maxNumberOfParameters != null && arrayList.size() > maxNumberOfParameters ) {
-			throwException(
-				"Expected maximum number of parameters for predicate " + predicate + ", " + maxNumberOfParameters );
-		}
-
-		return arrayList;
+		return parseListOfNumber( minNumberOfParameters, maxNumberOfParameters, predicate, Scanner.TokenType.DOUBLE,
+			Double::valueOf, Double.MIN_VALUE, Double.MAX_VALUE );
 	}
 
 	/*
@@ -601,42 +580,8 @@ public class OLParser extends AbstractParser {
 	 */
 	private ArrayList< Long > parseListOfLong( Integer minNumberOfParameters, Integer maxNumberOfParameters,
 		String predicate ) throws IOException, ParserException {
-		ArrayList< Long > arrayList = new ArrayList<>();
-		eat( Scanner.TokenType.LSQUARE, "a list of parameters is expected" );
-		while( token.type() != Scanner.TokenType.RSQUARE ) {
-			if( token.type() != Scanner.TokenType.LONG && token.type() != Scanner.TokenType.ASTERISK && token.type() != Scanner.TokenType.MINUS ) {
-				throwException( "Expected a parameter of type long, found " + token.content() );
-			}
-			if( token.type() == Scanner.TokenType.LONG ) {
-				arrayList.add( Long.valueOf( token.content() ) );
-			} else if( token.type() == Scanner.TokenType.MINUS ) {
-				nextToken();
-				if( token.type() == Scanner.TokenType.ASTERISK ) {
-					arrayList.add( Long.MIN_VALUE );
-				} else {
-					throwException( "Expected a parameter of type long, found " + token.content() );
-				}
-			} else {
-				arrayList.add( Long.MAX_VALUE );
-			}
-			nextToken();
-			if( token.type() == Scanner.TokenType.COMMA ) {
-				nextToken();
-			}
-		}
-		eat( Scanner.TokenType.RSQUARE, "] expected" );
-
-		if( arrayList.size() < minNumberOfParameters ) {
-			throwException(
-				"Expected minimum number of parameters for predicate " + predicate + ", " + minNumberOfParameters );
-		}
-
-		if( maxNumberOfParameters != null && arrayList.size() > maxNumberOfParameters ) {
-			throwException(
-				"Expected maximum number of parameters for predicate " + predicate + ", " + maxNumberOfParameters );
-		}
-
-		return arrayList;
+		return parseListOfNumber( minNumberOfParameters, maxNumberOfParameters, predicate, Scanner.TokenType.LONG,
+			Long::valueOf, Long.MIN_VALUE, Long.MAX_VALUE );
 	}
 
 	private BasicTypeDefinition readBasicType() throws IOException, ParserException {
