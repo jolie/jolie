@@ -487,11 +487,18 @@ public class OLParser extends AbstractParser {
 		ArrayList< Integer > arrayList = new ArrayList<>();
 		eat( Scanner.TokenType.LSQUARE, "a list of parameters is expected" );
 		while( token.type() != Scanner.TokenType.RSQUARE ) {
-			if( token.type() != Scanner.TokenType.INT && token.type() != Scanner.TokenType.ASTERISK ) {
+			if( token.type() != Scanner.TokenType.INT && token.type() != Scanner.TokenType.ASTERISK && token.type() != Scanner.TokenType.MINUS ) {
 				throwException( "Expected a parameter of type integer, found " + token.content() );
 			}
 			if( token.type() == Scanner.TokenType.INT ) {
 				arrayList.add( Integer.valueOf( token.content() ) );
+			} else if( token.type() == Scanner.TokenType.MINUS ) {
+				nextToken();
+				if( token.type() == Scanner.TokenType.ASTERISK ) {
+					arrayList.add( Integer.MIN_VALUE );
+				} else {
+					throwException( "Expected a parameter of type integer, found " + token.content() );
+				}
 			} else {
 				arrayList.add( Integer.MAX_VALUE );
 			}
@@ -554,11 +561,18 @@ public class OLParser extends AbstractParser {
 		ArrayList< Double > arrayList = new ArrayList<>();
 		eat( Scanner.TokenType.LSQUARE, "a list of parameters is expected" );
 		while( token.type() != Scanner.TokenType.RSQUARE ) {
-			if( token.type() != Scanner.TokenType.DOUBLE && token.type() != Scanner.TokenType.ASTERISK ) {
-				throwException( "Expected a parameter of type string, found " + token.content() );
+			if( token.type() != Scanner.TokenType.DOUBLE && token.type() != Scanner.TokenType.ASTERISK && token.type() != Scanner.TokenType.MINUS ) {
+				throwException( "Expected a parameter of type double, found " + token.content() );
 			}
 			if( token.type() == Scanner.TokenType.DOUBLE ) {
 				arrayList.add( Double.valueOf( token.content() ) );
+			} else if( token.type() == Scanner.TokenType.MINUS ) {
+				nextToken();
+				if( token.type() == Scanner.TokenType.ASTERISK ) {
+					arrayList.add( Double.MIN_VALUE );
+				} else {
+					throwException( "Expected a parameter of type double, found " + token.content() );
+				}
 			} else {
 				arrayList.add( Double.MAX_VALUE );
 			}
@@ -590,11 +604,18 @@ public class OLParser extends AbstractParser {
 		ArrayList< Long > arrayList = new ArrayList<>();
 		eat( Scanner.TokenType.LSQUARE, "a list of parameters is expected" );
 		while( token.type() != Scanner.TokenType.RSQUARE ) {
-			if( token.type() != Scanner.TokenType.LONG && token.type() != Scanner.TokenType.ASTERISK ) {
-				throwException( "Expected a parameter of type string, found " + token.content() );
+			if( token.type() != Scanner.TokenType.LONG && token.type() != Scanner.TokenType.ASTERISK && token.type() != Scanner.TokenType.MINUS ) {
+				throwException( "Expected a parameter of type long, found " + token.content() );
 			}
 			if( token.type() == Scanner.TokenType.LONG ) {
 				arrayList.add( Long.valueOf( token.content() ) );
+			} else if( token.type() == Scanner.TokenType.MINUS ) {
+				nextToken();
+				if( token.type() == Scanner.TokenType.ASTERISK ) {
+					arrayList.add( Long.MIN_VALUE );
+				} else {
+					throwException( "Expected a parameter of type long, found " + token.content() );
+				}
 			} else {
 				arrayList.add( Long.MAX_VALUE );
 			}
