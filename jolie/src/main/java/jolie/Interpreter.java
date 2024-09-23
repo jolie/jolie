@@ -82,6 +82,7 @@ import jolie.net.CommMessage;
 import jolie.net.SessionMessage;
 import jolie.net.ports.OutputPort;
 import jolie.process.DefinitionProcess;
+import jolie.process.InitProcess;
 import jolie.process.InputOperationProcess;
 import jolie.process.SequentialProcess;
 import jolie.runtime.FaultException;
@@ -990,7 +991,7 @@ public class Interpreter {
 		return f;
 	}
 
-	private void init( State initState )
+	private void init( State initState, CompletableFuture< Exception > initFuture )
 		throws InterpreterException, IOException {
 		/**
 		 * Order is important. 1 - CommCore needs the OOIT to be initialized. 2 - initExec must be
@@ -1004,7 +1005,8 @@ public class Interpreter {
 		} else {
 			sessionStarters = Collections.unmodifiableMap( sessionStarters );
 			try {
-				initExecutionThread = new InitSessionThread( this, getDefinition( "init" ), initState );
+				initExecutionThread = new InitSessionThread( this,
+					new SequentialProcess( new InitProcess( initFuture ), getDefinition( "init" ) ), initState );
 
 				commCore.init();
 
@@ -1079,7 +1081,7 @@ public class Interpreter {
 	 */
 	public void run()
 		throws InterpreterException, IOException {
-		init( new jolie.State() );
+		init( new jolie.State(), new CompletableFuture<>() );
 		runCode();
 	}
 
@@ -1120,8 +1122,7 @@ public class Interpreter {
 		@Override
 		public void run() {
 			try {
-				init( initState );
-				future.complete( null );
+				init( initState, future );
 			} catch( IOException | InterpreterException e ) {
 				future.complete( e );
 			}

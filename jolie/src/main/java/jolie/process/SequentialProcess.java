@@ -27,9 +27,9 @@ import jolie.runtime.ExitingException;
 import jolie.runtime.FaultException;
 
 public class SequentialProcess implements Process {
-	final private Process[] children;
+	private final Process[] children;
 
-	public SequentialProcess( Process[] children ) {
+	public SequentialProcess( Process... children ) {
 		if( children.length < 1 ) {
 			throw new IllegalArgumentException( "Process sequences must contain at least one child." );
 		}

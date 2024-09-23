@@ -240,7 +240,7 @@ public class OOITBuilder implements UnitOLVisitor {
 			interpreter.getDefinition( "init" );
 		} catch( InvalidIdException e ) {
 			interpreter.register( "init",
-				new InitDefinitionProcess(
+				new DefinitionProcess(
 					new ScopeProcess( "main", NullProcess.getInstance(), false ) ) );
 			// new InstallProcess( SessionThread.createDefaultFaultHandlers( interpreter ) ), false ) ) );
 		}
@@ -722,7 +722,7 @@ public class OOITBuilder implements UnitOLVisitor {
 				// new InstallProcess( SessionThread.createDefaultFaultHandlers( interpreter ) ),
 				buildProcess( n.body() )
 			};
-			def = new InitDefinitionProcess( new ScopeProcess( "main", new SequentialProcess( initChildren ), false ) );
+			def = new DefinitionProcess( new ScopeProcess( "main", new SequentialProcess( initChildren ), false ) );
 			break;
 
 		default:
