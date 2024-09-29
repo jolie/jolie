@@ -70,12 +70,90 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 		private final static String IS_NULLABLE = "isNullable";
 	}
 
+	private static final Type JSON_RPC_TYPE =
+		Type.create( BasicType.fromBasicTypeDefinition( BasicTypeDefinition.of( NativeType.STRING ) ),
+			new Range( 1, 1 ), false, null );
+	private static final Type ID_TYPE = Type.createChoice(
+		new Range( 0, 1 ),
+		Type.create(
+			BasicType.fromBasicTypeDefinition(
+				BasicTypeDefinition.of(
+					NativeType.STRING ) ),
+			new Range( 1, 1 ), false,
+			null ),
+		Type.createChoice(
+			new Range( 1, 1 ),
+			Type.create(
+				BasicType.fromBasicTypeDefinition(
+					BasicTypeDefinition.of(
+						NativeType.LONG ) ),
+				new Range( 1, 1 ), false,
+				null ),
+			Type.createChoice(
+				new Range( 1, 1 ),
+				Type.create(
+					BasicType.fromBasicTypeDefinition(
+						BasicTypeDefinition.of(
+							NativeType.DOUBLE ) ),
+					new Range( 1, 1 ), false,
+					null ),
+				Type.create(
+					BasicType.fromBasicTypeDefinition(
+						BasicTypeDefinition.of(
+							NativeType.INT ) ),
+					new Range( 1, 1 ), false, null ) ) ) );
+
+	/**
+	 * Parses the given JSON-RPC `id` according to the JSON-RPC specification.
+	 *
+	 * <p>
+	 * This method accepts a {@link Value} object representing the `id` field in a JSON-RPC request and
+	 * returns the corresponding Java type based on the type of the `id`. The following conversions are
+	 * supported:
+	 * </p>
+	 *
+	 * <ul>
+	 * <li>If the `id` is not defined, returns {@code null}.</li>
+	 * <li>If the `id` is a double, returns its double value.</li>
+	 * <li>If the `id` is an integer, returns its integer value.</li>
+	 * <li>If the `id` is a long, returns its long value.</li>
+	 * <li>If the `id` is a string, returns its string value.</li>
+	 * </ul>
+	 *
+	 * <p>
+	 * If the `id` is of an unknown type, an {@link IllegalArgumentException} is thrown.
+	 * </p>
+	 *
+	 * @param id the {@link Value} object representing the JSON-RPC `id`
+	 * @return the parsed `id` as an {@link Object}, which can be a {@code Double}, {@code Integer},
+	 *         {@code Long}, {@code String}, or {@code null} if the `id` is not defined
+	 * @throws IllegalArgumentException if the type of the `id` is not recognized
+	 */
+	private Object parseId( Value id ) {
+		if( !id.isDefined() ) {
+			return null;
+		}
+		if( id.isDouble() ) {
+			return id.doubleValue();
+		}
+		if( id.isInt() ) {
+			return id.intValue();
+		}
+		if( id.isLong() ) {
+			return id.longValue();
+		}
+		if( id.isString() ) {
+			return id.strValue();
+		}
+		throw new IllegalArgumentException( "Unknown id type" );
+	}
+
 	private final static String LSP = "lsp";
 	private final static int INITIAL_CAPACITY = 8;
 	private final static float LOAD_FACTOR = 0.75f;
 
-	private final Map< Long, String > jsonRpcIdMap;
-	private final Map< String, String > jsonRpcOpMap;
+	private final Map< Long, Object > jsonRpcIdMap;
+	private final Map< Long, String > jsonRpcOpMap;
 
 	@Override
 	public String name() {
@@ -144,15 +222,12 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 		Type operationType = Type.UNDEFINED;
 		String originalOpName = message.operationName();
 		Map< String, Type > subTypes = new HashMap<>();
-		subTypes.put( "jsonrpc",
-			Type.create( BasicType.fromBasicTypeDefinition( BasicTypeDefinition.of( NativeType.STRING ) ),
-				new Range( 1, 1 ), false, null ) );
-		subTypes.put( "id", Type.create( BasicType.fromBasicTypeDefinition( BasicTypeDefinition.of( NativeType.INT ) ),
-			new Range( 0, 1 ), false, null ) );
+		subTypes.put( "jsonrpc", JSON_RPC_TYPE );
+		subTypes.put( "id", ID_TYPE );
 
 		if( message.isFault() ) {
-			String jsonRpcId = jsonRpcIdMap.get( message.requestId() );
-			value.setFirstChild( "id", jsonRpcId != null ? jsonRpcId : Long.toString( message.requestId() ) );
+			Object jsonRpcId = jsonRpcIdMap.get( message.requestId() );
+			value.setFirstChild( "id", jsonRpcId != null ? jsonRpcId : message.requestId() );
 			Value error = value.getFirstChild( "error" );
 			error.getFirstChild( "code" ).setValue( -32000 );
 			error.getFirstChild( "message" ).setValue( message.fault().faultName() );
@@ -166,9 +241,10 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 			// boolean check = isLsp ? isRR : true;
 			if( inInputPort && (isRR || !isLsp) ) {
 				value.getChildren( "result" ).set( 0, message.value() );
-				String jsonRpcId = jsonRpcIdMap.get( message.requestId() );
+				Object jsonRpcId = jsonRpcIdMap.get( message.requestId() );
 				value.getFirstChild( "id" )
-					.setValue( jsonRpcId != null ? jsonRpcId : Long.toString( message.requestId() ) );
+					.setValue(
+						jsonRpcId != null ? jsonRpcId : message.requestId() );
 
 				if( channelInterface.requestResponseOperations().containsKey( originalOpName ) ) {
 					operationType = channelInterface.requestResponseOperations().get( originalOpName ).responseType();
@@ -180,7 +256,7 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 				operationType = operationType.getMinimalType( message.value() ).orElse( Type.UNDEFINED );
 				subTypes.put( "result", operationType );
 			} else {
-				jsonRpcOpMap.put( Long.toString( message.requestId() ), operationNameAliased );
+				jsonRpcOpMap.put( message.requestId(), operationNameAliased );
 				value.getFirstChild( "method" ).setValue( operationNameAliased );
 
 				if( isRR ) {
@@ -335,7 +411,6 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 			LSPMessage message = parser.parse();
 			// LSP supports only utf-8 encoding
 			String charset = "utf-8";
-			// encoding = message.getProperty( "accept-encoding" )
 			return recv_createCommMessage( message.content(), charset );
 		} else {
 			HttpParser parser = new HttpParser( istream );
@@ -391,7 +466,7 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 			return new CommMessage( CommMessage.GENERIC_REQUEST_ID, operation,
 				"/", value.getFirstChild( "params" ), null );
 		}
-		String jsonRpcId = value.getFirstChild( "id" ).strValue();
+		Object jsonRpcId = parseId( value.getFirstChild( "id" ) );
 		if( inInputPort ) {
 			jsonRpcIdMap.put( (long) jsonRpcId.hashCode(), jsonRpcId );
 			return new CommMessage(
