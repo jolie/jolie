@@ -45,7 +45,7 @@ service Main {
 			servers[ 1 ].protocol = "http"
 
 			for( i = 0, i < #servers, i++ ) {
-				servers[ i ].location = "localsocket:" + dir + fs + "private" + fs + "tmp-" + i + ".socket"
+				servers[ i ].location = "localsocket:" + /* dir + fs + "private" + fs + */ "tmp-" + i + ".socket"
 			}
 
 			for( serverConfig in servers ) {
