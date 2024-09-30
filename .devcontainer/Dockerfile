@@ -15,7 +15,11 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 # MA 02110-1301 USA
 
+
 FROM maven:3-eclipse-temurin-21
+
+# Get rid of the ubuntu user
+RUN userdel ubuntu
 
 # Update apt db
 RUN apt-get update
@@ -26,9 +30,15 @@ RUN apt-get install -y sudo
 # Set JOLIE_HOME
 ENV JOLIE_HOME=/usr/bin/jolie-dist
 
+
 # Add the jolie user and make it a sudoer
-RUN useradd -m jolie -s /bin/bash \
-	&& echo 'jolie ALL=(ALL:ALL) NOPASSWD: ALL' >> /etc/sudoers.d/jolie \
+ARG USERNAME=jolie
+ARG USER_UID=1000
+# ARG USER_GID=$USER_UID
+
+# RUN useradd --uid $USER_UID --gid $USER_GID -m $USERNAME -s /bin/bash \
+RUN useradd --uid $USER_UID -m $USERNAME -s /bin/bash \
+	&& echo "$USERNAME ALL=(ALL:ALL) NOPASSWD: ALL" >> /etc/sudoers.d/jolie \
 	&& chmod 0440 /etc/sudoers.d/jolie
 
-USER jolie
+USER $USERNAME
