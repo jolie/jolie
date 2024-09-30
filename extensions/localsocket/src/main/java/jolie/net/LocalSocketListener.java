@@ -49,7 +49,7 @@ public class LocalSocketListener extends CommListener {
 
 		serverChannel = ServerSocketChannel.open( StandardProtocolFamily.UNIX );
 		try {
-			socketPath = Path.of( inputPort.location().getSchemeSpecificPart() );
+			socketPath = LocalSocketUtils.pathFromLocation( inputPort.location() );
 			serverChannel.bind( UnixDomainSocketAddress.of( socketPath ) );
 		} catch( InvalidPathException | IOException e ) {
 			final IOException exception =

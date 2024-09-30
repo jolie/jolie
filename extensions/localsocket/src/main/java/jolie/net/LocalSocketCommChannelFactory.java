@@ -25,7 +25,6 @@ import java.net.URISyntaxException;
 import java.net.UnixDomainSocketAddress;
 import java.nio.channels.SocketChannel;
 import java.nio.file.InvalidPathException;
-import java.nio.file.Path;
 import jolie.net.ext.CommChannelFactory;
 import jolie.net.ports.OutputPort;
 
@@ -43,7 +42,8 @@ public class LocalSocketCommChannelFactory extends CommChannelFactory {
 	public CommChannel createChannel( URI location, OutputPort port )
 		throws IOException {
 		try {
-			SocketChannel channel = SocketChannel.open( UnixDomainSocketAddress.of( Path.of( location.getPath() ) ) );
+			SocketChannel channel =
+				SocketChannel.open( UnixDomainSocketAddress.of( LocalSocketUtils.pathFromLocation( location ) ) );
 			return new SocketCommChannel( channel, location, port.getProtocol() );
 		} catch( InvalidPathException | URISyntaxException e ) {
 			throw new IOException( e );
