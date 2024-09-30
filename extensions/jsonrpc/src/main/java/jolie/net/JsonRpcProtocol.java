@@ -376,7 +376,7 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 				.append( "Content-Length: " ).append( content.size() ).append( HttpUtils.CRLF )
 				.append( HttpUtils.CRLF );
 
-			if( checkBooleanParameter( HttpUtils.Parameters.DEBUG ) ) {
+			if( checkBooleanParameter( HttpUtils.Parameters.DEBUG, false ) ) {
 				interpreter
 					.logInfo( new StringBuilder( "[JSON-RPC debug] Sending:\n" ).append( httpMessage.toString() )
 						.append( content.toString( "utf-8" ) ) );
@@ -439,7 +439,7 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 		if( messageContent.length == 0 )
 			return null; // error situation
 
-		if( checkBooleanParameter( HttpUtils.Parameters.DEBUG ) ) {
+		if( checkBooleanParameter( HttpUtils.Parameters.DEBUG, false ) ) {
 			interpreter.logInfo(
 				new StringBuilder( "[JSON-RPC debug] Receiving:\n" ).append( new String( messageContent, charset ) ) );
 		}
@@ -474,10 +474,12 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 		}
 		Object jsonRpcId = parseId( value.getFirstChild( "id" ) );
 		if( inInputPort ) {
-			jsonRpcIdMap.put( (long) jsonRpcId.hashCode(), jsonRpcId );
-			return new CommMessage(
-				jsonRpcId.hashCode(), operation,
-				"/", value.getFirstChild( "params" ), null );
+			CommMessage message = CommMessage.createRequest( operation, "/", value.getFirstChild( "params" ) );
+			jsonRpcIdMap.put( message.requestId(), jsonRpcId );
+			return message;
+			// return new CommMessage(
+			// jsonRpcId.hashCode(), operation,
+			// "/", value.getFirstChild( "params" ), null );
 		} else if( value.hasChildren( "error" ) ) {
 			long id = value.getFirstChild( "id" ).longValue();
 			String operationName = jsonRpcOpMap.get( jsonRpcId );
