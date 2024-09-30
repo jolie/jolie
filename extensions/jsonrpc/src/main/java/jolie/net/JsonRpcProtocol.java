@@ -193,9 +193,14 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 		value.getFirstChild( "jsonrpc" ).setValue( "2.0" );
 
 		/*
-		 * If we are in LSP mode, we do not want to send ACKs to the client.
+		 * If we are in LSP mode: 1. we do not want to close the connection (because at least VS Code does
+		 * not reopen it correctly); 2. we do not want to send ACKs to the client.
 		 */
 		if( isLsp ) {
+			// 1.
+			channel().setToBeClosed( false );
+
+			// 2.
 			if( message.hasGenericRequestId() && message.value().getChildren( "result" ).isEmpty() ) {
 				return;
 			}
@@ -407,6 +412,7 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 					getParameterFirstValue( Parameters.CLIENT_LOCATION ).setValue( channel() );
 				}
 			}
+			channel().setToBeClosed( false );
 			LSPParser parser = new LSPParser( istream );
 			LSPMessage message = parser.parse();
 			// LSP supports only utf-8 encoding

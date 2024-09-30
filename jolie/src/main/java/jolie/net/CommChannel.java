@@ -284,7 +284,7 @@ public abstract class CommChannel {
 	 * @param toBeClosed <code>true</code> if this channel is to be closed after releasing,
 	 *        <code>false</code> otherwise
 	 */
-	public void setToBeClosed( boolean toBeClosed ) {
+	public final void setToBeClosed( boolean toBeClosed ) {
 		this.toBeClosed = toBeClosed;
 	}
 
