@@ -23,6 +23,8 @@
 package jolie.runtime;
 
 import java.io.IOException;
+import java.io.StringWriter;
+import java.io.UncheckedIOException;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -161,5 +163,17 @@ public class ValuePrettyPrinter {
 			writer.write( '\t' );
 		}
 		writer.write( s );
+	}
+
+	public static String valueToPrettyString( Value value ) {
+		Writer writer = new StringWriter();
+		ValuePrettyPrinter printer = new ValuePrettyPrinter( value, writer, "root" );
+		try {
+			printer.run();
+		} catch( IOException e ) {
+			// This shouldn't happen because we are using a StringWriter
+			throw new UncheckedIOException( e );
+		}
+		return writer.toString();
 	}
 }
