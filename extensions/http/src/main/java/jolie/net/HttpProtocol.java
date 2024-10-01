@@ -38,7 +38,6 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Result;
@@ -49,11 +48,9 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-
 import jolie.ExecutionThread;
 import jolie.Interpreter;
 import jolie.js.JsUtils;

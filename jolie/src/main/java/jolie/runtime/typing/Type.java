@@ -295,13 +295,14 @@ class TypeChoice extends Type {
 	@Override
 	protected Value cast( Value value, StringBuilder pathBuilder )
 		throws TypeCastingException {
+		// TODO: The performance of this is not great, but does the job for now
 		final Value copy = Value.createDeepCopy( value );
 		try {
-			return left.cast( copy );
+			left.cast( copy );
+			return left.cast( value );
 		} catch( TypeCastingException e ) {
 			return right.cast( value );
 		}
-
 	}
 
 	protected Type left() {
