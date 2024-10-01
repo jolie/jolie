@@ -85,7 +85,7 @@ public class Values extends JavaService {
 				} else if( v1.isDouble() && v2.isDouble() ) {
 					r = v1.doubleValueStrict() == v2.doubleValueStrict();
 				} else if( v1.isBool() && v2.isBool() ) {
-					r = v1.boolValueStrict() == v1.boolValueStrict();
+					r = v1.boolValueStrict() == v2.boolValueStrict();
 				} else if( v1.isLong() && v2.isLong() ) {
 					r = v1.longValueStrict() == v2.longValueStrict();
 				} else if( v1.valueObject() != null && v2.valueObject() != null ) {
