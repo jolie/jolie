@@ -318,11 +318,7 @@ public class OLParser extends AbstractParser {
 				}
 				// call parseType with the context with correct lines and columns
 				currentType = parseType( typeName, accessModifier, context );
-				if( forwardDocToken.isPresent() ) {
-					parseBackwardAndSetDocumentation( currentType, forwardDocToken );
-				} else {
-					parseBackwardAndSetDocumentation( currentType, Optional.empty() );
-				}
+				parseBackwardAndSetDocumentation( currentType, forwardDocToken );
 
 				typeName = currentType.name();
 
@@ -1664,7 +1660,7 @@ public class OLParser extends AbstractParser {
 			case "inputPort":
 			case "outputPort":
 				PortInfo p = _parsePort();
-				parseBackwardAndSetDocumentation( ((DocumentedNode) p), internalForwardDocToken );
+				parseBackwardAndSetDocumentation( p, internalForwardDocToken );
 				serviceBlockProgramBuilder.addChild( p );
 				break;
 			case "define":
@@ -1752,6 +1748,8 @@ public class OLParser extends AbstractParser {
 					accessModifier,
 					serviceBlockProgramBuilder, tech, configMap );
 			}
+			parseBackwardAndSetDocumentation( serviceNode, forwardDocToken );
+
 			programBuilder.addChild( serviceNode );
 		}
 	}
@@ -3734,73 +3732,83 @@ public class OLParser extends AbstractParser {
 	}
 
 	private void parseImport() throws IOException, ParserException {
-		if( token.is( Scanner.TokenType.FROM ) ) {
-			ParsingContext context = getContext();
-			boolean isNamespaceImport = false;
+
+		Optional< Scanner.Token > forwardDocToken = parseForwardDocumentation();
+
+		if( !token.is( Scanner.TokenType.FROM ) ) {
+			forwardDocToken.ifPresent( this::addToken );
+			addToken( token );
 			nextToken();
-			List< String > importTargets = new ArrayList<>();
-			boolean importTargetIDStarted = false;
-			List< Pair< String, String > > pathNodes = null;
-			boolean keepRun = true;
-			do {
-				if( token.is( Scanner.TokenType.IMPORT ) ) {
-					keepRun = false;
-					nextToken();
-				} else if( token.is( Scanner.TokenType.DOT ) ) {
-					if( !importTargetIDStarted ) {
-						importTargets.add( token.content() );
-					}
-					nextToken();
-				} else {
-					setEndLine(); // set end line for error
-					importTargets.add(
-						parseExtendedIdentifier( "expected identifier for importing target after from",
-							Scanner.TokenType.MINUS, Scanner.TokenType.AT ) );
-					importTargetIDStarted = true;
-					// nextToken();
-				}
-			} while( keepRun );
-
-			if( token.is( Scanner.TokenType.ASTERISK ) ) {
-				isNamespaceImport = true;
-				nextToken();
-			} else {
-				setEndLine(); // set end line for eventual error
-				assertIdentifier( "expected Identifier or * after import" );
-				pathNodes = new ArrayList<>();
-				keepRun = false;
-				do {
-					String targetName = token.content();
-					String localName = targetName;
-					nextToken();
-					if( token.is( Scanner.TokenType.AS ) ) {
-						nextToken();
-						setEndLine(); // set end line for eventual error
-						assertIdentifier( "expected Identifier after as" );
-						localName = token.content();
-						nextToken();
-					}
-
-					pathNodes.add( new Pair< String, String >( targetName, localName ) );
-					if( token.is( Scanner.TokenType.COMMA ) ) {
-						keepRun = true;
-						nextToken();
-					} else {
-						keepRun = false;
-					}
-				} while( keepRun );
-			}
-			setEndLine(); // set end line for eventual error
-			ImportStatement stmt = null;
-			if( isNamespaceImport ) {
-				stmt = new ImportStatement( context, Collections.unmodifiableList( importTargets ) );
-			} else {
-				stmt = new ImportStatement( context, Collections.unmodifiableList( importTargets ),
-					Collections.unmodifiableList( pathNodes ) );
-			}
-			programBuilder.addChild( stmt );
 			return;
 		}
+		ParsingContext context = getContext();
+		boolean isNamespaceImport = false;
+		nextToken();
+		List< String > importTargets = new ArrayList<>();
+		boolean importTargetIDStarted = false;
+		List< Pair< String, String > > pathNodes = null;
+		boolean keepRun = true;
+		do {
+			if( token.is( Scanner.TokenType.IMPORT ) ) {
+				keepRun = false;
+				nextToken();
+			} else if( token.is( Scanner.TokenType.DOT ) ) {
+				if( !importTargetIDStarted ) {
+					importTargets.add( token.content() );
+				}
+				nextToken();
+			} else {
+				setEndLine(); // set end line for error
+				importTargets.add(
+					parseExtendedIdentifier( "expected identifier for importing target after from",
+						Scanner.TokenType.MINUS, Scanner.TokenType.AT ) );
+				importTargetIDStarted = true;
+			}
+		} while( keepRun );
+
+		if( token.is( Scanner.TokenType.ASTERISK ) ) {
+			isNamespaceImport = true;
+			nextToken();
+		} else {
+			setEndLine(); // set end line for eventual error
+			assertIdentifier( "expected Identifier or * after import" );
+			pathNodes = new ArrayList<>();
+			keepRun = false;
+			do {
+				String targetName = token.content();
+				String localName = targetName;
+				nextToken();
+				if( token.is( Scanner.TokenType.AS ) ) {
+					nextToken();
+					setEndLine(); // set end line for eventual error
+					assertIdentifier( "expected Identifier after as" );
+					localName = token.content();
+					nextToken();
+				}
+
+				pathNodes.add( new Pair< String, String >( targetName, localName ) );
+				if( token.is( Scanner.TokenType.COMMA ) ) {
+					keepRun = true;
+					nextToken();
+				} else {
+					keepRun = false;
+				}
+			} while( keepRun );
+		}
+		setEndLine(); // set end line for eventual error
+		ImportStatement stmt = null;
+		if( isNamespaceImport ) {
+			stmt = new ImportStatement( context, Collections.unmodifiableList( importTargets ) );
+		} else {
+			stmt = new ImportStatement( context, Collections.unmodifiableList( importTargets ),
+				Collections.unmodifiableList( pathNodes ) );
+		}
+
+		// eats backward documentation
+		parseBackwardDocumentation();
+
+		programBuilder.addChild( stmt );
+		return;
 	}
 
 	private static class IncludeFile {
