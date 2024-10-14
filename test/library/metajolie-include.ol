@@ -6,10 +6,12 @@ include "time.iol"
 
 define doTest
 {
+
   sleep@Time( 1000 )()
   with( rq ) {
-      .filename = "private/sample_service_old_syntax.ol"
+      .filename = "private/sample_service.ol"
   };
+
   getInputPortMetaData@MetaJolie( rq )( meta_description );
   if ( #meta_description.input != 1 ) {
       throw( TestFailed, "Expected 1 input port, found " + #meta_description.input )
@@ -138,7 +140,6 @@ define doTest
   }
 
 
-
   // comparing nodes
   a.b.c.d.m.n.l.o = 1
   a.b.c.d.m.n.l = 2
@@ -184,7 +185,7 @@ define doTest
 
   // test aggregation with extender 
    with( rq ) {
-      .filename = "private/sample_service2_old_syntax.ol"
+      .filename = "private/sample_service2.ol"
    };
    getInputPortMetaData@MetaJolie( rq )( meta_description )
    for( intf in meta_description.input.interfaces ) {
@@ -209,7 +210,7 @@ define doTest
 
    // testing lessThan operations
    undef( rq )
-   rq.filename = "private/sample_service6_old_syntax.ol"
+   rq.filename = "private/sample_service6.ol"
    getInputPortMetaData@MetaJolie( rq )( meta_description6 )
 
    undef( rq )
@@ -222,7 +223,7 @@ define doTest
 
    undef( rq )
    with( rq ) {
-      .filename = "private/sample_service3_old_syntax.ol"
+      .filename = "private/sample_service3.ol"
    }
    getInputPortMetaData@MetaJolie( rq )( meta_description );
    undef( rq )
@@ -325,7 +326,7 @@ define doTest
 
    /// testing lessThan operations
    undef( rq )
-   rq.filename = "private/sample_service_old_syntax.ol"
+   rq.filename = "private/sample_service.ol"
    getInputPortMetaData@MetaJolie( rq )( meta_description2 )
    undef( rq )
    rq.i1 -> meta_description2.input.interfaces
@@ -350,7 +351,7 @@ define doTest
    }
 
    undef( rq )
-   rq.filename = "private/sample_service4_old_syntax.ol"
+   rq.filename = "private/sample_service4.ol"
    getInputPortMetaData@MetaJolie( rq )( meta_description3 )
 
    undef( rq )
@@ -373,7 +374,7 @@ define doTest
    }
 
    undef( rq )
-   rq.filename = "private/sample_service5_old_syntax.ol"
+   rq.filename = "private/sample_service5.ol"
    getInputPortMetaData@MetaJolie( rq )( meta_description4 )
 
 
@@ -447,7 +448,7 @@ define doTest
 
    // messageTypeCast
    undef( rq )
-   rq.filename = "private/sample_service_old_syntax.ol"
+   rq.filename = "private/sample_service.ol"
    getInputPortMetaData@MetaJolie( rq )( meta_description )
    rq_mtc << {
        message << {
@@ -532,7 +533,7 @@ define doTest
 
    // refinedTypes
    undef( rq )
-   rq.filename = "private/sample_service_refined_types_old_syntax.ol"
+   rq.filename = "private/sample_service_refined_types.ol"
    getInputPortMetaData@MetaJolie( rq )( meta_description )
    scope( comp_values ) {
         install( ComparisonFailed => throw( TestFailed, compare_values.ComparisonFailed ) )
@@ -695,13 +696,58 @@ define doTest
         }
         compareValuesVectorLight@MetaJolie( { .v1 << meta_description.input.interfaces.types.type, .v2 << v2 })()
 
-
-        undef( rq )
-        // just test if there are errors from the engine
-        with( rq ) {
-            .filename = "private/sample_service_with_internal_service_old_syntax.ol"
-        };
-        getMetaData@MetaJolie( rq )( meta_description )
    }
-   
+
+   // check type names
+   rq.filename = "private/sample_service_typesymbols.ol"
+   getOutputPortMetaData@MetaJolie( rq )( meta_description )
+   for( t in meta_description.output.interfaces.types ) {
+       find@StringUtils( t.name { regex = "#" } )( find_result )
+       if ( find_result > 0 ) {
+           throw( TestFailed, "Found a type with a name that containes #: " + t.name )
+       }
+   }
+
+   // check two inputports
+   undef( rq )
+   rq.filename = "private/sample_service7.ol"
+   getInputPortMetaData@MetaJolie( rq )( meta_description )
+   if ( #meta_description.input != 2 ) {
+      throw( TestFailed, "Test \"check two inputports\": Expected 2 input port, found " + #meta_description.input )
+   }
+
+   for( ip in meta_description.input ) {
+       if ( #ip.interfaces != 1 ) {
+            throw( TestFailed, "Test \"check two inputports\": Expected 1 interface for port " + ip.name + ", found " + #ip.interfaces )
+       }
+       for( i in ip.interfaces ) {
+           if ( #i.types != 2 ) {
+               throw( TestFailed, "Test \"check two inputports\": Expected 2 types for interface " + i.name + " and port " 
+               + ip.name + ", found " + #i.types  )
+           }
+       }
+   }
+
+
+   // check two outputports
+   undef( rq )
+   rq.filename = "private/sample_service7.ol"
+   getOutputPortMetaData@MetaJolie( rq )( meta_description )
+   if ( #meta_description.output != 2 ) {
+      throw( TestFailed, "Test \"check two outputports\": Expected 2 output port, found " + #meta_description.output )
+   }
+
+   for( o in meta_description.output ) {
+       if ( #o.interfaces != 1 ) {
+            throw( TestFailed, "Test \"check two outputports\": Expected 1 interface for port " + o.name + ", found " + #o.interfaces )
+       }
+       for( i in o.interfaces ) {
+           if ( #i.types != 2 ) {
+               throw( TestFailed, "Test \"check two outputports\": Expected 2 types for interface " + i.name + " and port " 
+               + o.name + ", found " + #i.types  )
+           }
+       }
+   }
+
 }
+

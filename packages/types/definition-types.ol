@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2009 Claudio Guidi <cguidi@italianasoftware.com>
+ *   Copyright (C) 2024 Claudio Guidi <cguidi@italianasoftware.com>
  *                                                                        
  *   This program is free software; you can redistribute it and/or modify 
  *   it under the terms of the GNU Library General Public License as      
@@ -19,12 +19,63 @@
  *   For details about the authors of this software, see the AUTHORS file.
  */
 
+type RangeInt: void {
+  min: int 
+  max*: int
+} | void {
+  min: int 
+  infinite: bool
+}
+
+type RangeDouble: void {
+  min: double 
+  max*: double
+} | void {
+  min: double 
+  infinite: bool
+}
+
+
+type RangeLong: void {
+  min: long 
+  max*: long
+} | void {
+  min: long 
+  infinite: bool
+}
+
+type StringRefinedType: void {
+  length: RangeInt
+} | void {
+  enum[1,*]: string
+} | void {
+  regex: string
+}
+
+type IntRefinedType: void {
+  ranges[1,*]: RangeInt
+}
+
+type DoubleRefinedType: void {
+  ranges[1,*]: RangeDouble
+}
+
+type LongRefinedType: void {
+  ranges[1,*]: RangeLong
+}
+
 type NativeType: void {
-  .string_type: bool
+  .string_type: bool {
+    .refined_type*: StringRefinedType
+  }
 } | void {
-  .int_type: bool
+  .int_type: bool {
+    .refined_type*: IntRefinedType
+  }
 } | void {
-  .double_type: bool
+  .double_type: bool {
+    .refined_type*: DoubleRefinedType
+  }
 } | void {
   .any_type: bool
 } | void {
@@ -34,7 +85,9 @@ type NativeType: void {
 } | void {
   .bool_type: bool
 } | void {
-  .long_type: bool
+  .long_type: bool {
+    .refined_type?: LongRefinedType
+  }
 } 
 
 
