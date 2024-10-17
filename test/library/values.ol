@@ -19,12 +19,14 @@
 
 from ..test-unit import TestUnitInterface
 from values import Values
+from console import Console
 
 /**
 	A template for test units.
 */
 service Main {
 	embed Values as values
+	embed Console as console
 
 	inputPort TestUnitInput {
 		location: "local"
@@ -35,7 +37,7 @@ service Main {
 		test()() {
 			person << {
 				name = "Homer"
-			   	age = 42
+				age = 42
 				interests[0] = "beer"
 				interests[1] = "hockey"
 			}
@@ -74,6 +76,24 @@ service Main {
 				}
 			} ) ) {
 				throw( TestFailed, "value equality does not match expected result" )
+			}
+
+			if( hashCode@values( void ) != 0 ) {
+			 	throw( TestFailed, "value hashCode does not match expected result" )
+			}
+
+			if( hashCode@values( person ) != hashCode@values( person ) ) {
+			 	throw( TestFailed, "value hashCode does not match expected result" )
+			}
+
+			person2 -> person
+			if( hashCode@values( person ) != hashCode@values( person2 ) ) {
+			 	throw( TestFailed, "value hashCode does not match expected result" )
+			}
+
+			person3 << person
+			if( hashCode@values( person ) != hashCode@values( person3 ) ) {
+			 	throw( TestFailed, "value hashCode does not match expected result" )
 			}
 		}
 	}
