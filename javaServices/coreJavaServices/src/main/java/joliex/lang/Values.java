@@ -1,29 +1,32 @@
 /*
- *   Copyright (C) 2022 by Fabrizio Montesi <famontesi@gmail.com>     
+ *   Copyright (C) 2022 by Fabrizio Montesi <famontesi@gmail.com>
  *   Copyright (C) 2018 by Larisa Safina <safina@imada.sdu.dk>
  *   Copyright (C) 2018 by Stefano Pio Zingaro <stefanopio.zingaro@unibo.it>
  *   Copyright (C) 2018 by Saverio Giallorenzo <saverio.giallorenzo@gmail.com>
- *                                                                         
- *   This program is free software; you can redistribute it and/or modify  
- *   it under the terms of the GNU Library General Public License as       
- *   published by the Free Software Foundation; either version 2 of the    
- *   License, or (at your option) any later version.                       
- *                                                                         
- *   This program is distributed in the hope that it will be useful,       
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         
- *   GNU General Public License for more details.                          
- *                                                                         
- *   You should have received a copy of the GNU Library General Public     
- *   License along with this program; if not, write to the                 
- *   Free Software Foundation, Inc.,                                       
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             
- *                                                                         
- *   For details about the authors of this software, see the AUTHORS file. 
+ *   Copyright (C) 2024 by Marco Peressotti <marco.peressotti@gmail.com>
+ *
+ *   This program is free software; you can redistribute it and/or modify
+ *   it under the terms of the GNU Library General Public License as
+ *   published by the Free Software Foundation; either version 2 of the
+ *   License, or (at your option) any later version.
+ *
+ *   This program is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU Library General Public
+ *   License along with this program; if not, write to the
+ *   Free Software Foundation, Inc.,
+ *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ *   For details about the authors of this software, see the AUTHORS file.
  */
 
 package joliex.lang;
 
+import java.util.SortedSet;
+import java.util.TreeSet;
 import jolie.runtime.JavaService;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
@@ -112,4 +115,55 @@ public class Values extends JavaService {
 			return false;
 		}
 	}
+	
+	/**
+	 * Returns a hash code value for the argument.
+	 * @param request
+	 * @return has code
+	 */
+	public Integer hashCode( Value request ) {
+		return Values.hash( request );
+	}
+
+	/* The implementation of equals and hash must guarantee that
+	 * equals(v1,v2) implies hash(v1) == hash(v2)
+	 */
+	private static int hash( Value value ) {
+		int hashCode = 0;
+		if( value != null ) {
+			try {
+				if( value.isDefined() ) {
+					if( value.isByteArray() ) {
+						hashCode = value.byteArrayValueStrict().hashCode();
+					} else if( value.isString() ) {
+						hashCode = value.strValueStrict().hashCode();
+					} else if( value.isInt() ) {
+						hashCode = Integer.hashCode( value.intValueStrict() );
+					} else if( value.isDouble() ) {
+						hashCode = Double.hashCode( value.doubleValueStrict() );
+					} else if( value.isBool() ) {
+						hashCode = Boolean.hashCode( value.boolValueStrict() );
+					} else if( value.isLong() ) {
+						hashCode = Long.hashCode( value.longValueStrict() );
+					} else {
+						hashCode = java.util.Objects.hashCode( value.valueObject() );
+					}
+				}
+			} catch( TypeCastingException ignored ) {
+			}
+			/* Similarly to java collections, each increment is weighted to spread 
+			 * out codes. To guarantee correctness of the result wrt equals, the 
+			 * order in which children are visited must be deterministic hence, keys 
+			 * are sorted.
+			 */
+			SortedSet< String > keys = new TreeSet<>( value.children().keySet() );
+			for( String key : keys ) {
+				for( Value v : value.getChildren( key ) ) {
+					hashCode = 31 * hashCode + hash( v );
+				}
+			}
+		}
+		return hashCode;
+	}
+
 }
