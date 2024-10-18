@@ -38,8 +38,41 @@ interface RenderInterface {
         getIndentation( int )( string )
 }
 
-private service Render {
+
+type GetOverviewPageRequest {
+    svgIcon: string 
+    communication_dependencies*: void {
+        operation_name: string 
+        dependencies*: void {
+            name: string
+            port?: string
+        }
+    }
+}
+
+type GetPortPageRequest {
+    port_type: string( enum(["input","output"] ))
+    port: Port
+    interfaces*: void {
+
+    }
+}
+
+interface TemplatesInterface {
+    RequestResponse:
+        getOverviewPage( GetOverviewPageRequest )( string ),
+        getPortPage( GetPortPageRequest )( string )
+}
+
+/*ce JolieDocRender {
+
     Interfaces: RenderInterface
+
+    inputPort JolieDocRender {
+        location: "local"
+        interfaces: RenderInterface
+    }
+
 
     main {
         [ getIndentation( request )( response ) {
@@ -182,7 +215,7 @@ private service Render {
                 response = "string"
             }
             if ( is_defined( request.int_type ) ) {
-                response = "int"
+                response = "int"  
             }
             if ( is_defined( request.double_type ) ) {
                 response = "double"
@@ -229,25 +262,11 @@ private service Render {
         }]
 
     }
-}
+}*/
 
-type GetOverviewPageRequest {
-    svgIcon: string 
-    communication_dependencies*: void {
-        operation_name: string 
-        dependencies*: void {
-            name: string
-            port?: string
-        }
-    }
-}
+service Templates {
 
-interface TemplatesInterface {
-    RequestResponse:
-        getOverviewPage( GetOverviewPageRequest )( string )
-}
-
-private service Templates {
+    embed Mustache as Mustache
 
     inputPort Templates {
         location: "local"
@@ -257,143 +276,8 @@ private service Templates {
     execution: concurrent 
 
     init {
-        ovw_css = "<style>
-            body {
-                font-family:'Courier New';
-            }
-            .picture {
-                padding-top:50px;
-                text-align:center;
-            }
 
-            .link:hover {
-                fill: #660000;
-            }
-            .dependency-map {
-                padding:20px;
-            }
-            .input-operation {
-                width:50%;
-            }
-        .dependency-table {
-                width: 100%;
-                border: 1px solid #444;
-                padding: 10px;
-            }
-
-            .dependency-table a {
-                color: black;
-                text-decoration: none;
-            }
-
-
-            .dependency-table a:hover {
-                color: #600;
-            }
-
-            .dependency-table th {
-                text-align: left;
-            }
-
-            .dependency-list {
-                background-color: #ddd;
-                padding-left: 20%;
-            }
-            .legenda {
-                font-size: 12px;
-                font-style: italic;
-                color: #888;
-            }
-        </style>"
-
-        overview_template = "<html><head>" + ovw_css 
-            + "</head><body><table width='100%'><tr><td valign='top' class='picture' width='50%'>{{{svgIcon}}}</td><td valign='top' class='dependency-map'>"
-            + "<h1>Dependency Map</h1>"
-            + "<span class='legenda'>Legenda:</span><br><table class='dependency-table'>"
-            + "<tr><th class='input-operation'>input operation</th></tr><tr><td class='dependency-list'><i>communication dependencies</i></td></tr></table><br><br>"
-            + "{{#communication_dependencies}}"
-                + "<table class='dependency-table'><tr><td colspan='2' class='input-operation'>{{operation_name}}</td></tr>"
-                + "<tr><td class='dependency-list'><table width='100%'>"
-                    + "{{#dependencies}}"
-                    + "<tr><td>{{name}}"
-                        + "{{#port}}"
-                        + "@<b><a href='{{port}}OPort.html'>{{port}}</a></b>"
-                        + "{{/port}}"
-                    + "</td></tr>"
-                    + "{{/dependencies}}"
-            + "{{/communication_dependencies}}"
-            + "<td></table></body></html>"
-
-
-    }
-
-    main {
-        [ getOverviewPage( request )( response ) {
-            render@Mustache( {
-                template = overview_template
-                data << request 
-            })( response )
-        }]
-    }
-    
-}
-
-service JolieDoc {
-
-    embed Console as Console
-    embed MetaJolie as MetaJolie 
-    embed StringUtils as StringUtils
-    embed File as File
-    embed Templates as Templates
-
-
-
-    define _get_ports {
-        // __port_type
-        for( ptt in meta_description.( __port_type ) ) {
-                startsWith@StringUtils( ptt.location { .prefix = "local://" } )( starts_with_local )
-                if ( internals || ( ptt.location != "undefined" && ptt.location != "local" && !starts_with_local ) ) {
-                    html = "";
-                    getPort@Render( ptt )( port )
-                    if ( __port_type == "input" ) {
-                        replaceAll@StringUtils( port { .regex = "PORTTYPE", .replacement = "ip" } )( port )
-                    } else {
-                        replaceAll@StringUtils( port { .regex = "PORTTYPE", .replacement = "op" } )( port )
-                    }
-                    
-                    undef( itfcs )
-                    undef( tps )
-                    for( itf in ptt.interfaces ) {
-                        getInterface@Render( itf )( itfc )
-                        itfcs[ #itfcs ] = itfc
-                        for ( tp in itf.types ) {
-                            getTypeDefinition@Render( tp )( tp_string )
-                            tps[ #tps ] = tp_string
-                        }
-                    }
-                    html = "<html><head>" + css + js + "</head><body>" + port + "<hr>"
-                    for( i in itfcs ) {
-                        html = html + i 
-                    }
-                    html = html + "<hr>"
-                    for( t in tps ) {
-                        html = html + t
-                    }
-                    html = html + "</body></html>"
-
-                    max_files = #files 
-                    if ( __port_type == "input" ) {
-                        endname = "IPort.html"
-                    } else {
-                        endname = "OPort.html"
-                    }
-                    files[ max_files ].filename = ptt.name + endname
-                    files[ max_files ].html = html
-                }
-            }      
-    }
-
-    init {
+        // port doc template
         js = "<script>
             function openDetails( operation ) {
                 if ( document.getElementById( \"doc_\" + operation ).style.display == \"none\" ) {
@@ -405,6 +289,7 @@ service JolieDoc {
                 }
             }
         </script>"
+
         css = "<style>
                     body {
             font-family: Verdana, Helvetica, sans-serif;
@@ -601,6 +486,245 @@ service JolieDoc {
             width:44%;
         }
         </style>"
+
+        port_template =  "<html><head>" 
+            + css + js 
+            + "</head><body>" 
+            + "{{#port}}"
+                + "<table class='port-definition'>"
+                + "<tr><th class='resource-label-{{port_type}} resource-label'>{{port_type}}</th>"
+                    + "<th id='{{name}}' colspan='2' class='content-td'>{{name}}</th></tr>"
+                + "<tr><td></td><td class='content-td port-element'>Location:</td><td class='content-td'>{{location}}</td></tr>"
+                + "<tr><td></td><td class='content-td port-element'>Protocol:</td><td class='content-td'>{{protocol}}</td></tr>"
+                + "<tr><td></td><td class='content-td port-element'>Interfaces:</td><td class='content-td'>" 
+                    + "{{#interfaces}}"
+                        + "<a href='#{{name}}'>{{name}}<a>&nbsp;&nbsp;"
+                    + "{{/interfaces}}"
+                + "</td></tr></table>"
+                + "<hr>"
+                + "{{#interfaces}}"
+                    + "<table class='interface-definition'>"
+                        + "<tr><th id='{{name}}' class='resource-label-interface resource-label'>intf</th>"
+                        + "<th id='{{name}}' colspan='3' class='content-td'>{{name}}</th></tr>"
+                        + "{{#documentation}}"
+                            + "<tr><td>&nbsp;</td></tr>"
+                            + "<tr><td></td><td colspan='4' class='documentation'>{{documentation}}</td></tr>"
+                            + "<tr><td>&nbsp;</td></tr>"
+                        + "{{/documentation}}"
+                        + "{{^documentation}}"
+                            + "<tr><td>&nbsp;</td></tr>"
+                        + "{{/documentation}}"
+                        + "{{#operations}}"
+                            + "<tr><td" 
+                                + "{{#output}}"
+                                    + " class='resource-label rr-type'>rr"
+                                + "{{/output}}"
+                                + "{{^output}}"
+                                    + " class='resource-label ow-type'>ow"
+                                + "{{/output}}"
+                                + "</td>"
+                                + "<td class='content-td operation-name'><span>{{operation_name}}</span><button onclick='openDetails(\"{{operation_name}}\")' class='operation-button'>Details</button></td>"
+                                + "<td class='content-td'><span class='message-type'>Request:</span><a href='#{{input}}'>{{input}}</a></td>"
+                                + "<td class='content-td'>"
+                                + "{{#output}}"
+                                        + "<span class='message-type'>Response:</span><a href='#{{output}}'>{{output}}</a>"
+                                + "{{/output}}"
+                            + "</td></tr>"
+                            /*+ "{{#fault}}"
+                                + "<tr id='faults_{{operation_name}}' style='display:none'><td>"
+                                    + "</td><td></td><td></td><td class='content-td'><span class='message-type'>Faults:</span> "
+                            + "{{/fault}}"*/
+                            + "<tr id='doc_{{operation_name}}' style='display:none'><td></td><td colspan='3' class='documentation'>{{documentation}}</td><tr>"
+                            + "<tr><td><br></td></tr>"
+                        + "{{/operations}}"
+                        + "</table>"
+        
+
+          //  for( o in request.operations ) {
+
+
+                /*if ( is_defined( o.fault )) {
+                    
+                    response = response + "<tr id='faults_" + o.operation_name + "' style='display:none'><td></td><td></td><td></td><td class='content-td'><span class='message-type'>Faults:</span> "
+                    for ( f in o.fault ) {
+                        response = response + "<br>" + indent + "<span class='fault-name'>" + f.name + "</span>"
+                        getFaultType@Render( f )( fname )
+                        response = response + "(" + fname + ")"
+                    }
+                    response = response + "<br>"
+                }*/
+                /*response = response + "</td></tr>"
+                replaceAll@StringUtils( o.documentation { .regex = "\n", .replacement = "<br>" } )( o_documentation )*/
+                /*response = response + "<tr id='doc_" + o.operation_name + "' style='display:none'><td></td><td colspan='3' class='documentation'>" 
+                    + o_documentation + "</td><tr>"*/
+                //response = response + "<tr><td><br></td></tr>"
+            //}
+            //response = response + "</table>"
+    
+
+                + "{{/interfaces}}"
+                + "<hr>"
+                + "{{#types}}"
+                + "{{/types}}"
+                + "{{/port}}"
+            +  "</body></html>"
+
+        // overview template
+        ovw_css = "<style>
+            body {
+                font-family:'Courier New';
+            }
+            .picture {
+                padding-top:50px;
+                text-align:center;
+            }
+
+            .link:hover {
+                fill: #660000;
+            }
+            .dependency-map {
+                padding:20px;
+            }
+            .input-operation {
+                width:50%;
+            }
+            .dependency-table {
+                width: 100%;
+                border: 1px solid #444;
+                padding: 10px;
+            }
+
+            .dependency-table a {
+                color: black;
+                text-decoration: none;
+            }
+
+
+            .dependency-table a:hover {
+                color: #600;
+            }
+
+            .dependency-table th {
+                text-align: left;
+            }
+
+            .dependency-list {
+                background-color: #ddd;
+                padding-left: 20%;
+            }
+            .legenda {
+                font-size: 12px;
+                font-style: italic;
+                color: #888;
+            }
+        </style>"
+
+        overview_template = "<html><head>" 
+            + ovw_css 
+            + "</head><body>"
+            + "<table width='100%'>"
+                + "<tr><td valign='top' class='picture' width='50%'>{{{svgIcon}}}</td>"
+                + "<td valign='top' class='dependency-map'>"
+                    + "<h1>Dependency Map</h1>"
+                    + "<span class='legenda'>Legenda:</span><br>"
+                    + "<table class='dependency-table'>"
+                        + "<tr><th class='input-operation'>input operation</th></tr>"
+                        + "<tr><td class='dependency-list'><i>communication dependencies</i></td></tr>"
+                    + "</table><br><br>"
+                    + "{{#communication_dependencies}}"
+                    + "<table class='dependency-table'>"
+                        + "<tr><th colspan='2' class='input-operation'>{{operation_name}}</th></tr>"
+                        + "<tr><td class='dependency-list'>"
+                            + "<table width='100%'>"
+                                + "{{#dependencies}}"
+                                    + "<tr><td>{{name}}"
+                                    + "{{#port}}"
+                                        + "@<b><a href='{{port}}OPort.html'>{{port}}</a></b>"
+                                    + "{{/port}}"
+                                    + "</td></tr>"
+                                + "{{/dependencies}}"
+                            + "</table>"
+                            + "</td></tr>"
+                    + "</table>"
+                    + "{{/communication_dependencies}}"
+            + "</td></tr></table></body></html>"
+
+
+    }
+
+    main {
+        [ getOverviewPage( request )( response ) {
+            render@Mustache( {
+                template = overview_template
+                data << request 
+            })( response )
+        }]
+
+        [ getPortPage( request )( response ) {
+            render@Mustache( {
+                template = port_template
+                data << request 
+            })( response )
+        }]
+    }
+    
+}
+
+service JolieDoc {
+
+    embed Console as Console
+    embed MetaJolie as MetaJolie 
+    embed StringUtils as StringUtils
+    embed File as File
+    embed Templates as Templates
+    
+
+
+   define _get_ports {
+        // __port_type
+        for( ptt in meta_description.( __port_type ) ) {
+                startsWith@StringUtils( ptt.location { .prefix = "local://" } )( starts_with_local )
+                if ( internals || ( ptt.location != "undefined" && ptt.location != "local" && !starts_with_local ) ) {
+
+                    portPage = getPortPage@Templates( { 
+                        port_type = __port_type
+                        port << ptt
+                    })
+                    
+                    undef( itfcs )
+                    undef( tps )
+                    for( itf in ptt.interfaces ) {
+                        //getInterface@Render( itf )( itfc )
+                        itfcs[ #itfcs ] = itfc
+                        for ( tp in itf.types ) {
+                            //getTypeDefinition@Render( tp )( tp_string )
+                            tps[ #tps ] = tp_string
+                        }
+                    }
+                    html = "<html><head>" + css + js + "</head><body>" + port + "<hr>"
+                    for( i in itfcs ) {
+                        html = html + i 
+                    }
+                    html = html + "<hr>"
+                    for( t in tps ) {
+                        html = html + t
+                    }
+                    html = html + "</body></html>"
+
+                    max_files = #files 
+                    if ( __port_type == "input" ) {
+                        endname = "IPort.html"
+                    } else {
+                        endname = "OPort.html"
+                    }
+                    files[ max_files ].filename = ptt.name + endname
+                    files[ max_files ].html = portPage
+                }
+            }      
+    }
+
+    init {
+        
 
         css_index = "<style>
             body {
