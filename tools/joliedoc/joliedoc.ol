@@ -267,6 +267,7 @@ interface TemplatesInterface {
 service Templates {
 
     embed Mustache as Mustache
+    embed StringUtils as StringUtils
 
     inputPort Templates {
         location: "local"
@@ -276,6 +277,38 @@ service Templates {
     execution: concurrent 
 
     init {
+
+        // native type
+        native_type_template = "{{#undefined}}"
+            + "undefined"
+        + "{{/undefined}}"
+        + "{{#link_name}}"
+            + "<a href='#{{link_name}}'>{{link_name}}</a>" 
+        + "{{/link_name}}"
+        + "{{#string_type}}"
+            + "string"
+        + "{{/string_type}}"
+        + "{{#int_type}}"
+            + "int"
+        + "{{/int_type}}"
+        + "{{#double_type}}"
+            + "double"
+        + "{{/double_type}}"
+        + "{{#any_type}}"
+            + "any"
+        + "{{/any_type}}"
+        + "{{#void_type}}"
+            + "void"
+        + "{{/void_type}}"
+        + "{{#raw_type}}"
+            + "raw"
+        + "{{/raw_type}}"
+        + "{{#bool_type}}"
+            + "bool"
+        + "{{/bool_type}}"
+        + "{{#long_type}}"
+            + "long"
+        + "{{/long_type}}"
 
         // port doc template
         js = "<script>
@@ -530,45 +563,55 @@ service Templates {
                                         + "<span class='message-type'>Response:</span><a href='#{{output}}'>{{output}}</a>"
                                 + "{{/output}}"
                             + "</td></tr>"
-                            /*+ "{{#fault}}"
-                                + "<tr id='faults_{{operation_name}}' style='display:none'><td>"
+                            + "<tr id='faults_{{operation_name}}' style='display:none'><td>"
                                     + "</td><td></td><td></td><td class='content-td'><span class='message-type'>Faults:</span> "
-                            + "{{/fault}}"*/
-                            + "<tr id='doc_{{operation_name}}' style='display:none'><td></td><td colspan='3' class='documentation'>{{documentation}}</td><tr>"
+                            + "{{#fault}}"
+                               + "<br><span class='fault-name'>{{name}}</span>"
+                               + "{{#type}}(  "
+                                    + native_type_template
+                               + "{{/type}} )"
+                            + "{{/fault}}"
+                            + "</td></tr>"
+                            + "<tr id='doc_{{operation_name}}' style='display:none'><td></td><td colspan='3' class='documentation'>{{{documentation}}}</td><tr>"
                             + "<tr><td><br></td></tr>"
                         + "{{/operations}}"
                         + "</table>"
-        
-
-          //  for( o in request.operations ) {
-
-
-                /*if ( is_defined( o.fault )) {
-                    
-                    response = response + "<tr id='faults_" + o.operation_name + "' style='display:none'><td></td><td></td><td></td><td class='content-td'><span class='message-type'>Faults:</span> "
-                    for ( f in o.fault ) {
-                        response = response + "<br>" + indent + "<span class='fault-name'>" + f.name + "</span>"
-                        getFaultType@Render( f )( fname )
-                        response = response + "(" + fname + ")"
-                    }
-                    response = response + "<br>"
-                }*/
-                /*response = response + "</td></tr>"
-                replaceAll@StringUtils( o.documentation { .regex = "\n", .replacement = "<br>" } )( o_documentation )*/
-                /*response = response + "<tr id='doc_" + o.operation_name + "' style='display:none'><td></td><td colspan='3' class='documentation'>" 
-                    + o_documentation + "</td><tr>"*/
-                //response = response + "<tr><td><br></td></tr>"
-            //}
-            //response = response + "</table>"
-    
-
+                        + "<hr>"
+                    + "{{#types}}"
+                        + "<table class='type-definition'>"
+                        + "<tr><th class='resource-label-type resource-label'>type</th><th id='{{name}}' colspan='2' class='content-td'>{{name}}</th></tr>"
+                        + "{{#documentation}}"
+                        + "<tr><td>&nbsp;</td></tr>"
+                            + "<tr><td></td><td colspan='2' class='documentation'>{{{documentation}}}</td></tr>"
+                            + "<tr><td>&nbsp;</td></tr>"
+                        + "{{/documentation}}"
+                        + "{{^documentation}}"
+                            + "<tr><td>&nbsp;</td></tr>"
+                        + "{{/documentation}}"
+                        + "<tr><td></td><td class='content-td'><b>type</b>&nbsp;{{name}}<b>:</b>&nbsp;"
+                            //type_string
+                        + "</td><td></td></tr></table>"
+                    + "{{/types}}"
                 + "{{/interfaces}}"
-                + "<hr>"
-                + "{{#types}}"
-                + "{{/types}}"
+                
                 + "{{/port}}"
             +  "</body></html>"
 
+/*
+            [ getType( request )( response ) {
+            if ( request instanceof TypeInLine ) {
+                getTypeInLine@Render( request )( response )
+            }
+            if ( request instanceof TypeChoice ) {
+                getTypeChoice@Render( request )( response )
+            }
+            if ( request instanceof TypeLink ) {
+                getTypeLink@Render( request )( response )
+            }
+            if ( request instanceof TypeUndefined ) {
+                getTypeUndefined@Render( request )( response )
+            } 
+       */
         // overview template
         ovw_css = "<style>
             body {
@@ -661,6 +704,12 @@ service Templates {
         }]
 
         [ getPortPage( request )( response ) {
+            for ( itf in request.port.interfaces ) {
+                for( o in itf.operations ) {
+                    replaceAll@StringUtils( o.documentation { .regex = "\n", .replacement = "<br>" } )( o.documentation )
+                }
+            }
+            
             render@Mustache( {
                 template = port_template
                 data << request 
