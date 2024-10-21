@@ -23,12 +23,13 @@ import java.util.Map;
 import java.util.Optional;
 import jolie.lang.Constants;
 import jolie.lang.Constants.EmbeddedServiceType;
+import jolie.lang.parse.DocumentedNode;
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.lang.parse.context.ParsingContext;
 import jolie.util.Pair;
 
-public class ServiceNode extends OLSyntaxNode implements ImportableSymbol {
+public class ServiceNode extends OLSyntaxNode implements ImportableSymbol, DocumentedNode {
 	public static final String DEFAULT_MAIN_SERVICE_NAME = "Main";
 
 	public static class ParameterConfiguration {
@@ -56,6 +57,7 @@ public class ServiceNode extends OLSyntaxNode implements ImportableSymbol {
 	private final AccessModifier accessModifier;
 	private final Constants.EmbeddedServiceType type;
 	private final Map< String, String > config;
+	private String documentation;
 
 	public static ServiceNode create( ParsingContext context, String name, AccessModifier accessModifier, Program p,
 		Pair< String, TypeDefinition > parameter, Constants.EmbeddedServiceType technology,
@@ -134,5 +136,15 @@ public class ServiceNode extends OLSyntaxNode implements ImportableSymbol {
 	@Override
 	public OLSyntaxNode node() {
 		return this;
+	}
+
+	@Override
+	public void setDocumentation( String documentation ) {
+		this.documentation = documentation;
+	}
+
+	@Override
+	public Optional< String > getDocumentation() {
+		return Optional.ofNullable( this.documentation );
 	}
 }

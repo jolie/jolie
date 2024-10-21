@@ -27,7 +27,6 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.util.function.Supplier;
-
 import jolie.Interpreter;
 import jolie.runtime.Value;
 import jolie.runtime.ValuePrettyPrinter;
@@ -91,7 +90,7 @@ public class PrintingTracer implements Tracer {
 				stBuilder.append( interpreter.logPrefix() ).append( "\t" );
 			} else {
 				stBuilder.append( action.context().sourceName() ).append( ":" )
-					.append( action.context().startLine() + 1 );
+					.append( action.context().startLine() + 1 ).append( "\t" );
 			}
 			stBuilder.append( actionCounter ).append( ".\t" );
 			switch( action.type() ) {
@@ -152,7 +151,7 @@ public class PrintingTracer implements Tracer {
 				stBuilder.append( interpreter.logPrefix() ).append( "\t" );
 			} else {
 				stBuilder.append( action.context().sourceName() ).append( ":" )
-					.append( action.context().startLine() + 1 );
+					.append( action.context().startLine() + 1 ).append( "\t" );
 			}
 			stBuilder.append( actionCounter ).append( ".\t" );
 			switch( action.type() ) {
@@ -200,7 +199,7 @@ public class PrintingTracer implements Tracer {
 				stBuilder.append( interpreter.logPrefix() ).append( "\t" );
 			} else {
 				stBuilder.append( action.context().sourceName() ).append( ":" )
-					.append( action.context().startLine() + 1 );
+					.append( action.context().startLine() + 1 ).append( "\t" );
 			}
 			stBuilder.append( actionCounter ).append( ".\t" );
 			switch( action.type() ) {

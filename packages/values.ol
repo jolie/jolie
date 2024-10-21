@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2022 by Fabrizio Montesi <famontesi@gmail.com>     
+ *   Copyright (C) 2022 by Fabrizio Montesi <famontesi@gmail.com> 
  *                                                                         
  *   This program is free software; you can redistribute it and/or modify  
  *   it under the terms of the GNU Library General Public License as       
@@ -20,17 +20,24 @@
  */
 
 type ComparisonRequest {
-	fst:undefined
-	snd:undefined
+	fst:undefined //< The first value
+	snd:undefined //< The second value
 }
 
 interface ValuesInterface {
-RequestResponse:
-	equals(ComparisonRequest)(bool)
+	requestResponse:
+		/**
+		 * Returns true if two values are deeply equal to each other and false otherwise.
+		 */
+		equals(ComparisonRequest)(bool),
+		/**
+		 * Returns a hash code value for the argument.
+		 */
+		hashCode(undefined)(int)
 }
 
 service Values {
-	inputPort Input {
+	inputPort input {
 		location: "local"
 		interfaces: ValuesInterface
 	}
