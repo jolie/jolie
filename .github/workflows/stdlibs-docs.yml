@@ -1,0 +1,62 @@
+name: "Build and Push Standard Library Documentation"
+
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows:
+      - Java CI
+    types:
+      - completed
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      jolie_version: ${{ steps.jolie_version.outputs.jolie_version }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: setup-jolie
+        name: Setup Jolie
+        uses: jolie/setup-jolie@v1.0.2
+      - name: Generate Documentattaion
+        run: mkdir -p docs && touch docs/test.md
+        shell: bash
+      # - run: jolie main.ol
+      #   shell: bash
+      - name: Cache Docs
+        id: cache-docs
+        uses: actions/cache/save@v4
+        with:
+          path: docs
+          key: docs-${{ github.sha }}
+      - name: Retrive Jolie version
+        id: jolie_version
+        run:
+          echo "jolie_version=$(cat pom.xml | grep -o -P '(?<=<jolie.version>).*(?=</jolie.version>)')" >> $GITHUB_OUTPUT
+  push:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/cache/restore@v4
+        id: cache
+        with:
+          path: docs
+          key: docs-${{ github.sha }}
+      - name: echo jolie version
+        run: echo ${{ needs.build.outputs.jolie_version }}
+      - name: get jolie docs branch
+        id: jolie_branch
+        run: echo "jolie_branch=v$(echo ${{ needs.build.outputs.jolie_version }} | sed -E 's/(.*)([[:digit:]]+)/\1x/')" >> $GITHUB_OUTPUT
+      - name: Push to docs repository
+        uses: dmnemec/copy_file_to_another_repo_action@main
+        env:
+          API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
+        with:
+          source_file: 'docs'
+          destination_repo: 'jolie/docs'
+          destination_folder: 'src/language-tools-and-standard-library/standard-library-api'
+          destination_branch: ${{ steps.jolie_branch.outputs.jolie_branch }}
+          user_email: 'gitaction@gitaction.com'
+          user_name: 'GitAction'
+          commit_message: 'Updated stdlib docs from Jolie ${{ needs.build.outputs.jolie_version }}'
