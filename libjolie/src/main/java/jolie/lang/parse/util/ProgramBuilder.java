@@ -19,7 +19,11 @@
 
 package jolie.lang.parse.util;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Set;
 
 import jolie.lang.parse.ast.DefinitionNode;
 import jolie.lang.parse.ast.EmbeddedServiceNode;

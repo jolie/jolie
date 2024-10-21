@@ -20,11 +20,15 @@
 
 package jolie.lang.parse.ast.types;
 
+import java.io.Serializable;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+
 import jolie.lang.NativeType;
 import jolie.lang.parse.ast.types.refinements.BasicTypeRefinement;
-
-import java.io.Serializable;
-import java.util.*;
 
 public class BasicTypeDefinition implements Serializable {
 	private final NativeType nativeType;

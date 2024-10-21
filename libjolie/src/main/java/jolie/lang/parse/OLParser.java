@@ -479,29 +479,34 @@ public class OLParser extends AbstractParser {
 	/*
 	 * set maxNumberOfParameters = null to unbound the list
 	 */
-	private < N extends Number > ArrayList< N > parseListOfNumber( Integer minNumberOfParameters, Integer maxNumberOfParameters, String predicate,  Scanner.TokenType type, Function< String, N > valueOfFunc, N minValue, N maxValue )
+	private < N extends Number > ArrayList< N > parseListOfNumber( Integer minNumberOfParameters,
+		Integer maxNumberOfParameters, String predicate, Scanner.TokenType type, Function< String, N > valueOfFunc,
+		N minValue, N maxValue )
 		throws IOException, ParserException {
 		ArrayList< N > arrayList = new ArrayList<>();
 		eat( Scanner.TokenType.LSQUARE, "a list of parameters is expected" );
 		while( token.type() != Scanner.TokenType.RSQUARE ) {
 			switch( token.type() ) {
-				case ASTERISK:
-					arrayList.add( maxValue );
-					break;
+			case ASTERISK:
+				arrayList.add( maxValue );
+				break;
 
-				case MINUS:
-					nextToken();
-					assertToken( Scanner.TokenType.ASTERISK, "Expected *" );
-					arrayList.add( minValue );
-					break;
+			case MINUS:
+				nextToken();
+				assertToken( Scanner.TokenType.ASTERISK, "Expected *" );
+				arrayList.add( minValue );
+				break;
 
-				default: //check if token type is correct
-					assertToken( type, "Expected a parameter of type " + type.name() ); //if asserting for int and a long is found the the error message looks like: "Expected a parameter of type INT. Found term: -1"
-					arrayList.add( valueOfFunc.apply( token.content() ) );
-					break;
+			default: // check if token type is correct
+				assertToken( type, "Expected a parameter of type " + type.name() ); // if asserting for int and a long
+																					// is found the the error message
+																					// looks like: "Expected a parameter
+																					// of type INT. Found term: -1"
+				arrayList.add( valueOfFunc.apply( token.content() ) );
+				break;
 			}
 			nextToken();
-			if( token.type() == Scanner.TokenType.COMMA ) { //this allows formating like: [1*] & [*-1] & [0 1,]
+			if( token.type() == Scanner.TokenType.COMMA ) { // this allows formating like: [1*] & [*-1] & [0 1,]
 				nextToken();
 			}
 		}
