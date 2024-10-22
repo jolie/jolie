@@ -41,7 +41,7 @@ public class ByteArray {
 
 	@Override
 	public boolean equals( Object other ) {
-		if( other == null || !(other instanceof ByteArray) )
+		if( !(other instanceof ByteArray) )
 			return false;
 		return Arrays.equals( buffer, ((ByteArray) other).buffer );
 	}

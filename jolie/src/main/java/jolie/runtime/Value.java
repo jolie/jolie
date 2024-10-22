@@ -507,7 +507,7 @@ public abstract class Value implements Expression, Cloneable {
 
 	@Override
 	public final synchronized boolean equals( Object obj ) {
-		if( obj == null || !(obj instanceof Value) )
+		if( !(obj instanceof Value) )
 			return false;
 		final Value val = (Value) obj;
 
