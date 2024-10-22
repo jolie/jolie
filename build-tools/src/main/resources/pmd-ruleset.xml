@@ -161,6 +161,7 @@
 		<exclude name="AvoidThreadGroup" />
 
 		<!-- Under evaluation -->
+		<exclude name="AvoidSynchronizedStatement" />
 		<exclude name="DoNotUseThreads" />
 		<exclude name="UseNotifyAllInsteadOfNotify" />
 		<exclude name="AvoidUsingVolatile" />

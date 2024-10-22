@@ -90,11 +90,10 @@ public abstract class AggregatedOperation {
 				}
 
 				State state = initThread.state().clone();
-				Process p = new SequentialProcess( new Process[] {
+				Process p = new SequentialProcess(
 					new OneWayProcess( operation, inputVariablePath, context )
 						.receiveMessage( new SessionMessage( requestMessage, channel ), state ),
-					courierProcess
-				} );
+					courierProcess );
 				SessionThread t = new SessionThread( p, state, initThread );
 
 				final FaultException[] f = new FaultException[ 1 ];

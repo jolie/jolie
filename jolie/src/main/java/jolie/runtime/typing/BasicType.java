@@ -19,21 +19,21 @@
 
 package jolie.runtime.typing;
 
-import jolie.lang.NativeType;
-import jolie.lang.parse.ast.types.BasicTypeDefinition;
-import jolie.lang.parse.ast.types.refinements.BasicTypeRefinement;
-import jolie.runtime.Value;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import jolie.lang.NativeType;
+import jolie.lang.parse.ast.types.BasicTypeDefinition;
+import jolie.lang.parse.ast.types.refinements.BasicTypeRefinement;
+import jolie.runtime.Value;
 
 public class BasicType< T > {
-	private static final Map< NativeType, BasicType< ? > > PURE_BASIC_TYPES = new HashMap<>();
+	private static final Map< NativeType, BasicType< ? > > PURE_BASIC_TYPES = new EnumMap<>( NativeType.class );
 	private static final Predicate< Value > ANY_PREDICATE = v -> true;
 	private static final Predicate< Value > INT_PREDICATE = Value::isInt;
 	private static final Predicate< Value > LONG_PREDICATE = v -> v.isLong() || v.isInt();

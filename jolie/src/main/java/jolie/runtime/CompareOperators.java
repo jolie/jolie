@@ -30,8 +30,8 @@ import java.util.function.BiPredicate;
  */
 public final class CompareOperators {
 
-	public final static BiPredicate< Value, Value > EQUAL =
-		( left, right ) -> left.isEqualTo( right );
+	public final static BiPredicate< Value, Value > EQUAL = Value::isEqualTo;
+	// ( left, right ) -> left.isEqualTo( right );
 	public final static BiPredicate< Value, Value > NOT_EQUAL = EQUAL.negate();
 	public final static BiPredicate< Value, Value > MINOR =
 		( left, right ) -> {
