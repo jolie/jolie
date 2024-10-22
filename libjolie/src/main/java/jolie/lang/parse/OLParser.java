@@ -3338,7 +3338,7 @@ public class OLParser extends AbstractParser {
 		throws IOException, ParserException {
 		ParsingContext ctx = getContext();
 		eat( Scanner.TokenType.IF, "expected if" );
-		OLSyntaxNode guard = inParens( () -> parseExpression() );
+		OLSyntaxNode guard = inParens( this::parseExpression );
 		OLSyntaxNode thenBranch = parseExpression();
 		eat( Scanner.TokenType.ELSE, "expected else part of if-expression" );
 		OLSyntaxNode elseBranch = parseExpression();
@@ -3685,7 +3685,7 @@ public class OLParser extends AbstractParser {
 				importTargetComponents.add( token.content() );
 				nextToken();
 				state = ExtendedIdentifierState.CANNOT_READ_ID;
-			} else if( Arrays.stream( extensions ).anyMatch( extension -> token.is( extension ) ) ) {
+			} else if( Arrays.stream( extensions ).anyMatch( token::is ) ) {
 				importTargetComponents.add( token.content() );
 				nextToken();
 				state = ExtendedIdentifierState.CAN_READ_ID;

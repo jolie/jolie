@@ -115,9 +115,10 @@ public class Values extends JavaService {
 			return false;
 		}
 	}
-	
+
 	/**
 	 * Returns a hash code value for the argument.
+	 *
 	 * @param request
 	 * @return has code
 	 */
@@ -125,8 +126,9 @@ public class Values extends JavaService {
 		return Values.hash( request );
 	}
 
-	/* The implementation of equals and hash must guarantee that
-	 * equals(v1,v2) implies hash(v1) == hash(v2)
+	/*
+	 * The implementation of equals and hash must guarantee that equals(v1,v2) implies hash(v1) ==
+	 * hash(v2)
 	 */
 	private static int hash( Value value ) {
 		int hashCode = 0;
@@ -151,10 +153,10 @@ public class Values extends JavaService {
 				}
 			} catch( TypeCastingException ignored ) {
 			}
-			/* Similarly to java collections, each increment is weighted to spread 
-			 * out codes. To guarantee correctness of the result wrt equals, the 
-			 * order in which children are visited must be deterministic hence, keys 
-			 * are sorted.
+			/*
+			 * Similarly to java collections, each increment is weighted to spread out codes. To guarantee
+			 * correctness of the result wrt equals, the order in which children are visited must be
+			 * deterministic hence, keys are sorted.
 			 */
 			SortedSet< String > keys = new TreeSet<>( value.children().keySet() );
 			for( String key : keys ) {
