@@ -18,7 +18,7 @@ jobs:
       - id: setup-jolie
         name: Setup Jolie
         uses: jolie/setup-jolie@v1.0.2
-      - name: Generate Documentattaion
+      - name: Generate Documentation
         run: mkdir -p docs && touch docs/test.md
         shell: bash
       # - run: jolie main.ol
@@ -49,14 +49,28 @@ jobs:
         id: jolie_branch
         run: echo "jolie_branch=v$(echo ${{ needs.build.outputs.jolie_version }} | sed -E 's/(.*)([[:digit:]]+)/\1x/')" >> $GITHUB_OUTPUT
       - name: Push to docs repository
-        uses: dmnemec/copy_file_to_another_repo_action@main
         env:
           API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
-        with:
-          source_file: 'docs'
-          destination_repo: 'jolie/docs'
-          destination_folder: 'src/language-tools-and-standard-library/standard-library-api'
-          destination_branch: ${{ steps.jolie_branch.outputs.jolie_branch }}
-          user_email: 'gitaction@gitaction.com'
-          user_name: 'GitAction'
-          commit_message: 'Updated stdlib docs from Jolie ${{ needs.build.outputs.jolie_version }}'
+          BRANCH: ${{ steps.jolie_branch.outputs.jolie_branch }}
+          DOC_PATH: src/language-tools-and-standard-library/standard-library-api
+        run: |
+          CLONE_DIR=$(mktemp -d)
+          DEST_COPY=$CLONE_DIR/$DOC_PATH
+          echo "Clone docs repository"
+          git config --global user.email "gitaction@gitaction.com"
+          git config --global user.name "GitAction"
+          git clone --single-branch --branch "$BRANCH" "https://x-access-token:$API_TOKEN_GITHUB@github.com/jolie/docs.git" "$CLONE_DIR"
+          echo "Copy generated doc to docs repository"
+          mkdir -p "$DEST_COPY"
+          cp -R "docs" "$DEST_COPY"
+          cd "$CLONE_DIR"
+          echo "Add git commit"
+          git add .
+          if git status | grep -q "Changes to be committed"
+          then
+            git commit --message "Update stdlib docs from Jolie commit/${GITHUB_SHA}"
+            echo "Pushing git commit"
+            git push -u origin HEAD:"$BRANCH"
+          else
+            echo "No changes detected"
+          fi
