@@ -37,7 +37,7 @@ import jolie.runtime.embedding.RequestResponse;
 	portName = "CalcServicePort",
 	targetNamespace = "http://calc.id" )
 @SOAPBinding( style = SOAPBinding.Style.DOCUMENT, use = SOAPBinding.Use.LITERAL )
-public class WSTest extends JavaService {
+public class SumService extends JavaService {
 	@XmlRootElement( name = "CalculatorWs", namespace = "http://calculator.id" )
 	@XmlAccessorType( XmlAccessType.FIELD )
 	static public class Calculator {
@@ -66,7 +66,7 @@ public class WSTest extends JavaService {
 	@RequestResponse
 	public void start( String url ) {
 		url = !url.isEmpty() ? url : "http://localhost:14000/";
-		e = Endpoint.publish( url, new WSTest() );
+		e = Endpoint.publish( url, new SumService() );
 	}
 
 	@RequestResponse

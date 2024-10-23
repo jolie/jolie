@@ -8,7 +8,6 @@
 
 	<rule ref="category/java/bestpractices.xml">
 		<!-- To be added -->
-		<exclude name="UnusedPrivateMethod" />
 		<exclude name="UnusedFormalParameter" />
 		<exclude name="UseTryWithResources" />
 		<exclude name="UseCollectionIsEmpty" />
@@ -127,7 +126,7 @@
 		<!-- To be added -->
 		<exclude name="AvoidAccessibilityAlteration" />
 		<exclude name="AssignmentToNonFinalStatic" />
-		<exclude name="TestClassWithoutTestCases" />
+		<!-- <exclude name="TestClassWithoutTestCases" /> -->
 		<exclude name="DoNotTerminateVM" />
 		<exclude name="ReturnEmptyCollectionRatherThanNull" />
 		<exclude name="ImplicitSwitchFallThrough" />
@@ -161,6 +160,7 @@
 		<exclude name="AvoidThreadGroup" />
 
 		<!-- Under evaluation -->
+		<exclude name="AvoidSynchronizedStatement" />
 		<exclude name="DoNotUseThreads" />
 		<exclude name="UseNotifyAllInsteadOfNotify" />
 		<exclude name="AvoidUsingVolatile" />

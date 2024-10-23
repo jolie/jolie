@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2022 Fabrizio Montesi <famontesi@gmail.com>
+ * Copyright (C) 2024 Claudio Guidi <cguidi@italianasoftware.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -21,6 +22,13 @@ type RenderRequest {
 	template:string ///< The mustache template
 	data:undefined ///< The data for the template
 	dir?:string ///< The directory in which to look for other templates (for partials)
+} | void {
+	template:string ///< The mustache template
+	data:undefined ///< The data for the template
+	partials* { ///< List of other templates to be used
+		name: string 
+		template: string
+	}
 }
 
 interface MustacheInterface {

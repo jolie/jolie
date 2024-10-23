@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.jolie-lang</groupId>
 	<artifactId>distribution</artifactId>
@@ -16,6 +18,7 @@
 		<jolie.email>webmaster@jolie-lang.org</jolie.email>
 		<jolie.organization>Jolie</jolie.organization>
 		<jolie.organizationUrl>https://www.jolie-lang.org</jolie.organizationUrl>
+		<pmd.version>7.5.0</pmd.version>
 		<scm.connection>scm:git:git://github.com/jolie/jolie.git</scm.connection>
 		<scm.developerConnection>scm:git:ssh://github.com:fmontesi/jolie/jolie.git</scm.developerConnection>
 		<scm.url>http://github.com/jolie/jolie/tree/master</scm.url>
@@ -74,12 +77,34 @@
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-pmd-plugin</artifactId>
-					<version>3.22.0</version>
+					<version>3.25.0</version>
+					<dependencies>
+						<dependency>
+							<groupId>net.sourceforge.pmd</groupId>
+							<artifactId>pmd-core</artifactId>
+							<version>${pmd.version}</version>
+						</dependency>
+						<dependency>
+							<groupId>net.sourceforge.pmd</groupId>
+							<artifactId>pmd-java</artifactId>
+							<version>${pmd.version}</version>
+						</dependency>
+						<dependency>
+							<groupId>net.sourceforge.pmd</groupId>
+							<artifactId>pmd-javascript</artifactId>
+							<version>${pmd.version}</version>
+						</dependency>
+						<dependency>
+							<groupId>net.sourceforge.pmd</groupId>
+							<artifactId>pmd-jsp</artifactId>
+							<version>${pmd.version}</version>
+						</dependency>
+					</dependencies>
 				</plugin>
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-compiler-plugin</artifactId>
-					<version>3.8.1</version>
+					<version>3.13.0</version>
 				</plugin>
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
@@ -123,7 +148,8 @@
 							<!-- All Jolie submodules copy themselves where appropriate. -->
 							<excludeGroupIds>${project.groupId}</excludeGroupIds>
 							<!-- <excludeScope>test</excludeScope> -->
-							<outputDirectory>${project.parent.basedir}/${jolie.installation.directory}/lib</outputDirectory>
+							<outputDirectory>
+								${project.parent.basedir}/${jolie.installation.directory}/lib</outputDirectory>
 							<stripVersion>true</stripVersion>
 						</configuration>
 					</execution>

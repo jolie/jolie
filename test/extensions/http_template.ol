@@ -35,7 +35,7 @@ service Main {
 	}
 
     outputPort TestHttpTemplateB{
-        Location : "socket://localhost:9099"
+        Location : "socket://localhost:9299"
     }
 
     outputPort TestHttpTemplate {
@@ -54,7 +54,7 @@ service Main {
            osc.notExisting.template="/api/orders/"
            osc.notExisting.method="GET"
         }
-        Location : "socket://localhost:9099"
+        Location : "socket://localhost:9299"
     }
 
     embed StringUtils as stringUtils

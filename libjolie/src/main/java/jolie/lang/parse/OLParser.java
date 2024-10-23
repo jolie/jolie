@@ -319,11 +319,7 @@ public class OLParser extends AbstractParser {
 				}
 				// call parseType with the context with correct lines and columns
 				currentType = parseType( typeName, accessModifier, context );
-				if( forwardDocToken.isPresent() ) {
-					parseBackwardAndSetDocumentation( currentType, forwardDocToken );
-				} else {
-					parseBackwardAndSetDocumentation( currentType, Optional.empty() );
-				}
+				parseBackwardAndSetDocumentation( currentType, forwardDocToken );
 
 				typeName = currentType.name();
 
@@ -483,29 +479,34 @@ public class OLParser extends AbstractParser {
 	/*
 	 * set maxNumberOfParameters = null to unbound the list
 	 */
-	private < N extends Number > ArrayList< N > parseListOfNumber( Integer minNumberOfParameters, Integer maxNumberOfParameters, String predicate,  Scanner.TokenType type, Function< String, N > valueOfFunc, N minValue, N maxValue )
+	private < N extends Number > ArrayList< N > parseListOfNumber( Integer minNumberOfParameters,
+		Integer maxNumberOfParameters, String predicate, Scanner.TokenType type, Function< String, N > valueOfFunc,
+		N minValue, N maxValue )
 		throws IOException, ParserException {
 		ArrayList< N > arrayList = new ArrayList<>();
 		eat( Scanner.TokenType.LSQUARE, "a list of parameters is expected" );
 		while( token.type() != Scanner.TokenType.RSQUARE ) {
 			switch( token.type() ) {
-				case ASTERISK:
-					arrayList.add( maxValue );
-					break;
+			case ASTERISK:
+				arrayList.add( maxValue );
+				break;
 
-				case MINUS:
-					nextToken();
-					assertToken( Scanner.TokenType.ASTERISK, "Expected *" );
-					arrayList.add( minValue );
-					break;
+			case MINUS:
+				nextToken();
+				assertToken( Scanner.TokenType.ASTERISK, "Expected *" );
+				arrayList.add( minValue );
+				break;
 
-				default: //check if token type is correct
-					assertToken( type, "Expected a parameter of type " + type.name() ); //if asserting for int and a long is found the the error message looks like: "Expected a parameter of type INT. Found term: -1"
-					arrayList.add( valueOfFunc.apply( token.content() ) );
-					break;
+			default: // check if token type is correct
+				assertToken( type, "Expected a parameter of type " + type.name() ); // if asserting for int and a long
+																					// is found the the error message
+																					// looks like: "Expected a parameter
+																					// of type INT. Found term: -1"
+				arrayList.add( valueOfFunc.apply( token.content() ) );
+				break;
 			}
 			nextToken();
-			if( token.type() == Scanner.TokenType.COMMA ) { //this allows formating like: [1*] & [*-1] & [0 1,]
+			if( token.type() == Scanner.TokenType.COMMA ) { // this allows formating like: [1*] & [*-1] & [0 1,]
 				nextToken();
 			}
 		}
@@ -1629,7 +1630,7 @@ public class OLParser extends AbstractParser {
 			case "inputPort":
 			case "outputPort":
 				PortInfo p = _parsePort();
-				parseBackwardAndSetDocumentation( ((DocumentedNode) p), internalForwardDocToken );
+				parseBackwardAndSetDocumentation( p, internalForwardDocToken );
 				serviceBlockProgramBuilder.addChild( p );
 				break;
 			case "define":
@@ -1717,6 +1718,8 @@ public class OLParser extends AbstractParser {
 					accessModifier,
 					serviceBlockProgramBuilder, tech, configMap );
 			}
+			parseBackwardAndSetDocumentation( serviceNode, forwardDocToken );
+
 			programBuilder.addChild( serviceNode );
 		}
 	}
@@ -3335,7 +3338,7 @@ public class OLParser extends AbstractParser {
 		throws IOException, ParserException {
 		ParsingContext ctx = getContext();
 		eat( Scanner.TokenType.IF, "expected if" );
-		OLSyntaxNode guard = inParens( () -> parseExpression() );
+		OLSyntaxNode guard = inParens( this::parseExpression );
 		OLSyntaxNode thenBranch = parseExpression();
 		eat( Scanner.TokenType.ELSE, "expected else part of if-expression" );
 		OLSyntaxNode elseBranch = parseExpression();
@@ -3682,7 +3685,7 @@ public class OLParser extends AbstractParser {
 				importTargetComponents.add( token.content() );
 				nextToken();
 				state = ExtendedIdentifierState.CANNOT_READ_ID;
-			} else if( Arrays.stream( extensions ).anyMatch( extension -> token.is( extension ) ) ) {
+			} else if( Arrays.stream( extensions ).anyMatch( token::is ) ) {
 				importTargetComponents.add( token.content() );
 				nextToken();
 				state = ExtendedIdentifierState.CAN_READ_ID;
@@ -3699,73 +3702,83 @@ public class OLParser extends AbstractParser {
 	}
 
 	private void parseImport() throws IOException, ParserException {
-		if( token.is( Scanner.TokenType.FROM ) ) {
-			ParsingContext context = getContext();
-			boolean isNamespaceImport = false;
+
+		Optional< Scanner.Token > forwardDocToken = parseForwardDocumentation();
+
+		if( !token.is( Scanner.TokenType.FROM ) ) {
+			forwardDocToken.ifPresent( this::addToken );
+			addToken( token );
 			nextToken();
-			List< String > importTargets = new ArrayList<>();
-			boolean importTargetIDStarted = false;
-			List< Pair< String, String > > pathNodes = null;
-			boolean keepRun = true;
-			do {
-				if( token.is( Scanner.TokenType.IMPORT ) ) {
-					keepRun = false;
-					nextToken();
-				} else if( token.is( Scanner.TokenType.DOT ) ) {
-					if( !importTargetIDStarted ) {
-						importTargets.add( token.content() );
-					}
-					nextToken();
-				} else {
-					setEndLine(); // set end line for error
-					importTargets.add(
-						parseExtendedIdentifier( "expected identifier for importing target after from",
-							Scanner.TokenType.MINUS, Scanner.TokenType.AT ) );
-					importTargetIDStarted = true;
-					// nextToken();
-				}
-			} while( keepRun );
-
-			if( token.is( Scanner.TokenType.ASTERISK ) ) {
-				isNamespaceImport = true;
-				nextToken();
-			} else {
-				setEndLine(); // set end line for eventual error
-				assertIdentifier( "expected Identifier or * after import" );
-				pathNodes = new ArrayList<>();
-				keepRun = false;
-				do {
-					String targetName = token.content();
-					String localName = targetName;
-					nextToken();
-					if( token.is( Scanner.TokenType.AS ) ) {
-						nextToken();
-						setEndLine(); // set end line for eventual error
-						assertIdentifier( "expected Identifier after as" );
-						localName = token.content();
-						nextToken();
-					}
-
-					pathNodes.add( new Pair< String, String >( targetName, localName ) );
-					if( token.is( Scanner.TokenType.COMMA ) ) {
-						keepRun = true;
-						nextToken();
-					} else {
-						keepRun = false;
-					}
-				} while( keepRun );
-			}
-			setEndLine(); // set end line for eventual error
-			ImportStatement stmt = null;
-			if( isNamespaceImport ) {
-				stmt = new ImportStatement( context, Collections.unmodifiableList( importTargets ) );
-			} else {
-				stmt = new ImportStatement( context, Collections.unmodifiableList( importTargets ),
-					Collections.unmodifiableList( pathNodes ) );
-			}
-			programBuilder.addChild( stmt );
 			return;
 		}
+		ParsingContext context = getContext();
+		boolean isNamespaceImport = false;
+		nextToken();
+		List< String > importTargets = new ArrayList<>();
+		boolean importTargetIDStarted = false;
+		List< Pair< String, String > > pathNodes = null;
+		boolean keepRun = true;
+		do {
+			if( token.is( Scanner.TokenType.IMPORT ) ) {
+				keepRun = false;
+				nextToken();
+			} else if( token.is( Scanner.TokenType.DOT ) ) {
+				if( !importTargetIDStarted ) {
+					importTargets.add( token.content() );
+				}
+				nextToken();
+			} else {
+				setEndLine(); // set end line for error
+				importTargets.add(
+					parseExtendedIdentifier( "expected identifier for importing target after from",
+						Scanner.TokenType.MINUS, Scanner.TokenType.AT ) );
+				importTargetIDStarted = true;
+			}
+		} while( keepRun );
+
+		if( token.is( Scanner.TokenType.ASTERISK ) ) {
+			isNamespaceImport = true;
+			nextToken();
+		} else {
+			setEndLine(); // set end line for eventual error
+			assertIdentifier( "expected Identifier or * after import" );
+			pathNodes = new ArrayList<>();
+			keepRun = false;
+			do {
+				String targetName = token.content();
+				String localName = targetName;
+				nextToken();
+				if( token.is( Scanner.TokenType.AS ) ) {
+					nextToken();
+					setEndLine(); // set end line for eventual error
+					assertIdentifier( "expected Identifier after as" );
+					localName = token.content();
+					nextToken();
+				}
+
+				pathNodes.add( new Pair< String, String >( targetName, localName ) );
+				if( token.is( Scanner.TokenType.COMMA ) ) {
+					keepRun = true;
+					nextToken();
+				} else {
+					keepRun = false;
+				}
+			} while( keepRun );
+		}
+		setEndLine(); // set end line for eventual error
+		ImportStatement stmt = null;
+		if( isNamespaceImport ) {
+			stmt = new ImportStatement( context, Collections.unmodifiableList( importTargets ) );
+		} else {
+			stmt = new ImportStatement( context, Collections.unmodifiableList( importTargets ),
+				Collections.unmodifiableList( pathNodes ) );
+		}
+
+		// eats backward documentation
+		parseBackwardDocumentation();
+
+		programBuilder.addChild( stmt );
+		return;
 	}
 
 	private static class IncludeFile {

@@ -115,7 +115,7 @@ public class ModuleFinderImpl implements ModuleFinder {
 		try {
 			return this.moduleLookupFromPackages( parentPath, importPath );
 		} catch( FileNotFoundException e ) {
-			errPathList.addAll( Arrays.stream( e.getMessage().split( "," ) ).map( path -> Paths.get( path ) )
+			errPathList.addAll( Arrays.stream( e.getMessage().split( "," ) ).map( Paths::get )
 				.collect( Collectors.toList() ) );
 		}
 

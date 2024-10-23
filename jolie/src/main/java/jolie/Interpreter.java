@@ -271,8 +271,8 @@ public class Interpreter {
 	private final Tracer tracer;
 
 	private boolean check = false;
-	private final long persistentConnectionTimeout = 2 * 1000; // 2 seconds
-	private final long awaitTerminationTimeout = 5 * 1000; // 5 seconds
+	private static final long PERSISTENT_CONNECTION_TIMEOUT = 2 * 1000; // 2 seconds
+	private static final long AWAIT_TERMINATION_TIMEOUT = 5 * 1000; // 5 seconds
 
 	private final Map< URI, SymbolTable > symbolTables;
 
@@ -337,7 +337,7 @@ public class Interpreter {
 	}
 
 	public long persistentConnectionTimeout() {
-		return persistentConnectionTimeout;
+		return PERSISTENT_CONNECTION_TIMEOUT;
 	}
 
 	public long responseTimeout() {
@@ -544,7 +544,7 @@ public class Interpreter {
 	 * with caution.
 	 */
 	public void exit() {
-		exit( executionMode == ExecutionMode.SINGLE ? 0L : awaitTerminationTimeout );
+		exit( executionMode == ExecutionMode.SINGLE ? 0L : AWAIT_TERMINATION_TIMEOUT );
 	}
 
 	/**
@@ -1274,10 +1274,9 @@ public class Interpreter {
 
 		if( executionMode == Constants.ExecutionMode.CONCURRENT ) {
 			State state = initExecutionThread.state().clone();
-			jolie.process.Process sequence = new SequentialProcess( new jolie.process.Process[] {
+			jolie.process.Process sequence = new SequentialProcess(
 				starter.guard.receiveMessage( new SessionMessage( message, channel ), state ),
-				starter.body
-			} );
+				starter.body );
 			spawnedSession = new SessionThread(
 				sequence, state, initExecutionThread );
 			correlationEngine.onSessionStart( spawnedSession, starter, message );
@@ -1302,10 +1301,9 @@ public class Interpreter {
 			 * We use sessionThreads to handle sequential execution of spawn requests
 			 */
 			State state = initExecutionThread.state().clone();
-			jolie.process.Process sequence = new SequentialProcess( new jolie.process.Process[] {
+			jolie.process.Process sequence = new SequentialProcess(
 				starter.guard.receiveMessage( new SessionMessage( message, channel ), state ),
-				starter.body
-			} );
+				starter.body );
 			spawnedSession = new SessionThread(
 				sequence, state, initExecutionThread );
 			correlationEngine.onSessionStart( spawnedSession, starter, message );

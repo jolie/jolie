@@ -611,7 +611,7 @@ public abstract class AbstractParser {
 	protected final void throwExceptionWithScope( String mesg, String scopeName, String scope )
 		throws ParserException, IOException {
 		CodeCheckMessage exceptionMessage;
-		// Get a context with more accurate informatin with respect to the error
+		// Get a context with more accurate information with respect to the error
 		ParsingContext context = getContextDuringError();
 		if( !token.content().isEmpty() ) {
 			// Add the token we found to the message

@@ -44,7 +44,7 @@ service HttpTemplateServer{
            .osc.addOrder.statusCodes.Unauthorized = 403
            .osc.addOrder.response.headers -> locationHeader
         }
-        location : "socket://localhost:9099"
+        location : "socket://localhost:9299"
     }
     execution: concurrent
 

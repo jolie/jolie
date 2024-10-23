@@ -20,16 +20,20 @@
 
 package jolie.lang.parse.ast.types;
 
+import java.io.Serializable;
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import jolie.lang.NativeType;
 import jolie.lang.parse.ast.types.refinements.BasicTypeRefinement;
-
-import java.io.Serializable;
-import java.util.*;
 
 public class BasicTypeDefinition implements Serializable {
 	private final NativeType nativeType;
 	private final List< BasicTypeRefinement< ? extends Object > > refinements;
-	private static final Map< NativeType, BasicTypeDefinition > PURE_BASIC_TYPE_DEFINITIONS = new HashMap<>();
+	private static final Map< NativeType, BasicTypeDefinition > PURE_BASIC_TYPE_DEFINITIONS =
+		new EnumMap<>( NativeType.class );
 
 	static {
 		for( NativeType nativeType : NativeType.values() ) {
