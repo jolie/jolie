@@ -22,7 +22,7 @@ type RenderRequest {
 	template:string ///< The mustache template
 	data:undefined ///< The data for the template
 	dir?:string ///< The directory in which to look for other templates (for partials)
-} | void {
+} | {
 	template:string ///< The mustache template
 	data:undefined ///< The data for the template
 	partials* { ///< List of other templates to be used
