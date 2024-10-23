@@ -39,30 +39,7 @@ interface RenderInterface {
 }
 
 
-type GetOverviewPageRequest {
-    svgIcon: string 
-    communication_dependencies*: void {
-        operation_name: string 
-        dependencies*: void {
-            name: string
-            port?: string
-        }
-    }
-}
 
-type GetPortPageRequest {
-    port_type: string( enum(["input","output"] ))
-    port: Port
-    interfaces*: void {
-
-    }
-}
-
-interface TemplatesInterface {
-    RequestResponse:
-        getOverviewPage( GetOverviewPageRequest )( string ),
-        getPortPage( GetPortPageRequest )( string )
-}
 
 /*ce JolieDocRender {
 
@@ -264,441 +241,51 @@ interface TemplatesInterface {
     }
 }*/
 
-service Templates {
+type GetOverviewPageRequest {
+    svgIcon: string 
+    template: string
+    communication_dependencies*: void {
+        operation_name: string 
+        dependencies*: void {
+            name: string
+            port?: string
+        }
+    }
+}
+
+type GetPortPageRequest {
+    port_type: string( enum(["input","output"] ))
+    port: Port
+    template: string 
+    partials* {
+        name: string 
+        template: string
+    }
+}
+
+interface TemplatesInterface {
+    RequestResponse:
+        getOverviewPage( GetOverviewPageRequest )( string ),
+        getPortPage( GetPortPageRequest )( string )
+}
+
+service RenderDocPages {
 
     embed Mustache as Mustache
     embed StringUtils as StringUtils
 
-    inputPort Templates {
+    inputPort RenderDocPages {
         location: "local"
         interfaces: TemplatesInterface
     }
 
     execution: concurrent 
 
-    init {
-
-        // native type
-        native_type_template = "{{#undefined}}"
-            + "undefined"
-        + "{{/undefined}}"
-        + "{{#link_name}}"
-            + "<a href='#{{link_name}}'>{{link_name}}</a>" 
-        + "{{/link_name}}"
-        + "{{#string_type}}"
-            + "string"
-        + "{{/string_type}}"
-        + "{{#int_type}}"
-            + "int"
-        + "{{/int_type}}"
-        + "{{#double_type}}"
-            + "double"
-        + "{{/double_type}}"
-        + "{{#any_type}}"
-            + "any"
-        + "{{/any_type}}"
-        + "{{#void_type}}"
-            + "void"
-        + "{{/void_type}}"
-        + "{{#raw_type}}"
-            + "raw"
-        + "{{/raw_type}}"
-        + "{{#bool_type}}"
-            + "bool"
-        + "{{/bool_type}}"
-        + "{{#long_type}}"
-            + "long"
-        + "{{/long_type}}"
-
-        // port doc template
-        js = "<script>
-            function openDetails( operation ) {
-                if ( document.getElementById( \"doc_\" + operation ).style.display == \"none\" ) {
-                    document.getElementById( \"doc_\" + operation ).style.display = \"table-row\";
-                    document.getElementById( \"faults_\" + operation ).style.display = \"table-row\"
-                } else {
-                    document.getElementById( \"doc_\" + operation ).style.display = \"none\";
-                    document.getElementById( \"faults_\" + operation ).style.display = \"none\"
-                }
-            }
-        </script>"
-
-        css = "<style>
-                    body {
-            font-family: Verdana, Helvetica, sans-serif;
-        }
-
-        .resource-label {
-            height:40px;
-            font-size: 14px;
-            text-align:center;
-            color:white;
-            font-weight:bold;
-            border-radius:5px;
-            width:6%;
-        }
-
-        a {
-            font-weight:bold;
-            text-decoration:none;
-            color: #600;
-        }
-
-        tr:hover td:not(:first-child) {
-            background-color: #ffffcc;
-        }
-
-
-        .type-definition a:hover {
-            color: #aa0000;
-        }
-
-        .type-definition {
-            margin-left:30px;
-            margin-top:50px;
-            width:90%;
-        }
-        .type-definition th {
-            font-size:20px;
-            text-align: left;
-            background-color: #fff;
-            color:black;
-            border-radius:5px;
-        }
-        .type-definition th.content-td{
-            border-bottom:1px solid #555;
-            border-radius:0px;
-        }
-        .type-definition tr td {
-
-            border-bottom:1px dotted #ddd;
-        }
-        .type-definition tr td:first-child {
-            border-bottom:0px;
-        }
-
-        .type-definition .resource-label-type {
-            background-color: red;
-            color:white;
-            text-align:center;
-            font-size:14px;
-        }
-
-        .content-td {
-            padding-left: 20px;
-            width: 30%;
-            background-color: #eee;
-            padding-bottom: 5px;
-            padding-top: 5px;
-            border-radius: 5px;
-            font-size: 15px;
-            font-family: 'Courier New';
-        }
-        .documentation {
-            font-style: italic;
-        }
-
-        .interface-definition {
-            margin-left:30px;
-            margin-top:50px;
-            width:90%;
-        }
-
-        .interface-definition .resource-label-interface {
-            background-color: #107710;
-            color:white;
-            text-align:center;
-            font-size:14px;
-        }
-
-        .interface-definition th {
-            font-size:20px;
-            text-align: left;
-            background-color: #fff;
-            color:black;
-            border-radius:5px;
-        }
-
-        .interface-definition th.content-td{
-            border-bottom:1px solid #555;
-            border-radius:0px;
-        }
-
-        .operation-name {
-            font-weight: bold;
-            font-size:18px;
-            padding-left:20px;
-        }
-
-        .operation-button {
-            font-size: 10px;
-            border: 1px solid #666;
-            padding: 4px;
-            margin-right: 10px;
-            float: right;
-            cursor: pointer;
-        }
-
-        .operation-button:hover {
-            background-color:#666;
-            color:white;
-        }
-
-        .rr-type {
-            background-color:#929900;
-            color:white;
-        }
-
-        .ow-type {
-            background-color:#cca133;
-            color:white;
-        }
-
-        .message-type {
-            font-style:italic;
-            font-size:12px;
-            color:#444;
-        }
-
-        .interface-definition a {
-            font-size: 14px;
-        }
-
-        .interface-definition .content-td {
-            padding-top:10px;
-            padding-bottom:10px;
-            width:32%;
-        }
-
-        .fault-name {
-            font-size:14px;
-        }
-
-            .port-definition a {
-            font-size: 14px;
-            color: #050;
-        }
-
-        .port-definition th.content-td{
-            border-bottom:1px solid #555;
-            border-radius:0px;
-        }
-
-        .port-definition .resource-label-ip {
-            background-color: blue;
-            color:white;
-            text-align:center;
-            font-size:14px;
-        }
-
-        .port-definition .resource-label-op {
-            background-color: black;
-            color:white;
-            text-align:center;
-            font-size:14px;
-        }
-
-        .port-definition th {
-            font-size: 20px;
-            text-align: left;
-            background-color: #fff;
-            color: black;
-        }
-
-        .port-definition {
-            margin-left:30px;
-            margin-top:50px;
-            width:90%;
-        }
-
-        .port-element {
-            font-weight: bold;
-        }
-
-        .port-definition .content-td {
-            width:44%;
-        }
-        </style>"
-
-        port_template =  "<html><head>" 
-            + css + js 
-            + "</head><body>" 
-            + "{{#port}}"
-                + "<table class='port-definition'>"
-                + "<tr><th class='resource-label-{{port_type}} resource-label'>{{port_type}}</th>"
-                    + "<th id='{{name}}' colspan='2' class='content-td'>{{name}}</th></tr>"
-                + "<tr><td></td><td class='content-td port-element'>Location:</td><td class='content-td'>{{location}}</td></tr>"
-                + "<tr><td></td><td class='content-td port-element'>Protocol:</td><td class='content-td'>{{protocol}}</td></tr>"
-                + "<tr><td></td><td class='content-td port-element'>Interfaces:</td><td class='content-td'>" 
-                    + "{{#interfaces}}"
-                        + "<a href='#{{name}}'>{{name}}<a>&nbsp;&nbsp;"
-                    + "{{/interfaces}}"
-                + "</td></tr></table>"
-                + "<hr>"
-                + "{{#interfaces}}"
-                    + "<table class='interface-definition'>"
-                        + "<tr><th id='{{name}}' class='resource-label-interface resource-label'>intf</th>"
-                        + "<th id='{{name}}' colspan='3' class='content-td'>{{name}}</th></tr>"
-                        + "{{#documentation}}"
-                            + "<tr><td>&nbsp;</td></tr>"
-                            + "<tr><td></td><td colspan='4' class='documentation'>{{documentation}}</td></tr>"
-                            + "<tr><td>&nbsp;</td></tr>"
-                        + "{{/documentation}}"
-                        + "{{^documentation}}"
-                            + "<tr><td>&nbsp;</td></tr>"
-                        + "{{/documentation}}"
-                        + "{{#operations}}"
-                            + "<tr><td" 
-                                + "{{#output}}"
-                                    + " class='resource-label rr-type'>rr"
-                                + "{{/output}}"
-                                + "{{^output}}"
-                                    + " class='resource-label ow-type'>ow"
-                                + "{{/output}}"
-                                + "</td>"
-                                + "<td class='content-td operation-name'><span>{{operation_name}}</span><button onclick='openDetails(\"{{operation_name}}\")' class='operation-button'>Details</button></td>"
-                                + "<td class='content-td'><span class='message-type'>Request:</span><a href='#{{input}}'>{{input}}</a></td>"
-                                + "<td class='content-td'>"
-                                + "{{#output}}"
-                                        + "<span class='message-type'>Response:</span><a href='#{{output}}'>{{output}}</a>"
-                                + "{{/output}}"
-                            + "</td></tr>"
-                            + "<tr id='faults_{{operation_name}}' style='display:none'><td>"
-                                    + "</td><td></td><td></td><td class='content-td'><span class='message-type'>Faults:</span> "
-                            + "{{#fault}}"
-                               + "<br><span class='fault-name'>{{name}}</span>"
-                               + "{{#type}}(  "
-                                    + native_type_template
-                               + "{{/type}} )"
-                            + "{{/fault}}"
-                            + "</td></tr>"
-                            + "<tr id='doc_{{operation_name}}' style='display:none'><td></td><td colspan='3' class='documentation'>{{{documentation}}}</td><tr>"
-                            + "<tr><td><br></td></tr>"
-                        + "{{/operations}}"
-                        + "</table>"
-                        + "<hr>"
-                    + "{{#types}}"
-                        + "<table class='type-definition'>"
-                        + "<tr><th class='resource-label-type resource-label'>type</th><th id='{{name}}' colspan='2' class='content-td'>{{name}}</th></tr>"
-                        + "{{#documentation}}"
-                        + "<tr><td>&nbsp;</td></tr>"
-                            + "<tr><td></td><td colspan='2' class='documentation'>{{{documentation}}}</td></tr>"
-                            + "<tr><td>&nbsp;</td></tr>"
-                        + "{{/documentation}}"
-                        + "{{^documentation}}"
-                            + "<tr><td>&nbsp;</td></tr>"
-                        + "{{/documentation}}"
-                        + "<tr><td></td><td class='content-td'><b>type</b>&nbsp;{{name}}<b>:</b>&nbsp;"
-                            //type_string
-                        + "</td><td></td></tr></table>"
-                    + "{{/types}}"
-                + "{{/interfaces}}"
-                
-                + "{{/port}}"
-            +  "</body></html>"
-
-/*
-            [ getType( request )( response ) {
-            if ( request instanceof TypeInLine ) {
-                getTypeInLine@Render( request )( response )
-            }
-            if ( request instanceof TypeChoice ) {
-                getTypeChoice@Render( request )( response )
-            }
-            if ( request instanceof TypeLink ) {
-                getTypeLink@Render( request )( response )
-            }
-            if ( request instanceof TypeUndefined ) {
-                getTypeUndefined@Render( request )( response )
-            } 
-       */
-        // overview template
-        ovw_css = "<style>
-            body {
-                font-family:'Courier New';
-            }
-            .picture {
-                padding-top:50px;
-                text-align:center;
-            }
-
-            .link:hover {
-                fill: #660000;
-            }
-            .dependency-map {
-                padding:20px;
-            }
-            .input-operation {
-                width:50%;
-            }
-            .dependency-table {
-                width: 100%;
-                border: 1px solid #444;
-                padding: 10px;
-            }
-
-            .dependency-table a {
-                color: black;
-                text-decoration: none;
-            }
-
-
-            .dependency-table a:hover {
-                color: #600;
-            }
-
-            .dependency-table th {
-                text-align: left;
-            }
-
-            .dependency-list {
-                background-color: #ddd;
-                padding-left: 20%;
-            }
-            .legenda {
-                font-size: 12px;
-                font-style: italic;
-                color: #888;
-            }
-        </style>"
-
-        overview_template = "<html><head>" 
-            + ovw_css 
-            + "</head><body>"
-            + "<table width='100%'>"
-                + "<tr><td valign='top' class='picture' width='50%'>{{{svgIcon}}}</td>"
-                + "<td valign='top' class='dependency-map'>"
-                    + "<h1>Dependency Map</h1>"
-                    + "<span class='legenda'>Legenda:</span><br>"
-                    + "<table class='dependency-table'>"
-                        + "<tr><th class='input-operation'>input operation</th></tr>"
-                        + "<tr><td class='dependency-list'><i>communication dependencies</i></td></tr>"
-                    + "</table><br><br>"
-                    + "{{#communication_dependencies}}"
-                    + "<table class='dependency-table'>"
-                        + "<tr><th colspan='2' class='input-operation'>{{operation_name}}</th></tr>"
-                        + "<tr><td class='dependency-list'>"
-                            + "<table width='100%'>"
-                                + "{{#dependencies}}"
-                                    + "<tr><td>{{name}}"
-                                    + "{{#port}}"
-                                        + "@<b><a href='{{port}}OPort.html'>{{port}}</a></b>"
-                                    + "{{/port}}"
-                                    + "</td></tr>"
-                                + "{{/dependencies}}"
-                            + "</table>"
-                            + "</td></tr>"
-                    + "</table>"
-                    + "{{/communication_dependencies}}"
-            + "</td></tr></table></body></html>"
-
-
-    }
 
     main {
         [ getOverviewPage( request )( response ) {
             render@Mustache( {
-                template = overview_template
+                template = request.template
                 data << request 
             })( response )
         }]
@@ -711,7 +298,8 @@ service Templates {
             }
             
             render@Mustache( {
-                template = port_template
+                template = request.template
+                partials << request.partials
                 data << request 
             })( response )
         }]
@@ -725,7 +313,7 @@ service JolieDoc {
     embed MetaJolie as MetaJolie 
     embed StringUtils as StringUtils
     embed File as File
-    embed Templates as Templates
+    embed RenderDocPages as RenderDocPages
     
 
 
@@ -735,10 +323,10 @@ service JolieDoc {
                 startsWith@StringUtils( ptt.location { .prefix = "local://" } )( starts_with_local )
                 if ( internals || ( ptt.location != "undefined" && ptt.location != "local" && !starts_with_local ) ) {
 
-                    portPage = getPortPage@Templates( { 
+                    /*portPage = getPortPage@RenderDocPages( { 
                         port_type = __port_type
                         port << ptt
-                    })
+                    })*/
                     
                     undef( itfcs )
                     undef( tps )
@@ -855,6 +443,7 @@ service JolieDoc {
     }
 
     main {
+        getServiceDirectory@File()( joliedoc_directory )
         if ( #args == 0 || #args > 2 ) {
             println@Console( "Usage: joliedoc <filename> [--internals ]")()
         } else {
@@ -998,6 +587,7 @@ service JolieDoc {
         
             svg = svg + "</svg>"
 
+            readFile@File( { filename = joliedoc_directory + "/overview-page-template.html" } )( ovh_template_req.template )
             ovh_template_req.svgIcon = svg
             //ovw = "<html><head>" + ovw_css + "</head><body><table width='100%'><tr><td valign='top' class='picture' width='50%'>" + svg + "</td><td valign='top' class='dependency-map'>"
             //ovw = ovw + "<h1>Dependency Map</h1>"
@@ -1031,7 +621,7 @@ service JolieDoc {
             //ovw = ovw + "<td></table></body></html>"
             max_files = #files 
 
-            getOverviewPage@Templates( ovh_template_req )( ovw )
+            getOverviewPage@RenderDocPages( ovh_template_req )( ovw )
             files[ max_files ].filename = "Overview.html"
             files[ max_files ].html = ovw
         }
