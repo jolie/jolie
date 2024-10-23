@@ -1,0 +1,76 @@
+name: "Build and Push Standard Library Documentation"
+
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows:
+      - Java CI
+    types:
+      - completed
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      jolie_version: ${{ steps.jolie_version.outputs.jolie_version }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: setup-jolie
+        name: Setup Jolie
+        uses: jolie/setup-jolie@v1.0.2
+      - name: Generate Documentation
+        run: mkdir -p docs && touch docs/test.md
+        shell: bash
+      # - run: jolie main.ol
+      #   shell: bash
+      - name: Cache Docs
+        id: cache-docs
+        uses: actions/cache/save@v4
+        with:
+          path: docs
+          key: docs-${{ github.sha }}
+      - name: Retrive Jolie version
+        id: jolie_version
+        run:
+          echo "jolie_version=$(cat pom.xml | grep -o -P '(?<=<jolie.version>).*(?=</jolie.version>)')" >> $GITHUB_OUTPUT
+  push:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/cache/restore@v4
+        id: cache
+        with:
+          path: docs
+          key: docs-${{ github.sha }}
+      - name: echo jolie version
+        run: echo ${{ needs.build.outputs.jolie_version }}
+      - name: get jolie docs branch
+        id: jolie_branch
+        run: echo "jolie_branch=v$(echo ${{ needs.build.outputs.jolie_version }} | sed -E 's/(.*)([[:digit:]]+)/\1x/')" >> $GITHUB_OUTPUT
+      - name: Push to docs repository
+        env:
+          API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
+          BRANCH: ${{ steps.jolie_branch.outputs.jolie_branch }}
+          DOC_PATH: src/language-tools-and-standard-library/standard-library-api
+        run: |
+          CLONE_DIR=$(mktemp -d)
+          DEST_COPY=$CLONE_DIR/$DOC_PATH
+          echo "Clone docs repository"
+          git config --global user.email "gitaction@gitaction.com"
+          git config --global user.name "GitAction"
+          git clone --single-branch --branch "$BRANCH" "https://x-access-token:$API_TOKEN_GITHUB@github.com/jolie/docs.git" "$CLONE_DIR"
+          echo "Copy generated doc to docs repository"
+          mkdir -p "$DEST_COPY"
+          cp -R "docs" "$DEST_COPY"
+          cd "$CLONE_DIR"
+          echo "Add git commit"
+          git add .
+          if git status | grep -q "Changes to be committed"
+          then
+            git commit --message "Update stdlib docs from Jolie commit/${GITHUB_SHA}"
+            echo "Pushing git commit"
+            git push -u origin HEAD:"$BRANCH"
+          else
+            echo "No changes detected"
+          fi
