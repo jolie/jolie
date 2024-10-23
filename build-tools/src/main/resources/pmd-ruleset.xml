@@ -8,7 +8,6 @@
 
 	<rule ref="category/java/bestpractices.xml">
 		<!-- To be added -->
-		<exclude name="UnusedPrivateMethod" />
 		<exclude name="UnusedFormalParameter" />
 		<exclude name="UseTryWithResources" />
 		<exclude name="UseCollectionIsEmpty" />
