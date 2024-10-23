@@ -1,0 +1,14 @@
+{{> typeinline}}
+{{#choice}}
+    {{#left_type}}
+        {{> typeinline}}
+        {{> typelink}}
+    {{/left_type}}
+    {{#right_type}} 
+        {{> type }}
+    {{/right_type}}
+{{/choice}}
+{{#undefined}}
+undefined
+{{/undefined}}
+{{> typelink}}

@@ -17,29 +17,159 @@ from types.definition-types import TypeChoice
 from types.definition-types import TypeUndefined
 from types.definition-types import Fault
 
+
+// redefinition of metajolie types for mustahce templates
+type __RangeInt: void {
+  min: int 
+  max*: int
+} | void {
+  min: int 
+  infinite: bool
+}
+
+type __RangeDouble: void {
+  min: double 
+  max*: double
+} | void {
+  min: double 
+  infinite: bool
+}
+
+
+type __RangeLong: void {
+  min: long 
+  max*: long
+} | void {
+  min: long 
+  infinite: bool
+}
+
+type __StringRefinedType: void {
+  length: __RangeInt
+} | void {
+  enum[1,*]: string
+} | void {
+  regex: string
+}
+
+type __IntRefinedType: void {
+  ranges[1,*]: __RangeInt
+}
+
+type __DoubleRefinedType: void {
+  ranges[1,*]: __RangeDouble
+}
+
+type __LongRefinedType: void {
+  ranges[1,*]: __RangeLong
+}
+
+type __NativeType: void {
+  .string_type: bool {
+    .refined_type*: __StringRefinedType
+  }
+} | void {
+  .int_type: bool {
+    .refined_type*: __IntRefinedType
+  }
+} | void {
+  .double_type: bool {
+    .refined_type*: __DoubleRefinedType
+  }
+} | void {
+  .any_type: bool
+} | void {
+  .void_type: bool
+} | void {
+  .raw_type: bool
+} | void {
+  .bool_type: bool
+} | void {
+  .long_type: bool {
+    .refined_type?: __LongRefinedType
+  }
+} 
+
+
+type __Cardinality: void {
+  .min: int
+  .max?: int
+  .infinite?: int
+}
+
+type __SubType: void {
+  .name: string
+  .cardinality: __Cardinality
+  .type: Type
+  .documentation?: string
+}
+
+type __TypeInLine: void {
+  .root_type: __NativeType
+  .sub_type*: __SubType
+}
+
+type __TypeLink: void {
+  .link_name: string
+}
+
+type __TypeChoice: void {
+  .choice: void {
+      .left_type: __TypeInLine | __TypeLink 
+      .right_type: __Type
+  }
+}
+
+type __TypeUndefined: void {
+  .undefined: bool
+}
+
+type __Type: __TypeInLine | __TypeLink | __TypeChoice | __TypeUndefined 
+
+type __TypeDefinition: void {
+  .name: string
+  .type: __Type
+  .documentation?: string
+}
+
+
+type __Fault: void {
+  .name: string
+  .type: __NativeType | __TypeUndefined | __TypeLink
+}
+
+type __Operation: void {
+  .operation_name: string
+  .documentation?: string
+  .input: string
+  .output?: string
+  .fault*: __Fault
+}
+
+type __Interface: void {
+  .name: string
+  .types*: __TypeDefinition
+  .operations*: __Operation
+  .documentation?: string
+}
+
+type Port: void {
+  .name: string
+  .protocol: string
+  .location: any
+  .interfaces*: __Interface
+}
+
+type __Service: void {
+  .name: string
+  .input*: string
+  .output*: string
+}
+
+
 constants {
     JOLIEDOC_FOLDER = "joliedoc"
 }
-
-interface RenderInterface {
-    RequestResponse:
-        getPort( Port )( string ),
-        getInterface( Interface )( string ),
-        getTypeDefinition( TypeDefinition )( string ),
-        getNativeType( NativeType )( string ),
-        getSubType( SubType )( string ),
-        getTypeInLine( TypeInLine )( string ),
-        getCardinality( Cardinality )( string ),
-        getType( Type )( string ),
-        getTypeLink( TypeLink )( string ),
-        getTypeChoice( TypeChoice )( string ),
-        getTypeUndefined( TypeUndefined )( string ),
-        getFaultType( Fault )( string ),
-        getIndentation( int )( string )
-}
-
-
-
 
 /*ce JolieDocRender {
 
@@ -263,10 +393,22 @@ type GetPortPageRequest {
     }
 }
 
-interface TemplatesInterface {
+interface RenderDocInterface {
     RequestResponse:
         getOverviewPage( GetOverviewPageRequest )( string ),
-        getPortPage( GetPortPageRequest )( string )
+        getPortPage( GetPortPageRequest )( string ),
+        getPort( Port )( __Port ),
+        getInterface( Interface )( __Interface ),
+        getTypeDefinition( TypeDefinition )( __TypeDefinition ),
+        getNativeType( NativeType )( __NativeType ),
+        getSubType( SubType )( __SubType ),
+        getTypeInLine( TypeInLine )( __TypeInLine ),
+        getCardinality( Cardinality )( __Cardinality ),
+        getType( Type )( __Type ),
+        getTypeLink( TypeLink )( __TypeLink ),
+        getTypeChoice( TypeChoice )( __TypeChoice ),
+        getTypeUndefined( TypeUndefined )( __TypeUndefined ),
+        getFaultType( Fault )( __Fault )
 }
 
 service RenderDocPages {
@@ -276,13 +418,62 @@ service RenderDocPages {
 
     inputPort RenderDocPages {
         location: "local"
-        interfaces: TemplatesInterface
+        interfaces: RenderDocInterface
     }
 
     execution: concurrent 
 
 
     main {
+
+        [ getFaultType( request )( response ) {
+            
+        }]
+
+        [ getPort( request )( response ) {
+
+        }]
+
+        [ getInterface( request )( response ) {
+
+        }]
+
+        [ getTypeInLine( request )( response ) {
+
+        }]
+
+        [ getTypeDefinition( request )( response ) {
+
+        }]
+
+        [ getType( request )( response ) {
+
+        }]
+
+        [ getTypeChoice( request )( response ) {
+
+        }]
+
+        [ getTypeLink( request )( response ) {
+            
+        }]
+
+        [ getTypeUndefined( request )( response ) {
+            
+        }]
+
+        [ getNativeType( request )( response ) {
+
+        }]
+
+        [ getSubType( request )( response ) {
+
+        }]
+
+        [ getCardinality( request )( response ) {
+
+        }]
+        
         [ getOverviewPage( request )( response ) {
             render@Mustache( {
                 template = request.template
@@ -297,11 +488,12 @@ service RenderDocPages {
                 }
             }
             
-            render@Mustache( {
+            render_req << {
                 template = request.template
-                partials << request.partials
                 data << request 
-            })( response )
+            }
+            if ( is_defined( request.partials ) ) { render_req.partials << request.partials }
+            render@Mustache( render_req )( response )
         }]
     }
     
@@ -323,10 +515,11 @@ service JolieDoc {
                 startsWith@StringUtils( ptt.location { .prefix = "local://" } )( starts_with_local )
                 if ( internals || ( ptt.location != "undefined" && ptt.location != "local" && !starts_with_local ) ) {
 
-                    /*portPage = getPortPage@RenderDocPages( { 
+                    portPage = getPortPage@RenderDocPages( { 
+                        template = port_page_template
                         port_type = __port_type
                         port << ptt
-                    })*/
+                    })
                     
                     undef( itfcs )
                     undef( tps )
@@ -442,8 +635,14 @@ service JolieDoc {
         install( Abort => nullProcess )
     }
 
-    main {
+    init {
         getServiceDirectory@File()( joliedoc_directory )
+        readFile@File( { filename = joliedoc_directory + "/overview-page-template.html" } )( ovh_template )
+        readFile@File( { filename = joliedoc_directory + "/port-page-template.html" } )( port_page_template )
+    }
+
+    main {
+        
         if ( #args == 0 || #args > 2 ) {
             println@Console( "Usage: joliedoc <filename> [--internals ]")()
         } else {
@@ -587,7 +786,7 @@ service JolieDoc {
         
             svg = svg + "</svg>"
 
-            readFile@File( { filename = joliedoc_directory + "/overview-page-template.html" } )( ovh_template_req.template )
+            ovh_template_req.template = ovh_template
             ovh_template_req.svgIcon = svg
             //ovw = "<html><head>" + ovw_css + "</head><body><table width='100%'><tr><td valign='top' class='picture' width='50%'>" + svg + "</td><td valign='top' class='dependency-map'>"
             //ovw = ovw + "<h1>Dependency Map</h1>"
