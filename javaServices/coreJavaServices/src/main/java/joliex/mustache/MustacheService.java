@@ -22,20 +22,38 @@ package joliex.mustache;
 import java.io.File;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.github.mustachejava.DefaultMustacheFactory;
 import com.github.mustachejava.Mustache;
 
-import jolie.runtime.AndJarDeps;
-import jolie.runtime.JavaService;
-import jolie.runtime.Value;
+import jolie.runtime.*;
 
 @AndJarDeps( "compiler.jar" )
 public class MustacheService extends JavaService {
 	public String render( Value request ) {
+
+		Map< String, String > templateMap;
 		DefaultMustacheFactory mustacheFactory;
 		if( request.hasChildren( "dir" ) ) {
 			mustacheFactory = new DefaultMustacheFactory( new File( request.getFirstChild( "dir" ).strValue() ) );
+		} else if( request.hasChildren( "partials" ) ) {
+			templateMap = new ConcurrentHashMap<>();
+			for( Value partial : request.children().get( "partials" ) ) {
+				templateMap.put( partial.getFirstChild( "name" ).strValue(),
+					partial.getFirstChild( "template" ).strValue() );
+			}
+			mustacheFactory = new DefaultMustacheFactory() {
+				@Override
+				public Mustache compilePartial( String name ) {
+					if( templateMap.containsKey( name ) ) {
+						StringReader reader = new StringReader( templateMap.get( name ) );
+						return compile( reader, name );
+					}
+					throw new IllegalArgumentException( "Partial template '" + name + "' not found in memory" );
+				}
+			};
 		} else {
 			mustacheFactory = new DefaultMustacheFactory();
 		}
