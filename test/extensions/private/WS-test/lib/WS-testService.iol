@@ -41,7 +41,7 @@ define loadLocalService
 	 };
 	loadLibrary@Runtime( "extensions/private/WS-test.jar" )()
 	loadEmbeddedService@Runtime
-		( { .filepath = "ws.test.WSTest", .type = "Java" } )
+		( { .filepath = "ws.test.SumService", .type = "Java" } )
 		( CalcServiceJoliePort.location )
 	
 }

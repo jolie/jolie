@@ -126,7 +126,7 @@
 		<!-- To be added -->
 		<exclude name="AvoidAccessibilityAlteration" />
 		<exclude name="AssignmentToNonFinalStatic" />
-		<exclude name="TestClassWithoutTestCases" />
+		<!-- <exclude name="TestClassWithoutTestCases" /> -->
 		<exclude name="DoNotTerminateVM" />
 		<exclude name="ReturnEmptyCollectionRatherThanNull" />
 		<exclude name="ImplicitSwitchFallThrough" />
