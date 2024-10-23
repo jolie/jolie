@@ -85,6 +85,45 @@ service Main {
 				} )
 				!= "Supervej, Odense"
 			) throw( TestFailed, "structure" )
+
+			// usage of partials online
+			if(
+				render@mustache( {
+					template = "<h1>{{title}}</h1>{{> hello }}"
+					partials << {
+						name = "hello"
+						template = "<p>Hello {{name}}</p>"
+					}
+					data << {
+						title = "MyTitle"
+						name = "Homer"
+					}
+				} )
+				!= "<h1>MyTitle</h1><p>Hello Homer</p>"
+			) throw( TestFailed, "online partials 1" )
+
+			if(
+				render@mustache( {
+					template = "<h1>{{title}}</h1>{{> hello }}<hr>{{#items}}{{> item_list}}{{/items}}"
+					partials[0] << {
+						name = "hello"
+						template = "<p>Hello {{name}}</p>"
+					}
+					partials[1] << {
+						name = "item_list"
+						template = "<p>Item {{item}}</p>"
+					}
+					data << {
+						title = "MyTitle"
+						name = "Homer"
+						items[0].item = "1"
+						items[1].item = "2"
+						items[2].item = "3"
+					}
+				} )
+				!= "<h1>MyTitle</h1><p>Hello Homer</p><hr><p>Item 1</p><p>Item 2</p><p>Item 3</p>"
+			) throw( TestFailed, "online partials 2" )
+			
 		}
 	}
 }
