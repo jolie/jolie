@@ -22,36 +22,38 @@ package joliex.mustache;
 import java.io.File;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.util.AbstractMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
 import com.github.mustachejava.DefaultMustacheFactory;
 import com.github.mustachejava.Mustache;
-
-import jolie.runtime.*;
+import jolie.runtime.AndJarDeps;
+import jolie.runtime.JavaService;
+import jolie.runtime.Value;
 
 @AndJarDeps( "compiler.jar" )
 public class MustacheService extends JavaService {
 	public String render( Value request ) {
-
-		Map< String, String > templateMap;
-		DefaultMustacheFactory mustacheFactory;
+		final DefaultMustacheFactory mustacheFactory;
 		if( request.hasChildren( "dir" ) ) {
 			mustacheFactory = new DefaultMustacheFactory( new File( request.getFirstChild( "dir" ).strValue() ) );
 		} else if( request.hasChildren( "partials" ) ) {
-			templateMap = new ConcurrentHashMap<>();
-			for( Value partial : request.children().get( "partials" ) ) {
-				templateMap.put( partial.getFirstChild( "name" ).strValue(),
-					partial.getFirstChild( "template" ).strValue() );
-			}
+			@SuppressWarnings( "unchecked" )
+			final Map< String, String > templateMap = Map.ofEntries(
+				request.getChildren( "partials" ).stream()
+					.map( ( Value partialValue ) -> new AbstractMap.SimpleImmutableEntry< String, String >(
+						partialValue.getFirstChild( "name" ).strValue(),
+						partialValue.getFirstChild( "template" ).strValue() ) )
+					.toArray( Map.Entry[]::new ) );
 			mustacheFactory = new DefaultMustacheFactory() {
 				@Override
 				public Mustache compilePartial( String name ) {
-					if( templateMap.containsKey( name ) ) {
-						StringReader reader = new StringReader( templateMap.get( name ) );
+					String partialTemplate = templateMap.get( name );
+					if( partialTemplate != null ) {
+						StringReader reader = new StringReader( partialTemplate );
 						return compile( reader, name );
+					} else {
+						throw new IllegalArgumentException( "Partial template '" + name + "' not found in memory" );
 					}
-					throw new IllegalArgumentException( "Partial template '" + name + "' not found in memory" );
 				}
 			};
 		} else {
