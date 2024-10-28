@@ -17,34 +17,13 @@
  * MA 02110-1301  USA
  */
 
-from types.text import Location as TextLocation
+package joliex.meta;
 
-/// A service.
-type Service {
-	name: string
-	location: TextLocation
-	inputPorts*: InputPort
-	outputPorts*: OutputPort
-}
+import jolie.runtime.JavaService;
+import jolie.runtime.Value;
 
-/// A module.
-type Module {
-	types*: void // TODO
-	interfaces*: void // TODO
-	services*: Service
-}
-
-interface MetaInterface {
-RequestResponse:
-	parseModule( string )( Module )
-}
-
-service Meta {
-	inputPort input {
-		location: "local"
-		interfaces: MetaInterface
-	}
-	foreign java {
-		class: "joliex.meta.MetaService"
+public class MetaService extends JavaService {
+	public Value parseModule( String modulePath ) {
+		return Value.create();
 	}
 }
