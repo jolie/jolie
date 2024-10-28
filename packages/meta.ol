@@ -19,10 +19,69 @@
 
 from types.text import Location as TextLocation
 
+/// A reference to the definition of a symbol.
+type SymbolRef: string
+
+/// An aggregation, as in the aggregates construct used in input ports.
+type Aggregation {
+	outputPort: SymbolRef
+	extender*: SymbolRef
+}
+
+/// The type of a OneWay operation.
+type OneWayOperation {
+	name: string
+	requestType: SymbolRef
+}
+
+/// The type of a fault.
+type FaultType {
+	name: string
+	type: SymbolRef
+}
+
+/// The type of a RequestResponse operation.
+type RequestResponseOperation {
+	name: string
+	requestType: SymbolRef
+	responseType: SymbolRef
+	faults*: FaultType
+}
+
+/// The type of an operation.
+type Operation: OneWayOperation | RequestResponseOperation
+
+/// A redirection, as used in an input port.
+type Redirection {
+	name: string
+	outputPort: SymbolRef
+}
+
+/// An input port.
+type InputPort {
+	name: string
+	location?: string
+	protocol?: string
+	operations*: Operation
+	interfaces*: SymbolRef
+	aggregations*: Aggregation
+	redirections*: Redirection
+}
+
+/// An output port.
+type OutputPort {
+	textLocation: TextLocation
+	name: string
+	location?: string
+	protocol?: string
+	operations*: Operation
+	interfaces*: SymbolRef
+}
+
 /// A service.
 type Service {
+	textLocation: TextLocation
 	name: string
-	location: TextLocation
 	inputPorts*: InputPort
 	outputPorts*: OutputPort
 }
