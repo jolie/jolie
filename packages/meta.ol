@@ -22,6 +22,68 @@ from types.text import Location as TextLocation
 /// A reference to the definition of a symbol.
 type SymbolRef: string
 
+/// An integer basic type.
+type IntBasicType { int }
+
+/// A long basic type.
+type LongBasicType { long }
+
+/// A double basic type.
+type DoubleBasicType { double }
+
+/// A string basic type.
+type StringBasicType { string }
+
+/// A boolean basic type.
+type BoolBasicType { bool }
+
+/// A void basic type.
+type VoidBasicType { void }
+
+/// A basic type.
+type BasicType: // TODO (lacks refinements)
+	VoidBasicType
+	|
+	BoolBasicType
+	|
+	IntBasicType
+	|
+	LongBasicType
+	|
+	DoubleBasicType
+	|
+	StringBasicType
+
+/// A tree type.
+type TreeType {
+	basicType: BasicType
+	nodes* {
+		name: string
+		type: Type
+	}
+	wildcard?: Type
+}
+
+/// A choice type.
+type ChoiceType {
+	left: Type
+	right: Type
+}
+
+/// A type. // TODO: makes switching hard, consider defining the possible options as their own types.
+type Type: void
+	{ tree: TreeType }
+	|
+	{ choice: ChoiceType }
+	|
+	{ ref: SymbolRef }
+
+/// A type definition.
+type TypeDef {
+	name: string
+	type: Type
+}
+
 /// An aggregation, as in the aggregates construct used in input ports.
 type Aggregation {
 	outputPort: SymbolRef
@@ -31,20 +93,20 @@ type Aggregation {
 /// The type of a OneWay operation.
 type OneWayOperation {
 	name: string
-	requestType: SymbolRef
+	requestType: Type
 }
 
 /// The type of a fault.
 type FaultType {
 	name: string
-	type: SymbolRef
+	type: Type
 }
 
 /// The type of a RequestResponse operation.
 type RequestResponseOperation {
 	name: string
-	requestType: SymbolRef
-	responseType: SymbolRef
+	requestType: Type
+	responseType: Type
 	faults*: FaultType
 }
 
@@ -94,7 +156,7 @@ type InterfaceDef {
 
 /// A module.
 type Module {
-	types*: void // TODO
+	types*: TypeDef
 	interfaces*: InterfaceDef
 	services*: Service
 }
