@@ -86,10 +86,16 @@ type Service {
 	outputPorts*: OutputPort
 }
 
+/// An interface definition.
+type InterfaceDef {
+	name: string
+	operations*: Operation
+}
+
 /// A module.
 type Module {
 	types*: void // TODO
-	interfaces*: void // TODO
+	interfaces*: InterfaceDef
 	services*: Service
 }
 
