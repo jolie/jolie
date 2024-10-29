@@ -25,6 +25,9 @@ type LocatedString: string { textLocation: TextLocation }
 /// A reference to the definition of a symbol.
 type SymbolRef: string
 
+/// A symbol reference with a text location.
+type LocatedSymbolRef: string { textLocation: TextLocation }
+
 /// A documentation node.
 type Documentation: LocatedString
 
@@ -113,7 +116,8 @@ type TreeType {
 	documentation?: Documentation
 	basicType: BasicType
 	nodes* {
-		name: string
+		textLocation: TextLocation
+		name: LocatedString
 		documentation?: Documentation
 		range: Range
 		type: Type
@@ -134,43 +138,40 @@ type Type:
 	|
 	{ choice: ChoiceType }
 	|
-	{
-		ref: SymbolRef
-		textLocation: TextLocation
-	}
+	{ ref: LocatedSymbolRef	}
 
 /// A type definition.
 type TypeDef {
 	textLocation: TextLocation
-	name: string
+	name: LocatedString
 	type: Type
 }
 
 /// An aggregation, as in the aggregates construct used in input ports.
 type Aggregation {
 	textLocation: TextLocation
-	outputPort: SymbolRef
-	extender*: SymbolRef
+	outputPort: LocatedSymbolRef
+	extender*: LocatedSymbolRef
 }
 
 /// The type of a OneWay operation.
 type OneWayOperation {
 	textLocation: TextLocation
-	name: string
+	name: LocatedString
 	requestType: Type
 }
 
 /// The type of a fault.
 type FaultType {
 	textLocation: TextLocation
-	name: string
+	name: LocatedString
 	type: Type
 }
 
 /// The type of a RequestResponse operation.
 type RequestResponseOperation {
 	textLocation: TextLocation
-	name: string
+	name: LocatedString
 	requestType: Type
 	responseType: Type
 	faults*: FaultType
@@ -182,16 +183,16 @@ type Operation: OneWayOperation | RequestResponseOperation
 /// A redirection, as used in an input port.
 type Redirection {
 	textLocation: TextLocation
-	name: string
-	outputPort: SymbolRef
+	name: LocatedString
+	outputPort: LocatedSymbolRef
 }
 
 /// An input port.
 type InputPort {
 	textLocation: TextLocation
-	name: string
-	location?: string
-	protocol?: string
+	name: LocatedString
+	location?: LocatedString
+	protocol?: LocatedString
 	operations*: Operation
 	interfaces*: SymbolRef
 	aggregations*: Aggregation
@@ -201,9 +202,9 @@ type InputPort {
 /// An output port.
 type OutputPort {
 	textLocation: TextLocation
-	name: string
-	location?: string
-	protocol?: string
+	name: LocatedString
+	location?: LocatedString
+	protocol?: LocatedString
 	operations*: Operation
 	interfaces*: SymbolRef
 }
@@ -212,7 +213,7 @@ type OutputPort {
 type Service {
 	textLocation: TextLocation
 	documentation?: Documentation
-	name: string
+	name: LocatedString
 	inputPorts*: InputPort
 	outputPorts*: OutputPort
 }
@@ -220,7 +221,7 @@ type Service {
 /// An interface definition.
 type InterfaceDef {
 	textLocation: TextLocation
-	name: string
+	name: LocatedString
 	operations*: Operation
 }
 
