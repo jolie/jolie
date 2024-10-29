@@ -23,22 +23,69 @@ from types.text import Location as TextLocation
 type SymbolRef: string
 
 /// An integer basic type.
-type IntBasicType { int }
+type IntBasicType {
+	int
+	refinements*: IntRefinement
+}
+
+type IntRefinement {
+	ranges*: IntRange
+}
 
 /// A long basic type.
-type LongBasicType { long }
+type LongBasicType {
+	long
+	refinements*: LongRefinement
+}
+
+type LongRefinement {
+	ranges*: LongRange
+}
+
+type LongRange {
+	min: long
+	max: long
+}
 
 /// A double basic type.
-type DoubleBasicType { double }
+type DoubleBasicType {
+	double
+	refinements*: DoubleRefinement
+}
+
+type DoubleRefinement {
+	ranges*: DoubleRange
+}
+
+type DoubleRange {
+	min: double
+	max: double
+}
 
 /// A string basic type.
-type StringBasicType { string }
+type StringBasicType {
+	string
+	refinements*: StringRefinement
+}
+
+type StringRefinement:
+	{ length: IntRange }
+	|
+	{ enum[1,*]: string }
+	|
+	{ regex: string }
 
 /// A boolean basic type.
 type BoolBasicType { bool }
 
 /// A void basic type.
 type VoidBasicType { void }
+
+/// A range, as used in types.
+type IntRange {
+	min: int //< Cannot be lower than 0 and should always be lower than or equal to max.
+	max: int
+}
 
 /// A basic type.
 type BasicType: // TODO (lacks refinements)
@@ -59,9 +106,10 @@ type TreeType {
 	basicType: BasicType
 	nodes* {
 		name: string
+		range: Range
 		type: Type
 	}
-	wildcard?: Type
+	wildcard?: Type // TODO: discussion in progress.
 }
 
 /// A choice type.
@@ -71,7 +119,7 @@ type ChoiceType {
 }
 
 /// A type. // TODO: makes switching hard, consider defining the possible options as their own types.
-type Type: void
+type Type:
 	{ tree: TreeType }
 	|
 	{ choice: ChoiceType }
