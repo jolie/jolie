@@ -19,8 +19,14 @@
 
 from types.text import Location as TextLocation
 
+/// A string with a text location.
+type LocatedString: string { textLocation: TextLocation }
+
 /// A reference to the definition of a symbol.
 type SymbolRef: string
+
+/// A documentation node.
+type Documentation: LocatedString
 
 /// An integer basic type.
 type IntBasicType {
@@ -103,9 +109,12 @@ type BasicType: // TODO (lacks refinements)
 
 /// A tree type.
 type TreeType {
+	textLocation: TextLocation
+	documentation?: Documentation
 	basicType: BasicType
 	nodes* {
 		name: string
+		documentation?: Documentation
 		range: Range
 		type: Type
 	}
@@ -114,6 +123,7 @@ type TreeType {
 
 /// A choice type.
 type ChoiceType {
+	textLocation: TextLocation
 	left: Type
 	right: Type
 }
@@ -124,34 +134,42 @@ type Type:
 	|
 	{ choice: ChoiceType }
 	|
-	{ ref: SymbolRef }
+	{
+		ref: SymbolRef
+		textLocation: TextLocation
+	}
 
 /// A type definition.
 type TypeDef {
+	textLocation: TextLocation
 	name: string
 	type: Type
 }
 
 /// An aggregation, as in the aggregates construct used in input ports.
 type Aggregation {
+	textLocation: TextLocation
 	outputPort: SymbolRef
 	extender*: SymbolRef
 }
 
 /// The type of a OneWay operation.
 type OneWayOperation {
+	textLocation: TextLocation
 	name: string
 	requestType: Type
 }
 
 /// The type of a fault.
 type FaultType {
+	textLocation: TextLocation
 	name: string
 	type: Type
 }
 
 /// The type of a RequestResponse operation.
 type RequestResponseOperation {
+	textLocation: TextLocation
 	name: string
 	requestType: Type
 	responseType: Type
@@ -163,12 +181,14 @@ type Operation: OneWayOperation | RequestResponseOperation
 
 /// A redirection, as used in an input port.
 type Redirection {
+	textLocation: TextLocation
 	name: string
 	outputPort: SymbolRef
 }
 
 /// An input port.
 type InputPort {
+	textLocation: TextLocation
 	name: string
 	location?: string
 	protocol?: string
@@ -191,6 +211,7 @@ type OutputPort {
 /// A service.
 type Service {
 	textLocation: TextLocation
+	documentation?: Documentation
 	name: string
 	inputPorts*: InputPort
 	outputPorts*: OutputPort
@@ -198,6 +219,7 @@ type Service {
 
 /// An interface definition.
 type InterfaceDef {
+	textLocation: TextLocation
 	name: string
 	operations*: Operation
 }
