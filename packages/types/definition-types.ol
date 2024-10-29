@@ -65,103 +65,103 @@ type LongRefinedType: void {
 }
 
 type NativeType: void {
-  .string_type: bool {
-    .refined_type*: StringRefinedType
+  string_type: bool {
+    refined_type*: StringRefinedType
   }
 } | void {
-  .int_type: bool {
-    .refined_type*: IntRefinedType
+  int_type: bool {
+    refined_type*: IntRefinedType
   }
 } | void {
-  .double_type: bool {
-    .refined_type*: DoubleRefinedType
+  double_type: bool {
+    refined_type*: DoubleRefinedType
   }
 } | void {
-  .any_type: bool
+  any_type: bool
 } | void {
-  .void_type: bool
+  void_type: bool
 } | void {
-  .raw_type: bool
+  raw_type: bool
 } | void {
-  .bool_type: bool
+  bool_type: bool
 } | void {
-  .long_type: bool {
-    .refined_type?: LongRefinedType
+  long_type: bool {
+    refined_type?: LongRefinedType
   }
 } 
 
 
 type Cardinality: void {
-  .min: int
-  .max?: int
-  .infinite?: int
+  min: int
+  max?: int
+  infinite?: int
 }
 
 type SubType: void {
-  .name: string
-  .cardinality: Cardinality
-  .type: Type
-  .documentation?: string
+  name: string
+  cardinality: Cardinality
+  type: Type
+  documentation?: string
 }
 
 type TypeInLine: void {
-  .root_type: NativeType
-  .sub_type*: SubType
+  root_type: NativeType
+  sub_type*: SubType
 }
 
 type TypeLink: void {
-  .link_name: string
+  link_name: string
 }
 
 type TypeChoice: void {
-  .choice: void {
-      .left_type: TypeInLine | TypeLink 
-      .right_type: Type
+  choice: void {
+      left_type: TypeInLine | TypeLink 
+      right_type: Type
   }
 }
 
 type TypeUndefined: void {
-  .undefined: bool
+  undefined: bool
 }
 
 type Type: TypeInLine | TypeLink | TypeChoice | TypeUndefined 
 
 type TypeDefinition: void {
-  .name: string
-  .type: Type
-  .documentation?: string
+  name: string
+  type: Type
+  documentation?: string
 }
 
 
 type Fault: void {
-  .name: string
-  .type: NativeType | TypeUndefined | TypeLink
+  name: string
+  type: NativeType | TypeUndefined | TypeLink
 }
 
 type Operation: void {
-  .operation_name: string
-  .documentation?: string
-  .input: string
-  .output?: string
-  .fault*: Fault
+  operation_name: string
+  documentation?: string
+  input: string
+  output?: string
+  fault*: Fault
 }
 
 type Interface: void {
-  .name: string
-  .types*: TypeDefinition
-  .operations*: Operation
-  .documentation?: string
+  name: string
+  types*: TypeDefinition
+  operations*: Operation
+  documentation?: string
 }
 
 type Port: void {
-  .name: string
-  .protocol: string
-  .location: any
-  .interfaces*: Interface
+  name: string
+  protocol: string
+  location: any
+  interfaces*: Interface
 }
 
 type Service: void {
-  .name: string
-  .input*: string
-  .output*: string
+  name: string
+  input*: string
+  output*: string
 }
