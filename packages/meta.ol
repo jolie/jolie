@@ -103,7 +103,7 @@ type NonNegativeIntRange {
 }
 
 /// A basic type.
-type BasicType: // TODO (lacks refinements)
+type BasicType:
 	VoidBasicType
 	|
 	BoolBasicType
@@ -116,19 +116,22 @@ type BasicType: // TODO (lacks refinements)
 	|
 	StringBasicType
 
+/// The type of a node in a tree type.
+type TreeNodeType {
+	textLocation: TextLocation
+	documentation?: Documentation
+	name: LocatedString
+	range: NonNegativeIntRange
+	type: Type
+}
+
 /// A tree type.
 type TreeType {
 	textLocation: TextLocation
 	documentation?: Documentation
 	basicType: BasicType
-	nodes* {
-		textLocation: TextLocation
-		name: LocatedString
-		documentation?: Documentation
-		range: NonNegativeIntRange
-		type: Type
-	}
-	wildcard?: Type // TODO: discussion in progress.
+	nodes*: TreeNodeType
+	rest?: TreeNodeType // TODO: discussion in progress.
 }
 
 /// A choice type.
