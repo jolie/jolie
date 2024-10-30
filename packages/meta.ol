@@ -90,9 +90,15 @@ type BoolBasicType { bool }
 /// A void basic type.
 type VoidBasicType { void }
 
-/// A range, as used in types.
+/// An integer range.
 type IntRange {
-	min: int //< Cannot be lower than 0 and should always be lower than or equal to max.
+	min: int //< Cannot be lower than max.
+	max: int
+}
+
+/// A non-negative integer range, as used in types.
+type NonNegativeIntRange {
+	min: int( ranges([0, *]) ) //< Cannot be lower than 0 and should always be lower than or equal to max.
 	max: int
 }
 
@@ -119,7 +125,7 @@ type TreeType {
 		textLocation: TextLocation
 		name: LocatedString
 		documentation?: Documentation
-		range: Range
+		range: NonNegativeIntRange
 		type: Type
 	}
 	wildcard?: Type // TODO: discussion in progress.
