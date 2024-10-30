@@ -210,7 +210,7 @@ type OutputPort {
 }
 
 /// A service.
-type Service {
+type ServiceDef {
 	textLocation: TextLocation
 	documentation?: Documentation
 	name: LocatedString
@@ -229,7 +229,7 @@ type InterfaceDef {
 type Module {
 	types*: TypeDef
 	interfaces*: InterfaceDef
-	services*: Service
+	services*: ServiceDef
 }
 
 interface MetaInterface {
