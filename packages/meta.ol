@@ -92,7 +92,7 @@ type VoidBasicType { void }
 
 /// An integer range.
 type IntRange {
-	min: int //< Cannot be lower than max.
+	min: int //< Must be lower than or equal to max.
 	max: int
 }
 
