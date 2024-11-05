@@ -33,10 +33,13 @@ public class Jolie2Java {
 			default -> jdc.translateServices( inspector );
 			}
 			System.out.println( "Generation done!" );
+			System.exit( 0 );
 		} catch( CommandLineException e ) {
 			System.out.println( e.getMessage() );
+			System.exit( 1 );
 		} catch( IOException | CodeCheckException e ) {
 			e.printStackTrace();
+			System.exit( 2 );
 		}
 	}
 

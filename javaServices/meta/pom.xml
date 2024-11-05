@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" 
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.jolie-lang</groupId>
@@ -56,12 +56,53 @@
                             <outputDirectory>${project.parent.basedir}/${jolie.installation.directory}/javaServices</outputDirectory>
                         </configuration>
                     </execution>
-
                 </executions>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.5.0</version>
+                <executions>
+                    <execution>
+                        <id>generate-meta-service</id>
+                        <goals>
+                            <goal>java</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <!-- mvn exec:java@generate-meta-service -->
+                <configuration>
+                    <includePluginDependencies>true</includePluginDependencies>
+                    <mainClass>joliex.java.Jolie2Java</mainClass>
+                    <arguments>
+                        <argument>--outputDirectory</argument>
+                        <argument>${project.basedir}/src/main/java</argument>
+                        <argument>--overwriteServices</argument>
+                        <argument>false</argument>
+                        <argument>${project.parent.basedir}/packages/meta.ol</argument>
+                    </arguments>
+                </configuration>
+                <dependencies>
+                    <dependency>
+                        <groupId>${project.groupId}</groupId>
+                        <artifactId>jolie2java</artifactId>
+                        <version>${jolie.version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>${project.groupId}</groupId>
+                        <artifactId>libjolie</artifactId>
+                        <version>${jolie.version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>${project.groupId}</groupId>
+                        <artifactId>jolie</artifactId>
+                        <version>${jolie.version}</version>
+                    </dependency>
+                </dependencies>
             </plugin>
         </plugins>
     </build>

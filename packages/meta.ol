@@ -32,8 +32,7 @@ type LocatedSymbolRef: string { textLocation: TextLocation }
 type Documentation: LocatedString
 
 /// An integer basic type.
-type IntBasicType {
-	int
+type IntBasicType: int{
 	refinements*: IntRefinement
 }
 
@@ -42,8 +41,7 @@ type IntRefinement {
 }
 
 /// A long basic type.
-type LongBasicType {
-	long
+type LongBasicType: long {
 	refinements*: LongRefinement
 }
 
@@ -57,8 +55,7 @@ type LongRange {
 }
 
 /// A double basic type.
-type DoubleBasicType {
-	double
+type DoubleBasicType: double{
 	refinements*: DoubleRefinement
 }
 
@@ -72,23 +69,24 @@ type DoubleRange {
 }
 
 /// A string basic type.
-type StringBasicType {
-	string
+type StringBasicType: string {
 	refinements*: StringRefinement
 }
 
 type StringRefinement:
 	{ length: IntRange }
 	|
-	{ enum[1,*]: string }
+	{ 
+		enum[1,*]: string  //<@JavaName("enumerated")
+	}
 	|
 	{ regex: string }
 
 /// A boolean basic type.
-type BoolBasicType { bool }
+type BoolBasicType: bool { }
 
 /// A void basic type.
-type VoidBasicType { void }
+type VoidBasicType: void{  }
 
 /// An integer range.
 type IntRange {
