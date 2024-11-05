@@ -176,7 +176,7 @@ public sealed interface StringRefinement extends jolie.runtime.embedding.java.Jo
     /**
      * this class is a {@link jolie.runtime.embedding.java.TypedStructure} which can be described as follows:
      * <pre>
-     * enumerated("enum")[1,2147483647]: {@link java.lang.String}
+     * _enum("enum")[1,2147483647]: {@link java.lang.String}
      * </pre>
      * 
      * @see jolie.runtime.embedding.java.JolieValue
@@ -188,13 +188,13 @@ public sealed interface StringRefinement extends jolie.runtime.embedding.java.Jo
         private static final java.util.Set<java.lang.String> FIELD_KEYS = fieldKeys( S2.class );
         
         @jolie.runtime.embedding.java.util.JolieName("enum")
-        private final java.util.List<java.lang.String> enumerated;
+        private final java.util.List<java.lang.String> _enum;
         
-        public S2( java.util.SequencedCollection<java.lang.String> enumerated ) {
-            this.enumerated = jolie.runtime.embedding.java.util.ValueManager.validated( "enumerated", enumerated, 1, 2147483647, t -> t );
+        public S2( java.util.SequencedCollection<java.lang.String> _enum ) {
+            this._enum = jolie.runtime.embedding.java.util.ValueManager.validated( "_enum", _enum, 1, 2147483647, t -> t );
         }
         
-        public java.util.List<java.lang.String> enumerated() { return enumerated; }
+        public java.util.List<java.lang.String> _enum() { return _enum; }
         
         public jolie.runtime.embedding.java.JolieNative.JolieVoid content() { return new jolie.runtime.embedding.java.JolieNative.JolieVoid(); }
         
@@ -222,25 +222,25 @@ public sealed interface StringRefinement extends jolie.runtime.embedding.java.Jo
         public static jolie.runtime.Value toValue( S2 t ) {
             final jolie.runtime.Value v = jolie.runtime.Value.create();
             
-            t.enumerated().forEach( c -> v.getNewChild( "enum" ).setValue( c ) );
+            t._enum().forEach( c -> v.getNewChild( "enum" ).setValue( c ) );
             
             return v;
         }
         
         public static class Builder {
             
-            private java.util.SequencedCollection<java.lang.String> enumerated;
+            private java.util.SequencedCollection<java.lang.String> _enum;
             
             private Builder() {}
             private Builder( jolie.runtime.embedding.java.JolieValue j ) {
-                this.enumerated = jolie.runtime.embedding.java.util.ValueManager.fieldFrom( j.getChildOrDefault( "enum", java.util.List.of() ), c -> c.content() instanceof jolie.runtime.embedding.java.JolieNative.JolieString content ? content.value() : null );
+                this._enum = jolie.runtime.embedding.java.util.ValueManager.fieldFrom( j.getChildOrDefault( "enum", java.util.List.of() ), c -> c.content() instanceof jolie.runtime.embedding.java.JolieNative.JolieString content ? content.value() : null );
             }
             
-            public Builder enumerated( java.util.SequencedCollection<java.lang.String> enumerated ) { this.enumerated = enumerated; return this; }
-            public Builder enumerated( java.lang.String... values ) { return enumerated( values == null ? null : java.util.List.of( values ) ); }
+            public Builder _enum( java.util.SequencedCollection<java.lang.String> _enum ) { this._enum = _enum; return this; }
+            public Builder _enum( java.lang.String... values ) { return _enum( values == null ? null : java.util.List.of( values ) ); }
             
             public S2 build() {
-                return new S2( enumerated );
+                return new S2( _enum );
             }
         }
     }

@@ -3,17 +3,19 @@ package joliex.meta.spec.types;
 /**
  * This is a sealed interface representing the following choice type:
  * <pre>
- * BasicType: void | java.lang.Boolean | joliex.meta.spec.types.IntBasicType | joliex.meta.spec.types.LongBasicType | joliex.meta.spec.types.DoubleBasicType | joliex.meta.spec.types.StringBasicType
+ * BasicType: joliex.meta.spec.types.VoidBasicType | joliex.meta.spec.types.BoolBasicType | joliex.meta.spec.types.IntBasicType | joliex.meta.spec.types.LongBasicType | joliex.meta.spec.types.DoubleBasicType | joliex.meta.spec.types.StringBasicType
  * </pre>
  * 
  * @see jolie.runtime.embedding.java.JolieValue
  * @see jolie.runtime.embedding.java.JolieNative
+ * @see joliex.meta.spec.types.VoidBasicType
+ * @see joliex.meta.spec.types.BoolBasicType
  * @see joliex.meta.spec.types.IntBasicType
  * @see joliex.meta.spec.types.LongBasicType
  * @see joliex.meta.spec.types.DoubleBasicType
  * @see joliex.meta.spec.types.StringBasicType
- * @see #of1(jolie.runtime.embedding.java.JolieNative.JolieVoid)
- * @see #of2(java.lang.Boolean)
+ * @see #of1(joliex.meta.spec.types.VoidBasicType)
+ * @see #of2(joliex.meta.spec.types.BoolBasicType)
  * @see #of3(joliex.meta.spec.types.IntBasicType)
  * @see #of4(joliex.meta.spec.types.LongBasicType)
  * @see #of5(joliex.meta.spec.types.DoubleBasicType)
@@ -23,42 +25,40 @@ public sealed interface BasicType extends jolie.runtime.embedding.java.JolieValu
     
     jolie.runtime.Value jolieRepr();
     
-    public static record C1() implements BasicType {
+    public static record C1( joliex.meta.spec.types.VoidBasicType option ) implements BasicType {
         
-        public jolie.runtime.embedding.java.JolieNative.JolieVoid content() { return new jolie.runtime.embedding.java.JolieNative.JolieVoid(); }
-        public java.util.Map<java.lang.String, java.util.List<jolie.runtime.embedding.java.JolieValue>> children() { return java.util.Map.of(); }
-        public jolie.runtime.Value jolieRepr() { return jolie.runtime.Value.create(); }
+        public C1{ jolie.runtime.embedding.java.util.ValueManager.validated( "option", option ); }
         
-        public boolean equals( java.lang.Object obj ) { return obj != null && obj instanceof jolie.runtime.embedding.java.JolieValue j && j.content() instanceof jolie.runtime.embedding.java.JolieNative.JolieVoid && j.children().isEmpty(); }
-        public int hashCode() { return 0; }
-        public java.lang.String toString() { return ""; }
+        public jolie.runtime.embedding.java.JolieNative.JolieVoid content() { return option.content(); }
+        public java.util.Map<java.lang.String, java.util.List<jolie.runtime.embedding.java.JolieValue>> children() { return option.children(); }
+        public jolie.runtime.Value jolieRepr() { return joliex.meta.spec.types.VoidBasicType.toValue( option ); }
         
-        public static C1 from( jolie.runtime.embedding.java.JolieValue j ) throws jolie.runtime.embedding.java.TypeValidationException {
-            return new C1();
-        }
+        public boolean equals( java.lang.Object obj ) { return obj != null && obj instanceof jolie.runtime.embedding.java.JolieValue j && option.equals( j ); }
+        public int hashCode() { return option.hashCode(); }
+        public java.lang.String toString() { return option.toString(); }
         
-        public static C1 fromValue( jolie.runtime.Value v ) throws jolie.runtime.typing.TypeCheckingException { jolie.runtime.embedding.java.JolieNative.JolieVoid.requireVoid( v ); return new C1(); }
+        public static C1 from( jolie.runtime.embedding.java.JolieValue j ) throws jolie.runtime.embedding.java.TypeValidationException { return new C1( joliex.meta.spec.types.VoidBasicType.from( j ) ); }
+        
+        public static C1 fromValue( jolie.runtime.Value v ) throws jolie.runtime.typing.TypeCheckingException { return new C1( joliex.meta.spec.types.VoidBasicType.fromValue( v ) ); }
         
         public static jolie.runtime.Value toValue( C1 t ) { return t.jolieRepr(); }
     }
     
-    public static record C2( java.lang.Boolean option ) implements BasicType {
+    public static record C2( joliex.meta.spec.types.BoolBasicType option ) implements BasicType {
         
         public C2{ jolie.runtime.embedding.java.util.ValueManager.validated( "option", option ); }
         
-        public jolie.runtime.embedding.java.JolieNative.JolieBool content() { return jolie.runtime.embedding.java.JolieNative.of( option ); }
-        public java.util.Map<java.lang.String, java.util.List<jolie.runtime.embedding.java.JolieValue>> children() { return java.util.Map.of(); }
-        public jolie.runtime.Value jolieRepr() { return jolie.runtime.Value.create( option ); }
+        public jolie.runtime.embedding.java.JolieNative.JolieVoid content() { return option.content(); }
+        public java.util.Map<java.lang.String, java.util.List<jolie.runtime.embedding.java.JolieValue>> children() { return option.children(); }
+        public jolie.runtime.Value jolieRepr() { return joliex.meta.spec.types.BoolBasicType.toValue( option ); }
         
-        public boolean equals( java.lang.Object obj ) { return obj != null && obj instanceof jolie.runtime.embedding.java.JolieValue j && option.equals( j.content().value() ) && j.children().isEmpty(); }
+        public boolean equals( java.lang.Object obj ) { return obj != null && obj instanceof jolie.runtime.embedding.java.JolieValue j && option.equals( j ); }
         public int hashCode() { return option.hashCode(); }
         public java.lang.String toString() { return option.toString(); }
         
-        public static C2 from( jolie.runtime.embedding.java.JolieValue j ) throws jolie.runtime.embedding.java.TypeValidationException {
-            return new C2( jolie.runtime.embedding.java.JolieNative.JolieBool.from( j ).value() );
-        }
+        public static C2 from( jolie.runtime.embedding.java.JolieValue j ) throws jolie.runtime.embedding.java.TypeValidationException { return new C2( joliex.meta.spec.types.BoolBasicType.from( j ) ); }
         
-        public static C2 fromValue( jolie.runtime.Value v ) throws jolie.runtime.typing.TypeCheckingException { return new C2( jolie.runtime.embedding.java.JolieNative.JolieBool.fieldFromValue( v ) ); }
+        public static C2 fromValue( jolie.runtime.Value v ) throws jolie.runtime.typing.TypeCheckingException { return new C2( joliex.meta.spec.types.BoolBasicType.fromValue( v ) ); }
         
         public static jolie.runtime.Value toValue( C2 t ) { return t.jolieRepr(); }
     }
@@ -67,7 +67,7 @@ public sealed interface BasicType extends jolie.runtime.embedding.java.JolieValu
         
         public C3{ jolie.runtime.embedding.java.util.ValueManager.validated( "option", option ); }
         
-        public jolie.runtime.embedding.java.JolieNative.JolieInt content() { return option.content(); }
+        public jolie.runtime.embedding.java.JolieNative.JolieVoid content() { return option.content(); }
         public java.util.Map<java.lang.String, java.util.List<jolie.runtime.embedding.java.JolieValue>> children() { return option.children(); }
         public jolie.runtime.Value jolieRepr() { return joliex.meta.spec.types.IntBasicType.toValue( option ); }
         
@@ -86,7 +86,7 @@ public sealed interface BasicType extends jolie.runtime.embedding.java.JolieValu
         
         public C4{ jolie.runtime.embedding.java.util.ValueManager.validated( "option", option ); }
         
-        public jolie.runtime.embedding.java.JolieNative.JolieLong content() { return option.content(); }
+        public jolie.runtime.embedding.java.JolieNative.JolieVoid content() { return option.content(); }
         public java.util.Map<java.lang.String, java.util.List<jolie.runtime.embedding.java.JolieValue>> children() { return option.children(); }
         public jolie.runtime.Value jolieRepr() { return joliex.meta.spec.types.LongBasicType.toValue( option ); }
         
@@ -105,7 +105,7 @@ public sealed interface BasicType extends jolie.runtime.embedding.java.JolieValu
         
         public C5{ jolie.runtime.embedding.java.util.ValueManager.validated( "option", option ); }
         
-        public jolie.runtime.embedding.java.JolieNative.JolieDouble content() { return option.content(); }
+        public jolie.runtime.embedding.java.JolieNative.JolieVoid content() { return option.content(); }
         public java.util.Map<java.lang.String, java.util.List<jolie.runtime.embedding.java.JolieValue>> children() { return option.children(); }
         public jolie.runtime.Value jolieRepr() { return joliex.meta.spec.types.DoubleBasicType.toValue( option ); }
         
@@ -124,7 +124,7 @@ public sealed interface BasicType extends jolie.runtime.embedding.java.JolieValu
         
         public C6{ jolie.runtime.embedding.java.util.ValueManager.validated( "option", option ); }
         
-        public jolie.runtime.embedding.java.JolieNative.JolieString content() { return option.content(); }
+        public jolie.runtime.embedding.java.JolieNative.JolieVoid content() { return option.content(); }
         public java.util.Map<java.lang.String, java.util.List<jolie.runtime.embedding.java.JolieValue>> children() { return option.children(); }
         public jolie.runtime.Value jolieRepr() { return joliex.meta.spec.types.StringBasicType.toValue( option ); }
         
@@ -142,9 +142,11 @@ public sealed interface BasicType extends jolie.runtime.embedding.java.JolieValu
     public static ListBuilder listBuilder() { return new ListBuilder(); }
     public static ListBuilder listBuilder( java.util.SequencedCollection<jolie.runtime.embedding.java.JolieValue> from ) { return from != null ? new ListBuilder( from ) : listBuilder(); }
     
-    public static BasicType of1() { return new C1(); }
+    public static BasicType of1( joliex.meta.spec.types.VoidBasicType option ) { return new C1( option ); }
+    public static BasicType of1( java.util.function.Function<joliex.meta.spec.types.VoidBasicType.Builder, joliex.meta.spec.types.VoidBasicType> f ) { return of1( f.apply( joliex.meta.spec.types.VoidBasicType.builder() ) ); }
     
-    public static BasicType of2( java.lang.Boolean option ) { return new C2( option ); }
+    public static BasicType of2( joliex.meta.spec.types.BoolBasicType option ) { return new C2( option ); }
+    public static BasicType of2( java.util.function.Function<joliex.meta.spec.types.BoolBasicType.Builder, joliex.meta.spec.types.BoolBasicType> f ) { return of2( f.apply( joliex.meta.spec.types.BoolBasicType.builder() ) ); }
     
     public static BasicType of3( joliex.meta.spec.types.IntBasicType option ) { return new C3( option ); }
     public static BasicType of3( java.util.function.Function<joliex.meta.spec.types.IntBasicType.Builder, joliex.meta.spec.types.IntBasicType> f ) { return of3( f.apply( joliex.meta.spec.types.IntBasicType.builder() ) ); }
@@ -175,13 +177,21 @@ public sealed interface BasicType extends jolie.runtime.embedding.java.JolieValu
         
         protected ListBuilder self() { return this; }
         
-        public ListBuilder add1() { return add( new C1() ); }
-        public ListBuilder add1( int index ) { return add( index, new C1() ); }
-        public ListBuilder set1( int index ) { return set( index, new C1() ); }
+        public ListBuilder add1( joliex.meta.spec.types.VoidBasicType option ) { return add( new C1( option ) ); }
+        public ListBuilder add1( int index, joliex.meta.spec.types.VoidBasicType option ) { return add( index, new C1( option ) ); }
+        public ListBuilder set1( int index, joliex.meta.spec.types.VoidBasicType option ) { return set( index, new C1( option ) ); }
         
-        public ListBuilder add2( java.lang.Boolean option ) { return add( new C2( option ) ); }
-        public ListBuilder add2( int index, java.lang.Boolean option ) { return add( index, new C2( option ) ); }
-        public ListBuilder set2( int index, java.lang.Boolean option ) { return set( index, new C2( option ) ); }
+        public ListBuilder add1( java.util.function.Function<joliex.meta.spec.types.VoidBasicType.Builder, joliex.meta.spec.types.VoidBasicType> b ) { return add1( b.apply( joliex.meta.spec.types.VoidBasicType.builder() ) ); }
+        public ListBuilder add1( int index, java.util.function.Function<joliex.meta.spec.types.VoidBasicType.Builder, joliex.meta.spec.types.VoidBasicType> b ) { return add1( index, b.apply( joliex.meta.spec.types.VoidBasicType.builder() ) ); }
+        public ListBuilder set1( int index, java.util.function.Function<joliex.meta.spec.types.VoidBasicType.Builder, joliex.meta.spec.types.VoidBasicType> b ) { return set1( index, b.apply( joliex.meta.spec.types.VoidBasicType.builder() ) ); }
+        
+        public ListBuilder add2( joliex.meta.spec.types.BoolBasicType option ) { return add( new C2( option ) ); }
+        public ListBuilder add2( int index, joliex.meta.spec.types.BoolBasicType option ) { return add( index, new C2( option ) ); }
+        public ListBuilder set2( int index, joliex.meta.spec.types.BoolBasicType option ) { return set( index, new C2( option ) ); }
+        
+        public ListBuilder add2( java.util.function.Function<joliex.meta.spec.types.BoolBasicType.Builder, joliex.meta.spec.types.BoolBasicType> b ) { return add2( b.apply( joliex.meta.spec.types.BoolBasicType.builder() ) ); }
+        public ListBuilder add2( int index, java.util.function.Function<joliex.meta.spec.types.BoolBasicType.Builder, joliex.meta.spec.types.BoolBasicType> b ) { return add2( index, b.apply( joliex.meta.spec.types.BoolBasicType.builder() ) ); }
+        public ListBuilder set2( int index, java.util.function.Function<joliex.meta.spec.types.BoolBasicType.Builder, joliex.meta.spec.types.BoolBasicType> b ) { return set2( index, b.apply( joliex.meta.spec.types.BoolBasicType.builder() ) ); }
         
         public ListBuilder add3( joliex.meta.spec.types.IntBasicType option ) { return add( new C3( option ) ); }
         public ListBuilder add3( int index, joliex.meta.spec.types.IntBasicType option ) { return add( index, new C3( option ) ); }
