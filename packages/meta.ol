@@ -33,7 +33,7 @@ type Documentation: LocatedString
 
 /// An integer basic type.
 type IntBasicType {
-	int //<@JavaName("_int")
+	int //<@JavaName("intTag")
 	refinements*: IntRefinement
 }
 
@@ -43,7 +43,7 @@ type IntRefinement {
 
 /// A long basic type.
 type LongBasicType {
-	long //<@JavaName("_long")
+	long //<@JavaName("longTag")
 	refinements*: LongRefinement
 }
 
@@ -58,7 +58,7 @@ type LongRange {
 
 /// A double basic type.
 type DoubleBasicType {
-	double //<@JavaName("_double")
+	double //<@JavaName("doubleTag")
 	refinements*: DoubleRefinement
 }
 
@@ -73,7 +73,7 @@ type DoubleRange {
 
 /// A string basic type.
 type StringBasicType {
-	string //<@JavaName("_string")
+	string //<@JavaName("stringTag")
 	refinements*: StringRefinement
 }
 
@@ -81,19 +81,19 @@ type StringRefinement:
 	{ length: IntRange }
 	|
 	{
-		enum[1,*]: string //<@JavaName("_enum")
+		enum[1,*]: string //<@JavaName("enumeration")
 	}
 	|
 	{ regex: string }
 
 /// A boolean basic type.
 type BoolBasicType { 
-	bool  //<@JavaName("_bool")
+	bool  //<@JavaName("boolTag")
 }
 
 /// A void basic type.
 type VoidBasicType {
-	void  //<@JavaName("_void")
+	void  //<@JavaName("voidTag")
 }
 
 /// An integer range.
