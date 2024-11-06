@@ -23,6 +23,7 @@ import java.io.File;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.AbstractMap;
+import java.util.HashMap;
 import java.util.Map;
 import com.github.mustachejava.DefaultMustacheFactory;
 import com.github.mustachejava.Mustache;
@@ -33,6 +34,7 @@ import jolie.runtime.Value;
 @AndJarDeps( "compiler.jar" )
 public class MustacheService extends JavaService {
 	public String render( Value request ) {
+		final Map< String, Integer > compiledPartialsDepth = new HashMap<>();
 		final DefaultMustacheFactory mustacheFactory;
 		if( request.hasChildren( "dir" ) ) {
 			mustacheFactory = new DefaultMustacheFactory( new File( request.getFirstChild( "dir" ).strValue() ) );
@@ -47,9 +49,15 @@ public class MustacheService extends JavaService {
 			mustacheFactory = new DefaultMustacheFactory() {
 				@Override
 				public Mustache compilePartial( String name ) {
-					String partialTemplate = templateMap.get( name );
-					if( partialTemplate != null ) {
-						StringReader reader = new StringReader( partialTemplate );
+					if( !compiledPartialsDepth.containsKey( name ) ) {
+						compiledPartialsDepth.put( name, 1 );
+					}
+					if( compiledPartialsDepth.get( name ) > getRecursionLimit() ) {
+						StringReader reader = new StringReader( "" );
+						return compile( reader, name );
+					} else if( templateMap.containsKey( name ) ) {
+						StringReader reader = new StringReader( templateMap.get( name ) );
+						compiledPartialsDepth.put( name, compiledPartialsDepth.get( name ) + 1 );
 						return compile( reader, name );
 					} else {
 						throw new IllegalArgumentException( "Partial template '" + name + "' not found in memory" );

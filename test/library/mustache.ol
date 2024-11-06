@@ -87,8 +87,7 @@ service Main {
 			) throw( TestFailed, "structure" )
 
 			// usage of partials online
-			if(
-				render@mustache( {
+			render = render@mustache( {
 					template = "<h1>{{title}}</h1>{{> hello }}"
 					partials << {
 						name = "hello"
@@ -98,9 +97,8 @@ service Main {
 						title = "MyTitle"
 						name = "Homer"
 					}
-				} )
-				!= "<h1>MyTitle</h1><p>Hello Homer</p>"
-			) throw( TestFailed, "online partials 1" )
+			})
+			if( render != "<h1>MyTitle</h1><p>Hello Homer</p>" ) throw( TestFailed, "online partials 1. found " + render )
 
 			if(
 				render@mustache( {
@@ -123,6 +121,18 @@ service Main {
 				} )
 				!= "<h1>MyTitle</h1><p>Hello Homer</p><hr><p>Item 1</p><p>Item 2</p><p>Item 3</p>"
 			) throw( TestFailed, "online partials 2" )
+
+			render = render@mustache( {
+					template = "start {{#b}}{{> recursive}}{{/b}}"
+					partials[0] << {
+						name = "recursive"
+						template = "1{{#a}}{{> recursive}}{{/a}}{{a}}"
+					}
+					data << {
+						b.a.a.a.a = 0
+					}
+				} )
+			if( render != "start 111110" ) throw( TestFailed, "online partials 3, found " + render )
 			
 		}
 	}

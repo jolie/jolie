@@ -43,17 +43,16 @@ public class JolieMustacheObjectHandler implements ObjectHandler {
 	@Override
 	public Wrapper find( String name, List< Object > scopes0 ) {
 		return scopes -> {
-			for( int i = scopes.size() - 1; i >= 0; i-- ) {
-				Object scope = scopes.get( i );
-				if( scope != null ) {
-					Value value = (Value) scope;
-					if( value.hasChildren( name ) ) {
-						return value.getChildren( name );
-						// ValueVector vec = value.getChildren( name );
-						// return vec.size() > 1 ? vec : vec.first().valueObject();
-					}
+			Object scope = scopes.get( scopes.size() - 1 );
+			if( scope != null ) {
+				Value value = (Value) scope;
+				if( value.hasChildren( name ) ) {
+					return value.getChildren( name );
+					// ValueVector vec = value.getChildren( name );
+					// return vec.size() > 1 ? vec : vec.first().valueObject();
 				}
 			}
+
 			return null;
 		};
 	}
@@ -87,7 +86,9 @@ public class JolieMustacheObjectHandler implements ObjectHandler {
 			} else {
 				Writer w = writer;
 				for( Value value : vec ) {
+					scopes.add( value );
 					w = iteration.next( w, value, scopes );
+					scopes.remove( scopes.size() - 1 );
 				}
 				return w;
 			}
