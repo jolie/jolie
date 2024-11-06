@@ -68,13 +68,13 @@
                 <version>3.5.0</version>
                 <executions>
                     <execution>
-                        <id>generate-meta-service</id>
+                        <id>jolie2java-generate</id>
                         <goals>
                             <goal>java</goal>
                         </goals>
                     </execution>
                 </executions>
-                <!-- mvn exec:java@generate-meta-service -->
+                <!-- mvn exec:java@jolie2java-generate -->
                 <configuration>
                     <includePluginDependencies>true</includePluginDependencies>
                     <mainClass>joliex.java.Jolie2Java</mainClass>
