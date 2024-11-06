@@ -247,121 +247,110 @@
         </tr>
     </table>
     <hr>
-    {{#interfaces}}
-    <table class='interface-definition'>
-        <tr>
-            <th id='{{name}}' class='resource-label-interface resource-label'>intf</th>
-            <th id='{{name}}' colspan='3' class='content-td'>{{name}}</th>
-        </tr>
-        {{#documentation}}
-        <tr>
-            <td>&nbsp;</td>
-        </tr>
-        <tr>
-            <td></td>
-            <td colspan='4' class='documentation'>{{documentation}}</td>
-        </tr>
-        <tr>
-            <td>&nbsp;</td>
-        </tr>
-        {{/documentation}}
-        {{^documentation}}
-        <tr>
-            <td>&nbsp;</td>
-        </tr>
-        {{/documentation}}
-        {{#operations}}
-        <tr>
-            <td {{#output}} class='resource-label rr-type'>rr
-                {{/output}}
-                {{^output}}
-                class='resource-label ow-type'>ow
-                {{/output}}
-            </td>
-            <td class='content-td operation-name'><span>{{operation_name}}</span><button
-                    onclick='openDetails("{{operation_name}}")' class='operation-button'>Details</button></td>
-            <td class='content-td'><span class='message-type'>Request:</span><a href='#{{input}}'>{{input}}</a></td>
-            <td class='content-td'>
-                {{#output}}
-                <span class='message-type'>Response:</span><a href='#{{output}}'>{{output}}</a>
-                {{/output}}
-            </td>
-        </tr>
-        <tr id='faults_{{operation_name}}' style='display:none'>
-            <td>
-            </td>
-            <td></td>
-            <td></td>
-            <td class='content-td'><span class='message-type'>Faults:</span>
-                {{#fault}}
-                <br><span class='fault-name'>{{name}}</span>
-                {{#type}}(
-                + native_type_template
-                {{/type}} )
-                {{/fault}}
-            </td>
-        </tr>
-        <tr id='doc_{{operation_name}}' style='display:none'>
-            <td></td>
-            <td colspan='3' class='documentation'>{{{documentation}}}</td>
-        <tr>
-        <tr>
-            <td><br></td>
-        </tr>
-        {{/operations}}
-    </table>
-    <hr>
-    {{#types}}
-    <table class='type-definition'>
-        <tr>
-            <th class='resource-label-type resource-label'>type</th>
-            <th id='{{name}}' colspan='2' class='content-td'>{{name}}</th>
-        </tr>
-        {{#documentation}}
-        <tr>
-            <td>&nbsp;</td>
-        </tr>
-        <tr>
-            <td></td>
-            <td colspan='2' class='documentation'>{{{documentation}}}</td>
-        </tr>
-        <tr>
-            <td>&nbsp;</td>
-        </tr>
-        {{/documentation}}
-        {{^documentation}}
-        <tr>
-            <td>&nbsp;</td>
-        </tr>
-        {{/documentation}}
-        <tr>
-            <td></td>
-            <td class='content-td'><b>type</b>&nbsp;{{name}}<b>:</b>&nbsp;
-                //type_string
-            </td>
-            <td></td>
-        </tr>
-    </table>
-    {{/types}}
-    {{/interfaces}}
+        {{#interfaces}}
+        <table class='interface-definition'>
+            <tr>
+                <th id='{{name}}' class='resource-label-interface resource-label'>intf</th>
+                <th id='{{name}}' colspan='3' class='content-td'>{{name}}</th>
+            </tr>
+            {{#documentation}}
+            <tr>
+                <td>&nbsp;</td>
+            </tr>
+            <tr>
+                <td></td>
+                <td colspan='4' class='documentation'>{{documentation}}</td>
+            </tr>
+            <tr>
+                <td>&nbsp;</td>
+            </tr>
+            {{/documentation}}
+            {{^documentation}}
+            <tr>
+                <td>&nbsp;</td>
+            </tr>
+            {{/documentation}}
+            {{#operations}}
+            <tr>
+                <td {{#output}} class='resource-label rr-type'>rr
+                    {{/output}}
+                    {{^output}}
+                    class='resource-label ow-type'>ow
+                    {{/output}}
+                </td>
+                <td class='content-td operation-name'><span>{{operation_name}}</span><button
+                        onclick='openDetails("{{operation_name}}")' class='operation-button'>Details</button></td>
+                <td class='content-td'><span class='message-type'>Request:</span><a href='#{{input}}'>{{input}}</a></td>
+                <td class='content-td'>
+                    {{#output}}
+                    <span class='message-type'>Response:</span><a href='#{{output}}'>{{output}}</a>
+                    {{/output}}
+                </td>
+            </tr>
+            <tr id='faults_{{operation_name}}' style='display:none'>
+                <td>
+                </td>
+                <td></td>
+                <td></td>
+                <td class='content-td'><span class='message-type'>Faults:</span>
+                    {{#fault}}
+                    <br><span class='fault-name'>{{name}}</span>
+                    {{#type}}(
+                    {{> native-type-template}}
+                    {{> typelink-template}}
+                    {{#undefined}}
+                    undefined 
+                    {{/undefined}}
+                    {{/type}} )
+                    {{/fault}}
+                </td>
+            </tr>
+            <tr id='doc_{{operation_name}}' style='display:none'>
+                <td></td>
+                <td colspan='3' class='documentation'>{{{documentation}}}</td>
+            <tr>
+            <tr>
+                <td><br></td>
+            </tr>
+            {{/operations}}
+        </table>
+        <hr>
+        {{#types}}
+        <table class='type-definition'>
+            <tr>
+                <th class='resource-label-type resource-label'>type</th>
+                <th id='{{name}}' colspan='2' class='content-td'>{{name}}</th>
+            </tr>
+            {{#documentation}}
+            <tr>
+                <td>&nbsp;</td>
+            </tr>
+            <tr>
+                <td></td>
+                <td colspan='2' class='documentation'>{{{documentation}}}</td>
+            </tr>
+            <tr>
+                <td>&nbsp;</td>
+            </tr>
+            {{/documentation}}
+            {{^documentation}}
+            <tr>
+                <td>&nbsp;</td>
+            </tr>
+            {{/documentation}}
+            <tr>
+                <td></td>
+                <td class='content-td'><b>type</b>&nbsp;{{name}}<b>:</b>&nbsp;
+                {{> type-template}}
+                </td>
+                <td></td>
+            </tr>
+        </table>
+        {{/types}}
+        {{/interfaces}}
 
     {{/port}}
 </body>
 
 </html>
 
-/*
-[ getType( request )( response ) {
-if ( request instanceof TypeInLine ) {
-getTypeInLine@Render( request )( response )
-}
-if ( request instanceof TypeChoice ) {
-getTypeChoice@Render( request )( response )
-}
-if ( request instanceof TypeLink ) {
-getTypeLink@Render( request )( response )
-}
-if ( request instanceof TypeUndefined ) {
-getTypeUndefined@Render( request )( response )
-}
-*/

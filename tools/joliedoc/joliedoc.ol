@@ -3,10 +3,10 @@ from metajolie import MetaJolie
 from file import File
 from string-utils import StringUtils
 from mustache import Mustache
-from jolie-doc-lib import JolieDocLib
+from joliedoc-lib import JolieDocLib
 
 
-
+from types.definition-types import Port
 
 constants {
     JOLIEDOC_FOLDER = "joliedoc"
@@ -246,6 +246,7 @@ service RenderDocPages {
     embed Mustache as Mustache
     embed StringUtils as StringUtils
     embed JolieDocLib as JolieDocLib
+    embed Console as Console
 
 
 
@@ -272,10 +273,11 @@ service RenderDocPages {
                 documentation_cr_replacement = "<br>"
                 port << request.port
             })( port )
-            
+            valueToPrettyString@StringUtils( port )( s ); println@Console( s )()
             render_req << {
                 template = request.template
-                data << port 
+                partials << request.partials
+                data.port << port 
             }
             if ( is_defined( request.partials ) ) { render_req.partials << request.partials }
             render@Mustache( render_req )( response )
@@ -300,11 +302,16 @@ service JolieDoc {
                 startsWith@StringUtils( ptt.location { .prefix = "local://" } )( starts_with_local )
                 if ( internals || ( ptt.location != "undefined" && ptt.location != "local" && !starts_with_local ) ) {
 
-                    portPage = getPortPage@RenderDocPages( { 
+
+                    undef( rq_portPage )
+                    rq_portPage <<  { 
                         template = port_page_template
+                        partials << partials
                         port_type = __port_type
                         port << ptt
-                    })
+                    }
+                
+                    portPage = getPortPage@RenderDocPages( rq_portPage )
                     
                     undef( itfcs )
                     undef( tps )
@@ -422,8 +429,23 @@ service JolieDoc {
 
     init {
         getServiceDirectory@File()( joliedoc_directory )
+        // loading templates
         readFile@File( { filename = joliedoc_directory + "/overview-page-template.html" } )( ovh_template )
         readFile@File( { filename = joliedoc_directory + "/port-page-template.html" } )( port_page_template )
+        // loading partials
+        partials[0].name = "cardinality-template"
+        readFile@File( { filename = joliedoc_directory + "/cardinality-template.html" } )( partials[0].template )
+        partials[1].name = "native-type-template"
+        readFile@File( { filename = joliedoc_directory + "/native-type-template.html" } )( partials[1].template )
+        partials[2].name = "sub-type-template"
+        readFile@File( { filename = joliedoc_directory + "/sub-type-template.html" } )( partials[2].template )
+        partials[3].name = "type-template"
+        readFile@File( { filename = joliedoc_directory + "/type-template.html" } )( partials[3].template )
+        partials[4].name = "typeinline-template"
+        readFile@File( { filename = joliedoc_directory + "/typeinline-template.html" } )( partials[4].template )
+        partials[5].name = "typelink-template"
+        readFile@File( { filename = joliedoc_directory + "/typelink-template.html" } )( partials[5].template )
+
     }
 
     main {

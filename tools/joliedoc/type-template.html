@@ -1,14 +1,16 @@
-{{> typeinline}}
-{{#choice}}
-    {{#left_type}}
-        {{> typeinline}}
-        {{> typelink}}
-    {{/left_type}}
-    {{#right_type}} 
-        {{> type }}
-    {{/right_type}}
-{{/choice}}
-{{#undefined}}
-undefined
-{{/undefined}}
-{{> typelink}}
+{{#type}}
+    {{> typeinline-template}}
+    {{#choice}}
+        {{#left_type}}
+        {{> typeinline-template}}
+            {{> typelink-template}}
+        {{/left_type}}
+        {{#right_type}} 
+            {{> type-template}}
+        {{/right_type}}
+    {{/choice}}
+    {{#undefined}}
+    undefined
+    {{/undefined}}
+    {{> typelink-template}}
+    {{/type}}

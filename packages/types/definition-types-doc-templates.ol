@@ -97,8 +97,8 @@ type __SubType: void {
 type __TypeInLine: void {
   root_type: __NativeType
   sub_type* {
-    isFirst: bool
-    isLast: bool
+    isFirst?: bool
+    isLast?: bool
     sb: __SubType
   }
 }

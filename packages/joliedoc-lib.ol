@@ -195,8 +195,8 @@ service JolieDocLib {
                     sub_type << request.type_inline.sub_type[ s ] 
                 })( response.sub_type[ s ].sb )
                 
-                if ( s == 0 ) { response.sub_type[ s ].isFirst = true } else { response.sub_type[ s ].isFirst = false }
-                if ( s == (#response.sub_type - 1) ) { response.sub_type[ s ].isLast = true } else { response.sub_type[ s ].isLast = false }
+                if ( s == 0 ) { response.sub_type[ s ].isFirst = true } 
+                if ( s == (#response.sub_type - 1) ) { response.sub_type[ s ].isLast = true }
             }
         }]
 
@@ -238,12 +238,11 @@ service JolieDocLib {
         }]
 
         [ _getTypeChoice( request )( response ) {
-            request.type_choice.documentation = replaceAll@StringUtils( response.documentation { 
-                    regex = "\n"
-                    replacement = request.documentation_cr_replacement 
-            } )
             if ( request.type_choice.choice.left_type instanceof TypeInLine ) {
-                _getTypeInLine@MySelf( request.type_choice.choice.left_type )( response.choice.left_type )
+                _getTypeInLine@MySelf( {
+                    documentation_cr_replacement = request.documentation_cr_replacement
+                    type_inline << request.type_choice.choice.left_type
+                } )( response.choice.left_type )
             } else if ( request.type_choice.choice.left_type instanceof TypeLink ) {
                 _getTypeLink@MySelf( request.type_choice.choice.left_type )( response.choice.left_type ) 
             }

@@ -1,4 +1,15 @@
 {{#root_type}}
- {{> native_type }}
+ {{> native-type-template }}
 {{/root_type}}
-{{> sub_type}}
+{{#sub_type}}
+    {{#isFirst}}
+    &#123; </td><td class='documentation'>{{documentation}}</td></tr>
+    {{/isFirst}}
+    {{> sub-type-template}}
+    {{#isLast}}
+    <tr><td></td><td class='content-td'>&#125;
+    {{/isLast}}
+{{/sub_type}}
+
+
+
