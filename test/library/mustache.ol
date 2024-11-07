@@ -19,6 +19,7 @@
 
 from ..test-unit import TestUnitInterface
 from mustache import Mustache
+from console import Console
 
 service Main {
 	inputPort TestUnitInput {
@@ -27,6 +28,7 @@ service Main {
 	}
 
 	embed Mustache as mustache
+	embed Console as Console
 
 	main {
 		test()() {
@@ -133,6 +135,24 @@ service Main {
 					}
 				} )
 			if( render != "start 111110" ) throw( TestFailed, "online partials 3, found " + render )
+
+			render = render@mustache( {
+					template = "start {{#b}}{{> recursive}}{{> recursive2}}{{/b}}"
+					partials[0] << {
+						name = "recursive"
+						template = "1{{#a}}{{> recursive}}{{/a}}{{a}}"
+					}
+					partials[1] << {
+						name = "recursive2"
+						template = "{{#c}}2{{> recursive}}{{/c}}"
+					}
+					data << {
+						b.c.a.a.a.a = 0
+					}
+				} )
+			if( render != "start 12111110" ) throw( TestFailed, "online partials 4, found " + render )
+
+			
 			
 		}
 	}
