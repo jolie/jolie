@@ -36,6 +36,16 @@ public class MustacheService extends JavaService {
 	public String render( Value request ) {
 		final Map< String, Integer > compiledPartialsDepth = new HashMap<>();
 		final DefaultMustacheFactory mustacheFactory;
+
+		final int partialsRecursionLimit;
+
+
+		if( request.hasChildren( "partialsRecursionLimit" ) ) {
+			partialsRecursionLimit = request.getFirstChild( "partialsRecursionLimit" ).intValue();
+		} else {
+			partialsRecursionLimit = 10;
+		}
+
 		if( request.hasChildren( "dir" ) ) {
 			mustacheFactory = new DefaultMustacheFactory( new File( request.getFirstChild( "dir" ).strValue() ) );
 		} else if( request.hasChildren( "partials" ) ) {
@@ -47,21 +57,25 @@ public class MustacheService extends JavaService {
 						partialValue.getFirstChild( "template" ).strValue() ) )
 					.toArray( Map.Entry[]::new ) );
 			mustacheFactory = new DefaultMustacheFactory() {
+				int globalDepthCounter = 0;
+
 				@Override
 				public Mustache compilePartial( String name ) {
-					if( !compiledPartialsDepth.containsKey( name ) ) {
-						compiledPartialsDepth.put( name, 1 );
-					}
-					if( compiledPartialsDepth.get( name ) > getRecursionLimit() ) {
-						StringReader reader = new StringReader( "" );
-						return compile( reader, name );
-					} else if( templateMap.containsKey( name ) ) {
-						StringReader reader = new StringReader( templateMap.get( name ) );
-						compiledPartialsDepth.put( name, compiledPartialsDepth.get( name ) + 1 );
-						return compile( reader, name );
-					} else {
+					if( !templateMap.containsKey( name ) ) {
 						throw new IllegalArgumentException( "Partial template '" + name + "' not found in memory" );
 					}
+					globalDepthCounter++;
+					compiledPartialsDepth.computeIfAbsent( name, k -> 0 );
+					StringReader reader = new StringReader( "" );
+					if( compiledPartialsDepth.get( name ) <= partialsRecursionLimit
+						&& globalDepthCounter <= getRecursionLimit() ) {
+						reader = new StringReader( templateMap.get( name ) );
+					}
+					compiledPartialsDepth.put( name, compiledPartialsDepth.get( name ) + 1 );
+					Mustache mustache = compile( reader, name );
+					compiledPartialsDepth.put( name, compiledPartialsDepth.get( name ) - 1 );
+					globalDepthCounter--;
+					return mustache;
 				}
 			};
 		} else {
@@ -69,6 +83,9 @@ public class MustacheService extends JavaService {
 		}
 
 		mustacheFactory.setObjectHandler( new JolieMustacheObjectHandler() );
+		if( request.hasChildren( "recursionLimit" ) ) {
+			mustacheFactory.setRecursionLimit( request.getFirstChild( "recursionLimit" ).intValue() );
+		}
 		Mustache mustache = mustacheFactory.compile(
 			new StringReader( request.getFirstChild( "template" ).strValue() ),
 			"Jolie" );
