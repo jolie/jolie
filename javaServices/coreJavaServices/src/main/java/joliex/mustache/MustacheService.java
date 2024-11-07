@@ -22,36 +22,60 @@ package joliex.mustache;
 import java.io.File;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.util.AbstractMap;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
 import com.github.mustachejava.DefaultMustacheFactory;
 import com.github.mustachejava.Mustache;
-
-import jolie.runtime.*;
+import jolie.runtime.AndJarDeps;
+import jolie.runtime.JavaService;
+import jolie.runtime.Value;
 
 @AndJarDeps( "compiler.jar" )
 public class MustacheService extends JavaService {
 	public String render( Value request ) {
+		final Map< String, Integer > compiledPartialsDepth = new HashMap<>();
+		final DefaultMustacheFactory mustacheFactory;
 
-		Map< String, String > templateMap;
-		DefaultMustacheFactory mustacheFactory;
+		final int partialsRecursionLimit;
+
+
+		if( request.hasChildren( "partialsRecursionLimit" ) ) {
+			partialsRecursionLimit = request.getFirstChild( "partialsRecursionLimit" ).intValue();
+		} else {
+			partialsRecursionLimit = 10;
+		}
+
 		if( request.hasChildren( "dir" ) ) {
 			mustacheFactory = new DefaultMustacheFactory( new File( request.getFirstChild( "dir" ).strValue() ) );
 		} else if( request.hasChildren( "partials" ) ) {
-			templateMap = new ConcurrentHashMap<>();
-			for( Value partial : request.children().get( "partials" ) ) {
-				templateMap.put( partial.getFirstChild( "name" ).strValue(),
-					partial.getFirstChild( "template" ).strValue() );
-			}
+			@SuppressWarnings( "unchecked" )
+			final Map< String, String > templateMap = Map.ofEntries(
+				request.getChildren( "partials" ).stream()
+					.map( ( Value partialValue ) -> new AbstractMap.SimpleImmutableEntry< String, String >(
+						partialValue.getFirstChild( "name" ).strValue(),
+						partialValue.getFirstChild( "template" ).strValue() ) )
+					.toArray( Map.Entry[]::new ) );
 			mustacheFactory = new DefaultMustacheFactory() {
+				int globalDepthCounter = 0;
+
 				@Override
 				public Mustache compilePartial( String name ) {
-					if( templateMap.containsKey( name ) ) {
-						StringReader reader = new StringReader( templateMap.get( name ) );
-						return compile( reader, name );
+					if( !templateMap.containsKey( name ) ) {
+						throw new IllegalArgumentException( "Partial template '" + name + "' not found in memory" );
 					}
-					throw new IllegalArgumentException( "Partial template '" + name + "' not found in memory" );
+					globalDepthCounter++;
+					compiledPartialsDepth.computeIfAbsent( name, k -> 0 );
+					StringReader reader = new StringReader( "" );
+					if( compiledPartialsDepth.get( name ) <= partialsRecursionLimit
+						&& globalDepthCounter <= getRecursionLimit() ) {
+						reader = new StringReader( templateMap.get( name ) );
+					}
+					compiledPartialsDepth.put( name, compiledPartialsDepth.get( name ) + 1 );
+					Mustache mustache = compile( reader, name );
+					compiledPartialsDepth.put( name, compiledPartialsDepth.get( name ) - 1 );
+					globalDepthCounter--;
+					return mustache;
 				}
 			};
 		} else {
@@ -59,6 +83,9 @@ public class MustacheService extends JavaService {
 		}
 
 		mustacheFactory.setObjectHandler( new JolieMustacheObjectHandler() );
+		if( request.hasChildren( "recursionLimit" ) ) {
+			mustacheFactory.setRecursionLimit( request.getFirstChild( "recursionLimit" ).intValue() );
+		}
 		Mustache mustache = mustacheFactory.compile(
 			new StringReader( request.getFirstChild( "template" ).strValue() ),
 			"Jolie" );

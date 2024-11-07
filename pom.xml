@@ -62,6 +62,7 @@
 		<module>tools/joliec</module>
 		<module>javaServices/coreJavaServices</module>
 		<module>javaServices/monitorJavaServices</module>
+		<module>javaServices/meta</module>
 		<module>launchers</module>
 		<module>test</module>
 	</modules>
@@ -297,6 +298,14 @@
 									<directory>${basedir}/tools/joliedoc</directory>
 									<includes>
 										<include>joliedoc.ol</include>
+										<include>cardinality-template.html</include>
+										<include>native-type-template.html</include>
+										<include>overview-page-template.html</include>
+										<include>port-page-template.html</include>
+										<include>sub-type-template.html</include>
+										<include>type-template.html</include>
+										<include>typeinline-template.html</include>
+										<include>typelink-template.html</include>
 									</includes>
 									<filtering>true</filtering>
 								</resource>

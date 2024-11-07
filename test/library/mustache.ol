@@ -19,6 +19,7 @@
 
 from ..test-unit import TestUnitInterface
 from mustache import Mustache
+from console import Console
 
 service Main {
 	inputPort TestUnitInput {
@@ -27,6 +28,7 @@ service Main {
 	}
 
 	embed Mustache as mustache
+	embed Console as Console
 
 	main {
 		test()() {
@@ -87,8 +89,7 @@ service Main {
 			) throw( TestFailed, "structure" )
 
 			// usage of partials online
-			if(
-				render@mustache( {
+			render = render@mustache( {
 					template = "<h1>{{title}}</h1>{{> hello }}"
 					partials << {
 						name = "hello"
@@ -98,9 +99,8 @@ service Main {
 						title = "MyTitle"
 						name = "Homer"
 					}
-				} )
-				!= "<h1>MyTitle</h1><p>Hello Homer</p>"
-			) throw( TestFailed, "online partials 1" )
+			})
+			if( render != "<h1>MyTitle</h1><p>Hello Homer</p>" ) throw( TestFailed, "online partials 1. found " + render )
 
 			if(
 				render@mustache( {
@@ -123,6 +123,36 @@ service Main {
 				} )
 				!= "<h1>MyTitle</h1><p>Hello Homer</p><hr><p>Item 1</p><p>Item 2</p><p>Item 3</p>"
 			) throw( TestFailed, "online partials 2" )
+
+			render = render@mustache( {
+					template = "start {{#b}}{{> recursive}}{{/b}}"
+					partials[0] << {
+						name = "recursive"
+						template = "1{{#a}}{{> recursive}}{{/a}}{{a}}"
+					}
+					data << {
+						b.a.a.a.a = 0
+					}
+				} )
+			if( render != "start 111110" ) throw( TestFailed, "online partials 3, found " + render )
+
+			render = render@mustache( {
+					template = "start {{#b}}{{> recursive}}{{> recursive2}}{{/b}}"
+					partials[0] << {
+						name = "recursive"
+						template = "1{{#a}}{{> recursive}}{{/a}}{{a}}"
+					}
+					partials[1] << {
+						name = "recursive2"
+						template = "{{#c}}2{{> recursive}}{{/c}}"
+					}
+					data << {
+						b.c.a.a.a.a = 0
+					}
+				} )
+			if( render != "start 12111110" ) throw( TestFailed, "online partials 4, found " + render )
+
+			
 			
 		}
 	}

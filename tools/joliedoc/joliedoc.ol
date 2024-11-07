@@ -234,11 +234,29 @@ type GetPortPageRequest {
     }
 }
 
+type GetIndexPageRequest {
+    template: string 
+    partials* {
+        name: string 
+        template: string
+    }
+    data {
+        filename: string 
+        ipitems* {
+            ipname: string 
+        }
+        opitems* {
+            opname: string
+        }
+    }
+}
+
 
 interface RenderDocInterface {
     RequestResponse:
         getOverviewPage( GetOverviewPageRequest )( string ),
         getPortPage( GetPortPageRequest )( string ),
+        getIndexPage( GetIndexPageRequest )( string )
 }
 
 service RenderDocPages {
@@ -270,14 +288,27 @@ service RenderDocPages {
         [ getPortPage( request )( response ) {
             
             _getPort@JolieDocLib( {
+                indentation_cr_replacement = "&nbsp;&nbsp;"
                 documentation_cr_replacement = "<br>"
                 port << request.port
             })( port )
-            valueToPrettyString@StringUtils( port )( s ); println@Console( s )()
+            
             render_req << {
                 template = request.template
-                partials << request.partials
                 data.port << port 
+                recursionLimit = 20
+                partialsRecursionLimit = 10
+            }
+            if ( is_defined( request.partials ) ) { render_req.partials << request.partials }
+            render@Mustache( render_req )( response )
+        }]
+
+        [ getIndexPage( request )( response ) {
+            render_req << {
+                template = request.template
+                data << request.data 
+                recursionLimit = 20
+                partialsRecursionLimit = 10
             }
             if ( is_defined( request.partials ) ) { render_req.partials << request.partials }
             render@Mustache( render_req )( response )
@@ -302,7 +333,7 @@ service JolieDoc {
                 startsWith@StringUtils( ptt.location { .prefix = "local://" } )( starts_with_local )
                 if ( internals || ( ptt.location != "undefined" && ptt.location != "local" && !starts_with_local ) ) {
 
-
+                    print@Console("generating port " + ptt.name + "...")()
                     undef( rq_portPage )
                     rq_portPage <<  { 
                         template = port_page_template
@@ -341,89 +372,12 @@ service JolieDoc {
                     }
                     files[ max_files ].filename = ptt.name + endname
                     files[ max_files ].html = portPage
+                    println@Console("done")()
                 }
             }      
     }
 
     init {
-        
-
-        css_index = "<style>
-            body {
-                font-family: 'Courier New';
-                font-size: 14px;
-            }
-
-            .headertable {
-                width: 100%;
-                font-size: 30px;
-                padding: 10px;
-                border-bottom: 1px dotted #444;
-            }
-
-            .menutd {
-                width: 12%;
-                border-right: 1px dotted #444;
-                height: 1000px;
-            }
-
-            .bodytd {
-                width: 80%;
-            }
-
-            .bodytd object {
-                width:100%;
-                height:100vh;
-            }
-            .maintable {
-                width: 100%;
-            }
-
-            .menutitle {
-                font-weight: bold;
-                font-size: 20px;
-            }
-
-            .menutd a {
-                cursor: pointer;
-            }
-
-            .itemmenu {
-                text-align: center;
-                width:100%;
-            }
-
-            .itemmenu a:hover {
-                color:#600;
-            }
-            </style>"
-        js_index = "<script>
-            function loadPage( page ) {
-                document.getElementById(\"bodytd\").innerHTML='<object type=\"text/html\" data=\"' + page + '\"></object>';
-            }
-        </script>"
-
-        
-
-        index_template = "<html><head>" + css_index + js_index + "</head><body><table class='headertable'><tr><td>Jolie Documentation:&nbsp;<b>{{filename}}</b></td></tr></table>"
-            + "<table class='maintable'><tr><td  valign='top' class='menutd'><br><br>"
-            + "<table width='100%'><tr><td class='itemmenu'><a onclick='loadPage(\"Overview.html\")'>OVERVIEW</a></td></tr></table><br><br>"
-            + "<table width='100%'><tr><td class='itemmenu menutitle'>input ports</td></tr></table><br>"
-            + "<table width='100%'>"
-            + "  {{#ipitems}}
-                    <tr><td class='itemmenu'><a onclick='loadPage(\"{{ipname}}IPort.html\")'>{{ipname}}</a></td></tr>"
-                + "{{/ipitems}}"
-            + "</table><br><br>"
-            + "<table width='100%'><tr><td class='itemmenu menutitle'>output ports</td></tr></table><br>"
-            + "<table width='100%'>"
-            + "{{#opitems}}"
-            + "<tr><td class='itemmenu'><a onclick='loadPage(\"{{opname}}OPort.html\")'>{{opname}}</a></td></tr>"
-            + "{{/opitems}}"
-            + "</table><br><br>"
-            + "</td><td id='bodytd' class='bodytd'></td></tr></table></body><script>loadPage('Overview.html')</script></html>"
-
-
-
         install( Abort => nullProcess )
     }
 
@@ -432,6 +386,7 @@ service JolieDoc {
         // loading templates
         readFile@File( { filename = joliedoc_directory + "/overview-page-template.html" } )( ovh_template )
         readFile@File( { filename = joliedoc_directory + "/port-page-template.html" } )( port_page_template )
+        readFile@File( { filename = joliedoc_directory + "/index-template.html" } )( index_template )
         // loading partials
         partials[0].name = "cardinality-template"
         readFile@File( { filename = joliedoc_directory + "/cardinality-template.html" } )( partials[0].template )
@@ -453,6 +408,7 @@ service JolieDoc {
         if ( #args == 0 || #args > 2 ) {
             println@Console( "Usage: joliedoc <filename> [--internals ]")()
         } else {
+            println@Console("Generating...")()
             internals = false
             if ( #args == 2 && args[ 1 ] == "--internals" ) {
                 internals = true
@@ -473,37 +429,30 @@ service JolieDoc {
 
             /* creating index */
             getMetaData@MetaJolie( rq )( metadata )
-            /*index = "<html><head>" + css_index + js_index + "</head><body><table class='headertable'><tr><td>Jolie Documentation:&nbsp;<b>" + args[ 0 ] + "</b></td></tr></table>"
-            index = index + "<table class='maintable'><tr><td  valign='top' class='menutd'><br><br>"
-            index = index + "<table width='100%'><tr><td class='itemmenu'><a onclick='loadPage(\"Overview.html\")'>OVERVIEW</a></td></tr></table><br><br>"
-            index = index + "<table width='100%'><tr><td class='itemmenu menutitle'>input ports</td></tr></table><br>"
-            index = index + "<table width='100%'>"*/
             for( i in metadata.input ) {
                 startsWith@StringUtils( i.location { .prefix = "local://" } )( starts_with_local )
                 if ( internals || ( i.location != "undefined" && i.location != "local" && !starts_with_local ) ) {
                     //index = index + "<tr><td class='itemmenu'><a onclick='loadPage(\"" + i.name + "IPort.html\")'>" + i.name + "</a></td></tr>"
                     inputs[ #inputs ] << i
-                    index_data.ipitems[ #index_data.ipitems ].ipname = i.name
+                    index_rq.data.ipitems[ #index_rq.data.ipitems ].ipname = i.name
                 }
             }
-            /*index = index + "</table><br><br>"
-            index = index + "<table width='100%'><tr><td class='itemmenu menutitle'>output ports</td></tr></table><br>"
-            index = index + "<table width='100%'>"*/
             for( o in metadata.output ) {
                 startsWith@StringUtils( o.location { .prefix = "local://" } )( starts_with_local )
                 if ( internals || ( o.location != "undefined" && o.location != "local" && !starts_with_local ) ) {
                     //ndex = index + "<tr><td class='itemmenu'><a onclick='loadPage(\"" + o.name + "OPort.html\")'>" + o.name + "</a></td></tr>"
                     outputs[ #outputs ] << o
-                    index_data.opitems[ #index_data.opitems ].opname = o.name
+                    index_rq.data.opitems[ #index_rq.data.opitems ].opname = o.name
                 }
             }
-            /*index = index + "</table><br><br>"
-            index = index + "</td><td id='bodytd' class='bodytd'></td></tr></table></body><script>loadPage('Overview.html')</script></html>"*
-            */
+            
+            index_rq.data.filename = rq.filename
+            index_rq.template = index_template
+            getIndexPage@RenderDocPages( index_rq )( index )
 
             max_files = #files 
-            //files[ max_files ].filename = "index.html"
-            //files[ max_files ].html = index
+            files[ max_files ].filename = "index.html"
+            files[ max_files ].html = index
 
             /* creating overview */
             minimum_ports = 3
@@ -595,15 +544,11 @@ service JolieDoc {
 
             ovh_template_req.template = ovh_template
             ovh_template_req.svgIcon = svg
-            //ovw = "<html><head>" + ovw_css + "</head><body><table width='100%'><tr><td valign='top' class='picture' width='50%'>" + svg + "</td><td valign='top' class='dependency-map'>"
-            //ovw = ovw + "<h1>Dependency Map</h1>"
-            //ovw = ovw + "<span class='legenda'>Legenda:</span><br><table class='dependency-table'><tr><th class='input-operation'>input operation</th></tr><tr><td class='dependency-list'><i>communication dependencies</i></td></tr></tr></table><br><br>"
+            
             for( i = 0, i < #metadata.communication_dependencies, i++ ) {
                 com -> metadata.communication_dependencies[ i ]
                 ovh_template_req.communication_dependencies[ i ].operation_name = com.input_operation.name
                 
-                //ovw = ovw + "<table class='dependency-table'><tr><td colspan='2' class='input-operation'>" + com.input_operation.name + "</td></tr>"
-                //ovw = ovw + "<tr><td class='dependency-list'><table width='100%'>"
                 for( d = 0, d < #com.dependencies, d++ ) {
                     dep -> com.dependencies[ d ]
                     ovh_template_req.communication_dependencies[ i ].dependencies[ d ].name = dep.name
@@ -617,14 +562,11 @@ service JolieDoc {
                         port_string = ""
                         if ( is_defined( dep.port ) ) {
                             ovh_template_req.communication_dependencies[ i ].dependencies[ d ].port = dep.port
-                           // port_string = "@<b><a href='" + dep.port + "OPort.html'>" + dep.port + "</a></b>"
                         }
-                        //ovw = ovw + "<tr><td>" + dep.name + port_string + "</td></tr>"
                     } 
                 }
-                //ovw = ovw + "</table></td></tr></table>"
             }
-            //ovw = ovw + "<td></table></body></html>"
+            
             max_files = #files 
 
             getOverviewPage@RenderDocPages( ovh_template_req )( ovw )
@@ -643,6 +585,7 @@ service JolieDoc {
             f.content -> file.html
             writeFile@File( f )(  )
         }
+        println@Console("DONE")()
 
     }
 }

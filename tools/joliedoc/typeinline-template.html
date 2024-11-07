@@ -1,13 +1,11 @@
-{{#root_type}}
- {{> native-type-template }}
-{{/root_type}}
+{{#root_type}}<b>{{> native-type-template }}</b>{{/root_type}}
 {{#sub_type}}
     {{#isFirst}}
     &#123; </td><td class='documentation'>{{documentation}}</td></tr>
     {{/isFirst}}
     {{> sub-type-template}}
     {{#isLast}}
-    <tr><td></td><td class='content-td'>&#125;
+    <tr><td></td><td class='content-td'>{{{indentation}}}&#125;
     {{/isLast}}
 {{/sub_type}}
 

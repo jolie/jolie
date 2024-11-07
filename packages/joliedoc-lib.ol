@@ -46,17 +46,20 @@ from types.definition-types-doc-templates import __Service
 
 
 type _GetPortRequest {
+    indentation_cr_replacement: string 
     documentation_cr_replacement: string
     port: Port
 }
 
 type _GetInterface {
+    indentation_cr_replacement: string 
     documentation_cr_replacement: string
     interface: Interface
 }
 
 type _GetTypeDefinition {
     documentation_cr_replacement: string 
+    indentation_cr_replacement: string 
     type_definition: TypeDefinition
 }
 
@@ -67,23 +70,31 @@ type _GetOperationRequest {
 }
 
 type _GetSubTypeRequest {
+    indentation: string
     documentation_cr_replacement: string 
+    indentation_cr_replacement: string 
     sub_type: SubType
 }
 
 type _GetTypeInLine {
+    indentation: string
     documentation_cr_replacement: string 
+    indentation_cr_replacement: string 
     type_inline: TypeInLine
 }
 
 type _GetTypeChoice {
+    indentation: string 
     documentation_cr_replacement: string 
+    indentation_cr_replacement: string 
     type_choice: TypeChoice
 }
 
 type _GetTypeRequest {
+    indentation_cr_replacement: string 
     documentation_cr_replacement: string 
     type: Type
+    indentation: string
 }
 
 interface JolieDocLibInterface {
@@ -144,6 +155,7 @@ service JolieDocLib {
         [ _getPort( request )( response ) {
             for ( i = 0, i < #request.port.interfaces, i++ ) {
                 _getInterface@MySelf( {
+                    indentation_cr_replacement = request.indentation_cr_replacement
                     documentation_cr_replacement = request.documentation_cr_replacement
                     interface << request.port.interfaces[ i ] 
                 } )( request.port.interfaces[ i ] )
@@ -162,6 +174,7 @@ service JolieDocLib {
             }
             for( t = 0, t < #request.interface.types, t++ ) {
                 _getTypeDefinition@MySelf( {
+                    indentation_cr_replacement = request.indentation_cr_replacement
                     type_definition << request.interface.types[ t ]
                     documentation_cr_replacement = request.documentation_cr_replacement
                 } )( response.types[ t ] )
@@ -191,12 +204,17 @@ service JolieDocLib {
             
             for ( s = 0, s < #request.type_inline.sub_type, s++ ) {
                 _getSubType@MySelf( {
+                    indentation = request.indentation + request.indentation_cr_replacement
+                    indentation_cr_replacement = request.indentation_cr_replacement
                     documentation_cr_replacement = request.documentation_cr_replacement
                     sub_type << request.type_inline.sub_type[ s ] 
                 })( response.sub_type[ s ].sb )
-                
+
                 if ( s == 0 ) { response.sub_type[ s ].isFirst = true } 
-                if ( s == (#response.sub_type - 1) ) { response.sub_type[ s ].isLast = true }
+                if ( s == (#request.type_inline.sub_type - 1) ) { 
+                    response.sub_type[ s ].isLast = true 
+                    response.sub_type[ s ].isLast.indentation = request.indentation
+                }
             }
         }]
 
@@ -207,6 +225,8 @@ service JolieDocLib {
             } )( request.documentation )
             
             _getType@MySelf( {
+                indentation = ""
+                indentation_cr_replacement = request.indentation_cr_replacement
                 documentation_cr_replacement = request.documentation_cr_replacement
                 type << request.type_definition.type 
             })( request.type_definition.type )
@@ -217,12 +237,16 @@ service JolieDocLib {
         [ _getType( request )( response ) {
             if ( request.type instanceof TypeInLine ) {
                 _getTypeInLine@MySelf( {
+                    indentation = request.indentation 
+                    indentation_cr_replacement = request.indentation_cr_replacement
                     documentation_cr_replacement = request.documentation_cr_replacement
                     type_inline << request.type  
                 })( response )
             }
             if ( request.type instanceof TypeChoice ) {
                 _getTypeChoice@MySelf( {
+                    indentation = request.indentation
+                    indentation_cr_replacement = request.indentation_cr_replacement
                     documentation_cr_replacement = request.documentation_cr_replacement
                     type_choice << request.type  
                 } )( response )
@@ -240,6 +264,8 @@ service JolieDocLib {
         [ _getTypeChoice( request )( response ) {
             if ( request.type_choice.choice.left_type instanceof TypeInLine ) {
                 _getTypeInLine@MySelf( {
+                    indentation = request.indentation 
+                    indentation_cr_replacement = request.indentation_cr_replacement
                     documentation_cr_replacement = request.documentation_cr_replacement
                     type_inline << request.type_choice.choice.left_type
                 } )( response.choice.left_type )
@@ -247,6 +273,8 @@ service JolieDocLib {
                 _getTypeLink@MySelf( request.type_choice.choice.left_type )( response.choice.left_type ) 
             }
             _getType@MySelf( { 
+                indentation = request.indentation
+                indentation_cr_replacement = request.indentation_cr_replacement
                 documentation_cr_replacement = request.documentation_cr_replacement 
                 type << request.type_choice.choice.right_type 
             } )( response.choice.right_type )
@@ -315,13 +343,16 @@ service JolieDocLib {
                 cardinality << request.sub_type.cardinality
                 
             }
-            if ( is_defined( request.documentation ) ) {
+            response.indentation = request.indentation
+            if ( is_defined( request.sub_type.documentation ) ) {
                 response.documentation = replaceAll@StringUtils( request.sub_type.documentation { 
                     regex = "\n"
                     replacement = request.documentation_cr_replacement 
                 } )
             }
             _getType@MySelf( {
+                indentation = request.indentation
+                indentation_cr_replacement = request.indentation_cr_replacement
                 documentation_cr_replacement = request.documentation_cr_replacement 
                 type <<  request.sub_type.type
             } )( response.type )

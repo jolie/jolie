@@ -92,13 +92,16 @@ type __SubType: void {
   cardinality: __Cardinality
   type: __Type
   documentation?: string
+  indentation: string 
 }
 
 type __TypeInLine: void {
   root_type: __NativeType
   sub_type* {
     isFirst?: bool
-    isLast?: bool
+    isLast?: bool {
+      indentation: string 
+    }
     sb: __SubType
   }
 }
@@ -118,7 +121,7 @@ type __TypeUndefined: void {
   undefined: bool
 }
 
-type __Type: __TypeInLine | __TypeLink | __TypeChoice | __TypeUndefined 
+type __Type:  __TypeInLine | __TypeLink | __TypeChoice | __TypeUndefined 
 
 type __TypeDefinition: void {
   name: string

@@ -49,6 +49,7 @@ import jolie.lang.Constants;
 import jolie.lang.Keywords;
 import jolie.lang.Constants.EmbeddedServiceType;
 import jolie.lang.NativeType;
+import jolie.lang.parse.Scanner.TokenType;
 import jolie.lang.parse.ast.AddAssignStatement;
 import jolie.lang.parse.ast.AssignStatement;
 import jolie.lang.parse.ast.CompareConditionNode;
@@ -313,9 +314,6 @@ public class OLParser extends AbstractParser {
 					startColumn + typeName.length(), codeLine() );
 				if( token.is( Scanner.TokenType.COLON ) ) {
 					nextToken();
-				} else {
-					prependToken( new Scanner.Token( Scanner.TokenType.ID, NativeType.VOID.id() ) );
-					nextToken();
 				}
 				// call parseType with the context with correct lines and columns
 				currentType = parseType( typeName, accessModifier, context );
@@ -338,6 +336,10 @@ public class OLParser extends AbstractParser {
 	private TypeDefinition parseType( String typeName, AccessModifier accessModifier, ParsingContext context )
 		throws IOException, ParserException {
 		TypeDefinition currentType;
+		if( token.is( TokenType.LCURLY ) ) {
+			prependToken( new Scanner.Token( Scanner.TokenType.ID, NativeType.VOID.id() ) );
+			nextToken();
+		}
 		BasicTypeDefinition basicTypeDefinition = readBasicType();
 		if( basicTypeDefinition == null ) { // It's a user-defined type
 			currentType =
@@ -358,6 +360,10 @@ public class OLParser extends AbstractParser {
 			int column = errorColumn();
 			ParsingContext secondContext = new URIParsingContext( context.source(), startLine, startLine, column,
 				column + token.content().length(), codeLine() );
+			if( token.is( TokenType.LCURLY ) ) {
+				prependToken( new Scanner.Token( Scanner.TokenType.ID, NativeType.VOID.id() ) );
+				nextToken();
+			}
 			final TypeDefinition secondType = parseType( typeName, accessModifier, secondContext );
 			return new TypeChoiceDefinition( context, typeName, Constants.RANGE_ONE_TO_ONE, currentType,
 				secondType );

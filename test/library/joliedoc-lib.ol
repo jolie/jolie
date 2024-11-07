@@ -24,7 +24,7 @@ service Main {
             getInputPortMetaData@MetaJolie( { filename = "private/sample_service_joliedoclib.ol" } )( meta_description )
 
             //valueToPrettyString@StringUtils( meta_description.input )( s ); println@Console( s )()
-            _getPort@JolieDocLib( { documentation_cr_replacement = "<br>", port << meta_description.input } )( _port )
+            _getPort@JolieDocLib( { documentation_cr_replacement = "<br>", indentation_cr_replacement = "&nbsp;", port << meta_description.input } )( _port )
             
         }
     }

@@ -1,4 +1,4 @@
 {{#sb}}
-    <tr><td></td><td class='content-td'>{{name}} {{> cardinality-template }}:&nbsp; {{> type-template }}
+    <tr><td></td><td class='content-td'>{{{indentation}}}{{name}}{{> cardinality-template }}:&nbsp;{{#type}}{{> type-template }}{{/type}}
     </td><td class='documentation'>{{documentation}}</td></tr>
 {{/sb}}

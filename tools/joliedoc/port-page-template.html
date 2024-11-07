@@ -71,7 +71,6 @@
 
         .content-td {
             padding-left: 20px;
-            width: 30%;
             background-color: #eee;
             padding-bottom: 5px;
             padding-top: 5px;
@@ -283,7 +282,7 @@
                 <td class='content-td'><span class='message-type'>Request:</span><a href='#{{input}}'>{{input}}</a></td>
                 <td class='content-td'>
                     {{#output}}
-                    <span class='message-type'>Response:</span><a href='#{{output}}'>{{output}}</a>
+                    <span class='message-type'>Response:</span><a href='#{{/output}}{{output}}{{#output}}'>{{/output}}{{output}}{{#output}}</a>
                     {{/output}}
                 </td>
             </tr>
@@ -341,7 +340,7 @@
             <tr>
                 <td></td>
                 <td class='content-td'><b>type</b>&nbsp;{{name}}<b>:</b>&nbsp;
-                {{> type-template}}
+                {{#type}}{{> type-template}}{{/type}}
                 </td>
                 <td></td>
             </tr>

@@ -22,13 +22,17 @@ type RenderRequest {
 	template:string ///< The mustache template
 	data:undefined ///< The data for the template
 	dir?:string ///< The directory in which to look for other templates (for partials)
-} | void {
+	recursionLimit?: int ///< Maximum limit for recursive calls in partials. Default is 100
+	partialsRecursionLimit?: int ///< Maximum limit for recursive calls specific for partials. Dafult is 10
+} | {
 	template:string ///< The mustache template
 	data:undefined ///< The data for the template
 	partials* { ///< List of other templates to be used
 		name: string 
 		template: string
 	}
+	recursionLimit?: int ///< Maximum limit for recursive calls in partials
+	partialsRecursionLimit?: int ///< Maximum limit for recursive calls specific for partials
 }
 
 interface MustacheInterface {
