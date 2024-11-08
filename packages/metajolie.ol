@@ -198,23 +198,25 @@ private service Utils {
 
     execution: concurrent
 
+    embed Runtime as Runtime
     embed MetaJolieJavaService as MetaJolieJavaService
     /* outputPort MetaJolieJavaService {
         location: "local://_MetaJolieJavaservice"
         interfaces: MetaJolieJavaServiceInterface
     }*/
 
-    outputPort Utils {
-        location: "local://MetaJolieUtils"
+    outputPort MySelf {
+        location: "local"
         Interfaces: MetaJolieUtilsInterface
     }
 
     inputPort Utils {
-        location: "local://MetaJolieUtils"
+        location: "local"
         Interfaces: MetaJolieUtilsInterface
     }
 
     init {
+        getLocalLocation@Runtime()( MySelf.location )
         install( TypeMissing => nullProcess )
     }
 
@@ -246,15 +248,15 @@ private service Utils {
                         }
                         rq.t2.type -> types2.( t2.link_name ).type
                         rq.t2.types -> request.t2.types
-                        typeLessThan@Utils( rq )( response )
+                        typeLessThan@MySelf( rq )( response )
                     } else if ( t2 instanceof TypeChoice ) {
                         undef( rq )
                         rq.t1 -> request.t1
                         rq.t2.types -> request.t2.types
                         rq.t2.type -> t2.choice.left_type
-                        typeLessThan@Utils( rq  )( response_left )
+                        typeLessThan@MySelf( rq  )( response_left )
                         rq.t2.type -> t2.choice.right_type
-                        typeLessThan@Utils( rq  )( response_right )
+                        typeLessThan@MySelf( rq  )( response_right )
                         response = response_left || response_right
                     } else if ( t2 instanceof TypeInLine ) {
                         // check the root type
@@ -291,7 +293,7 @@ private service Utils {
                                     rq.t1.types -> request.t1.types
                                     rq.t2.type -> subtypes2.( sb.name ).type
                                     rq.t2.types -> request.t2.types
-                                    typeLessThan@Utils( rq )( response )
+                                    typeLessThan@MySelf( rq )( response )
                                 }
                             }
                         }
@@ -331,15 +333,15 @@ private service Utils {
                     }
                     rq.t1.type -> types1.( t1.link_name ).type
                     rq.t1.types -> request.t1.types
-                    typeLessThan@Utils( rq )( response )
+                    typeLessThan@MySelf( rq )( response )
                 } else if ( t1 instanceof TypeChoice ) {
                     undef( rq )
                     rq.t2 -> request.t2
                     rq.t1.types -> request.t1.types
                     rq.t1.type -> t1.choice.left_type
-                    typeLessThan@Utils( rq  )( response_left )
+                    typeLessThan@MySelf( rq  )( response_left )
                     rq.t1.type -> t1.choice.right_type
-                    typeLessThan@Utils( rq )( response_right )
+                    typeLessThan@MySelf( rq )( response_right )
                     response = response_left && response_right
                 } else if ( t1 instanceof TypeUndefined ) {
                     response = false
@@ -369,7 +371,7 @@ private service Utils {
             }
             rq.t2.types -> request.t2.types
             
-            typeLessThan@Utils( rq )( response )
+            typeLessThan@MySelf( rq )( response )
         }]
     }
 }
@@ -451,17 +453,12 @@ service MetaJolie {
     execution: concurrent 
 
     embed Runtime as Runtime
-    embed Utils 
+    embed Utils as Utils
     embed MetaJolieJavaService  as MetaJolieJavaService
 
 
     outputPort MySelf {
         Interfaces: MetaJolieServiceInterface
-    }
-
-    outputPort Utils {
-        location: "local://MetaJolieUtils"
-        Interfaces: MetaJolieUtilsInterface
     }
 
     inputPort MetaJolie {

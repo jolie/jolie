@@ -81,11 +81,7 @@
                             <table width='100%'>
                                 {{#dependencies}}
                                 <tr>
-                                    <td>{{name}}
-                                        {{#port}}
-                                        @<b><a href='{{port}}OPort.html'>{{port}}</a></b>
-                                        {{/port}}
-                                    </td>
+                                    <td>{{name}}{{#port}}@<b><a href='{{port}}OPort.html'>{{/port}}{{port}}{{#port}}</a></b>{{/port}}</td>
                                 </tr>
                                 {{/dependencies}}
                             </table>

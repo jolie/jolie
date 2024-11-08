@@ -306,6 +306,7 @@
 										<include>type-template.html</include>
 										<include>typeinline-template.html</include>
 										<include>typelink-template.html</include>
+										<include>index-template.html</include>
 									</includes>
 									<filtering>true</filtering>
 								</resource>
