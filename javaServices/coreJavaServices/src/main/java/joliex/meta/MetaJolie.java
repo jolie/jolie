@@ -25,6 +25,8 @@ import jolie.cli.CommandLineParser;
 import jolie.lang.CodeCheckMessage;
 import jolie.lang.CodeCheckException;
 import jolie.lang.parse.ParserException;
+import jolie.lang.parse.SemanticVerifier;
+import jolie.lang.parse.SemanticVerifier.Configuration;
 import jolie.lang.parse.ast.*;
 import jolie.lang.parse.ast.types.*;
 import jolie.lang.parse.ast.types.refinements.*;
@@ -940,6 +942,11 @@ public class MetaJolie extends JavaService {
 		String[] args = getArgs( request.getFirstChild( "filename" ).strValue() );
 
 		try( CommandLineParser cmdParser = new CommandLineParser( args, interpreter().getClassLoader() ) ) {
+
+			Configuration configuration =
+				new SemanticVerifier.Configuration( cmdParser.getInterpreterConfiguration().executionTarget() );
+			configuration.setCheckForMain( false );
+
 			Program program = ParsingUtils.parseProgram(
 				cmdParser.getInterpreterConfiguration().inputStream(),
 				cmdParser.getInterpreterConfiguration().programFilepath().toURI(),
@@ -948,7 +955,7 @@ public class MetaJolie extends JavaService {
 				interpreter().configuration().packagePaths(),
 				cmdParser.getInterpreterConfiguration().jolieClassLoader(),
 				cmdParser.getInterpreterConfiguration().constants(),
-				cmdParser.getInterpreterConfiguration().executionTarget(),
+				configuration,
 				true );
 			ProgramInspector inspector = ParsingUtils.createInspector( program );
 
@@ -1006,6 +1013,9 @@ public class MetaJolie extends JavaService {
 		String[] args = getArgs( request.getFirstChild( "filename" ).strValue() );
 
 		try( CommandLineParser cmdParser = new CommandLineParser( args, interpreter().getClassLoader() ) ) {
+			Configuration configuration =
+				new SemanticVerifier.Configuration( cmdParser.getInterpreterConfiguration().executionTarget() );
+			configuration.setCheckForMain( false );
 			Program program = ParsingUtils.parseProgram(
 				cmdParser.getInterpreterConfiguration().inputStream(),
 				cmdParser.getInterpreterConfiguration().programFilepath().toURI(),
@@ -1014,7 +1024,7 @@ public class MetaJolie extends JavaService {
 				interpreter().configuration().packagePaths(),
 				cmdParser.getInterpreterConfiguration().jolieClassLoader(),
 				cmdParser.getInterpreterConfiguration().constants(),
-				cmdParser.getInterpreterConfiguration().executionTarget(),
+				configuration,
 				true );
 			ProgramInspector inspector = ParsingUtils.createInspector( program );
 
@@ -1098,6 +1108,11 @@ public class MetaJolie extends JavaService {
 		String[] args = getArgs( request.getFirstChild( "filename" ).strValue() );
 
 		try( CommandLineParser cmdParser = new CommandLineParser( args, MetaJolie.class.getClassLoader() ) ) {
+
+			Configuration configuration =
+				new SemanticVerifier.Configuration( cmdParser.getInterpreterConfiguration().executionTarget() );
+			configuration.setCheckForMain( false );
+
 			Program program = ParsingUtils.parseProgram(
 				cmdParser.getInterpreterConfiguration().inputStream(),
 				cmdParser.getInterpreterConfiguration().programFilepath().toURI(),
@@ -1106,7 +1121,7 @@ public class MetaJolie extends JavaService {
 				interpreter().configuration().packagePaths(),
 				cmdParser.getInterpreterConfiguration().jolieClassLoader(),
 				cmdParser.getInterpreterConfiguration().constants(),
-				cmdParser.getInterpreterConfiguration().executionTarget(),
+				configuration,
 				true );
 			ProgramInspector inspector = ParsingUtils.createInspector( program );
 
