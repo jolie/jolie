@@ -28,13 +28,13 @@ import java.io.StringReader;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import jolie.runtime.Value;
-import jolie.runtime.ValueVector;
-import jolie.runtime.typing.Type;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 import org.json.simple.parser.ParseException;
+import jolie.runtime.Value;
+import jolie.runtime.ValueVector;
+import jolie.runtime.typing.Type;
 
 public class JsUtils {
 	/**
@@ -110,7 +110,8 @@ public class JsUtils {
 			}
 			int i = 0;
 			for( Map.Entry< String, ValueVector > child : value.children().entrySet() ) {
-				final Type subType = (type != null ? type.findSubType( child.getKey() ) : null);
+				final Type subType =
+					(type != null ? type.findSubType( child.getKey(), child.getValue().first() ) : null);
 				appendKeyColon( builder, child.getKey() );
 				valueVectorToJsonString( child.getValue(), builder, false, subType );
 				if( i++ < size - 1 ) {
