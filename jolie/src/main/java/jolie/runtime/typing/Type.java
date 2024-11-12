@@ -51,6 +51,7 @@ class TypeImpl extends Type {
 		return (subTypes != null) ? subTypes.get( key ) : null;
 	}
 
+	@Override
 	public Type findSubType( String key, Value value ) {
 
 		Type checkSubType = findSubType( key );
@@ -478,6 +479,7 @@ public abstract class Type {
 			return linkedType.findSubType( key );
 		}
 
+		@Override
 		public Type findSubType( String key, Value value ) {
 			return linkedType.findSubType( key, value );
 		}
