@@ -1,28 +1,26 @@
-include "metajolie.iol"
-include "console.iol"
-include "types/definition_types.iol"
-include "file.iol"
-include "string_utils.iol"
+from console import Console
+from metajolie import MetaJolie
+from file import File
+from string-utils import StringUtils
+from mustache import Mustache
+from joliedoc-lib import JolieDocLib
 
-interface RenderInterface {
-    RequestResponse:
-        getPort( Port )( string ),
-        getInterface( Interface )( string ),
-        getTypeDefinition( TypeDefinition )( string ),
-        getNativeType( NativeType )( string ),
-        getSubType( SubType )( string ),
-        getTypeInLine( TypeInLine )( string ),
-        getCardinality( Cardinality )( string ),
-        getType( Type )( string ),
-        getTypeLink( TypeLink )( string ),
-        getTypeChoice( TypeChoice )( string ),
-        getTypeUndefined( TypeUndefined )( string ),
-        getFaultType( Fault )( string ),
-        getIndentation( int )( string )
+
+from types.definition-types import Port
+
+constants {
+    JOLIEDOC_FOLDER = "joliedoc"
 }
 
-service Render {
+/*ce JolieDocRender {
+
     Interfaces: RenderInterface
+
+    inputPort JolieDocRender {
+        location: "local"
+        interfaces: RenderInterface
+    }
+
 
     main {
         [ getIndentation( request )( response ) {
@@ -165,7 +163,7 @@ service Render {
                 response = "string"
             }
             if ( is_defined( request.int_type ) ) {
-                response = "int"
+                response = "int"  
             }
             if ( is_defined( request.double_type ) ) {
                 response = "double"
@@ -212,557 +210,382 @@ service Render {
         }]
 
     }
+}*/
+
+type GetOverviewPageRequest {
+    svgIcon: string 
+    template: string
+    communication_dependencies*: void {
+        operation_name: string 
+        dependencies*: void {
+            name: string
+            port?: string
+        }
+    }
 }
 
-constants {
-    JOLIEDOC_FOLDER = "joliedoc"
+type GetPortPageRequest {
+    port_type: string( enum(["input","output"] ))
+    port: Port
+    template: string 
+    partials* {
+        name: string 
+        template: string
+    }
 }
 
-define _get_ports {
-    // __port_type
-    for( ptt in meta_description.( __port_type ) ) {
-            startsWith@StringUtils( ptt.location { .prefix = "local://" } )( starts_with_local )
-            if ( internals || ( ptt.location != "undefined" && ptt.location != "local" && !starts_with_local ) ) {
-                html = "";
-                getPort@Render( ptt )( port )
-                if ( __port_type == "input" ) {
-                    replaceAll@StringUtils( port { .regex = "PORTTYPE", .replacement = "ip" } )( port )
-                } else {
-                    replaceAll@StringUtils( port { .regex = "PORTTYPE", .replacement = "op" } )( port )
-                }
-                
-                undef( itfcs )
-                undef( tps )
-                for( itf in ptt.interfaces ) {
-                    getInterface@Render( itf )( itfc )
-                    itfcs[ #itfcs ] = itfc
-                    for ( tp in itf.types ) {
-                        getTypeDefinition@Render( tp )( tp_string )
-                        tps[ #tps ] = tp_string
+type GetIndexPageRequest {
+    template: string 
+    partials* {
+        name: string 
+        template: string
+    }
+    data {
+        filename: string 
+        ipitems* {
+            ipname: string 
+        }
+        opitems* {
+            opname: string
+        }
+    }
+}
+
+
+interface RenderDocInterface {
+    RequestResponse:
+        getOverviewPage( GetOverviewPageRequest )( string ),
+        getPortPage( GetPortPageRequest )( string ),
+        getIndexPage( GetIndexPageRequest )( string )
+}
+
+service RenderDocPages {
+
+    embed Mustache as Mustache
+    embed StringUtils as StringUtils
+    embed JolieDocLib as JolieDocLib
+    embed Console as Console
+
+
+
+    inputPort RenderDocPages {
+        location: "local"
+        interfaces: RenderDocInterface
+    }
+
+    execution: concurrent 
+
+
+    main {
+
+        [ getOverviewPage( request )( response ) {
+            render@Mustache( {
+                template = request.template
+                data << request 
+            })( response )
+        }]
+
+        [ getPortPage( request )( response ) {
+            
+            _getPort@JolieDocLib( {
+                indentation_cr_replacement = "&nbsp;&nbsp;"
+                documentation_cr_replacement = "<br>"
+                port << request.port
+            })( port )
+            
+            render_req << {
+                template = request.template
+                data.port << port 
+                recursionLimit = 20
+                partialsRecursionLimit = 10
+            }
+            if ( is_defined( request.partials ) ) { render_req.partials << request.partials }
+            render@Mustache( render_req )( response )
+        }]
+
+        [ getIndexPage( request )( response ) {
+            render_req << {
+                template = request.template
+                data << request.data 
+                recursionLimit = 20
+                partialsRecursionLimit = 10
+            }
+            if ( is_defined( request.partials ) ) { render_req.partials << request.partials }
+            render@Mustache( render_req )( response )
+        }]
+    }
+    
+}
+
+service JolieDoc {
+
+    embed Console as Console
+    embed MetaJolie as MetaJolie 
+    embed StringUtils as StringUtils
+    embed File as File
+    embed RenderDocPages as RenderDocPages
+    
+
+
+   define _get_ports {
+        // __port_type
+        for( ptt in meta_description.( __port_type ) ) {
+                startsWith@StringUtils( ptt.location { .prefix = "local://" } )( starts_with_local )
+                if ( internals || ( ptt.location != "undefined" && ptt.location != "local" && !starts_with_local ) ) {
+
+                    print@Console("generating port " + ptt.name + "...")()
+                    undef( rq_portPage )
+                    rq_portPage <<  { 
+                        template = port_page_template
+                        partials << partials
+                        port_type = __port_type
+                        port << ptt
                     }
-                }
-                html = "<html><head>" + css + js + "</head><body>" + port + "<hr>"
-                for( i in itfcs ) {
-                    html = html + i 
-                }
-                html = html + "<hr>"
-                for( t in tps ) {
-                    html = html + t
-                }
-                html = html + "</body></html>"
-
-                max_files = #files 
-                if ( __port_type == "input" ) {
-                    endname = "IPort.html"
-                } else {
-                    endname = "OPort.html"
-                }
-                files[ max_files ].filename = ptt.name + endname
-                files[ max_files ].html = html
-            }
-        }      
-}
-
-init {
-    js = "<script>
-        function openDetails( operation ) {
-            if ( document.getElementById( \"doc_\" + operation ).style.display == \"none\" ) {
-                document.getElementById( \"doc_\" + operation ).style.display = \"table-row\";
-                document.getElementById( \"faults_\" + operation ).style.display = \"table-row\"
-            } else {
-                document.getElementById( \"doc_\" + operation ).style.display = \"none\";
-                document.getElementById( \"faults_\" + operation ).style.display = \"none\"
-            }
-        }
-    </script>"
-    css = "<style>
-                body {
-        font-family: Verdana, Helvetica, sans-serif;
-    }
-
-    .resource-label {
-        height:40px;
-        font-size: 14px;
-        text-align:center;
-        color:white;
-        font-weight:bold;
-        border-radius:5px;
-        width:6%;
-    }
-
-    a {
-        font-weight:bold;
-        text-decoration:none;
-        color: #600;
-    }
-
-    tr:hover td:not(:first-child) {
- 	    background-color: #ffffcc;
-    }
-
-
-    .type-definition a:hover {
-        color: #aa0000;
-    }
-
-    .type-definition {
-        margin-left:30px;
-        margin-top:50px;
-        width:90%;
-    }
-    .type-definition th {
-        font-size:20px;
-        text-align: left;
-        background-color: #fff;
-        color:black;
-        border-radius:5px;
-    }
- 	.type-definition th.content-td{
-        border-bottom:1px solid #555;
-        border-radius:0px;
-    }
-    .type-definition tr td {
-
-        border-bottom:1px dotted #ddd;
-	}
-    .type-definition tr td:first-child {
-        border-bottom:0px;
-	}
-
-    .type-definition .resource-label-type {
-        background-color: red;
-        color:white;
-        text-align:center;
-        font-size:14px;
-    }
-
-    .content-td {
-        padding-left: 20px;
-        width: 30%;
-        background-color: #eee;
-        padding-bottom: 5px;
-        padding-top: 5px;
-        border-radius: 5px;
-        font-size: 15px;
-        font-family: 'Courier New';
-    }
-    .documentation {
-        font-style: italic;
-    }
-
-    .interface-definition {
-        margin-left:30px;
-        margin-top:50px;
-        width:90%;
-    }
-
-    .interface-definition .resource-label-interface {
-        background-color: #107710;
-        color:white;
-        text-align:center;
-        font-size:14px;
-    }
-
-    .interface-definition th {
-        font-size:20px;
-        text-align: left;
-        background-color: #fff;
-        color:black;
-        border-radius:5px;
-    }
-
- 	.interface-definition th.content-td{
-        border-bottom:1px solid #555;
-        border-radius:0px;
-    }
-
-    .operation-name {
-        font-weight: bold;
-        font-size:18px;
-        padding-left:20px;
-    }
-
-    .operation-button {
-        font-size: 10px;
-        border: 1px solid #666;
-        padding: 4px;
-        margin-right: 10px;
-        float: right;
-        cursor: pointer;
-    }
-
-    .operation-button:hover {
-        background-color:#666;
-        color:white;
-    }
-
-    .rr-type {
-        background-color:#929900;
-        color:white;
-    }
-
-    .ow-type {
-        background-color:#cca133;
-        color:white;
-    }
-
-    .message-type {
-        font-style:italic;
-        font-size:12px;
-        color:#444;
-    }
-
-    .interface-definition a {
-        font-size: 14px;
-    }
-
-    .interface-definition .content-td {
-        padding-top:10px;
-        padding-bottom:10px;
-        width:32%;
-    }
-
-    .fault-name {
-        font-size:14px;
-    }
-
-        .port-definition a {
-        font-size: 14px;
-        color: #050;
-    }
-
-    .port-definition th.content-td{
-        border-bottom:1px solid #555;
-        border-radius:0px;
-    }
-
-    .port-definition .resource-label-ip {
-        background-color: blue;
-        color:white;
-        text-align:center;
-        font-size:14px;
-    }
-
-    .port-definition .resource-label-op {
-        background-color: black;
-        color:white;
-        text-align:center;
-        font-size:14px;
-    }
-
-    .port-definition th {
-        font-size: 20px;
-        text-align: left;
-        background-color: #fff;
-        color: black;
-    }
-
-    .port-definition {
-        margin-left:30px;
-        margin-top:50px;
-        width:90%;
-    }
-
-    .port-element {
-        font-weight: bold;
-    }
-
-    .port-definition .content-td {
-        width:44%;
-    }
-    </style>"
-
-    css_index = "<style>
-        body {
-            font-family: 'Courier New';
-            font-size: 14px;
-        }
-
-        .headertable {
-            width: 100%;
-            font-size: 30px;
-            padding: 10px;
-            border-bottom: 1px dotted #444;
-        }
-
-        .menutd {
-            width: 12%;
-            border-right: 1px dotted #444;
-            height: 1000px;
-        }
-
-        .bodytd {
-            width: 80%;
-        }
-
-        .bodytd object {
-            width:100%;
-            height:100vh;
-        }
-        .maintable {
-            width: 100%;
-        }
-
-        .menutitle {
-            font-weight: bold;
-            font-size: 20px;
-        }
-
-        .menutd a {
-            cursor: pointer;
-        }
-
-        .itemmenu {
-            text-align: center;
-            width:100%;
-        }
-
-        .itemmenu a:hover {
-            color:#600;
-        }
-        </style>"
-    js_index = "<script>
-        function loadPage( page ) {
-            document.getElementById(\"bodytd\").innerHTML='<object type=\"text/html\" data=\"' + page + '\"></object>';
-        }
-    </script>"
-
-    ovw_css = "<style>
-        body {
-            font-family:'Courier New';
-        }
-        .picture {
-            padding-top:50px;
-            text-align:center;
-        }
-
-        .link:hover {
-            fill: #660000;
-        }
-        .dependency-map {
-            padding:20px;
-        }
-        .input-operation {
-            width:50%;
-        }
-       .dependency-table {
-            width: 100%;
-            border: 1px solid #444;
-            padding: 10px;
-        }
-
-        .dependency-table a {
-            color: black;
-            text-decoration: none;
-        }
-
-
-        .dependency-table a:hover {
-            color: #600;
-        }
-
-        .dependency-table th {
-            text-align: left;
-        }
-
-        .dependency-list {
-            background-color: #ddd;
-            padding-left: 20%;
-        }
-        .legenda {
-            font-size: 12px;
-            font-style: italic;
-            color: #888;
-        }
-    </style>"
-
-    install( Abort => nullProcess )
-}
-
-main {
-    if ( #args == 0 || #args > 2 ) {
-        println@Console( "Usage: joliedoc <filename> [--internals ]")()
-    } else {
-        internals = false
-        if ( #args == 2 && args[ 1 ] == "--internals" ) {
-            internals = true
-        } else if ( #args == 2 ) {
-            println@Console("Argument " + args[ 1 ] + " not recognized" )()
-            throw( Abort )
-        }
-        rq.filename = args[ 0 ]
-        getInputPortMetaData@MetaJolie( rq )( meta_description )
-        __port_type = "input"
-        _get_ports
-        input_ports_number = #files
-          
-        getOutputPortMetaData@MetaJolie( rq )( meta_description )
-        __port_type = "output"
-        _get_ports
-        output_ports_number = #files - input_ports_number
-
-        /* creating index */
-        getMetaData@MetaJolie( rq )( metadata )
-        index = "<html><head>" + css_index + js_index + "</head><body><table class='headertable'><tr><td>Jolie Documentation:&nbsp;<b>" + args[ 0 ] + "</b></td></tr></table>"
-        index = index + "<table class='maintable'><tr><td  valign='top' class='menutd'><br><br>"
-        index = index + "<table width='100%'><tr><td class='itemmenu'><a onclick='loadPage(\"Overview.html\")'>OVERVIEW</a></td></tr></table><br><br>"
-        index = index + "<table width='100%'><tr><td class='itemmenu menutitle'>input ports</td></tr></table><br>"
-        index = index + "<table width='100%'>"
-        for( i in metadata.input ) {
-            startsWith@StringUtils( i.location { .prefix = "local://" } )( starts_with_local )
-            if ( internals || ( i.location != "undefined" && i.location != "local" && !starts_with_local ) ) {
-                index = index + "<tr><td class='itemmenu'><a onclick='loadPage(\"" + i.name + "IPort.html\")'>" + i.name + "</a></td></tr>"
-                inputs[ #inputs ] << i
-            }
-        }
-        index = index + "</table><br><br>"
-        index = index + "<table width='100%'><tr><td class='itemmenu menutitle'>output ports</td></tr></table><br>"
-        index = index + "<table width='100%'>"
-        for( o in metadata.output ) {
-            startsWith@StringUtils( o.location { .prefix = "local://" } )( starts_with_local )
-            if ( internals || ( o.location != "undefined" && o.location != "local" && !starts_with_local ) ) {
-                index = index + "<tr><td class='itemmenu'><a onclick='loadPage(\"" + o.name + "OPort.html\")'>" + o.name + "</a></td></tr>"
-                outputs[ #outputs ] << o
-            }
-        }
-        index = index + "</table><br><br>"
-        index = index + "</td><td id='bodytd' class='bodytd'></td></tr></table></body><script>loadPage('Overview.html')</script></html>"
-
-        max_files = #files 
-        files[ max_files ].filename = "index.html"
-        files[ max_files ].html = index
-
-        /* creating overview */
-        minimum_ports = 3
-        slot_height_for_port = 100
-        trapezoid_delta = 80
-        svg_width = 800
-        svg_padding = 300
-        iport_diagonal = 50
-        text_displacement = 10
-
-        max_port_number = minimum_ports
-
-        if ( input_ports_number > minimum_ports || output_ports_number > minimum_ports ) {
-            max_port_number = input_ports_number
-            if ( output_ports_number > max_port_number ) {
-                max_port_number = output_ports_number
-            }
-        }
-
-        body_height = slot_height_for_port * max_port_number
-        svg_height = body_height + trapezoid_delta*2
-        svg = "<svg height='" + svg_height + "' width='" + svg_width + "'>"
-        // microservice body
-        left_corner_top_y = svg_height - trapezoid_delta
-        right_corners_x = svg_width -svg_padding
-
-        left_corner_bottom = svg_padding + "," + trapezoid_delta
-        left_corner_top = svg_padding + "," + left_corner_top_y
-        right_corner_top = right_corners_x + "," + svg_height
-        right_corner_bottom = right_corners_x + ",0"
-        svg = svg + "<polygon points='" + left_corner_bottom + " " + left_corner_top + " " + right_corner_top + " " + right_corner_bottom + "' style='fill:#ffcc00;stroke:#cc6600;stroke-width:2' />"
-        
- 
-        // microservice input ports
-        if ( input_ports_number > 0 ) {
-            ip_slot = int( body_height / input_ports_number )
-            for( i = 0, i < input_ports_number, i++ ) {
-                iport_diagonal_half = int( iport_diagonal / 2 )
-                iport_height = trapezoid_delta + ip_slot * i + int( ip_slot / 2 )
-                left_corner_x = svg_padding - iport_diagonal_half
-                up_corner_y = iport_height + iport_diagonal_half
-                right_corner_x = svg_padding + iport_diagonal_half
-                bottom_corner_y = iport_height - iport_diagonal_half
-
-                left_corner = left_corner_x + "," + iport_height
-                up_corner = svg_padding + "," + up_corner_y
-                right_corner = right_corner_x + "," + iport_height
-                bottom_corner = svg_padding + "," + bottom_corner_y
-
-                svg = svg + "<polygon points='" + left_corner + " " + up_corner + " " + right_corner + " " + bottom_corner + " ' style='fill:#ffff66;stroke:#cc9900;stroke-width:2' />"
-                text_x = left_corner_x - text_displacement
-                text_y = iport_height - text_displacement
-                text_y2 = iport_height + text_displacement*2
-                protocol_text_x = left_corner_x + text_displacement
-                protocol_text_y = iport_height + int( text_displacement / 2 )
-                svg = svg + "<a xlink:href='" + inputs[ i ].name + "IPort.html'><text class='link' x='" + text_x + "' y='" + text_y + "' text-anchor='end' fill='black' font-family='Courier New' font-weight='bold'>" + inputs[ i ].name + "</text></a>"
-                svg = svg + "<text x='" + protocol_text_x + "' y='" + protocol_text_y + "'  font-size='10px' fill='black' font-family='Courier New'>" + inputs[ i ].protocol + "</text>"
-                svg = svg + "<text x='" + text_x + "' y='" + text_y2 + "' text-anchor='end'  font-size='10px' fill='black' font-family='Courier New'>" + inputs[ i ].location + "</text>"
-                svg = svg + "<line x1='0' y1='" + iport_height + "' x2='" + left_corner_x + "' y2='" + iport_height + "' style='stroke:#ddd;stroke-width:1'/>"
-            }
-        }
-
-        // microservices output ports
-        if ( output_ports_number > 0 ) {
-            op_slot = int( body_height / output_ports_number )
-            for( i = 0, i < output_ports_number, i++ ) {
-                iport_diagonal_half = int( iport_diagonal / 2 )
-                iport_height = trapezoid_delta + op_slot * i + int( op_slot / 2 )
-                up_corner_y = iport_height + iport_diagonal_half
-                basic_x = svg_width - svg_padding
-                right_corner_x = basic_x + iport_diagonal_half
-                bottom_corner_y = iport_height - iport_diagonal_half
-
-                up_corner = basic_x + "," + up_corner_y
-                right_corner = right_corner_x + "," + iport_height
-                bottom_corner = basic_x + "," + bottom_corner_y
-                text_x = right_corner_x + text_displacement
-                text_y = iport_height - text_displacement
-                text_y2 = iport_height + text_displacement*2
-
-                svg = svg + "<polygon points='" + up_corner + " " + right_corner + " " + bottom_corner + " '  style='fill:#ff0000;stroke:#000000;stroke-width:2' />"
-                svg = svg + "<a xlink:href='" + outputs[ i ].name + "OPort.html'><text class='link' x='" + text_x + "' y='" + text_y + "' fill='black' font-family='Courier New' font-weight='bold'>" + outputs[ i ].name + "</text></a>"
-                svg = svg + "<text x='" + text_x + "' y='" + text_y2 + "' fill='black' font-size='10px' font-family='Courier New'>" + outputs[ i ].location + "," + outputs[ i ].protocol + "</text>"
-                svg = svg + "<line x1='" + right_corner_x + "' y1='" + iport_height + "' x2='" + svg_width + "' y2='" + iport_height + "' style='stroke:#ddd;stroke-width:1'/>"
-            }
-        }
-      
-        svg = svg + "</svg>"
-
-        ovw = "<html><head>" + ovw_css + "</head><body><table width='100%'><tr><td valign='top' class='picture' width='50%'>" + svg + "</td><td valign='top' class='dependency-map'>"
-        ovw = ovw + "<h1>Dependency Map</h1>"
-        ovw = ovw + "<span class='legenda'>Legenda:</span><br><table class='dependency-table'><tr><th class='input-operation'>input operation</th></tr><tr><td class='dependency-list'><i>communication dependencies</i></td></tr></tr></table><br><br>"
-        for( com in metadata.communication_dependencies ) {
-            ovw = ovw + "<table class='dependency-table'><tr><td colspan='2' class='input-operation'>" + com.input_operation.name + "</td></tr>"
-            ovw = ovw + "<tr><td class='dependency-list'><table width='100%'>"
-            for( dep in com.dependencies ) {
-                found_p = false
-                if ( is_defined( dep.port ) ) {
-                    for ( tmp_o in outputs ) {
-                        if ( tmp_o.name == dep.port ) {
-                            found_p = true
+                
+                    portPage = getPortPage@RenderDocPages( rq_portPage )
+                    
+                    undef( itfcs )
+                    undef( tps )
+                    for( itf in ptt.interfaces ) {
+                        //getInterface@Render( itf )( itfc )
+                        itfcs[ #itfcs ] = itfc
+                        for ( tp in itf.types ) {
+                            //getTypeDefinition@Render( tp )( tp_string )
+                            tps[ #tps ] = tp_string
                         }
                     }
-                } else {
-                    found_p = true
-                }
-                if ( internals || found_p ) {
-                    port_string = ""
-                    if ( is_defined( dep.port ) ) {
-                        port_string = "@<b><a href='" + dep.port + "OPort.html'>" + dep.port + "</a></b>"
+                    html = "<html><head>" + css + js + "</head><body>" + port + "<hr>"
+                    for( i in itfcs ) {
+                        html = html + i 
                     }
-                    ovw = ovw + "<tr><td>" + dep.name + port_string + "</td></tr>"
-                } 
+                    html = html + "<hr>"
+                    for( t in tps ) {
+                        html = html + t
+                    }
+                    html = html + "</body></html>"
+
+                    max_files = #files 
+                    if ( __port_type == "input" ) {
+                        endname = "IPort.html"
+                    } else {
+                        endname = "OPort.html"
+                    }
+                    files[ max_files ].filename = ptt.name + endname
+                    files[ max_files ].html = portPage
+                    println@Console("done")()
+                }
+            }      
+    }
+
+    init {
+        install( Abort => nullProcess )
+    }
+
+    init {
+        getServiceDirectory@File()( joliedoc_directory )
+        // loading templates
+        readFile@File( { filename = joliedoc_directory + "/overview-page-template.html" } )( ovh_template )
+        readFile@File( { filename = joliedoc_directory + "/port-page-template.html" } )( port_page_template )
+        readFile@File( { filename = joliedoc_directory + "/index-template.html" } )( index_template )
+        // loading partials
+        partials[0].name = "cardinality-template"
+        readFile@File( { filename = joliedoc_directory + "/cardinality-template.html" } )( partials[0].template )
+        partials[1].name = "native-type-template"
+        readFile@File( { filename = joliedoc_directory + "/native-type-template.html" } )( partials[1].template )
+        partials[2].name = "sub-type-template"
+        readFile@File( { filename = joliedoc_directory + "/sub-type-template.html" } )( partials[2].template )
+        partials[3].name = "type-template"
+        readFile@File( { filename = joliedoc_directory + "/type-template.html" } )( partials[3].template )
+        partials[4].name = "typeinline-template"
+        readFile@File( { filename = joliedoc_directory + "/typeinline-template.html" } )( partials[4].template )
+        partials[5].name = "typelink-template"
+        readFile@File( { filename = joliedoc_directory + "/typelink-template.html" } )( partials[5].template )
+
+    }
+
+    main {
+        
+        if ( #args == 0 || #args > 2 ) {
+            println@Console( "Usage: joliedoc <filename> [--internals ]")()
+        } else {
+            println@Console("Generating...")()
+            internals = false
+            if ( #args == 2 && args[ 1 ] == "--internals" ) {
+                internals = true
+            } else if ( #args == 2 ) {
+                println@Console("Argument " + args[ 1 ] + " not recognized" )()
+                throw( Abort )
             }
-            ovw = ovw + "</table></td></tr></table>"
+            rq.filename = args[ 0 ]
+            getInputPortMetaData@MetaJolie( rq )( meta_description )
+            __port_type = "input"
+            _get_ports
+            input_ports_number = #files
+            
+            getOutputPortMetaData@MetaJolie( rq )( meta_description )
+            __port_type = "output"
+            _get_ports
+            output_ports_number = #files - input_ports_number
+
+            /* creating index */
+            getMetaData@MetaJolie( rq )( metadata )
+            for( i in metadata.input ) {
+                startsWith@StringUtils( i.location { .prefix = "local://" } )( starts_with_local )
+                if ( internals || ( i.location != "undefined" && i.location != "local" && !starts_with_local ) ) {
+                    //index = index + "<tr><td class='itemmenu'><a onclick='loadPage(\"" + i.name + "IPort.html\")'>" + i.name + "</a></td></tr>"
+                    inputs[ #inputs ] << i
+                    index_rq.data.ipitems[ #index_rq.data.ipitems ].ipname = i.name
+                }
+            }
+            for( o in metadata.output ) {
+                startsWith@StringUtils( o.location { .prefix = "local://" } )( starts_with_local )
+                if ( internals || ( o.location != "undefined" && o.location != "local" && !starts_with_local ) ) {
+                    //ndex = index + "<tr><td class='itemmenu'><a onclick='loadPage(\"" + o.name + "OPort.html\")'>" + o.name + "</a></td></tr>"
+                    outputs[ #outputs ] << o
+                    index_rq.data.opitems[ #index_rq.data.opitems ].opname = o.name
+                }
+            }
+            
+            index_rq.data.filename = rq.filename
+            index_rq.template = index_template
+            getIndexPage@RenderDocPages( index_rq )( index )
+
+            max_files = #files 
+            files[ max_files ].filename = "index.html"
+            files[ max_files ].html = index
+
+            /* creating overview */
+            minimum_ports = 3
+            slot_height_for_port = 100
+            trapezoid_delta = 80
+            svg_width = 800
+            svg_padding = 300
+            iport_diagonal = 50
+            text_displacement = 10
+
+            max_port_number = minimum_ports
+
+            if ( input_ports_number > minimum_ports || output_ports_number > minimum_ports ) {
+                max_port_number = input_ports_number
+                if ( output_ports_number > max_port_number ) {
+                    max_port_number = output_ports_number
+                }
+            }
+
+            body_height = slot_height_for_port * max_port_number
+            svg_height = body_height + trapezoid_delta*2
+            svg = "<svg height='" + svg_height + "' width='" + svg_width + "'>"
+            // microservice body
+            left_corner_top_y = svg_height - trapezoid_delta
+            right_corners_x = svg_width -svg_padding
+
+            left_corner_bottom = svg_padding + "," + trapezoid_delta
+            left_corner_top = svg_padding + "," + left_corner_top_y
+            right_corner_top = right_corners_x + "," + svg_height
+            right_corner_bottom = right_corners_x + ",0"
+            svg = svg + "<polygon points='" + left_corner_bottom + " " + left_corner_top + " " + right_corner_top + " " + right_corner_bottom + "' style='fill:#ffcc00;stroke:#cc6600;stroke-width:2' />"
+            
+    
+            // microservice input ports
+            if ( input_ports_number > 0 ) {
+                ip_slot = int( body_height / input_ports_number )
+                for( i = 0, i < input_ports_number, i++ ) {
+                    iport_diagonal_half = int( iport_diagonal / 2 )
+                    iport_height = trapezoid_delta + ip_slot * i + int( ip_slot / 2 )
+                    left_corner_x = svg_padding - iport_diagonal_half
+                    up_corner_y = iport_height + iport_diagonal_half
+                    right_corner_x = svg_padding + iport_diagonal_half
+                    bottom_corner_y = iport_height - iport_diagonal_half
+
+                    left_corner = left_corner_x + "," + iport_height
+                    up_corner = svg_padding + "," + up_corner_y
+                    right_corner = right_corner_x + "," + iport_height
+                    bottom_corner = svg_padding + "," + bottom_corner_y
+
+                    svg = svg + "<polygon points='" + left_corner + " " + up_corner + " " + right_corner + " " + bottom_corner + " ' style='fill:#ffff66;stroke:#cc9900;stroke-width:2' />"
+                    text_x = left_corner_x - text_displacement
+                    text_y = iport_height - text_displacement
+                    text_y2 = iport_height + text_displacement*2
+                    protocol_text_x = left_corner_x + text_displacement
+                    protocol_text_y = iport_height + int( text_displacement / 2 )
+                    svg = svg + "<a xlink:href='" + inputs[ i ].name + "IPort.html'><text class='link' x='" + text_x + "' y='" + text_y + "' text-anchor='end' fill='black' font-family='Courier New' font-weight='bold'>" + inputs[ i ].name + "</text></a>"
+                    svg = svg + "<text x='" + protocol_text_x + "' y='" + protocol_text_y + "'  font-size='10px' fill='black' font-family='Courier New'>" + inputs[ i ].protocol + "</text>"
+                    svg = svg + "<text x='" + text_x + "' y='" + text_y2 + "' text-anchor='end'  font-size='10px' fill='black' font-family='Courier New'>" + inputs[ i ].location + "</text>"
+                    svg = svg + "<line x1='0' y1='" + iport_height + "' x2='" + left_corner_x + "' y2='" + iport_height + "' style='stroke:#ddd;stroke-width:1'/>"
+                }
+            }
+
+            // microservices output ports
+            if ( output_ports_number > 0 ) {
+                op_slot = int( body_height / output_ports_number )
+                for( i = 0, i < output_ports_number, i++ ) {
+                    iport_diagonal_half = int( iport_diagonal / 2 )
+                    iport_height = trapezoid_delta + op_slot * i + int( op_slot / 2 )
+                    up_corner_y = iport_height + iport_diagonal_half
+                    basic_x = svg_width - svg_padding
+                    right_corner_x = basic_x + iport_diagonal_half
+                    bottom_corner_y = iport_height - iport_diagonal_half
+
+                    up_corner = basic_x + "," + up_corner_y
+                    right_corner = right_corner_x + "," + iport_height
+                    bottom_corner = basic_x + "," + bottom_corner_y
+                    text_x = right_corner_x + text_displacement
+                    text_y = iport_height - text_displacement
+                    text_y2 = iport_height + text_displacement*2
+
+                    svg = svg + "<polygon points='" + up_corner + " " + right_corner + " " + bottom_corner + " '  style='fill:#ff0000;stroke:#000000;stroke-width:2' />"
+                    svg = svg + "<a xlink:href='" + outputs[ i ].name + "OPort.html'><text class='link' x='" + text_x + "' y='" + text_y + "' fill='black' font-family='Courier New' font-weight='bold'>" + outputs[ i ].name + "</text></a>"
+                    svg = svg + "<text x='" + text_x + "' y='" + text_y2 + "' fill='black' font-size='10px' font-family='Courier New'>" + outputs[ i ].location + "," + outputs[ i ].protocol + "</text>"
+                    svg = svg + "<line x1='" + right_corner_x + "' y1='" + iport_height + "' x2='" + svg_width + "' y2='" + iport_height + "' style='stroke:#ddd;stroke-width:1'/>"
+                }
+            }
+        
+            svg = svg + "</svg>"
+
+            ovh_template_req.template = ovh_template
+            ovh_template_req.svgIcon = svg
+            
+            for( i = 0, i < #metadata.communication_dependencies, i++ ) {
+                com -> metadata.communication_dependencies[ i ]
+                ovh_template_req.communication_dependencies[ i ].operation_name = com.input_operation.name
+                
+                for( d = 0, d < #com.dependencies, d++ ) {
+                    dep -> com.dependencies[ d ]
+                    ovh_template_req.communication_dependencies[ i ].dependencies[ d ].name = dep.name
+                    found_p = false
+                    if ( is_defined( dep.port ) ) {
+                        for ( tmp_o in outputs ) {
+                            if ( tmp_o.name == dep.port ) { found_p = true }
+                        }
+                    } else { found_p = true }
+                    if ( internals || found_p ) {
+                        port_string = ""
+                        if ( is_defined( dep.port ) ) {
+                            ovh_template_req.communication_dependencies[ i ].dependencies[ d ].port = dep.port
+                        }
+                    } 
+                }
+            }
+            
+            max_files = #files 
+
+            getOverviewPage@RenderDocPages( ovh_template_req )( ovw )
+            files[ max_files ].filename = "Overview.html"
+            files[ max_files ].html = ovw
         }
-        ovw = ovw + "<td></table></body></html>"
-        max_files = #files 
-        files[ max_files ].filename = "Overview.html"
-        files[ max_files ].html = ovw
-    }
 
-    exists@File( JOLIEDOC_FOLDER )( joliedoc_exists )
-    if ( joliedoc_exists ) {
-        deleteDir@File( JOLIEDOC_FOLDER )()
-    }
-    mkdir@File( JOLIEDOC_FOLDER )()
+        exists@File( JOLIEDOC_FOLDER )( joliedoc_exists )
+        if ( joliedoc_exists ) {
+            deleteDir@File( JOLIEDOC_FOLDER )()
+        }
+        mkdir@File( JOLIEDOC_FOLDER )()
 
-    for( file in files ) {
-        f.filename = JOLIEDOC_FOLDER + "/" + file.filename;
-        f.content -> file.html
-        writeFile@File( f )(  )
-    }
+        for( file in files ) {
+            f.filename = JOLIEDOC_FOLDER + "/" + file.filename;
+            f.content -> file.html
+            writeFile@File( f )(  )
+        }
+        println@Console("DONE")()
 
+    }
 }
