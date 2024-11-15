@@ -15,14 +15,50 @@ jobs:
       jolie_version: ${{ steps.jolie_version.outputs.jolie_version }}
     steps:
       - uses: actions/checkout@v4
-      - id: setup-jolie
-        name: Setup Jolie
-        uses: jolie/setup-jolie@v1.0.2
-      - name: Generate Documentation
-        run: mkdir -p docs && touch docs/test.md
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin' # See 'Supported distributions' for available options
+          java-version: 21
+          cache: 'maven'
+      - name: Build with Maven
+        run: mvn install --file pom.xml
+      - name: "Set up JOLIE_HOME environment"
         shell: bash
-      # - run: jolie main.ol
-      #   shell: bash
+        run: |
+          echo "JOLIE_HOME=${{ github.workspace }}/dist/jolie" >> "$GITHUB_ENV"
+      - name: Set up PATH environment
+        shell: bash
+        run: |
+          echo "${{ github.workspace }}/dist/launchers/unix" >> $GITHUB_PATH
+      - name: Generate Documentation
+        shell: bash
+        run:  |
+          mkdir -p docs
+          find ${{ github.workspace }}/packages -maxdepth 1 -type f -not -regex ".*_.*" | while read -r file; do
+            MODULE_NAME="$(basename -- "$file")"
+            SERVICE_NAME="$(a=($(cat $file | grep -o -E '^service.*{$'));echo ${a[1]})"
+            # run joliedoc
+            joliedoc "$file" --internals
+            # insert module name and move necessary file to docs
+            IPLOCALFILES="$(grep -rnwl 'joliedoc/' --exclude="index.html" --exclude="Overview.html" -e "<td class='content-td'>local</td>")"
+            # select input port document file
+            if echo $IPLOCALFILES | tr ' ' '\n'| grep -qiF "$SERVICE_NAME"; then
+                # try find the file by service name
+                IPLOCALFILE="$(echo $IPLOCALFILES | tr ' ' '\n' | grep -iF $SERVICE_NAME)"
+            else
+                # select first file
+                IPLOCALFILE="$(echo $IPLOCALFILES | tr ' ' '\n' | head -1)"
+            fi
+            # insert service name
+            sed -i "s/<h1 class=\"service-name\">/<h1 class=\"service-name\">$SERVICE_NAME/" "$IPLOCALFILE"
+            # move file to docs
+            mv "$IPLOCALFILE" "${{ github.workspace }}/docs/$MODULE_NAME"
+            echo "generated doc for '$file', found '$SERVICE_NAME', moved generated doc file '$IPLOCALFILE' to 'docs/$MODULE_NAME'";
+            
+            # remove joliedoc
+            rm -rf ${{ github.workspace }}/joliedoc
+          done
       - name: Cache Docs
         id: cache-docs
         uses: actions/cache/save@v4
@@ -59,7 +95,7 @@ jobs:
           echo "Clone docs repository"
           git config --global user.email "gitaction@gitaction.com"
           git config --global user.name "GitAction"
-          git clone --single-branch --branch "$BRANCH" "https://x-access-token:$API_TOKEN_GITHUB@github.com/jolie/docs.git" "$CLONE_DIR"
+          git clone --single-branch --branch "$BRANCH" "https://x-access-token:$API_TOKEN_GITHUB@github.com/kicito/docs.git" "$CLONE_DIR"
           echo "Copy generated doc to docs repository"
           mkdir -p "$DEST_COPY"
           cp -R "docs" "$DEST_COPY"
