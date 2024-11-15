@@ -95,7 +95,7 @@ jobs:
           echo "Clone docs repository"
           git config --global user.email "gitaction@gitaction.com"
           git config --global user.name "GitAction"
-          git clone --single-branch --branch "$BRANCH" "https://x-access-token:$API_TOKEN_GITHUB@github.com/kicito/docs.git" "$CLONE_DIR"
+          git clone --single-branch --branch "$BRANCH" "https://x-access-token:$API_TOKEN_GITHUB@github.com/jolie/docs.git" "$CLONE_DIR"
           echo "Copy generated doc to docs repository"
           mkdir -p "$DEST_COPY"
           cp -R "docs" "$DEST_COPY"
