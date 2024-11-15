@@ -57,7 +57,7 @@ type GetMetaDataRequest: void {
 }
 
 type GetMetaDataResponse: void {
-  .service: Service             //< the definition of the service
+  .service*: Service             //< the definition of the service
   .input*: Port                 //< the definitions of all the input ports
   .output*: Port                //< the definitions of all the output ports
   .interfaces*: Interface       //< the definitions of all the interfaces
