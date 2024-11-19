@@ -1,0 +1,97 @@
+<html>
+
+<head>
+    <style>
+        body {
+            font-family: 'Courier New';
+        }
+
+        .picture {
+            padding-top: 50px;
+            text-align: center;
+        }
+
+        .link:hover {
+            fill: #660000;
+        }
+
+        .dependency-map {
+            padding: 20px;
+        }
+
+        .input-operation {
+            width: 50%;
+        }
+
+        .dependency-table {
+            width: 100%;
+            border: 1px solid #444;
+            padding: 10px;
+        }
+
+        .dependency-table a {
+            color: black;
+            text-decoration: none;
+        }
+
+
+        .dependency-table a:hover {
+            color: #600;
+        }
+
+        .dependency-table th {
+            text-align: left;
+        }
+
+        .dependency-list {
+            background-color: #ddd;
+            padding-left: 20%;
+        }
+
+        .legenda {
+            font-size: 12px;
+            font-style: italic;
+            color: #888;
+        }
+    </style>
+</head>
+
+<body>
+    <table width='100%'>
+        <tr>
+            <td valign='top' class='picture' width='50%'>{{{svgIcon}}}</td>
+            <td valign='top' class='dependency-map'>
+                <h1>Dependency Map</h1>
+                <span class='legenda'>Legenda:</span><br>
+                <table class='dependency-table'>
+                    <tr>
+                        <th class='input-operation'>input operation</th>
+                    </tr>
+                    <tr>
+                        <td class='dependency-list'><i>communication dependencies</i></td>
+                    </tr>
+                </table><br><br>
+                {{#communication_dependencies}}
+                <table class='dependency-table'>
+                    <tr>
+                        <th colspan='2' class='input-operation'>{{operation_name}}</th>
+                    </tr>
+                    <tr>
+                        <td class='dependency-list'>
+                            <table width='100%'>
+                                {{#dependencies}}
+                                <tr>
+                                    <td>{{name}}{{#port}}@<b><a href='{{port}}OPort.html'>{{/port}}{{port}}{{#port}}</a></b>{{/port}}</td>
+                                </tr>
+                                {{/dependencies}}
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+                {{/communication_dependencies}}
+            </td>
+        </tr>
+    </table>
+</body>
+
+</html>

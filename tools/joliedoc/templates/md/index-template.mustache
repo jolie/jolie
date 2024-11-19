@@ -1,0 +1,106 @@
+<html>
+
+<head>
+    <style>
+        body {
+            font-family: 'Courier New';
+            font-size: 14px;
+        }
+
+        .headertable {
+            width: 100%;
+            font-size: 30px;
+            padding: 10px;
+            border-bottom: 1px dotted #444;
+        }
+
+        .menutd {
+            width: 12%;
+            border-right: 1px dotted #444;
+            height: 1000px;
+        }
+
+        .bodytd {
+            width: 80%;
+        }
+
+        .bodytd object {
+            width: 100%;
+            height: 100vh;
+        }
+
+        .maintable {
+            width: 100%;
+        }
+
+        .menutitle {
+            font-weight: bold;
+            font-size: 20px;
+        }
+
+        .menutd a {
+            cursor: pointer;
+        }
+
+        .itemmenu {
+            text-align: center;
+            width: 100%;
+        }
+
+        .itemmenu a:hover {
+            color: #600;
+        }
+    </style>
+    <script>
+        function loadPage(page) {
+            document.getElementById("bodytd").innerHTML = '<object type=\"text/html\" data=\"' + page + '\"></object>';
+        }
+    </script>
+</head>
+
+<body>
+    <table class='headertable'>
+        <tr>
+            <td>Jolie Documentation:&nbsp;<b>{{filename}}</b></td>
+        </tr>
+    </table>
+    <table class='maintable'>
+        <tr>
+            <td valign='top' class='menutd'><br><br>
+                <table width='100%'>
+                    <tr>
+                        <td class='itemmenu'><a onclick='loadPage("Overview.html")'>OVERVIEW</a></td>
+                    </tr>
+                </table><br><br>
+                <table width='100%'>
+                    <tr>
+                        <td class='itemmenu menutitle'>input ports</td>
+                    </tr>
+                </table><br>
+                <table width='100%'>
+                    {{#ipitems}}
+                    <tr>
+                        <td class='itemmenu'><a onclick='loadPage("{{ipname}}IPort.html")'>{{ipname}}</a></td>
+                    </tr>
+                    {{/ipitems}}
+                </table><br><br>
+                <table width='100%'>
+                    <tr>
+                        <td class='itemmenu menutitle'>output ports</td>
+                    </tr>
+                </table><br>
+                <table width='100%'>
+                    {{#opitems}}
+                    <tr>
+                        <td class='itemmenu'><a onclick='loadPage("{{opname}}OPort.html")'>{{opname}}</a></td>
+                    </tr>
+                    {{/opitems}}
+                </table><br><br>
+            </td>
+            <td id='bodytd' class='bodytd'></td>
+        </tr>
+    </table>
+</body>
+<script>loadPage('Overview.html')</script>
+
+</html>

@@ -1,0 +1,42 @@
+# Service
+
+{{#port}}
+| Port Name | Location | Protocol | Interfaces |
+| --- | --- | --- | --- |
+| {{ name }} | {{#location}}{{.}}{{/location}}{{^location}}-{{/location}} |{{#protocol}}{{.}}{{/protocol}}{{^protocol}}-{{/protocol}} | {{#interfaces}}
+<a href='#{{name}}'>{{name}}</a>{{/interfaces}} |
+
+### List of Available Interfaces
+
+{{#interfaces}}
+### {{ name }}
+{{#documentation}}
+Interface documentation: {{documentation}}
+{{/documentation}}
+
+| Operation Name | Input Type | Output Type | Faults | Description |
+| --- | --- | --- | --- | --- |
+{{#operations}}
+| {{ operation_name }} | <a href="#{{ input }}">{{ input }}</a> | {{#output}}<a href='#{{.}}'>{{.}}</a>{{/output}}{{^output}}-{{/output}} | {{#fault}}<details><summary>{{name}}</summary>{{#type}}{{> native-type-template}}{{> typelink-template}}{{#undefined}}undefined{{/undefined}}{{/type}})</details>{{/fault}}{{^fault}}-{{/fault}} | {{{ documentation }}} |
+{{/operations}}
+
+
+### Types
+
+{{#types}}
+<details>
+<summary><span id="{{name}}">{{name}}{{#documentation}}
+: {{.}}
+{{/documentation}}</span>
+</summary>
+
+##### Type Declaration
+{{#type}}
+<pre>
+{{> type-template}}
+</pre>
+{{/type}}
+</details>
+{{/types}}
+{{/interfaces}}
+{{/port}}

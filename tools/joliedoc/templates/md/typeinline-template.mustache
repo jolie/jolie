@@ -1,0 +1,6 @@
+{{#root_type}}{{> native-type-template }}{{/root_type}}{{#sub_type}}
+{{#isFirst}} &#123;{{#documentation}}// {{.}}{{/documentation}}
+{{/isFirst}}
+{{> sub-type-template}}
+{{#isLast}}
+{{{indentation}}}&#125;{{/isLast}}{{/sub_type}}
