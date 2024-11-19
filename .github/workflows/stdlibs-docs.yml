@@ -13,6 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       jolie_version: ${{ steps.jolie_version.outputs.jolie_version }}
+      summary_string: ${{ steps.generate.outputs.summary_string }}
     steps:
       - uses: actions/checkout@v4
       - name: Set up JDK
@@ -32,33 +33,41 @@ jobs:
         run: |
           echo "${{ github.workspace }}/dist/launchers/unix" >> $GITHUB_PATH
       - name: Generate Documentation
+        id: generate
         shell: bash
         run:  |
           mkdir -p docs
-          find ${{ github.workspace }}/packages -maxdepth 1 -type f -not -regex ".*_.*" | while read -r file; do
-            MODULE_NAME="$(basename -- "$file")"
-            SERVICE_NAME="$(a=($(cat $file | grep -o -E '^service.*{$'));echo ${a[1]})"
-            # run joliedoc
-            joliedoc "$file" --internals
-            # insert module name and move necessary file to docs
-            IPLOCALFILES="$(grep -rnwl 'joliedoc/' --exclude="index.html" --exclude="Overview.html" -e "<td class='content-td'>local</td>")"
-            # select input port document file
-            if echo $IPLOCALFILES | tr ' ' '\n'| grep -qiF "$SERVICE_NAME"; then
-                # try find the file by service name
-                IPLOCALFILE="$(echo $IPLOCALFILES | tr ' ' '\n' | grep -iF $SERVICE_NAME)"
-            else
-                # select first file
-                IPLOCALFILE="$(echo $IPLOCALFILES | tr ' ' '\n' | head -1)"
-            fi
-            # insert service name
-            sed -i "s/<h1 class=\"service-name\">/<h1 class=\"service-name\">$SERVICE_NAME/" "$IPLOCALFILE"
-            # move file to docs
-            mv "$IPLOCALFILE" "${{ github.workspace }}/docs/$MODULE_NAME"
-            echo "generated doc for '$file', found '$SERVICE_NAME', moved generated doc file '$IPLOCALFILE' to 'docs/$MODULE_NAME'";
-            
-            # remove joliedoc
-            rm -rf ${{ github.workspace }}/joliedoc
+          SUMMARY=""
+          find ${{ github.workspace }}/packages -maxdepth 1 -type f -not -regex ".*_.*" -print | sort | ( while read -r file; do
+              MODULE_NAME="$(basename -- "$file")"
+              SERVICE_NAME="$(a=($(cat $file | grep -o -E '^service.*{$'));echo ${a[1]})"
+              
+              SUMMARY="$SUMMARY    - [${MODULE_NAME%.ol}](language-tools-and-standard-library/standard-library-api/${MODULE_NAME%.ol}.md)\n"
+              # run joliedoc
+              joliedoc "$file" --internals --out-type md
+              # insert module name and move necessary file to docs
+              IPLOCALFILES="$(grep -rnwl 'joliedoc/' --exclude="index.md" --exclude="Overview.md" -e "local")"
+              # select input port document file
+              if echo $IPLOCALFILES | tr ' ' '\n'| grep -qiF "$SERVICE_NAME"; then
+                  # try find the file by service name
+                  IPLOCALFILE="$(echo $IPLOCALFILES | tr ' ' '\n' | grep -iF $SERVICE_NAME)"
+              else
+                  # select first file
+                  IPLOCALFILE="$(echo $IPLOCALFILES | tr ' ' '\n' | head -1)"
+              fi
+              # insert service name
+              sed -i "s/# Service/# Service $SERVICE_NAME\n\n> from ${MODULE_NAME%.ol} import $SERVICE_NAME/" "$IPLOCALFILE"
+              # move file to docs
+              mv "$IPLOCALFILE" "${{ github.workspace }}/docs/${MODULE_NAME%.ol}.md"
+              echo "generated doc for '$file', found '$SERVICE_NAME', moved generated doc file '$IPLOCALFILE' to 'docs/$MODULE_NAME'";
+
+              # remove joliedoc
+              rm -rf ${{ github.workspace }}/joliedoc
           done
+
+          echo "summary_string<<EOF" >> $GITHUB_OUTPUT 
+          echo "$SUMMARY" >> $GITHUB_OUTPUT 
+          echo "EOF" >> $GITHUB_OUTPUT )
       - name: Cache Docs
         id: cache-docs
         uses: actions/cache/save@v4
@@ -100,6 +109,12 @@ jobs:
           mkdir -p "$DEST_COPY"
           cp -R "docs" "$DEST_COPY"
           cd "$CLONE_DIR"
+
+          # replace SUMMARY.md
+          SUMMARY="${{ needs.build.outputs.summary_string }}"
+
+          sed -z -i "s|/standard-library-api/README.md).*# Errors|/standard-library-api/README.md)\n$SUMMARY\n\n# Errors|" src/SUMMARY.md
+          
           echo "Add git commit"
           git add .
           if git status | grep -q "Changes to be committed"
