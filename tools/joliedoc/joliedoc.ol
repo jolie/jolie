@@ -366,9 +366,9 @@ service JolieDoc {
 
                     max_files = #files 
                     if ( __port_type == "input" ) {
-                        endname = "IPort.html"
+                        endname = "IPort." + type
                     } else {
-                        endname = "OPort.html"
+                        endname = "OPort." + type
                     }
                     files[ max_files ].filename = ptt.name + endname
                     files[ max_files ].html = portPage
@@ -381,42 +381,47 @@ service JolieDoc {
         install( Abort => nullProcess )
     }
 
-    init {
-        getServiceDirectory@File()( joliedoc_directory )
-        // loading templates
-        readFile@File( { filename = joliedoc_directory + "/overview-page-template.html" } )( ovh_template )
-        readFile@File( { filename = joliedoc_directory + "/port-page-template.html" } )( port_page_template )
-        readFile@File( { filename = joliedoc_directory + "/index-template.html" } )( index_template )
-        // loading partials
-        partials[0].name = "cardinality-template"
-        readFile@File( { filename = joliedoc_directory + "/cardinality-template.html" } )( partials[0].template )
-        partials[1].name = "native-type-template"
-        readFile@File( { filename = joliedoc_directory + "/native-type-template.html" } )( partials[1].template )
-        partials[2].name = "sub-type-template"
-        readFile@File( { filename = joliedoc_directory + "/sub-type-template.html" } )( partials[2].template )
-        partials[3].name = "type-template"
-        readFile@File( { filename = joliedoc_directory + "/type-template.html" } )( partials[3].template )
-        partials[4].name = "typeinline-template"
-        readFile@File( { filename = joliedoc_directory + "/typeinline-template.html" } )( partials[4].template )
-        partials[5].name = "typelink-template"
-        readFile@File( { filename = joliedoc_directory + "/typelink-template.html" } )( partials[5].template )
-
-    }
-
     main {
         
-        if ( #args == 0 || #args > 2 ) {
-            println@Console( "Usage: joliedoc <filename> [--internals ]")()
+        if ( #args == 0 ) {
+            println@Console( "Usage: joliedoc <filename> [ --internals ] [ --out-type 'html|md' ]")()
         } else {
             println@Console("Generating...")()
             internals = false
-            if ( #args == 2 && args[ 1 ] == "--internals" ) {
-                internals = true
-            } else if ( #args == 2 ) {
-                println@Console("Argument " + args[ 1 ] + " not recognized" )()
-                throw( Abort )
+            type = "html"
+            for ( i=0, i< #args, i++ ) {
+                if ( i == 0 ){
+                    rq.filename = args[ i ]
+                } else {
+                    if ( args[ i ] == "--internals" ){
+                        internals = true
+                    } else if ( args[ i ] == "--out-type" ){
+                        type = args[ ++i ]
+                    }
+
+                }
             }
-            rq.filename = args[ 0 ]
+            
+            getServiceDirectory@File()( joliedoc_directory )
+            getFileSeparator@File()(sep)
+            // loading templates
+            readFile@File( { filename = joliedoc_directory + sep + "templates" + sep + type + sep + "overview-page-template.mustache" } )( ovh_template )
+            readFile@File( { filename = joliedoc_directory + sep + "templates" + sep + type + sep + "port-page-template.mustache" } )( port_page_template )
+            readFile@File( { filename = joliedoc_directory + sep + "templates" + sep + type + sep + "index-template.mustache" } )( index_template )
+            // loading partials
+            partials[0].name = "cardinality-template"
+            readFile@File( { filename = joliedoc_directory + sep + "templates" + sep + type + sep + "cardinality-template.mustache" } )( partials[0].template )
+            partials[1].name = "native-type-template"
+            readFile@File( { filename = joliedoc_directory + sep + "templates" + sep + type + sep + "native-type-template.mustache" } )( partials[1].template )
+            partials[2].name = "sub-type-template"
+            readFile@File( { filename = joliedoc_directory + sep + "templates" + sep + type + sep + "sub-type-template.mustache" } )( partials[2].template )
+            partials[3].name = "type-template"
+            readFile@File( { filename = joliedoc_directory + sep + "templates" + sep + type + sep + "type-template.mustache" } )( partials[3].template )
+            partials[4].name = "typeinline-template"
+            readFile@File( { filename = joliedoc_directory + sep + "templates" + sep + type + sep + "typeinline-template.mustache" } )( partials[4].template )
+            partials[5].name = "typelink-template"
+            readFile@File( { filename = joliedoc_directory + sep + "templates" + sep + type + sep + "typelink-template.mustache" } )( partials[5].template )
+
             getInputPortMetaData@MetaJolie( rq )( meta_description )
             __port_type = "input"
             _get_ports
@@ -451,7 +456,7 @@ service JolieDoc {
             getIndexPage@RenderDocPages( index_rq )( index )
 
             max_files = #files 
-            files[ max_files ].filename = "index.html"
+            files[ max_files ].filename = "index." + type
             files[ max_files ].html = index
 
             /* creating overview */
@@ -570,7 +575,7 @@ service JolieDoc {
             max_files = #files 
 
             getOverviewPage@RenderDocPages( ovh_template_req )( ovw )
-            files[ max_files ].filename = "Overview.html"
+            files[ max_files ].filename = "Overview." + type
             files[ max_files ].html = ovw
         }
 
