@@ -95,7 +95,7 @@ jobs:
         run: echo "jolie_branch=v$(echo ${{ needs.build.outputs.jolie_version }} | sed -E 's/(.*)([[:digit:]]+)/\1x/')" >> $GITHUB_OUTPUT
       - name: Push to docs repository
         env:
-          API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
+          API_TOKEN_GITHUB: ${{ secrets.JOLIE_DOCS_WRITE_CONTENTS }}
           BRANCH: ${{ steps.jolie_branch.outputs.jolie_branch }}
           DOC_PATH: src/language-tools-and-standard-library/standard-library-api
         run: |
