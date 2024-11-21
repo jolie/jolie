@@ -38,6 +38,7 @@ jobs:
         run:  |
           mkdir -p docs
           SUMMARY=""
+          LINTERIGNORE="<!-- markdownlint-disable -->\n<!-- editorconfig-checker-disable -->\n<!-- cSpell:disable -->\n\n"
           find ${{ github.workspace }}/packages -maxdepth 1 -type f -not -regex ".*_.*" -print | sort | ( while read -r file; do
               MODULE_NAME="$(basename -- "$file")"
               SERVICE_NAME="$(a=($(cat $file | grep -o -E '^service.*{$'));echo ${a[1]})"
@@ -56,7 +57,7 @@ jobs:
                   IPLOCALFILE="$(echo $IPLOCALFILES | tr ' ' '\n' | head -1)"
               fi
               # insert service name
-              sed -i "s/# Service/# Service $SERVICE_NAME\n\n> from ${MODULE_NAME%.ol} import $SERVICE_NAME/" "$IPLOCALFILE"
+              sed -i "s/# Service/${LINTERIGNORE}# Service $SERVICE_NAME\n\n> from ${MODULE_NAME%.ol} import $SERVICE_NAME/" "$IPLOCALFILE"
               # move file to docs
               mv "$IPLOCALFILE" "${{ github.workspace }}/docs/${MODULE_NAME%.ol}.md"
               echo "generated doc for '$file', found '$SERVICE_NAME', moved generated doc file '$IPLOCALFILE' to 'docs/$MODULE_NAME'";
@@ -74,7 +75,7 @@ jobs:
         with:
           path: docs
           key: docs-${{ github.sha }}
-      - name: Retrive Jolie version
+      - name: Retrieve Jolie version
         id: jolie_version
         run:
           echo "jolie_version=$(cat pom.xml | grep -o -P '(?<=<jolie.version>).*(?=</jolie.version>)')" >> $GITHUB_OUTPUT
@@ -107,7 +108,7 @@ jobs:
           git clone --single-branch --branch "$BRANCH" "https://x-access-token:$API_TOKEN_GITHUB@github.com/jolie/docs.git" "$CLONE_DIR"
           echo "Copy generated doc to docs repository"
           mkdir -p "$DEST_COPY"
-          cp -R "docs" "$DEST_COPY"
+          cp -R "docs/." "$DEST_COPY"
           cd "$CLONE_DIR"
 
           # replace SUMMARY.md
