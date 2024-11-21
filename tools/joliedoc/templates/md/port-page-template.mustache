@@ -17,7 +17,7 @@ Interface documentation: {{documentation}}
 | Operation Name | Input Type | Output Type | Faults | Description |
 | --- | --- | --- | --- | --- |
 {{#operations}}
-| {{ operation_name }} | <a href="#{{ input }}">{{ input }}</a> | {{#output}}<a href='#{{.}}'>{{.}}</a>{{/output}}{{^output}}-{{/output}} | {{#fault}}<details><summary>{{name}}</summary>{{#type}}{{> native-type-template}}{{> typelink-template}}{{#undefined}}undefined{{/undefined}}{{/type}})</details>{{/fault}}{{^fault}}-{{/fault}} | {{{ documentation }}} |
+| {{ operation_name }} | <a href="#{{ input }}">{{ input }}</a> | {{#output}}<a href='#{{.}}'>{{.}}</a>{{/output}}{{^output}}-{{/output}} | {{#fault}}<details><summary>{{name}}</summary>{{#type}}{{> native-type-template}}{{> typelink-template}}{{#undefined}}undefined{{/undefined}}{{/type}}</details>{{/fault}}{{^fault}}-{{/fault}} | {{{ documentation }}} |
 {{/operations}}
 
 

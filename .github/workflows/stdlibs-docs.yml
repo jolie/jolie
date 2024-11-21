@@ -74,7 +74,7 @@ jobs:
         with:
           path: docs
           key: docs-${{ github.sha }}
-      - name: Retrive Jolie version
+      - name: Retrieve Jolie version
         id: jolie_version
         run:
           echo "jolie_version=$(cat pom.xml | grep -o -P '(?<=<jolie.version>).*(?=</jolie.version>)')" >> $GITHUB_OUTPUT
@@ -107,7 +107,7 @@ jobs:
           git clone --single-branch --branch "$BRANCH" "https://x-access-token:$API_TOKEN_GITHUB@github.com/jolie/docs.git" "$CLONE_DIR"
           echo "Copy generated doc to docs repository"
           mkdir -p "$DEST_COPY"
-          cp -R "docs" "$DEST_COPY"
+          cp -R "docs/." "$DEST_COPY"
           cd "$CLONE_DIR"
 
           # replace SUMMARY.md
