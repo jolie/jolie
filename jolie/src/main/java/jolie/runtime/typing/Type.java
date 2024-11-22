@@ -60,7 +60,7 @@ class TypeImpl extends Type {
 		}
 
 		try {
-			checkSubType.check( value ); //checks if the value is of the the given type (I think)
+			checkSubType.check( value );
 			return checkSubType;
 		} catch( TypeCheckingException e ) {
 			return null;
