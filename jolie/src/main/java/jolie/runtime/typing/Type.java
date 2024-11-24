@@ -21,16 +21,15 @@
 
 package jolie.runtime.typing;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Optional;
 import jolie.lang.NativeType;
 import jolie.lang.parse.ast.types.BasicTypeDefinition;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 import jolie.util.Range;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Optional;
 
 class TypeImpl extends Type {
 	private final Range cardinality;
@@ -50,6 +49,22 @@ class TypeImpl extends Type {
 	@Override
 	public Type findSubType( String key ) {
 		return (subTypes != null) ? subTypes.get( key ) : null;
+	}
+
+	@Override
+	public Type findSubType( String key, Value value ) {
+
+		Type checkSubType = findSubType( key );
+		if( checkSubType == null ) {
+			return null;
+		}
+
+		try {
+			checkSubType.check( value );
+			return checkSubType;
+		} catch( TypeCheckingException e ) {
+			return null;
+		}
 	}
 
 	@Override
@@ -258,6 +273,11 @@ class TypeChoice extends Type {
 		return (ret != null) ? ret : right.findSubType( key );
 	}
 
+	@Override
+	public Type findSubType( String key, Value value ) {
+		Type ret = left.findSubType( key, value );
+		return (ret != null) ? ret : right.findSubType( key, value );
+	}
 
 	@Override
 	public void cutChildrenFromValue( Value value ) {
@@ -436,6 +456,8 @@ public abstract class Type {
 
 	public abstract Type findSubType( String key );
 
+	public abstract Type findSubType( String key, Value value );
+
 	protected abstract void check( Value value, StringBuilder pathBuilder )
 		throws TypeCheckingException;
 
@@ -455,6 +477,11 @@ public abstract class Type {
 		@Override
 		public Type findSubType( String key ) {
 			return linkedType.findSubType( key );
+		}
+
+		@Override
+		public Type findSubType( String key, Value value ) {
+			return linkedType.findSubType( key, value );
 		}
 
 		public String linkedTypeName() {
