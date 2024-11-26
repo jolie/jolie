@@ -62,7 +62,7 @@
 		<module>tools/joliec</module>
 		<module>javaServices/coreJavaServices</module>
 		<module>javaServices/monitorJavaServices</module>
-		<module>javaServices/meta</module>
+		<module>javaServices/ast</module>
 		<module>launchers</module>
 		<module>test</module>
 	</modules>
