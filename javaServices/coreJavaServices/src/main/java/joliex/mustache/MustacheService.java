@@ -36,15 +36,9 @@ public class MustacheService extends JavaService {
 	public String render( Value request ) {
 		final Map< String, Integer > compiledPartialsDepth = new HashMap<>();
 		final DefaultMustacheFactory mustacheFactory;
-
 		final int partialsRecursionLimit;
 
-
-		if( request.hasChildren( "partialsRecursionLimit" ) ) {
-			partialsRecursionLimit = request.getFirstChild( "partialsRecursionLimit" ).intValue();
-		} else {
-			partialsRecursionLimit = 10;
-		}
+		partialsRecursionLimit = request.firstChildOrDefault( "partialsRecursionLimit", Value::intValue, 10 );
 
 		if( request.hasChildren( "dir" ) ) {
 			mustacheFactory = new DefaultMustacheFactory( new File( request.getFirstChild( "dir" ).strValue() ) );
