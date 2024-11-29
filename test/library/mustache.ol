@@ -18,20 +18,47 @@
  */
 
 from ..test-unit import TestUnitInterface
-from mustache import Mustache
+from mustache import Mustache, MustacheFunctionProviderInterface
+from runtime import Runtime
+from reflection import Reflection
 from console import Console
 
-service Main {
-	inputPort TestUnitInput {
+interface MustacheFunctionsInterface {
+RequestResponse:
+	hello( void )( string ),
+	helloParam( string )( string )
+}
+
+service MustacheFunctions {
+	execution: concurrent
+
+	inputPort Input {
 		location: "local"
-		interfaces: TestUnitInterface
+		interfaces: MustacheFunctionsInterface
 	}
 
+	main {
+		[ hello()( "Hello" ) ]
+		[ helloParam( param )( "Hello " + param ) ]
+	}
+}
+
+service Main {
+	execution: concurrent
+
+	inputPort TestUnitInput {
+		location: "local"
+		interfaces: TestUnitInterface, MustacheFunctionProviderInterface
+	}
+
+	embed MustacheFunctions as mustacheFunctions
 	embed Mustache as mustache
-	embed Console as Console
+	embed Reflection as reflection
+	embed Console as console
+	embed Runtime as runtime
 
 	main {
-		test()() {
+		[ test()() {
 			if(
 				render@mustache( {
 					template = ""
@@ -87,6 +114,26 @@ service Main {
 				} )
 				!= "Supervej, Odense"
 			) throw( TestFailed, "structure" )
+
+			// Function that returns a string
+			if(
+				render@mustache( {
+					template = "{{fn.hello}}"
+					functions.binding.location = getLocalLocation@runtime()
+				} )
+				!= "Hello"
+			) throw( TestFailed, "function that returns a string" )
+println@console( render@mustache( {
+					template = "{{#fn.helloParam}}there{{/fn.helloParam}}"
+					functions.binding.location = getLocalLocation@runtime()
+				} ) )()
+			if(
+				render@mustache( {
+					template = "{{#fn.helloParam}}there{{/fn.helloParam}}"
+					functions.binding.location = getLocalLocation@runtime()
+				} )
+				!= "Hello there"
+			) throw( TestFailed, "parameterised function that returns a string" )
 
 			// usage of partials online
 			render = render@mustache( {
@@ -151,9 +198,17 @@ service Main {
 					}
 				} )
 			if( render != "start 12111110" ) throw( TestFailed, "online partials 4, found " + render )
-
-			
-			
-		}
+		} ]
+		
+		[ call( request )( response ) {
+			invocationRequest << {
+				operation = request.name
+				outputPort = "mustacheFunctions"
+			}
+			if( request.template instanceof string ) {
+				invocationRequest.data = request.template
+			}
+			invoke@reflection( invocationRequest )( response )
+		} ]
 	}
 }

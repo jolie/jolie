@@ -19,20 +19,41 @@
 
 package joliex.mustache;
 
+import java.io.IOException;
+import java.io.StringWriter;
 import java.io.Writer;
 import java.util.List;
-
 import com.github.mustachejava.Binding;
 import com.github.mustachejava.Code;
 import com.github.mustachejava.Iteration;
 import com.github.mustachejava.ObjectHandler;
 import com.github.mustachejava.TemplateContext;
 import com.github.mustachejava.util.Wrapper;
-
+import jolie.Interpreter;
+import jolie.net.CommMessage;
+import jolie.net.LocalCommChannel;
+import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
+import jolie.runtime.embedding.java.OutputPort;
 
 public class JolieMustacheObjectHandler implements ObjectHandler {
+	public final static class LocationHolder {
+		private final OutputPort functionProvider;
+
+		public LocationHolder( Object location ) {
+			if( location instanceof LocalCommChannel ) {
+				this.functionProvider = new OutputPort( ((LocalCommChannel) location).interpreter() );
+			} else {
+				throw new IllegalArgumentException(
+					"Location passed to Mustache must be a LocalCommChannel. Please refer to getLocalLocation@runtime." );
+			}
+		}
+	}
+
+	private record FunctionCallHolder(String functionName, OutputPort provider) {
+	}
+
 	/**
 	 * Find a value named "name" in the array of scopes in reverse order.
 	 *
@@ -46,11 +67,30 @@ public class JolieMustacheObjectHandler implements ObjectHandler {
 			Object scope = scopes.get( scopes.size() - 1 );
 			if( scope != null ) {
 				Value value = (Value) scope;
-				if( value.hasChildren( name ) ) {
-					return value.getChildren( name );
-					// ValueVector vec = value.getChildren( name );
-					// return vec.size() > 1 ? vec : vec.first().valueObject();
+
+				String[] keys = name.split( "\\." );
+				for( int i = 0; i < keys.length - 1; i++ ) {
+					if( value.hasChildren( keys[ i ] ) ) {
+						value = value.getFirstChild( keys[ i ] );
+					} else {
+						return null;
+					}
 				}
+
+				if( value.hasChildren( keys[ keys.length - 1 ] ) ) {
+					// It's a data node
+					return value.getChildren( keys[ keys.length - 1 ] );
+				} else if( value.valueObject() instanceof LocationHolder ) {
+					// We have a function provider. Return a function call with this key as function name.
+					return new FunctionCallHolder( keys[ keys.length - 1 ],
+						((LocationHolder) value.valueObject()).functionProvider );
+				}
+				// Value value = (Value) scope;
+				// if( value.hasChildren( name ) ) {
+				// return value.getChildren( name );
+				// // ValueVector vec = value.getChildren( name );
+				// // return vec.size() > 1 ? vec : vec.first().valueObject();
+				// }
 			}
 
 			return null;
@@ -92,7 +132,39 @@ public class JolieMustacheObjectHandler implements ObjectHandler {
 				}
 				return w;
 			}
+		} else if( object instanceof FunctionCallHolder ) {
+			FunctionCallHolder holder = (FunctionCallHolder) object;
+			try {
+				Value requestData = Value.create();
+				requestData.getFirstChild( "name" ).setValue( holder.functionName );
+
+				StringWriter requestWriter = new StringWriter();
+				iteration.next( requestWriter, null, scopes );
+				requestData.getFirstChild( "template" ).setValue( requestWriter.toString() );
+
+				Value responseData =
+					holder.provider.callRequestResponse( CommMessage.createRequest( "call", "/", requestData ) );
+				if( responseData.isString() ) {
+					try {
+						writer.write( responseData.strValue() );
+					} catch( IOException e ) {
+						Interpreter.getInstance().logWarning( e );
+					}
+				} else {
+					scopes.add( responseData );
+					Writer w = iteration.next( writer, responseData, scopes );
+					System.out.println( "TBD" );
+					return w;
+				}
+				// scopes.add( responseData );
+				// Writer w = iteration.next( writer, responseData, scopes );
+				// scopes.remove( scopes.size() - 1 );
+				return writer;
+			} catch( FaultException e ) {
+				return writer;
+			}
 		}
+
 		return writer;
 	}
 
@@ -144,11 +216,22 @@ public class JolieMustacheObjectHandler implements ObjectHandler {
 	 */
 	@Override
 	public String stringify( Object object ) {
-		if( object instanceof Value ) {
-			return ((Value) object).strValue();
-		} else if( object instanceof ValueVector ) {
-			return ((ValueVector) object).first().strValue();
+		switch( object ) {
+		case Value v:
+			return v.strValue();
+		case ValueVector vec:
+			return vec.first().strValue();
+		case FunctionCallHolder holder:
+			try {
+				Value requestData = Value.create();
+				requestData.getFirstChild( "name" ).setValue( holder.functionName );
+				return holder.provider.callRequestResponse( CommMessage.createRequest( "call", "/", requestData ) )
+					.strValue();
+			} catch( FaultException e ) {
+				return e.toString();
+			}
+		default:
+			return object.toString();
 		}
-		return object.toString();
 	}
 }
