@@ -54,6 +54,16 @@ public class JolieMustacheObjectHandler implements ObjectHandler {
 	private record FunctionCallHolder(String functionName, OutputPort provider) {
 	}
 
+	private static Value invokeFunction( OutputPort outputPort, String functionName ) {
+		Value requestData = Value.create();
+		requestData.getFirstChild( "name" ).setValue( functionName );
+		try {
+			return outputPort.callRequestResponse( CommMessage.createRequest( "call", "/", requestData ) );
+		} catch( FaultException e ) {
+			return Value.create( e.toString() );
+		}
+	}
+
 	/**
 	 * Find a value named "name" in the array of scopes in reverse order.
 	 *
@@ -70,7 +80,9 @@ public class JolieMustacheObjectHandler implements ObjectHandler {
 
 				String[] keys = name.split( "\\." );
 				for( int i = 0; i < keys.length - 1; i++ ) {
-					if( value.hasChildren( keys[ i ] ) ) {
+					if( value.valueObject() instanceof LocationHolder ) {
+						value = invokeFunction( ((LocationHolder) value.valueObject()).functionProvider, keys[ i ] );
+					} else if( value.hasChildren( keys[ i ] ) ) {
 						value = value.getFirstChild( keys[ i ] );
 					} else {
 						return null;
@@ -150,12 +162,10 @@ public class JolieMustacheObjectHandler implements ObjectHandler {
 					} catch( IOException e ) {
 						Interpreter.getInstance().logWarning( e );
 					}
-				} else {
-					scopes.add( responseData );
-					Writer w = iteration.next( writer, responseData, scopes );
-					System.out.println( "TBD" );
-					return w;
-				}
+				} /*
+					 * else { scopes.add( responseData ); Writer w = iteration.next( writer, responseData, scopes );
+					 * scopes.remove( scopes.size() - 1 ); return w; }
+					 */
 				// scopes.add( responseData );
 				// Writer w = iteration.next( writer, responseData, scopes );
 				// scopes.remove( scopes.size() - 1 );

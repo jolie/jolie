@@ -23,10 +23,16 @@ from runtime import Runtime
 from reflection import Reflection
 from console import Console
 
+type Person {
+	name: string
+	age: int
+}
+
 interface MustacheFunctionsInterface {
 RequestResponse:
 	hello( void )( string ),
-	helloParam( string )( string )
+	helloParam( string )( string ),
+	helloData( void )( Person )
 }
 
 service MustacheFunctions {
@@ -40,6 +46,7 @@ service MustacheFunctions {
 	main {
 		[ hello()( "Hello" ) ]
 		[ helloParam( param )( "Hello " + param ) ]
+		[ helloData()( { name = "Jolie", age = 90 } ) ]
 	}
 }
 
@@ -123,10 +130,7 @@ service Main {
 				} )
 				!= "Hello"
 			) throw( TestFailed, "function that returns a string" )
-println@console( render@mustache( {
-					template = "{{#fn.helloParam}}there{{/fn.helloParam}}"
-					functions.binding.location = getLocalLocation@runtime()
-				} ) )()
+			
 			if(
 				render@mustache( {
 					template = "{{#fn.helloParam}}there{{/fn.helloParam}}"
@@ -134,6 +138,33 @@ println@console( render@mustache( {
 				} )
 				!= "Hello there"
 			) throw( TestFailed, "parameterised function that returns a string" )
+
+			if(
+				render@mustache( {
+					template = "{{#fn.helloParam}}{{name}}{{/fn.helloParam}}"
+					data << {
+						name = "Jolie"
+					}
+					functions.binding.location = getLocalLocation@runtime()
+				} )
+				!= "Hello Jolie"
+			) throw( TestFailed, "parameterised function that returns a string, with template processing" )
+
+			if(
+				render@mustache( {
+					template = "{{fn.helloData.name}} {{fn.helloData.age}}"
+					functions.binding.location = getLocalLocation@runtime()
+				} )
+				!= "Jolie 90"
+			) throw( TestFailed, "function returning structured data" )
+
+			if(
+				render@mustache( {
+					template = "{{#fn.helloData}}{{name}} {{age}}{{/fn.helloData}}"
+					functions.binding.location = getLocalLocation@runtime()
+				} )
+				!= "Jolie 90"
+			) throw( TestFailed, "function returning structured data" )
 
 			// usage of partials online
 			render = render@mustache( {
