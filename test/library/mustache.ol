@@ -158,14 +158,6 @@ service Main {
 				!= "Jolie 90"
 			) throw( TestFailed, "function returning structured data" )
 
-			if(
-				render@mustache( {
-					template = "{{#fn.helloData}}{{name}} {{age}}{{/fn.helloData}}"
-					functions.binding.location = getLocalLocation@runtime()
-				} )
-				!= "Jolie 90"
-			) throw( TestFailed, "function returning structured data" )
-
 			// usage of partials online
 			render = render@mustache( {
 					template = "<h1>{{title}}</h1>{{> hello }}"
