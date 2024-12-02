@@ -36,9 +36,7 @@ public class MustacheService extends JavaService {
 	public String render( Value request ) {
 		final Map< String, Integer > compiledPartialsDepth = new HashMap<>();
 		final DefaultMustacheFactory mustacheFactory;
-		final int partialsRecursionLimit;
-
-		partialsRecursionLimit = request.firstChildOrDefault( "partialsRecursionLimit", Value::intValue, 10 );
+		final int partialsRecursionLimit = request.firstChildOrDefault( "partialsRecursionLimit", Value::intValue, 10 );
 
 		if( request.hasChildren( "dir" ) ) {
 			mustacheFactory = new DefaultMustacheFactory( new File( request.getFirstChild( "dir" ).strValue() ) );
@@ -84,7 +82,14 @@ public class MustacheService extends JavaService {
 			new StringReader( request.getFirstChild( "template" ).strValue() ),
 			"Jolie" );
 		StringWriter outputWriter = new StringWriter();
-		mustache.execute( outputWriter, request.getFirstChild( "data" ) );
+		final Value data = request.getFirstChild( "data" );
+		if( request.hasChildren( "functions" ) ) {
+			Value functionProvider = request.getFirstChild( "functions" );
+			data.getFirstChild( functionProvider.firstChildOrDefault( "name", Value::strValue, "fn" ) )
+				.setValue( new JolieMustacheObjectHandler.LocationHolder(
+					functionProvider.getFirstChild( "binding" ).getFirstChild( "location" ).valueObject() ) );
+		}
+		mustache.execute( outputWriter, data );
 		outputWriter.flush();
 		return outputWriter.toString();
 	}
