@@ -14,6 +14,10 @@ import java.util.List;
  * @param enclosingCode
  */
 public record LSPParsingContext(Location textLocation, List< String > enclosingCode) {
+
+	public static final LSPParsingContext DEFAULT =
+		new LSPParsingContext( URI.create( "urn:undefined" ), 0, 0, 0, 0, List.of() );
+
 	public LSPParsingContext( URI uri, int startLine, int endLine, int startCharacter, int endCharacter,
 		List< String > enclosingCode ) {
 		this( new Location( uri, startLine, endLine, startCharacter, endCharacter ), enclosingCode );
