@@ -34,7 +34,8 @@ import java.util.List;
 import jolie.lang.Constants;
 
 /**
- *
+ * Allows for the retrieval of information regarding the context in which
+ * an {@link jolie.lang.parse.ast.OLSyntaxNode} was parsed.
  * @param textLocation
  * @param enclosingCode
  */
