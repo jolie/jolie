@@ -5,15 +5,18 @@ import java.nio.file.FileSystemNotFoundException;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import jolie.lang.Constants;
 
 /**
  *
  * @param textLocation
  * @param enclosingCode
  */
-public record LSPParsingContext(Location textLocation, List< String > enclosingCode) {
+public record LSPParsingContext(Location textLocation, List< String > enclosingCode) implements Serializable {
+	private static final long serialVersionUID = Constants.serialVersionUID();
 
 	public static final LSPParsingContext DEFAULT =
 		new LSPParsingContext( URI.create( "urn:undefined" ), 0, 0, 0, 0, List.of() );
@@ -82,7 +85,7 @@ public record LSPParsingContext(Location textLocation, List< String > enclosingC
 		int i = textLocation().range().start().line();
 		List< String > linesWithNumbers = new ArrayList<>();
 		for( String line : enclosingCode() ) {
-			String newLine = i + ":" + line;
+			String newLine = i + 1 + ":" + line;
 			linesWithNumbers.add( newLine );
 			i++;
 		}

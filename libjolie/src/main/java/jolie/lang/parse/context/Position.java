@@ -1,5 +1,8 @@
 package jolie.lang.parse.context;
 
+import jolie.lang.Constants;
+import java.io.Serializable;
+
 /**
  * Implements the LSP specification of a Position.
  *
@@ -9,7 +12,9 @@ package jolie.lang.parse.context;
  *      "https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#position">LSP
  *      position specification</a>
  */
-public record Position(int line, int character) {
+public record Position(int line, int character) implements Serializable {
+	private static final long serialVersionUID = Constants.serialVersionUID();
+
 	/**
 	 * @throws IllegalArgumentException If line or character are negative.
 	 */

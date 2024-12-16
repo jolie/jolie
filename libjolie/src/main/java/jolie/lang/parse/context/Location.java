@@ -1,5 +1,8 @@
 package jolie.lang.parse.context;
 
+import jolie.lang.Constants;
+
+import java.io.Serializable;
 import java.net.URI;
 
 /**
@@ -11,7 +14,9 @@ import java.net.URI;
  * @param documentUri The file of the Location.
  * @param range The Range in the document.
  */
-public record Location(URI documentUri, Range range) {
+public record Location(URI documentUri, Range range) implements Serializable {
+	private static final long serialVersionUID = Constants.serialVersionUID();
+
 	public Location( URI documentUri, int startLine, int endLine, int startCharacter, int endCharacter ) {
 		this( documentUri,
 			new Range( new Position( startLine, startCharacter ), new Position( endLine, endCharacter ) ) );

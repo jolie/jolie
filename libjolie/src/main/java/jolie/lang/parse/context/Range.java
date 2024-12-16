@@ -1,5 +1,9 @@
 package jolie.lang.parse.context;
 
+import jolie.lang.Constants;
+
+import java.io.Serializable;
+
 /**
  * A text document range with zero-based start and end positions. Implements the LSP specification
  * of a Range.
@@ -10,7 +14,9 @@ package jolie.lang.parse.context;
  * @param start The start Position of the Range.
  * @param end The end Position of the Range.
  */
-public record Range(Position start, Position end) {
+public record Range(Position start, Position end) implements Serializable {
+	private static final long serialVersionUID = Constants.serialVersionUID();
+
 	public Range {
 		if( start == null )
 			throw new IllegalArgumentException( "Range cannot have a null start." );
