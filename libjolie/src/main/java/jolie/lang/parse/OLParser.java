@@ -133,7 +133,6 @@ import jolie.lang.parse.ast.types.refinements.BasicTypeRefinementStringLength;
 import jolie.lang.parse.ast.types.refinements.BasicTypeRefinementStringList;
 import jolie.lang.parse.ast.types.refinements.BasicTypeRefinementStringRegex;
 import jolie.lang.parse.context.ParsingContext;
-import jolie.lang.parse.context.URIParsingContext;
 import jolie.lang.parse.util.ProgramBuilder;
 import jolie.util.Helpers;
 import jolie.util.Pair;
@@ -193,7 +192,7 @@ public class OLParser extends AbstractParser {
 
 	public OLParser( Scanner scanner, String[] includePaths, ClassLoader classLoader ) {
 		super( scanner );
-		final ParsingContext context = new URIParsingContext( scanner.source(), 1, 1, 0, 0, List.of() );
+		final ParsingContext context = new ParsingContext( scanner.source(), 1, 1, 0, 0, List.of() );
 		this.programBuilder = new ProgramBuilder( context );
 		this.includePaths = includePaths;
 		this.classLoader = classLoader;
@@ -310,7 +309,7 @@ public class OLParser extends AbstractParser {
 				eat( Scanner.TokenType.ID, "expected type name" );
 				// Creating a new parsingContext manually to get the correct line and column for the type
 				// Used in error messages and symbolTable for the vscode extension
-				ParsingContext context = new URIParsingContext( getContext().source(), startLine, endLine, startColumn,
+				ParsingContext context = new ParsingContext( getContext().source(), startLine, endLine, startColumn,
 					startColumn + typeName.length(), codeLine() );
 				if( token.is( Scanner.TokenType.COLON ) ) {
 					nextToken();
@@ -358,7 +357,7 @@ public class OLParser extends AbstractParser {
 			// create a new context for the secondType (not sure if necessary)
 			int startLine = line();
 			int column = errorColumn();
-			ParsingContext secondContext = new URIParsingContext( context.source(), startLine, startLine, column,
+			ParsingContext secondContext = new ParsingContext( context.source(), startLine, startLine, column,
 				column + token.content().length(), codeLine() );
 			if( token.is( TokenType.LCURLY ) ) {
 				prependToken( new Scanner.Token( Scanner.TokenType.ID, NativeType.VOID.id() ) );
@@ -872,7 +871,7 @@ public class OLParser extends AbstractParser {
 			endColumn = getContext().endColumn();
 			setEndLine();
 			ctx =
-				new URIParsingContext( getContext().source(), startLine, endLine(), startColumn,
+				new ParsingContext( getContext().source(), startLine, endLine(), startColumn,
 					endColumn, codeLine() );
 			bindingPort = new OutputPortInfo( ctx, token.content() );
 			nextToken();
@@ -882,7 +881,7 @@ public class OLParser extends AbstractParser {
 			endColumn = getContext().endColumn();
 			setEndLine();
 			ctx =
-				new URIParsingContext( getContext().source(), startLine, endLine(), startColumn,
+				new ParsingContext( getContext().source(), startLine, endLine(), startColumn,
 					endColumn, codeLine() );
 			bindingPort = new OutputPortInfo( ctx, token.content() );
 			nextToken();
@@ -1846,7 +1845,7 @@ public class OLParser extends AbstractParser {
 		}
 		InputPortInfo iport =
 			new InputPortInfo(
-				new URIParsingContext( getContext().source(), startLine, endLine(), startColumn,
+				new ParsingContext( getContext().source(), startLine, endLine(), startColumn,
 					getContext().endColumn(),
 					codeLine() ),
 				inputPortName, location, protocol,
@@ -2034,7 +2033,7 @@ public class OLParser extends AbstractParser {
 		}
 		setEndLine();
 		OutputPortInfo p =
-			new OutputPortInfo( new URIParsingContext( getContext().source(), startLine, endLine(), startColumn,
+			new OutputPortInfo( new ParsingContext( getContext().source(), startLine, endLine(), startColumn,
 				getContext().endColumn(),
 				codeLine() ), outputPortName );
 		p.setProtocol( protocol );
@@ -2899,7 +2898,7 @@ public class OLParser extends AbstractParser {
 			if( token.isIdentifier() ) {
 				setEndLine();
 				nodeExpr = new ConstantStringExpression(
-					new URIParsingContext( ctx.source(), ctx.startLine(), getContext().endLine(),
+					new ParsingContext( ctx.source(), ctx.startLine(), getContext().endLine(),
 						ctx.startColumn(), getContext().endColumn(), codeLine() ),
 					token.content() );
 			} else if( token.is( Scanner.TokenType.LPAREN ) ) {
@@ -3423,7 +3422,7 @@ public class OLParser extends AbstractParser {
 				retVal = new NotExpressionNode( getContext(), parseFactor() );
 				break;
 			case STRING:
-				ParsingContext ctx2 = new URIParsingContext( getContext().source(), getContext().startLine(),
+				ParsingContext ctx2 = new ParsingContext( getContext().source(), getContext().startLine(),
 					getContext().endLine(), getContext().startColumn() - 2, getContext().endColumn(), codeLine() );
 				retVal = new ConstantStringExpression( ctx2, token.content() );
 				nextToken();
@@ -3639,7 +3638,7 @@ public class OLParser extends AbstractParser {
 			maybeEat( Scanner.TokenType.COMMA, Scanner.TokenType.SEQUENCE );
 		}
 		ParsingContext ctx =
-			new URIParsingContext( rootExpression.context().source(), rootExpression.context().startLine(),
+			new ParsingContext( rootExpression.context().source(), rootExpression.context().startLine(),
 				getContext().endLine(), rootExpression.context().startColumn(), getContext().endColumn(), codeLine() );
 		eat( Scanner.TokenType.RCURLY, "expected }" );
 

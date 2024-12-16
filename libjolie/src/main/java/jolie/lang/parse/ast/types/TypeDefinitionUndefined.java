@@ -21,7 +21,7 @@ package jolie.lang.parse.ast.types;
 
 import jolie.lang.Constants;
 import jolie.lang.NativeType;
-import jolie.lang.parse.context.URIParsingContext;
+import jolie.lang.parse.context.ParsingContext;
 
 /**
  *
@@ -39,7 +39,7 @@ public class TypeDefinitionUndefined extends TypeInlineDefinition {
 	}
 
 	private TypeDefinitionUndefined() {
-		super( URIParsingContext.DEFAULT, UNDEFINED_KEYWORD, BasicTypeDefinition.of( NativeType.ANY ),
+		super( ParsingContext.DEFAULT, UNDEFINED_KEYWORD, BasicTypeDefinition.of( NativeType.ANY ),
 			Constants.RANGE_ONE_TO_ONE );
 		super.setUntypedSubTypes( true );
 	}

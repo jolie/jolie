@@ -15,11 +15,11 @@ import java.io.Serializable;
 public record Position(int line, int character) implements Serializable {
 	private static final long serialVersionUID = Constants.serialVersionUID();
 
-	/**
-	 * @throws IllegalArgumentException If line or character are negative.
-	 */
-	public Position {
-		if( line < 0 || character < 0 )
-			throw new IllegalArgumentException( "Position line and character must be non-negative." );
-	}
+	// /** TODO re-add this exception when use of -1 is eliminated
+	// * @throws IllegalArgumentException If line or character are negative.
+	// */
+	// public Position {
+	// if( line < 0 || character < 0 )
+	// throw new IllegalArgumentException( "Position line and character must be non-negative." );
+	// }
 }

@@ -1,102 +1,94 @@
-/***************************************************************************
- *   Copyright (C) by Fabrizio Montesi <famontesi@gmail.com>			   *
- *   Copyright (C) 2021-2022 Vicki Mixen <vicki@mixen.dk>	               *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU Library General Public License as       *
- *   published by the Free Software Foundation; either version 2 of the    *
- *   License, or (at your option) any later version.                       *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU Library General Public     *
- *   License along with this program; if not, write to the                 *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                         *
- *   For details about the authors of this software, see the AUTHORS file. *
- ***************************************************************************/
-
-
 package jolie.lang.parse.context;
 
-import java.io.Serializable;
 import java.net.URI;
+import java.nio.file.FileSystemNotFoundException;
+import java.nio.file.InvalidPathException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
+import jolie.lang.Constants;
 
 /**
- * A {@code ParsingContext} allows for the retrieval of information regarding the context in which
- * an {@link jolie.lang.parse.ast.OLSyntaxNode} was parsed.
  *
- * @author Fabrizio Montesi
- * @see jolie.lang.parse.ast.OLSyntaxNode
+ * @param textLocation
+ * @param enclosingCode
  */
-public interface ParsingContext extends Serializable {
-	/**
-	 * Returns an URI for the source from which the node has been read.
-	 *
-	 * @return an URI for the source from which the node has been read.
-	 */
-	URI source();
+public record ParsingContext(Location textLocation, List< String > enclosingCode) implements Serializable {
+	private static final long serialVersionUID = Constants.serialVersionUID();
+
+	public static final ParsingContext DEFAULT =
+		new ParsingContext( URI.create( "urn:undefined" ), 0, 0, 0, 0, List.of() );
+
+	public ParsingContext( URI uri, int startLine, int endLine, int startCharacter, int endCharacter,
+		List< String > enclosingCode ) {
+		this( new Location( uri, startLine, endLine, startCharacter, endCharacter ), enclosingCode );
+	}
 
 	/**
-	 * Returns the simple name of the source from which the node has been read. This could be, e.g., the
-	 * simple name of a file (instead of its complete absolute path).
 	 *
-	 * @return the simple name of the source from which the node has been read
+	 * @return The URI of the file containing the code
 	 */
-	String sourceName();
+	public URI source() {
+		return textLocation().documentUri();
+	}
 
 	/**
-	 * Returns the startLine at which the node has been read.
-	 *
-	 * @return the startLine at which the node has been read
+	 * @return The name of the file containing the code.
 	 */
-	int startLine();
+	public String sourceName() {
+		try {
+			Path path = Paths.get( source() );
+			return path.toString();
+		} catch( InvalidPathException | FileSystemNotFoundException e ) {
+			return source().toString();
+		}
+	}
 
 	/**
-	 * Returns the endLine at which the node has been read.
-	 *
-	 * @return the endLine at which the node has been read
+	 * @return The zero-based starting line of the code range.
 	 */
-	int endLine();
+	public int startLine() {
+		return textLocation().range().start().line();
+	}
 
 	/**
-	 * Returns the startColumn at which the node has been read.
-	 *
-	 * @return the startColumn at which the node has been read
+	 * @return The zero-based ending line of the code range.
 	 */
-	int startColumn();
+	public int endLine() {
+		return textLocation().range().end().line();
+	}
 
 	/**
-	 * Returns the endColumn at which the node has been read.
 	 *
-	 * @return the endColumn at which the node has been read
+	 * @return The zero-based starting character column of the code range.
 	 */
-	int endColumn();
+	public int startColumn() {
+		return textLocation().range().start().character();
+	}
 
 	/**
-	 * Returns the code as a List of strings, which were read
 	 *
-	 * @return the code as a List of strings, which were read
+	 * @return The zero-based starting character column of the code range.
 	 */
-	List< String > enclosingCode();
+	public int endColumn() {
+		return textLocation().range().end().character();
+	}
 
 	/**
-	 * Returns the code as a List of strings, which were read, with line numbers
 	 *
-	 * @return the code as a List of strings, which were read, with line numbers
+	 * @return the code which the ParsingContext points at as a List of strings, and has the correct
+	 *         line numbers on each line as well
 	 */
-	List< String > enclosingCodeWithLineNumbers();
-
-	/**
-	 * Returns a string interpretations of the ParsingContext
-	 *
-	 * @return a string interpretations of the ParsingContext
-	 */
-	@Override
-	String toString();
+	public List< String > enclosingCodeWithLineNumbers() {
+		int i = textLocation().range().start().line();
+		List< String > linesWithNumbers = new ArrayList<>();
+		for( String line : enclosingCode() ) {
+			String newLine = i + ":" + line;
+			linesWithNumbers.add( newLine );
+			i++;
+		}
+		return linesWithNumbers;
+	}
 }
