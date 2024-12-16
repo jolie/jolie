@@ -34,8 +34,9 @@ import java.util.List;
 import jolie.lang.Constants;
 
 /**
- * Allows for the retrieval of information regarding the context in which
- * an {@link jolie.lang.parse.ast.OLSyntaxNode} was parsed.
+ * Allows for the retrieval of information regarding the context in which an
+ * {@link jolie.lang.parse.ast.OLSyntaxNode} was parsed.
+ *
  * @param textLocation
  * @param enclosingCode
  */
@@ -109,7 +110,7 @@ public record ParsingContext(Location textLocation, List< String > enclosingCode
 		int i = textLocation().range().start().line();
 		List< String > linesWithNumbers = new ArrayList<>();
 		for( String line : enclosingCode() ) {
-			String newLine = i + ":" + line;
+			String newLine = i + 1 + ":" + line;
 			linesWithNumbers.add( newLine );
 			i++;
 		}
