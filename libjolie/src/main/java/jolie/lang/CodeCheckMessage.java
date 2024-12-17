@@ -24,7 +24,6 @@ import java.security.InvalidParameterException;
 import java.util.Optional;
 import jolie.lang.parse.ast.OLSyntaxNode;
 import jolie.lang.parse.context.ParsingContext;
-import jolie.lang.parse.context.URIParsingContext;
 
 public class CodeCheckMessage {
 	private final ParsingContext context;
@@ -77,7 +76,7 @@ public class CodeCheckMessage {
 			throw new InvalidParameterException( "Parameter help cannot be null." );
 		}
 		return new CodeCheckMessage(
-			(node != null) ? node.context() : URIParsingContext.DEFAULT,
+			(node != null) ? node.context() : ParsingContext.DEFAULT,
 			message, null );
 	}
 
@@ -102,7 +101,7 @@ public class CodeCheckMessage {
 	 */
 	public static CodeCheckMessage buildWithoutHelp( OLSyntaxNode node, String message ) {
 		return new CodeCheckMessage(
-			(node != null) ? node.context() : URIParsingContext.DEFAULT,
+			(node != null) ? node.context() : ParsingContext.DEFAULT,
 			message, null );
 	}
 

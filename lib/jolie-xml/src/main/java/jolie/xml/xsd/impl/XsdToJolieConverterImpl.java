@@ -49,7 +49,6 @@ import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
 import jolie.lang.parse.ast.types.TypeInlineDefinition;
 import jolie.lang.parse.context.ParsingContext;
-import jolie.lang.parse.context.URIParsingContext;
 import jolie.util.Range;
 import jolie.xml.xsd.XsdToJolieConverter;
 import jolie.xml.xsd.XsdUtils;
@@ -61,7 +60,7 @@ import jolie.xml.xsd.XsdUtils;
 public class XsdToJolieConverterImpl implements XsdToJolieConverter {
 	private final Logger logger;
 	private final List< TypeDefinition > jolieTypes = new ArrayList<>();
-	private final static ParsingContext PARSING_CONTEXT = URIParsingContext.DEFAULT;
+	private final static ParsingContext PARSING_CONTEXT = ParsingContext.DEFAULT;
 	private final boolean strict;
 	private final XSSchemaSet schemaSet;
 	private final Map< String, TypeDefinition > complexTypes = new HashMap<>();

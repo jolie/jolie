@@ -30,7 +30,6 @@ import java.util.List;
 import org.apache.commons.text.similarity.LevenshteinDistance;
 
 import jolie.lang.parse.context.ParsingContext;
-import jolie.lang.parse.context.URIParsingContext;
 import jolie.lang.CodeCheckMessage;
 import jolie.lang.Keywords;
 
@@ -186,7 +185,7 @@ public abstract class AbstractParser {
 	 * @return the current {@link ParsingContext} from the underlying {@link Scanner}
 	 */
 	public final ParsingContext getContext() {
-		return new URIParsingContext( scanner.source(), scanner.line(), scanner.line(), scanner.errorColumn(),
+		return new ParsingContext( scanner.source(), scanner.line(), scanner.line(), scanner.errorColumn(),
 			scanner.errorColumn() + token.content().length(),
 			scanner.codeLine() );
 	}
@@ -211,15 +210,15 @@ public abstract class AbstractParser {
 				scanner.codeLine().remove( scanner.codeLine().size() - 1 );
 				int column = scanner.codeLine().get( scanner.codeLine().size() - 1 ).length() - 1; // last index of
 																									// (new)last line
-				URIParsingContext newContext =
-					new URIParsingContext( scanner.source(), scanner.line() - 1, scanner.line() - 1,
+				ParsingContext newContext =
+					new ParsingContext( scanner.source(), scanner.line() - 1, scanner.line() - 1,
 						column, column, scanner.codeLine() );
 				return newContext;
 			} else if( scanner.errorColumn() == -1 && scanner.line() <= 0 ) { // nothing has been read yet
-				return new URIParsingContext( scanner.source(), scanner.line(), scanner.line(),
+				return new ParsingContext( scanner.source(), scanner.line(), scanner.line(),
 					0, 0 + token.content().length(), scanner.codeLine() );
 			} else { // errorColum >= 0
-				return new URIParsingContext( scanner.source(), scanner.line(), scanner.line(),
+				return new ParsingContext( scanner.source(), scanner.line(), scanner.line(),
 					scanner.errorColumn(), scanner.errorColumn() + token.content().length(),
 					scanner.codeLine() );
 			}
@@ -227,16 +226,16 @@ public abstract class AbstractParser {
 		// if the start and end line are larger than 0 and the error column is -1
 		if( scanner.errorColumn() == -1 && lineState == 1 ) {
 			int newColumn = scanner.codeLine().get( scanner.codeLine().size() - 1 ).length() - 1;
-			return new URIParsingContext( scanner.source(), scanner.startLine(), scanner.endLine() - 1,
+			return new ParsingContext( scanner.source(), scanner.startLine(), scanner.endLine() - 1,
 				newColumn, newColumn + token.content().length(),
 				scanner.codeLine() );
 		} else if( scanner.errorColumn() == -1 && lineState == 2 ) {
 			int newColumn = scanner.codeLine().get( scanner.codeLine().size() - 1 ).length() - 1;
-			return new URIParsingContext( scanner.source(), scanner.startLine() - 1, scanner.endLine() - 1,
+			return new ParsingContext( scanner.source(), scanner.startLine() - 1, scanner.endLine() - 1,
 				newColumn, newColumn + token.content().length(),
 				scanner.codeLine() );
 		}
-		return new URIParsingContext( scanner.source(), scanner.startLine(), scanner.endLine(),
+		return new ParsingContext( scanner.source(), scanner.startLine(), scanner.endLine(),
 			scanner.errorColumn(), scanner.errorColumn() + token.content().length(),
 			scanner.codeLine() );
 	}
@@ -571,7 +570,7 @@ public abstract class AbstractParser {
 			// curly bracket and not at/before the curly bracket
 			// example, if service does not have a name
 			context =
-				new URIParsingContext( context.source(), context.startLine(), context.endLine(),
+				new ParsingContext( context.source(), context.startLine(), context.endLine(),
 					context.startColumn() - 1, context.endColumn() - 1,
 					context.enclosingCode() );
 			exceptionMessage = CodeCheckMessage.withoutHelp( context, mesg );
@@ -629,7 +628,7 @@ public abstract class AbstractParser {
 				// if the starting curly bracket is missing,
 				// set the correct line and column for the context, so it points to the start of the port
 				int column = context.enclosingCode().get( 0 ).length() - 1;
-				context = new URIParsingContext( context.source(), context.startLine(), context.startLine(), column,
+				context = new ParsingContext( context.source(), context.startLine(), context.startLine(), column,
 					column, context.enclosingCode() );
 				exceptionMessage = CodeCheckMessage.withoutHelp( context, mesg );
 			} else if( extralines.get( extralines.size() - 1 ).contains( "}" ) ) {
@@ -637,7 +636,7 @@ public abstract class AbstractParser {
 				// originally threw the error
 				int columnNumber = extralines.get( extralines.size() - 1 ).lastIndexOf( "}" );
 				context =
-					new URIParsingContext( context.source(), context.startLine(), context.endLine(), columnNumber,
+					new ParsingContext( context.source(), context.startLine(), context.endLine(), columnNumber,
 						columnNumber + token.content().length(),
 						extralines );
 				help = createHelpMessageWithScope( context, token.content(), scope );
@@ -645,7 +644,7 @@ public abstract class AbstractParser {
 			} else if( extralines.get( 0 ).contains( "{" ) && mesg.contains( "expected inputPort name" ) ) {
 				// inputport is missing name, set column to curly starting curly bracket
 				int columnNumber = extralines.get( 0 ).lastIndexOf( "{" );
-				context = new URIParsingContext( context.source(), context.startLine(), context.endLine(), columnNumber,
+				context = new ParsingContext( context.source(), context.startLine(), context.endLine(), columnNumber,
 					columnNumber, extralines );
 				exceptionMessage = CodeCheckMessage.withoutHelp( context, mesg );
 			} else if( mesg.contains( "expected :" ) ) {
@@ -665,12 +664,12 @@ public abstract class AbstractParser {
 				} else {
 					column = context.startColumn();
 				}
-				context = new URIParsingContext( context.source(), context.startLine(), context.endLine(),
+				context = new ParsingContext( context.source(), context.startLine(), context.endLine(),
 					column, column, extralines );
 				exceptionMessage = CodeCheckMessage.withoutHelp( context, mesg );
 			} else {
 				// in all other cases, set the endColumn to the startColumn+token
-				context = new URIParsingContext( context.source(), context.startLine(), context.endLine(),
+				context = new ParsingContext( context.source(), context.startLine(), context.endLine(),
 					context.startColumn(), context.startColumn() + token.content().length(), extralines );
 				help = createHelpMessageWithScope( context, token.content(), scope );
 				exceptionMessage = CodeCheckMessage.withHelp( context, mesg, help );
@@ -691,7 +690,7 @@ public abstract class AbstractParser {
 				startColumn = context.startColumn();
 				endColumn = context.endColumn();
 			}
-			context = new URIParsingContext( context.source(), context.startLine(), context.endLine(),
+			context = new ParsingContext( context.source(), context.startLine(), context.endLine(),
 				startColumn, endColumn, extralines );
 			help = createHelpMessageWithScope( context, token.content(), scope );
 			exceptionMessage = CodeCheckMessage.withHelp( context, mesg, help );
@@ -702,7 +701,7 @@ public abstract class AbstractParser {
 				extralines = getWholeScope( scopeName, scope );
 				int columnNumber = (!extralines.isEmpty()) ? extralines.get( extralines.size() - 1 ).length() - 1 : 0;
 				context =
-					new URIParsingContext( context.source(), context.startLine(), context.endLine(), columnNumber,
+					new ParsingContext( context.source(), context.startLine(), context.endLine(), columnNumber,
 						columnNumber, extralines );
 				help = createHelpMessageWithScope( context, token.content(), scope );
 				exceptionMessage = CodeCheckMessage.withoutHelp( context,
@@ -712,13 +711,13 @@ public abstract class AbstractParser {
 				extralines = getWholeScope( scopeName, scope );
 				// set column to last index on line with service
 				int column = extralines.get( 0 ).length() - 1;
-				context = new URIParsingContext( context.source(), context.startLine(), context.startLine(),
+				context = new ParsingContext( context.source(), context.startLine(), context.startLine(),
 					column, column, extralines );
 				exceptionMessage = CodeCheckMessage.withoutHelp( context, mesg );
 			} else if( mesg.contains( "expected {" ) ) {
 				// no need to getWholeScope when token.conten() is not empty
 				int column = context.enclosingCode().get( 0 ).length() - 1;
-				context = new URIParsingContext( context.source(), context.startLine(), context.startLine(),
+				context = new ParsingContext( context.source(), context.startLine(), context.startLine(),
 					column, column, context.enclosingCode() );
 				exceptionMessage = CodeCheckMessage.withoutHelp( context, mesg );
 			} else if( token.content().isEmpty() ) {
@@ -738,7 +737,7 @@ public abstract class AbstractParser {
 					int columnNumber = (tempSplit[ 0 ] + " " + tempSplit[ 1 ] + " ").length();
 					// set the columns to match the wrongly spelled import
 					context =
-						new URIParsingContext( context.source(), context.startLine(), context.endLine(), columnNumber,
+						new ParsingContext( context.source(), context.startLine(), context.endLine(), columnNumber,
 							columnNumber + tempSplit[ 2 ].length(), extralines );
 					String importHelp = createHelpMessage( context, tempSplit[ 2 ], List.of( "from" ) );
 					exceptionMessage = CodeCheckMessage.withHelp( context, mesg, importHelp );
@@ -756,13 +755,13 @@ public abstract class AbstractParser {
 				if( mesg.contains( "expected {" ) ) { // interface is missing starting curly bracket
 					extralines = getWholeScope( scopeName, scope );
 					int column = extralines.get( 0 ).length() - 1;
-					context = new URIParsingContext( context.source(), context.startLine(), context.startLine(),
+					context = new ParsingContext( context.source(), context.startLine(), context.startLine(),
 						column, column, List.of( extralines.get( 0 ) ) );
 					exceptionMessage = CodeCheckMessage.withoutHelp( context, mesg );
 				} else if( mesg.contains( "expected }" ) ) { // interface is missing ending curly bracket
 					extralines = getWholeScope( scopeName, scope );
 					int column = extralines.get( extralines.size() - 1 ).length() - 1;
-					context = new URIParsingContext( context.source(), context.startLine(), context.endLine(),
+					context = new ParsingContext( context.source(), context.startLine(), context.endLine(),
 						column, column, extralines );
 					exceptionMessage = CodeCheckMessage.withoutHelp( context, mesg );
 				} else {
@@ -772,13 +771,13 @@ public abstract class AbstractParser {
 															// empty
 				extralines = getWholeScope( scopeName, scope );
 				int column = extralines.get( 0 ).length() - 1;
-				context = new URIParsingContext( context.source(), context.startLine(), context.startLine(),
+				context = new ParsingContext( context.source(), context.startLine(), context.startLine(),
 					column, column, List.of( extralines.get( 0 ) ) );
 				exceptionMessage = CodeCheckMessage.withoutHelp( context, mesg );
 			} else if( mesg.contains( "expected }" ) ) { // missing ending curly bracket and token.content() is not
 															// empty
 				// only have the last line of enclosingCode in the context
-				context = new URIParsingContext( context.source(), context.endLine(), context.endLine(),
+				context = new ParsingContext( context.source(), context.endLine(), context.endLine(),
 					context.startColumn(), context.endColumn(),
 					List.of( context.enclosingCode().get( context.enclosingCode().size() - 1 ) ) );
 				help = createHelpMessageWithScope( context, token.content(), scope );
@@ -793,11 +792,11 @@ public abstract class AbstractParser {
 			if( mesg.contains( "expected basic statement" ) ) { // if main is empty
 				// set column to ending curly bracket
 				int column = context.enclosingCode().get( context.enclosingCode().size() - 1 ).lastIndexOf( "}" );
-				context = new URIParsingContext( context.source(), context.startLine(), context.endLine(),
+				context = new ParsingContext( context.source(), context.startLine(), context.endLine(),
 					column, column, context.enclosingCode() );
 				exceptionMessage = CodeCheckMessage.withoutHelp( context, mesg );
 			} else {
-				context = new URIParsingContext( context.source(), context.startLine(), context.endLine(),
+				context = new ParsingContext( context.source(), context.startLine(), context.endLine(),
 					context.endColumn(), context.endColumn(), context.enclosingCode() );
 				exceptionMessage = CodeCheckMessage.withoutHelp( context, mesg );
 			}
@@ -815,20 +814,20 @@ public abstract class AbstractParser {
 						correctLine = string;
 						int column = correctLine.indexOf( ':' );
 						context =
-							new URIParsingContext( context.source(), i, i, column, column, List.of( correctLine ) );
+							new ParsingContext( context.source(), i, i, column, column, List.of( correctLine ) );
 						break;
 					}
 					i += 1;
 				}
 				if( correctLine.isEmpty() ) {
-					context = new URIParsingContext( context.source(), context.startLine(), context.endLine(),
+					context = new ParsingContext( context.source(), context.startLine(), context.endLine(),
 						context.startColumn(), context.endColumn(), extralines );
 				}
 				exceptionMessage = CodeCheckMessage.withoutHelp( context, mesg );
 			} else {
 				// any other error for type scope
 				extralines = getWholeScope( scopeName, scope );
-				context = new URIParsingContext( context.source(), context.startLine(), context.startLine(),
+				context = new ParsingContext( context.source(), context.startLine(), context.startLine(),
 					context.startColumn(), context.endColumn(), extralines );
 				exceptionMessage = CodeCheckMessage.withoutHelp( context, mesg );
 			}

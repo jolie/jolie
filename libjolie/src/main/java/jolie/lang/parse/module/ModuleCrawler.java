@@ -41,7 +41,6 @@ import org.apache.commons.text.similarity.LevenshteinDistance;
 import jolie.lang.CodeCheckMessage;
 import jolie.lang.parse.ParserException;
 import jolie.lang.parse.context.ParsingContext;
-import jolie.lang.parse.context.URIParsingContext;
 import jolie.lang.parse.module.exceptions.ModuleNotFoundException;
 
 class ModuleCrawler {
@@ -106,7 +105,7 @@ class ModuleCrawler {
 				String codeLine = importedSymbol.context().enclosingCode().get( 0 ).replace( "\n", "" );
 				String CodeLineWithPath = codeLine + importedSymbol.importPath() + " import " + importedSymbol.name();
 				int column = codeLine.length();
-				ParsingContext context = new URIParsingContext( importedSymbol.context().source(),
+				ParsingContext context = new ParsingContext( importedSymbol.context().source(),
 					importedSymbol.context().endLine(), importedSymbol.context().endLine(), column,
 					column + e.importPath().toString().length(),
 					List.of( CodeLineWithPath ) );
