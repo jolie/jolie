@@ -1,6 +1,6 @@
 from ..test-unit import TestUnitInterface
-from .private.twice-new-syntax.twice.d1.d2.twice_api import TwiceAPI
-from .private.twice-new-syntax.main import test
+from twice-new-syntax.twice.d1.d2.twice_api import TwiceAPI
+from twice-new-syntax.main import test
 
 service Main {
 	inputPort TestUnitInput {
