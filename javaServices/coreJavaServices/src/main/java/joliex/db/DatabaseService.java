@@ -22,7 +22,9 @@
 package joliex.db;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.PrintStream;
+import java.io.StringReader;
 import java.math.BigDecimal;
 import java.sql.Clob;
 import java.sql.Connection;
@@ -40,9 +42,10 @@ import java.util.concurrent.atomic.AtomicLong;
 // Connection Pooling
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import com.zaxxer.hikari.pool.HikariPool;
 
 import java.util.Optional;
-
+import java.util.Properties;
 import jolie.runtime.ByteArray;
 import jolie.runtime.CanUseJars;
 import jolie.runtime.FaultException;
@@ -123,11 +126,21 @@ public class DatabaseService extends JavaService {
 		String databaseName = request.getChildren( "database" ).first().strValue();
 		username = request.getChildren( "username" ).first().strValue();
 		password = request.getChildren( "password" ).first().strValue();
-		String attributes = request.getFirstChild( "attributes" ).strValue();
 		String separator = "/";
-		boolean isEmbedded = false;
 		Optional< String > encoding = Optional
 			.ofNullable( request.hasChildren( "encoding" ) ? request.getFirstChild( "encoding" ).strValue() : null );
+
+		Properties attributes = new Properties();
+		if( request.hasChildren( "attributes" ) ) {
+			try {
+				String attributesInLines =
+					request.getFirstChild( "attributes" ).strValue().replaceAll( "[^\\\\];", "\n" );
+				attributes.load( new StringReader( attributesInLines ) );
+			} catch( IOException e ) {
+				throw new FaultException( "InvalidDriver", "Invalid driver attributes syntax" );
+			}
+		}
+
 		try {
 			if( driverClass == null ) {
 				switch( driver ) {
@@ -142,7 +155,6 @@ public class DatabaseService extends JavaService {
 					break;
 				case "sqlite":
 					driverClass = "org.sqlite.JDBC";
-					isEmbedded = true;
 					break;
 				case "sqlserver":
 					driverClass = "com.microsoft.sqlserver.jdbc.SQLServerDriver";
@@ -154,12 +166,8 @@ public class DatabaseService extends JavaService {
 					break;
 				case "derby_embedded":
 					driverClass = "org.apache.derby.jdbc.EmbeddedDriver";
-					isEmbedded = true;
-					driver = "derby";
 					break;
 				case "hsqldb_embedded":
-					isEmbedded = true;
-					driver = "hsqldb";
 				case "hsqldb_hsql":
 				case "hsqldb_hsqls":
 				case "hsqldb_http":
@@ -175,12 +183,12 @@ public class DatabaseService extends JavaService {
 			}
 			Class.forName( driverClass );
 
-			if( isEmbedded ) {
+			if( driver.endsWith( "_embedded" ) || "sqlite".equals( driver ) ) {
+				driver = driver.split( "_", 2 )[ 0 ]; // "derby_embedded" => "derby", "sqlite" => "sqlite"
 				connectionString = "jdbc:" + driver + ":" + databaseName;
-				if( !attributes.isEmpty() ) {
-					connectionString += ";" + attributes;
-				}
-				connectionPool = _createDataSource( request.getFirstChild( "connectionPoolConfig" ), connectionString );
+
+				connectionPool =
+					_createDataSource( request.getFirstChild( "connectionPoolConfig" ), connectionString, attributes );
 				if( !"hsqldb".equals( driver ) ) { // driver == sqlite || driver == derby_embedded
 					connectionPool.setUsername( null );
 					connectionPool.setPassword( null );
@@ -194,9 +202,10 @@ public class DatabaseService extends JavaService {
 						+ databaseName;
 				}
 				if( encoding.isPresent() ) {
-					connectionString += "?characterEncoding=" + encoding.get();
+					attributes.setProperty( "characterEncoding", encoding.get() );
 				}
-				connectionPool = _createDataSource( request.getFirstChild( "connectionPoolConfig" ), connectionString );
+				connectionPool =
+					_createDataSource( request.getFirstChild( "connectionPoolConfig" ), connectionString, attributes );
 			}
 
 			interpreter().cleaner().register( this, () -> {
@@ -204,6 +213,10 @@ public class DatabaseService extends JavaService {
 			} );
 		} catch( ClassNotFoundException e ) {
 			throw new FaultException( "DriverClassNotFound", e );
+		} catch( HikariPool.PoolInitializationException e ) {
+			throw e.getCause() instanceof SQLException
+				? createFaultException( ((SQLException) e.getCause()) )
+				: new FaultException( "InvalidDriver", e );
 		}
 	}
 
@@ -228,7 +241,7 @@ public class DatabaseService extends JavaService {
 			try( Connection con = connectionPool.getConnection() ) { // HikariCP validates connections before providing
 																		// them
 			} catch( SQLException e ) {
-				createFaultException( e );
+				throw createFaultException( e );
 			}
 		}
 	}
@@ -583,7 +596,7 @@ public class DatabaseService extends JavaService {
 		try {
 			tx.commit();
 		} catch( SQLException e ) {
-			createFaultException( e );
+			throw createFaultException( e );
 		} finally {
 			_closeTransaction( tx );
 		}
@@ -625,19 +638,19 @@ public class DatabaseService extends JavaService {
 		connectionPool.close();
 	}
 
-	private HikariDataSource _createDataSource( Value providedConfig, String connectionString ) {
+	private HikariDataSource _createDataSource( Value providedConfig, String connectionString, Properties attributes ) {
 		HikariConfig config = new HikariConfig();
 		config.setUsername( username );
 		config.setPassword( password );
 		config.setDriverClassName( driverClass );
 		config.setJdbcUrl( connectionString );
 
-		_setUserProvidedConfig( config, providedConfig );
+		_setUserProvidedConfig( config, providedConfig, attributes );
 
 		return new HikariDataSource( config );
 	}
 
-	private void _setUserProvidedConfig( HikariConfig config, Value providedConfig ) {
+	private void _setUserProvidedConfig( HikariConfig config, Value providedConfig, Properties attributes ) {
 		if( providedConfig.hasChildren() ) {
 			if( providedConfig.hasChildren( "connectionTimeout" ) ) {
 				config.setConnectionTimeout( providedConfig.getFirstChild( "connectionTimeout" ).longValue() );
@@ -688,6 +701,10 @@ public class DatabaseService extends JavaService {
 				config
 					.setValidationTimeout( providedConfig.getFirstChild( "validationTimeout" ).longValue() );
 			}
+		}
+
+		for( String propName : attributes.stringPropertyNames() ) {
+			config.addDataSourceProperty( propName, attributes.getProperty( propName ) );
 		}
 	}
 }
