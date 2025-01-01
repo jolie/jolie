@@ -23,6 +23,9 @@ RUN apt-get update
 # Install sudo
 RUN apt-get install -y sudo
 
+#Install zip for creating install jar
+RUN apt-get install -y zip
+
 # Set JOLIE_HOME
 ENV JOLIE_HOME=/usr/bin/jolie-dist
 
