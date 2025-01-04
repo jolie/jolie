@@ -1688,6 +1688,9 @@ public class OLParser extends AbstractParser {
 		}
 		setEndLine(); // remember end line for error
 		eat( Scanner.TokenType.RCURLY, "expected }" );
+
+		ctx = new URIParsingContext( ctx.source(), ctx.startLine(), endLine(), ctx.startColumn(), errorColumn(),
+			ctx.enclosingCode() );
 		// it is a Jolie internal service
 		if( internalIfaces != null && internalIfaces.length > 0 ) {
 			if( internalMain == null ) {
