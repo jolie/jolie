@@ -41,7 +41,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 //import jolie.lang.CodeCheckMessage;
@@ -1558,6 +1560,23 @@ public class OLParser extends AbstractParser {
 	}
 
 	/**
+	 * Parses the internals for the creation of a Node, creates the Node and inserts it into the ProgramBuilder.
+	 * @param internalsParser A lambda that parses the internals of a Node.
+	 * @param nodeAdder A lambda which creates the Node itself from its internals and a ParsingContext.
+	 *                     It must also add the node into the programBuilder. //TODO consider doing that in the function.
+	 * @param <I> Type for the internals required to create the Node in question.
+	 */
+	private <I> void parseInternals( Supplier<I> internalsParser, BiConsumer<I, ParsingContext> nodeAdder)
+		throws IOException, ParserException {
+		ParsingContext earlyContext = getContext();
+		I internals = internalsParser.apply(earlyContext);
+		ParsingContext finalContext = new URIParsingContext( scanner().source(), earlyContext.startLine(), endLine(),
+			earlyContext.startColumn(), errorColumn(),
+			earlyContext.enclosingCode() );
+		nodeAdder.accept(internals, finalContext);
+	}
+
+	/**
 	 * Parses a service node, i.e. service service_name ( varpath : type ) {}
 	 */
 	private void parseService()
@@ -1580,7 +1599,8 @@ public class OLParser extends AbstractParser {
 
 		setEndLine(); // remember endline of parsing service for error
 		assertToken( Scanner.TokenType.ID, "expected service name" );
-		ParsingContext ctx = getContext();
+		// We don't know where the Service ends yet, but we need to remember where it started
+		ParsingContext earlyContext = getContext();
 		String serviceName = token.content();
 		nextToken();
 
@@ -1689,8 +1709,9 @@ public class OLParser extends AbstractParser {
 		setEndLine(); // remember end line for error
 		eat( Scanner.TokenType.RCURLY, "expected }" );
 
-		ctx = new URIParsingContext( ctx.source(), ctx.startLine(), endLine(), ctx.startColumn(), errorColumn(),
-			ctx.enclosingCode() );
+		ParsingContext ctx = new URIParsingContext( scanner().source(), earlyContext.startLine(), endLine(),
+			earlyContext.startColumn(), errorColumn(),
+			earlyContext.enclosingCode() );
 		// it is a Jolie internal service
 		if( internalIfaces != null && internalIfaces.length > 0 ) {
 			if( internalMain == null ) {
