@@ -37,9 +37,6 @@ from file import File
 from string_utils import StringUtils 
 from runtime import Runtime
 
-from .public.interfaces.NativeCodeRenderInterface import NativeCodeRenderInterface
-
-
 type MetaRenderCodeType {
     type: Type
     indentation: string 
