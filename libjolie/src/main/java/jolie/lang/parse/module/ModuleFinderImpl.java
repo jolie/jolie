@@ -29,7 +29,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
-
 import jolie.lang.Constants;
 import jolie.lang.parse.module.exceptions.ModuleNotFoundException;
 
@@ -140,8 +139,15 @@ public class ModuleFinderImpl implements ModuleFinder {
 	 * @return source object to be parsed by module parser.
 	 */
 	private ModuleSource moduleLookup( Path basePath, ImportPath importPath ) throws FileNotFoundException {
-		List< String > packageParts = importPath.pathParts().subList( 0, importPath.pathParts().size() - 1 );
-		String moduleName = importPath.pathParts().get( importPath.pathParts().size() - 1 );
+		List< String > packageParts;
+		String moduleName;
+		if( importPath.pathParts().isEmpty() ) {
+			packageParts = new ArrayList<>();
+			moduleName = "";
+		} else {
+			packageParts = importPath.pathParts().subList( 0, importPath.pathParts().size() - 1 );
+			moduleName = importPath.pathParts().get( importPath.pathParts().size() - 1 );
+		}
 		for( String packageDir : packageParts ) {
 			basePath = basePath.resolve( packageDir );
 		}
