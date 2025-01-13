@@ -69,7 +69,7 @@ import org.xml.sax.SAXParseException;
 import jolie.lang.Constants;
 import jolie.lang.NativeType;
 import jolie.lang.parse.ast.types.*;
-import jolie.lang.parse.context.URIParsingContext;
+import jolie.lang.parse.context.ParsingContext;
 import jolie.util.Pair;
 import jolie.xml.xsd.XsdToJolieConverter;
 import jolie.xml.xsd.XsdUtils;
@@ -480,7 +480,7 @@ public class WSDLConverter {
 		Map< String, Part > parts = message.getParts();
 		if( parts.size() > 1 || style == Style.RPC ) {
 			typeName = message.getQName().getLocalPart();
-			TypeInlineDefinition requestType = new TypeInlineDefinition( URIParsingContext.DEFAULT, typeName,
+			TypeInlineDefinition requestType = new TypeInlineDefinition( ParsingContext.DEFAULT, typeName,
 				BasicTypeDefinition.of( NativeType.VOID ), jolie.lang.Constants.RANGE_ONE_TO_ONE );
 			for( Entry< String, Part > entry : parts.entrySet() ) {
 				Part part = entry.getValue();
@@ -490,14 +490,14 @@ public class WSDLConverter {
 							+ operationName + "." );
 					}
 					TypeDefinitionLink link = new TypeDefinitionLink(
-						URIParsingContext.DEFAULT,
+						ParsingContext.DEFAULT,
 						part.getName(),
 						jolie.lang.Constants.RANGE_ONE_TO_ONE,
 						XsdUtils.xsdToNativeType( part.getTypeName().getLocalPart() ).id() );
 					requestType.putSubType( link );
 				} else {
 					TypeDefinitionLink link = new TypeDefinitionLink(
-						URIParsingContext.DEFAULT,
+						ParsingContext.DEFAULT,
 						part.getName(),
 						jolie.lang.Constants.RANGE_ONE_TO_ONE,
 						part.getElementName().getLocalPart() );
@@ -552,7 +552,7 @@ public class WSDLConverter {
 			parts = entry.getValue().getMessage().getParts();
 			if( parts.size() > 1 ) {
 				String typeName = faultName = faultTypeName;
-				TypeInlineDefinition faultType = new TypeInlineDefinition( URIParsingContext.DEFAULT, typeName,
+				TypeInlineDefinition faultType = new TypeInlineDefinition( ParsingContext.DEFAULT, typeName,
 					BasicTypeDefinition.of( NativeType.VOID ), jolie.lang.Constants.RANGE_ONE_TO_ONE );
 				for( Entry< String, Part > partEntry : parts.entrySet() ) {
 					Part part = partEntry.getValue();
@@ -562,14 +562,14 @@ public class WSDLConverter {
 								+ operation.getName() + "." );
 						}
 						TypeDefinitionLink link = new TypeDefinitionLink(
-							URIParsingContext.DEFAULT,
+							ParsingContext.DEFAULT,
 							part.getName(),
 							jolie.lang.Constants.RANGE_ONE_TO_ONE,
 							XsdUtils.xsdToNativeType( part.getTypeName().getLocalPart() ).id() );
 						faultType.putSubType( link );
 					} else {
 						TypeDefinitionLink link = new TypeDefinitionLink(
-							URIParsingContext.DEFAULT,
+							ParsingContext.DEFAULT,
 							part.getName(),
 							jolie.lang.Constants.RANGE_ONE_TO_ONE,
 							part.getElementName().getLocalPart() );

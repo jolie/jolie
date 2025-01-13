@@ -130,7 +130,6 @@ import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
 import jolie.lang.parse.ast.types.TypeInlineDefinition;
 import jolie.lang.parse.context.ParsingContext;
-import jolie.lang.parse.context.URIParsingContext;
 import jolie.lang.parse.module.SymbolTable;
 import jolie.util.ArrayListMultiMap;
 import jolie.util.MultiMap;
@@ -168,7 +167,7 @@ public class SemanticVerifier implements UnitOLVisitor {
 	private final List< CodeCheckMessage > errors = new ArrayList<>();
 	private final Configuration configuration;
 
-	private ExecutionInfo executionInfo = new ExecutionInfo( URIParsingContext.DEFAULT, ExecutionMode.SINGLE );
+	private ExecutionInfo executionInfo = new ExecutionInfo( ParsingContext.DEFAULT, ExecutionMode.SINGLE );
 	private final Map< String, InputPortInfo > inputPorts = new HashMap<>();
 	private final Map< String, OutputPortInfo > outputPorts = new HashMap<>();
 
