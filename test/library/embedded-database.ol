@@ -37,15 +37,6 @@ service Main {
     embed File as File
     embed ZipUtils as ZipUtils
 
-    outputPort ApacheDerby1_10_14 {
-        location: "socket://archive.apache.org:443/dist/db/derby/db-derby-10.14.2.0/"
-        protocol: https {
-            .osc.downloadDerby.alias = "db-derby-10.14.2.0-lib.zip"
-            .osc.downloadDerby.method = "get"
-        }
-        interfaces: ApacheDerbyDownloadInterface
-    }
-
     inputPort TestUnitInput {
 		location: "local"
 		interfaces: TestUnitInterface
@@ -78,13 +69,7 @@ service Main {
 
     main {
         test()() {
-            downloadDerby@ApacheDerby1_10_14()( derby )
-            writeFile@File( { filename = "zip.zip", content << derby } )()
-            unzip@ZipUtils( { filename = "zip.zip", targetPath = "./unzip"} )()
-            delete@File( "zip.zip" )()
-            readFile@File( { filename = "unzip/db-derby-10.14.2.0-lib/lib/derby.jar", format = "binary" } )( derbyJar )
-            writeFile@File( { filename = "derby.jar", format = "binary", content << derbyJar })()
-            loadLibrary@Runtime( "derby.jar" )()
+            loadLibrary@Runtime( "./library/private/derby.jar" )()
 
             scope( ConnectionScope ) {
                 install( IOException => throw( TestFailed, ConnectionScope.IOException.stackTrace ) )
@@ -121,7 +106,7 @@ service Main {
             if ( result.row[ 0 ].NAME != "test" ) {
                throw( TestFailed, "wrong reading from database" )
             }
-            delete@File( "derby.jar" )()
+          //  delete@File( "derby.jar" )()
             delete@File( "derby.log" )()
             deleteDir@File("./data")()
             deleteDir@File("./unzip")()
