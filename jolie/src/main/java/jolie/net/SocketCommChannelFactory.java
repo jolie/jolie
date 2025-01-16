@@ -26,6 +26,8 @@ import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.channels.SocketChannel;
+import java.nio.channels.UnresolvedAddressException;
+
 import jolie.net.ext.CommChannelFactory;
 import jolie.net.ports.OutputPort;
 
@@ -42,7 +44,13 @@ public class SocketCommChannelFactory extends CommChannelFactory {
 	@Override
 	public CommChannel createChannel( URI location, OutputPort port )
 		throws IOException {
-		SocketChannel channel = SocketChannel.open( new InetSocketAddress( location.getHost(), location.getPort() ) );
+
+		SocketChannel channel = null;
+		try {
+			channel = SocketChannel.open( new InetSocketAddress( location.getHost(), location.getPort() ) );
+		} catch( UnresolvedAddressException e ) {
+			throw new IOException( "Unable to resolve address" );
+		}
 		SocketCommChannel ret = null;
 		try {
 			ret = new SocketCommChannel( channel, location, port.getProtocol() );
