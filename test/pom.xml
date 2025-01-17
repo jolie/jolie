@@ -101,7 +101,7 @@
 								<artifactItem>
 									<groupId>org.apache.derby</groupId>
 									<artifactId>derby</artifactId>
-									<version>10.14.2.0</version>
+									<version>10.17.1.0</version>
 									<destFileName>derby.jar</destFileName>
 									<outputDirectory>${test.dir}/library/private</outputDirectory>
 								</artifactItem>
@@ -161,7 +161,7 @@
 		<dependency>
 			<groupId>org.apache.derby</groupId>
 			<artifactId>derby</artifactId>
-			<version>10.14.2.0</version> 
+			<version>10.17.1.0</version> 
 			<scope>test</scope>
 		</dependency>
 
