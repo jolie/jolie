@@ -98,10 +98,25 @@ service Main {
           
 
           md5@MessageDigest( interface_string )( md5intf )
-          check_op = "67af1f0213d6daf96383d335b412a57b"
+          check_op = "90b7738902656dfed2e8bcd730222edc"
           if ( md5intf != check_op ) {
             throw( TestFailed, "wrong generation of interface with refined types, expected\n\n" + check_op + "\n\nfound\n\n" + md5intf + ", found plain text:" + interface_string )
           }
+
+          // complex types
+          undef( rq )
+          rq.filename = "private/sample_service_complex_types.ol"
+          getInputPortMetaData@MetaJolie( rq )( meta_description )
+          
+        
+          
+          getInterface@MetaRenderCode( meta_description.input.interfaces )( interface_string )
+          md5@MessageDigest( interface_string )( md5intf )
+          check_op = "5448ea1448ee83f46dfe634cce51ed91"
+          if ( md5intf != check_op ) {
+            throw( TestFailed, "wrong generation of interface with complex types, expected\n\n" + check_op + "\n\nfound\n\n" + md5intf + ", found plain text:" + interface_string )
+          }
+
        }
     }
 }
