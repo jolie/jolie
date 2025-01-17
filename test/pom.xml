@@ -85,6 +85,31 @@
 					</arguments>
 				</configuration>
 			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<version>3.6.0</version>
+				<executions>
+					<execution>
+						<id>copy-derby</id>
+						<phase>process-test-resources</phase>
+						<goals>
+							<goal>copy</goal>
+						</goals>
+						<configuration>
+							<artifactItems>
+								<artifactItem>
+									<groupId>org.apache.derby</groupId>
+									<artifactId>derby</artifactId>
+									<version>10.14.2.0</version>
+									<destFileName>derby.jar</destFileName>
+									<outputDirectory>${test.dir}/library/private</outputDirectory>
+								</artifactItem>
+							</artifactItems>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
 	</build>
 	<dependencies>
@@ -131,6 +156,12 @@
 			<groupId>${project.groupId}</groupId>
 			<artifactId>xsom</artifactId>
 			<version>${jolie.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.derby</groupId>
+			<artifactId>derby</artifactId>
+			<version>10.14.2.0</version> 
 			<scope>test</scope>
 		</dependency>
 
