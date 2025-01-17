@@ -26,11 +26,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -40,6 +42,9 @@ import org.apache.commons.text.similarity.LevenshteinDistance;
 
 import jolie.lang.CodeCheckMessage;
 import jolie.lang.parse.ParserException;
+import jolie.lang.parse.ast.ImportStatement;
+import jolie.lang.parse.ast.ImportSymbolTarget;
+import jolie.lang.parse.ast.OLSyntaxNode;
 import jolie.lang.parse.context.ParsingContext;
 import jolie.lang.parse.context.URIParsingContext;
 import jolie.lang.parse.module.exceptions.ModuleNotFoundException;
@@ -93,25 +98,49 @@ class ModuleCrawler {
 
 	private List< ModuleSource > crawlModule( ModuleRecord record ) throws ModuleException {
 		List< ModuleSource > modulesToCrawl = new ArrayList<>();
-		for( ImportedSymbolInfo importedSymbol : record.symbolTable().importedSymbolInfos() ) {
-			try {
-				ModuleSource moduleSource =
-					this.findModule( importedSymbol.importPath(), record.uri() );
-				importedSymbol.setModuleSource( moduleSource );
-				modulesToCrawl.add( moduleSource );
-			} catch( ModuleNotFoundException e ) {
-				// Add the importpath and name to the line of code, as the rest of the line cannot be gotten from
-				// the context, since the getContextDuringError cannot be used in here, and the context is not
-				// updated after the error is found.
-				String codeLine = importedSymbol.context().enclosingCode().get( 0 ).replace( "\n", "" );
-				String CodeLineWithPath = codeLine + importedSymbol.importPath() + " import " + importedSymbol.name();
-				int column = codeLine.length();
-				ParsingContext context = new URIParsingContext( importedSymbol.context().source(),
-					importedSymbol.context().endLine(), importedSymbol.context().endLine(), column,
-					column + e.importPath().toString().length(),
-					List.of( CodeLineWithPath ) );
-				CodeCheckMessage message = CodeCheckMessage.withHelp( context, e.getMessage(), getHelp( e ) );
-				throw new ModuleException( message );
+		for( OLSyntaxNode node : record.program().children() ) {
+			if( node instanceof ImportStatement importStatement ) {
+				ImportPath importPath = new ImportPath( importStatement.importTarget() );
+				try {
+					ModuleSource moduleSource =
+						this.findModule( importPath, record.uri() );
+
+					if( importStatement.isNamespaceImport() ) {
+						Optional< SymbolInfo > symbolInfoFromST =
+							record.symbolTable().getSymbol( importPath.toString() );
+						if( symbolInfoFromST.isPresent()
+							&& symbolInfoFromST.get() instanceof ImportedSymbolInfo importedSymbolInfo ) {
+							importedSymbolInfo.setModuleSource( moduleSource );
+						}
+					} else {
+						for( ImportSymbolTarget importedSymbol : importStatement.importSymbolTargets() ) {
+							Optional< SymbolInfo > symbolInfoFromST =
+								record.symbolTable().getSymbol( importedSymbol.localSymbolName() );
+							if( symbolInfoFromST.isPresent()
+								&& symbolInfoFromST.get() instanceof ImportedSymbolInfo importedSymbolInfo ) {
+								importedSymbolInfo.setModuleSource( moduleSource );
+							}
+						}
+					}
+
+					modulesToCrawl.add( moduleSource );
+
+				} catch( ModuleNotFoundException e ) {
+					// Add the importpath and name to the line of code, as the rest of the line cannot be gotten from
+					// the context, since the getContextDuringError cannot be used in here, and the context is not
+					// updated after the error is found.
+					String codeLine = importStatement.context().enclosingCode().get( 0 ).replace( "\n", "" );
+					String CodeLineWithPath = codeLine + importPath + " import "
+						+ Arrays.stream( importStatement.importSymbolTargets() ).map( ImportSymbolTarget::toString )
+							.collect( Collectors.joining( " " ) );
+					int column = codeLine.length();
+					ParsingContext context = new URIParsingContext( importStatement.context().source(),
+						importStatement.context().endLine(), importStatement.context().endLine(), column,
+						column + e.importPath().toString().length(),
+						List.of( CodeLineWithPath ) );
+					CodeCheckMessage message = CodeCheckMessage.withHelp( context, e.getMessage(), getHelp( e ) );
+					throw new ModuleException( message );
+				}
 			}
 		}
 		cache.put( record, modulesToCrawl
