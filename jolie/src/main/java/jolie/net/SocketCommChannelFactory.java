@@ -49,7 +49,7 @@ public class SocketCommChannelFactory extends CommChannelFactory {
 		try {
 			channel = SocketChannel.open( new InetSocketAddress( location.getHost(), location.getPort() ) );
 		} catch( UnresolvedAddressException e ) {
-			throw new IOException( "Unable to resolve address" );
+			throw new IOException( "Unable to resolve address: " + location.toString(), e );
 		}
 		SocketCommChannel ret = null;
 		try {
