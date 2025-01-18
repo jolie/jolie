@@ -99,7 +99,8 @@ class ModuleCrawler {
 	private List< ModuleSource > crawlModule( ModuleRecord record ) throws ModuleException {
 		List< ModuleSource > modulesToCrawl = new ArrayList<>();
 		for( OLSyntaxNode node : record.program().children() ) {
-			if( node instanceof ImportStatement importStatement ) {
+			if( node instanceof ImportStatement ) {
+				var importStatement = (ImportStatement) node;
 				ImportPath importPath = new ImportPath( importStatement.importTarget() );
 				try {
 					ModuleSource moduleSource =
@@ -109,7 +110,8 @@ class ModuleCrawler {
 						Optional< SymbolInfo > symbolInfoFromST =
 							record.symbolTable().getSymbol( importPath.toString() );
 						if( symbolInfoFromST.isPresent()
-							&& symbolInfoFromST.get() instanceof ImportedSymbolInfo importedSymbolInfo ) {
+							&& symbolInfoFromST.get() instanceof ImportedSymbolInfo ) {
+							var importedSymbolInfo = (ImportedSymbolInfo) symbolInfoFromST.get();
 							importedSymbolInfo.setModuleSource( moduleSource );
 						}
 					} else {
@@ -117,7 +119,8 @@ class ModuleCrawler {
 							Optional< SymbolInfo > symbolInfoFromST =
 								record.symbolTable().getSymbol( importedSymbol.localSymbolName() );
 							if( symbolInfoFromST.isPresent()
-								&& symbolInfoFromST.get() instanceof ImportedSymbolInfo importedSymbolInfo ) {
+								&& symbolInfoFromST.get() instanceof ImportedSymbolInfo ) {
+								var importedSymbolInfo = (ImportedSymbolInfo) symbolInfoFromST.get();
 								importedSymbolInfo.setModuleSource( moduleSource );
 							}
 						}
