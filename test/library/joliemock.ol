@@ -1,34 +1,37 @@
-include "../AbstractTestUnit.iol"
-include "services/joliemock/public/interfaces/JolieMockInterface.iol"
-include "metajolie.iol"
-include "console.iol"
-include "message_digest.iol"
-include "runtime.iol"
-
-outputPort JolieMock {
-    Interfaces: JolieMockInterface
-}
+from ..test-unit import TestUnitInterface
+from joliemock	import JolieMock
+from metajolie import MetaJolie
+from console import Console 
+from message-digest import MessageDigest
+from runtime import Runtime
 
 
-embedded {
-    Jolie:
-        "services/joliemock/joliemock.ol" in JolieMock
-}
+service Main {
 
+	embed MetaJolie as MetaJolie
+	embed JolieMock as JolieMock
+	embed MessageDigest as MessageDigest
+	embed Console as Console
+	embed Runtime as Runtime
 
-define doTest {
-    getInputPortMetaData@MetaJolie( { .filename = "./services/private/testservice.ol" } )( ipts )
-    getMock@JolieMock( ipts )( mock )
-    md5@MessageDigest( mock )( mockmd5 )
-    //println@Console( mock )( )
-    //println@Console( mockmd5 )()
-	stats@Runtime()( stats )
-	if ( stats.os.name == "Linux" ) {
-		if ( mockmd5 != "30da2fb6f29e87965f695bacb8f6e81b" ) {
-			throw( TestFailed, "md5 of mock does not correspond, expected 663c50e2d6cd7901c1aa5e6d4dfb32b2, found " + mockmd5 )
+	inputPort TestUnitInput {
+        location: "local"
+        interfaces: TestUnitInterface
+    }
+
+	main {
+		test()() {
+			getInputPortMetaData@MetaJolie( { filename = "./services/private/testservice.ol" } )( ipts )
+			getMock@JolieMock( ipts )( mock )
+			// just testing if the code is syntactically correct
+			loadEmbeddedService@Runtime({ code = mock })()
+			
+			md5@MessageDigest( mock )( mockmd5 )
+			if ( mockmd5 != "53e25302c100d06d1f0d15addbae931a" ) {
+				throw( TestFailed, "md5 of mock does not correspond, expected 663c50e2d6cd7901c1aa5e6d4dfb32b2, found " + mockmd5 )
+			}
 		}
 	}
-
 }
 
 /* expected mock
