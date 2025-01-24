@@ -93,6 +93,15 @@ public interface ParsingContext extends Serializable {
 	List< String > enclosingCodeWithLineNumbers();
 
 	/**
+	 * Returns a Location representation of the ParsingContext.
+	 *
+	 * @return The Location of the ParsingContext.
+	 */
+	default Location location() {
+		return new Location( source(), startLine(), endLine(), startColumn(), endColumn() );
+	}
+
+	/**
 	 * Returns a string interpretations of the ParsingContext
 	 *
 	 * @return a string interpretations of the ParsingContext
