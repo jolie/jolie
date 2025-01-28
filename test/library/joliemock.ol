@@ -29,8 +29,8 @@ service Main {
 			md5@MessageDigest( mock )( mockmd5 )
 			stats@Runtime()( stats )
 			if ( stats.os.name == "Linux" ) {
-				if ( mockmd5 != "53e25302c100d06d1f0d15addbae931a" ) {
-					throw( TestFailed, "md5 of mock does not correspond, expected 663c50e2d6cd7901c1aa5e6d4dfb32b2, found " + mockmd5 )
+				if ( mockmd5 != "7509a5739c24180fdfd1b658aa8e59b6" ) {
+					throw( TestFailed, "md5 of mock does not correspond, expected 7509a5739c24180fdfd1b658aa8e59b6, found " + mockmd5 )
 				}
 			}
 		}

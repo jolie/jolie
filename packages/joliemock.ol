@@ -231,6 +231,8 @@ service Main {
     embed Converter as Converter
     embed StringUtils as StringUtils
 
+    execution: concurrent
+
     {{{iport}}}
 
 
