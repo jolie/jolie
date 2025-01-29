@@ -33,6 +33,6 @@ public class ImportPath {
 
 	@Override
 	public String toString() {
-		return isRelativeImport() ? "." + String.join( ".", this.pathParts() ) : String.join( ".", this.pathParts() );
+		return String.join( ".", this.pathParts() );
 	}
 }
