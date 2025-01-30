@@ -53,7 +53,6 @@ import java.util.logging.Level;
 import java.util.stream.Collectors;
 import jolie.Interpreter;
 import jolie.JolieClassLoader;
-import jolie.jap.JapURLConnection;
 import jolie.lang.Constants;
 import jolie.lang.parse.Scanner;
 import jolie.runtime.correlation.CorrelationEngine;
@@ -90,7 +89,6 @@ public class CommandLineParser implements AutoCloseable {
 	private final Level logLevel;
 	private final String executionTarget;
 	private final Optional< Path > parametersFilepath;
-	private File programDirectory = null;
 	private int cellId = 0;
 
 	/**
@@ -483,7 +481,6 @@ public class CommandLineParser implements AutoCloseable {
 									Collection< String > japOptions = parseJapManifestForOptions( manifest );
 									argsList.addAll( i + 1, japOptions );
 									japUrl = japFilename + "!";
-									programDirectory = new File( japFilename ).getParentFile();
 								}
 								break;
 							}
@@ -691,7 +688,6 @@ public class CommandLineParser implements AutoCloseable {
 		if( f.exists() ) {
 			result.stream = new FileInputStream( f );
 			result.source = f.toURI().getSchemeSpecificPart();
-			programDirectory = f.getParentFile();
 		} else {
 			for( String includePath : includePaths ) {
 				if( includePath.startsWith( "jap:" ) ) {
@@ -712,7 +708,6 @@ public class CommandLineParser implements AutoCloseable {
 						f = f.getAbsoluteFile();
 						result.stream = new FileInputStream( f );
 						result.source = f.toURI().getSchemeSpecificPart();
-						programDirectory = f.getParentFile();
 						break;
 					}
 				}
@@ -731,17 +726,6 @@ public class CommandLineParser implements AutoCloseable {
 					if( olURL != null ) {
 						result.stream = olURL.openStream();
 						result.source = olURL.toString();
-					}
-				}
-				if( programDirectory == null && olURL != null && olURL.getPath() != null ) {
-					// Try to extract the parent directory of the JAP/JAR library file
-					try {
-						File urlFile = new File( JapURLConnection.NESTING_SEPARATION_PATTERN
-							.split( new URI( olURL.getPath() ).getSchemeSpecificPart() )[ 0 ] ).getAbsoluteFile();
-						if( urlFile.exists() ) {
-							programDirectory = urlFile.getParentFile();
-						}
-					} catch( URISyntaxException e ) {
 					}
 				}
 			}
@@ -815,6 +799,7 @@ public class CommandLineParser implements AutoCloseable {
 			programStream,
 			charset,
 			programFilepath,
+			programFilepath.getParentFile(),
 			arguments,
 			constants,
 			jolieClassLoader,
@@ -827,7 +812,6 @@ public class CommandLineParser implements AutoCloseable {
 			printStackTraces,
 			responseTimeout,
 			logLevel,
-			programDirectory,
 			packagePaths,
 			executionTarget,
 			parametersFilepath );

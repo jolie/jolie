@@ -87,6 +87,7 @@ import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 import jolie.runtime.embedding.RequestResponse;
 import jolie.runtime.typing.Type;
+import jolie.util.UriUtils;
 
 /**
  *
@@ -452,7 +453,7 @@ public class FileService extends JavaService {
 		throws FaultException {
 		String dir = null;
 		try {
-			dir = interpreter().programDirectory().getCanonicalPath();
+			dir = UriUtils.normalizeWindowsPath( interpreter().programDirectory().getCanonicalPath() );
 		} catch( IOException e ) {
 			throw new FaultException( "IOException", e );
 		}

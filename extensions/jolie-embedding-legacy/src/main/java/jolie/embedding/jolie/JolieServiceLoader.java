@@ -49,7 +49,6 @@ public class JolieServiceLoader extends EmbeddedServiceLoader {
 		super( channelDest );
 		final String[] ss = SERVICE_PATH_SPLIT_PATTERN.split( servicePath );
 		final String[] options = currInterpreter.optionArgs();
-
 		final String[] newArgs = new String[ 2 + options.length + ss.length ];
 		newArgs[ 0 ] = "-i";
 		newArgs[ 1 ] = currInterpreter.programDirectory().getAbsolutePath();
@@ -60,36 +59,11 @@ public class JolieServiceLoader extends EmbeddedServiceLoader {
 
 		Interpreter.Configuration cmdConfig = commandLineParser.getInterpreterConfiguration();
 		Interpreter.Configuration config = Interpreter.Configuration.create(
-			cmdConfig.connectionsLimit(),
-			cmdConfig.cellId(),
-			cmdConfig.correlationAlgorithm(),
-			cmdConfig.includePaths(),
-			cmdConfig.optionArgs(),
-			cmdConfig.libUrls(),
-			cmdConfig.inputStream(),
-			cmdConfig.charset(),
-			cmdConfig.programFilepath(),
-			cmdConfig.arguments(),
-			cmdConfig.constants(),
-			cmdConfig.jolieClassLoader(),
-			cmdConfig.isProgramCompiled(),
-			cmdConfig.typeCheck(),
-			cmdConfig.tracer(),
-			cmdConfig.tracerLevel(),
-			cmdConfig.tracerMode(),
-			cmdConfig.check(),
-			cmdConfig.printStackTraces(),
-			cmdConfig.responseTimeout(),
-			cmdConfig.logLevel(),
-			cmdConfig.programDirectory(),
-			cmdConfig.packagePaths(),
-			// difference:
-			serviceName.orElse( cmdConfig.executionTarget() ),
-			Optional.empty() );
+			cmdConfig,
+			serviceName.orElse( cmdConfig.executionTarget() ) );
 
 		interpreter = new Interpreter(
 			config,
-			currInterpreter.programDirectory(),
 			params,
 			Optional.of( currInterpreter.logPrefix() ) );
 	}
@@ -100,7 +74,7 @@ public class JolieServiceLoader extends EmbeddedServiceLoader {
 		Interpreter.Configuration configuration =
 			Interpreter.Configuration.create( currInterpreter.configuration(), new File( "#native_code_" +
 				SERVICE_LOADER_COUNTER.getAndIncrement() ), new ByteArrayInputStream( code.getBytes() ) );
-		interpreter = new Interpreter( configuration, currInterpreter.programDirectory(),
+		interpreter = new Interpreter( configuration,
 			Optional.empty(), Optional.of( currInterpreter.logPrefix() ) );
 	}
 

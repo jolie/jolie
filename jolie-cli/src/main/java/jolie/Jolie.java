@@ -80,7 +80,7 @@ public class Jolie {
 					JsUtils.parseJsonIntoValue( fileReader, params.get(), true );
 				}
 			}
-			final Interpreter interpreter = new Interpreter( config, null, params, Optional.empty() );
+			final Interpreter interpreter = new Interpreter( config, params, Optional.empty() );
 			Thread.currentThread().setContextClassLoader( interpreter.getClassLoader() );
 			Runtime.getRuntime().addShutdownHook( new Thread( () -> interpreter.exit( TERMINATION_TIMEOUT ) ) );
 			interpreter.run();
