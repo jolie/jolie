@@ -25,7 +25,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
-import java.net.URL;
+import java.net.URI;
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -181,8 +181,8 @@ public class XmlUtils extends JavaService {
 						request.getFirstChild( "options" ).hasChildren( "schemaLanguage" )
 							? request.getFirstChild( "options" ).getFirstChild( "schemaLanguage" ).strValue()
 							: XMLConstants.W3C_XML_SCHEMA_NS_URI );
-					Schema schema = schemaFactory.newSchema( new URL(
-						request.getFirstChild( "options" ).getFirstChild( "schemaUrl" ).strValue() ) );
+					Schema schema = schemaFactory.newSchema( URI.create(
+						request.getFirstChild( "options" ).getFirstChild( "schemaUrl" ).strValue() ).toURL() );
 					documentBuilderFactory.setSchema( schema ); // set schema
 				}
 				if( request.getFirstChild( "options" ).hasChildren( "charset" ) ) {
