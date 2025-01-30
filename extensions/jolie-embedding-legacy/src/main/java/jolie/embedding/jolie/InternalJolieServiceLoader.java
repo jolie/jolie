@@ -53,7 +53,6 @@ public class InternalJolieServiceLoader extends EmbeddedServiceLoader {
 			new CommandLineParser( newArgs.toArray( new String[] {} ), currInterpreter.getClassLoader(), true );
 		interpreter = new Interpreter(
 			commandLineParser.getInterpreterConfiguration(),
-			currInterpreter.programDirectory(),
 			currInterpreter,
 			program );
 	}

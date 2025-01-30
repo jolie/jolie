@@ -55,7 +55,6 @@ public class JolieServiceNodeLoader extends ServiceNodeLoader {
 
 			interpreter = new Interpreter(
 				configuration,
-				Paths.get( serviceNode().context().source() ).toFile(),
 				interpreter().symbolTables(),
 				builder.toProgram(),
 				v,
