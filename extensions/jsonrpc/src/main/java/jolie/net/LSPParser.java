@@ -50,12 +50,15 @@ public class LSPParser {
 	}
 
 	private void parseHeaderProperties( LSPMessage message ) throws IOException {
-		String name, value;
 		nextToken();
-		name = token.content().toLowerCase();
-		value = scanner.readLine();
-		message.setProperty( name, value );
-
+		while( token.is( Scanner.TokenType.ID ) ) {
+			String name, value;
+			name = token.content().toLowerCase();
+			nextToken();
+			value = scanner.readLine();
+			nextToken();
+			message.setProperty( name, value );
+		}
 	}
 
 	private static void blockingRead( InputStream stream, byte[] buffer, int offset, int length )
@@ -127,10 +130,6 @@ public class LSPParser {
 			buffer = b.array();
 		} else if( contentLength > 0 ) {
 			buffer = new byte[ contentLength ];
-			// skipping the \r\n
-			if( stream.skip( 2 ) != 2 ) {
-				throw new IOException( "Could not skip end of line in Language Server Protocol message" );
-			}
 			blockingRead( stream, buffer, 0, contentLength );
 		}
 
