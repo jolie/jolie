@@ -33,7 +33,6 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
-import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -142,7 +141,7 @@ public class FileService extends JavaService {
 			if( Files.exists( Paths.get( url ) ) ) {
 				fileTypeMap = new MimetypesFileTypeMap( url );
 			} else {
-				try( InputStream mimeIS = new URL( url ).openStream() ) {
+				try( InputStream mimeIS = URI.create( url ).toURL().openStream() ) {
 					fileTypeMap = new MimetypesFileTypeMap( mimeIS );
 				}
 			}
@@ -903,8 +902,8 @@ public class FileService extends JavaService {
 			parent = Paths.get( fileName ).getParent();
 		} catch( InvalidPathException e ) {
 			try {
-				parent = Paths.get( new URL( fileName ).toURI() ).getParent();
-			} catch( InvalidPathException | URISyntaxException | MalformedURLException invalidPathException ) {
+				parent = Paths.get( URI.create( fileName ) ).getParent();
+			} catch( IllegalArgumentException invalidPathException ) {
 				throw new FaultException( invalidPathException );
 			}
 		}

@@ -28,6 +28,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.JarURLConnection;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.file.Files;
@@ -68,8 +69,9 @@ public class JapURLConnection extends URLConnection {
 		return JAP_CACHE.get( url );
 	}
 
-	private static JarFile retrieve( URL url, final InputStream in )
+	private static JarFile retrieve( URI uri, final InputStream in )
 		throws IOException {
+		final URL url = uri.toURL();
 		JarFile jar = getFromCache( url );
 		if( jar == null ) {
 			try {
@@ -125,17 +127,18 @@ public class JapURLConnection extends URLConnection {
 			if( matcher.matches() ) {
 				final String path = matcher.group( 1 );
 				final String subPath = matcher.group( 2 );
-				final JarURLConnection jarURLConnection = (JarURLConnection) new URL( "jar:" + path ).openConnection();
+				final JarURLConnection jarURLConnection =
+					(JarURLConnection) URI.create( "jar:" + path ).toURL().openConnection();
 				inputStream = jarURLConnection.getInputStream();
 				if( subPath.isEmpty() == false ) {
-					JarFile jar = retrieve( new URL( path ), inputStream );
+					JarFile jar = retrieve( URI.create( path ), inputStream );
 					final String[] nodes = NESTING_SEPARATION_PATTERN.split( subPath );
 					int i;
 					final StringBuilder builder = new StringBuilder( path.length() + subPath.length() );
 					builder.append( path );
 					for( i = 0; i < nodes.length - 1; i++ ) {
 						builder.append( "!/" ).append( nodes[ i ] );
-						jar = retrieve( new URL( builder.toString() ), inputStream );
+						jar = retrieve( URI.create( builder.toString() ), inputStream );
 					}
 					final ZipEntry entry = jar.getEntry( nodes[ i ] );
 					entrySize = entry.getSize();

@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.JarURLConnection;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.HashMap;
@@ -351,9 +352,9 @@ public final class JolieClassLoader extends URLClassLoader {
 		}
 
 		if( url.getProtocol().startsWith( "jap" ) ) {
-			addURL( new URL( url + "!/" ) );
+			addURL( URI.create( url + "!/" ).toURL() );
 		} else {
-			addURL( new URL( "jap:" + url + "!/" ) );
+			addURL( URI.create( "jap:" + url + "!/" ).toURL() );
 		}
 	}
 }
