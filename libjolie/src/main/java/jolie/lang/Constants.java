@@ -38,7 +38,7 @@ import jolie.util.Range;
 public final class Constants {
 	// Release information
 	public static final String VERSION = readVersionFromProperties();
-	public static final String COPYRIGHT = "(C) 2006-2022 the Jolie developers";
+	public static final String COPYRIGHT = "(C) 2006-2025 the Jolie developers";
 	public static final String ASCII_LOGO = readAsciiLogo();
 
 	private static String readVersionFromProperties() {
