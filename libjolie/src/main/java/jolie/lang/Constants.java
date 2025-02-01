@@ -23,6 +23,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.Calendar;
 import java.util.Properties;
 import java.util.jar.Attributes;
 import java.util.stream.Collectors;
@@ -38,7 +39,8 @@ import jolie.util.Range;
 public final class Constants {
 	// Release information
 	public static final String VERSION = readVersionFromProperties();
-	public static final String COPYRIGHT = "(C) 2006-2022 the Jolie developers";
+	public static final String COPYRIGHT =
+		String.format( "(C) 2006-%4d the Jolie developers", Calendar.getInstance().get( Calendar.YEAR ) );
 	public static final String ASCII_LOGO = readAsciiLogo();
 
 	private static String readVersionFromProperties() {
