@@ -142,7 +142,7 @@ public class CommandLineParser implements AutoCloseable {
 					"Set the maximum number of cached persistent output connections" ) )
 			.append(
 				getOptionString( "--responseTimeout [number]",
-					"Set the timeout for request-response invocations (in milliseconds)" ) )
+					"Set the timeout for request-response invocations (in milliseconds, default 1 min = 60*1000)" ) )
 			.append(
 				getOptionString( "--correlationAlgorithm [simple|hash]",
 					"Set the algorithm to use for message correlation" ) )
