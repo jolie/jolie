@@ -65,6 +65,8 @@ public class MetaJolie extends JavaService {
 		}
 	}
 
+	private int typeLinkCounter = 0;
+
 	private Value getBasicType( BasicTypeDefinition type ) {
 		Value response = Value.create();
 		if( null != type )
@@ -224,6 +226,14 @@ public class MetaJolie extends JavaService {
 		return response;
 	}
 
+
+	private int getTypeLinkCounter() {
+		if( typeLinkCounter == Integer.MAX_VALUE ) {
+			typeLinkCounter = 0;
+		}
+		return typeLinkCounter;
+	}
+
 	private boolean isNativeType( String type ) {
 		return nativeTypeList.contains( type );
 	}
@@ -250,13 +260,33 @@ public class MetaJolie extends JavaService {
 		response.getFirstChild( "type" ).deepCopy( getType(
 			listOfGeneratedTypesInTypeDefinition,
 			listOfGeneratedTypesInValues,
-			type, insertTypeInInterfaceList,
-			extension ) );
+			type, insertTypeInInterfaceList ) );
 		response.getFirstChild( "documentation" ).setValue( type.getDocumentation().orElse( "" ) );
 		return response;
 	}
 
 	private Value getChoiceType(
+		ArrayList< TypeDefinition > listOfGeneratedTypesInTypeDefinition,
+		ArrayList< Value > listOfGeneratedTypesInValues,
+		TypeChoiceDefinition typedef,
+		boolean insertInInterfaceList ) {
+		Value type = Value.create();
+		Value left = type.getFirstChild( "choice" ).getFirstChild( "left_type" );
+		Value right = type.getFirstChild( "choice" ).getFirstChild( "right_type" );
+
+		left.deepCopy( getType(
+			listOfGeneratedTypesInTypeDefinition,
+			listOfGeneratedTypesInValues,
+			typedef.left(), insertInInterfaceList ) );
+		right.deepCopy( getType(
+			listOfGeneratedTypesInTypeDefinition,
+			listOfGeneratedTypesInValues,
+			typedef.right(), insertInInterfaceList ) );
+
+		return type;
+	}
+
+	private Value getChoiceTypeExtended(
 		ArrayList< TypeDefinition > listOfGeneratedTypesInTypeDefinition,
 		ArrayList< Value > listOfGeneratedTypesInValues,
 		TypeChoiceDefinition typedef,
@@ -266,11 +296,11 @@ public class MetaJolie extends JavaService {
 		Value left = type.getFirstChild( "choice" ).getFirstChild( "left_type" );
 		Value right = type.getFirstChild( "choice" ).getFirstChild( "right_type" );
 
-		left.deepCopy( getType(
+		left.deepCopy( getTypeExtended(
 			listOfGeneratedTypesInTypeDefinition,
 			listOfGeneratedTypesInValues,
 			typedef.left(), insertInInterfaceList, extension ) );
-		right.deepCopy( getType(
+		right.deepCopy( getTypeExtended(
 			listOfGeneratedTypesInTypeDefinition,
 			listOfGeneratedTypesInValues,
 			typedef.right(), insertInInterfaceList, extension ) );
@@ -278,10 +308,24 @@ public class MetaJolie extends JavaService {
 		return type;
 	}
 
+	private void insertTypeDefinitionExtended(
+		ArrayList< TypeDefinition > listOfGeneratedTypesInTypeDefinition,
+		ArrayList< Value > listOfGeneratedTypesInValues,
+		TypeDefinition typedef, TypeDefinition extension, String extendedTypeName ) {
+
+		if( !isNativeType( typedef.name() ) && !typedef.name().equals( "undefined" ) ) {
+			listOfGeneratedTypesInTypeDefinition.add( typedef );
+			listOfGeneratedTypesInValues.add( getTypeDefinitionExtended(
+				listOfGeneratedTypesInTypeDefinition,
+				listOfGeneratedTypesInValues,
+				typedef, true, extension, extendedTypeName ) );
+		}
+	}
+
 	private void insertTypeDefinition(
 		ArrayList< TypeDefinition > listOfGeneratedTypesInTypeDefinition,
 		ArrayList< Value > listOfGeneratedTypesInValues,
-		TypeDefinition typedef, TypeDefinition extension ) {
+		TypeDefinition typedef ) {
 		// to be optimized, similar code with addType
 		if( !listOfGeneratedTypesInTypeDefinition.contains( typedef ) && !isNativeType( typedef.name() )
 			&& !typedef.name().equals( "undefined" ) ) {
@@ -289,21 +333,38 @@ public class MetaJolie extends JavaService {
 			listOfGeneratedTypesInValues.add( getTypeDefinition(
 				listOfGeneratedTypesInTypeDefinition,
 				listOfGeneratedTypesInValues,
-				typedef, true, extension ) );
+				typedef, true ) );
 		}
+	}
+
+	private Value getTypeDefinitionExtended(
+		ArrayList< TypeDefinition > listOfGeneratedTypesInTypeDefinition,
+		ArrayList< Value > listOfGeneratedTypesInValues,
+		TypeDefinition typedef,
+		boolean insertInInterfaceList,
+		TypeDefinition extension, String extendedTypeName ) {
+
+		Value type = Value.create();
+		type.getFirstChild( "type" ).deepCopy( getTypeExtended(
+			listOfGeneratedTypesInTypeDefinition,
+			listOfGeneratedTypesInValues,
+			typedef, insertInInterfaceList, extension ) );
+		type.getFirstChild( "name" ).setValue( extendedTypeName );
+		type.getFirstChild( "documentation" ).setValue( typedef.getDocumentation().orElse( "" ) );
+		return type;
 	}
 
 	private Value getTypeDefinition(
 		ArrayList< TypeDefinition > listOfGeneratedTypesInTypeDefinition,
 		ArrayList< Value > listOfGeneratedTypesInValues,
 		TypeDefinition typedef,
-		boolean insertInInterfaceList,
-		TypeDefinition extension ) {
+		boolean insertInInterfaceList ) {
+
 		Value type = Value.create();
 		type.getFirstChild( "type" ).deepCopy( getType(
 			listOfGeneratedTypesInTypeDefinition,
 			listOfGeneratedTypesInValues,
-			typedef, insertInInterfaceList, extension ) );
+			typedef, insertInInterfaceList ) );
 		type.getFirstChild( "name" ).setValue( typedef.simpleName() );
 		type.getFirstChild( "documentation" ).setValue( typedef.getDocumentation().orElse( "" ) );
 		return type;
@@ -313,13 +374,28 @@ public class MetaJolie extends JavaService {
 		ArrayList< TypeDefinition > listOfGeneratedTypesInTypeDefinition,
 		ArrayList< Value > listOfGeneratedTypesInValues,
 		TypeDefinitionLink typedef,
-		boolean insertInInterfaceList,
-		TypeDefinition extension ) {
+		boolean insertInInterfaceList ) {
 		Value type = Value.create();
 		type.getFirstChild( "link_name" ).setValue( typedef.linkedTypeName() );
 		if( insertInInterfaceList ) {
 			insertTypeDefinition( listOfGeneratedTypesInTypeDefinition, listOfGeneratedTypesInValues,
-				typedef.linkedType(), extension );
+				typedef.linkedType() );
+		}
+		return type;
+	}
+
+	private Value getTypeLinkExtended(
+		ArrayList< TypeDefinition > listOfGeneratedTypesInTypeDefinition,
+		ArrayList< Value > listOfGeneratedTypesInValues,
+		TypeDefinitionLink typedef,
+		boolean insertInInterfaceList,
+		TypeDefinition extension ) {
+		Value type = Value.create();
+		String extendedTypeName = new StringBuilder().append( "TypeLink_" ).append( getTypeLinkCounter() ).toString();
+		type.getFirstChild( "link_name" ).setValue( typedef.linkedTypeName() );
+		if( insertInInterfaceList ) {
+			insertTypeDefinitionExtended( listOfGeneratedTypesInTypeDefinition, listOfGeneratedTypesInValues,
+				typedef.linkedType(), extension, extendedTypeName );
 		}
 		return type;
 	}
@@ -327,8 +403,8 @@ public class MetaJolie extends JavaService {
 	private Value getTypeInlineDefinition(
 		ArrayList< TypeDefinition > listOfGeneratedTypesInTypeDefinition,
 		ArrayList< Value > listOfGeneratedTypesInValues,
-		TypeInlineDefinition typedef, boolean insertInInterfaceList,
-		TypeDefinition extension ) {
+		TypeInlineDefinition typedef, boolean insertInInterfaceList ) {
+
 		Value type = Value.create();
 		type.getFirstChild( "root_type" ).deepCopy( getBasicType( typedef.basicType() ) );
 		if( typedef.hasSubTypes() ) {
@@ -342,8 +418,22 @@ public class MetaJolie extends JavaService {
 				subtype_counter++;
 			}
 		}
+		return type;
+	}
+
+	private Value getTypeInlineDefinitionExtended(
+		ArrayList< TypeDefinition > listOfGeneratedTypesInTypeDefinition,
+		ArrayList< Value > listOfGeneratedTypesInValues,
+		TypeInlineDefinition typedef, boolean insertInInterfaceList,
+		TypeDefinition extension ) {
+
+		Value type = getTypeInlineDefinition( listOfGeneratedTypesInTypeDefinition, listOfGeneratedTypesInValues,
+			typedef, insertInInterfaceList );
+
 		if( extension instanceof TypeInlineDefinition ) {
+
 			final TypeInlineDefinition extensionTypeInline = (TypeInlineDefinition) extension;
+
 			int subtype_counter = type.getChildren( "sub_type" ).size();
 			if( extensionTypeInline.subTypes() != null ) {
 				for( Entry< String, TypeDefinition > entry : extensionTypeInline.subTypes() ) {
@@ -369,14 +459,14 @@ public class MetaJolie extends JavaService {
 		ArrayList< TypeDefinition > listOfGeneratedTypesInTypeDefinition,
 		ArrayList< Value > listOfGeneratedTypesInValues,
 		TypeDefinition typedef,
-		boolean insertInInterfaceList,
-		TypeDefinition extension ) {
+		boolean insertInInterfaceList ) {
+
 		if( typedef instanceof TypeChoiceDefinition ) {
 			return getChoiceType(
 				listOfGeneratedTypesInTypeDefinition,
 				listOfGeneratedTypesInValues,
 				(TypeChoiceDefinition) typedef,
-				insertInInterfaceList, extension );
+				insertInInterfaceList );
 		} else if( typedef instanceof TypeDefinitionLink ) {
 			if( ((TypeDefinitionLink) typedef).linkedType() instanceof TypeDefinitionUndefined ) {
 				return getTypeUndefined();
@@ -385,10 +475,42 @@ public class MetaJolie extends JavaService {
 					listOfGeneratedTypesInTypeDefinition,
 					listOfGeneratedTypesInValues,
 					(TypeDefinitionLink) typedef,
-					insertInInterfaceList, extension );
+					insertInInterfaceList );
 			}
 		} else {
 			return getTypeInlineDefinition(
+				listOfGeneratedTypesInTypeDefinition,
+				listOfGeneratedTypesInValues,
+				(TypeInlineDefinition) typedef,
+				insertInInterfaceList );
+		}
+	}
+
+	private Value getTypeExtended(
+		ArrayList< TypeDefinition > listOfGeneratedTypesInTypeDefinition,
+		ArrayList< Value > listOfGeneratedTypesInValues,
+		TypeDefinition typedef,
+		boolean insertInInterfaceList,
+		TypeDefinition extension ) {
+
+		if( typedef instanceof TypeChoiceDefinition ) {
+			return getChoiceTypeExtended(
+				listOfGeneratedTypesInTypeDefinition,
+				listOfGeneratedTypesInValues,
+				(TypeChoiceDefinition) typedef,
+				insertInInterfaceList, extension );
+		} else if( typedef instanceof TypeDefinitionLink ) {
+			if( ((TypeDefinitionLink) typedef).linkedType() instanceof TypeDefinitionUndefined ) {
+				return getTypeUndefined();
+			} else {
+				return getTypeLinkExtended(
+					listOfGeneratedTypesInTypeDefinition,
+					listOfGeneratedTypesInValues,
+					(TypeDefinitionLink) typedef,
+					insertInInterfaceList, extension );
+			}
+		} else {
+			return getTypeInlineDefinitionExtended(
 				listOfGeneratedTypesInTypeDefinition,
 				listOfGeneratedTypesInValues,
 				(TypeInlineDefinition) typedef,
@@ -456,6 +578,7 @@ public class MetaJolie extends JavaService {
 		for( String operationName : opkeylist ) {
 			Value current_operation = Value.create();
 			OperationDeclaration operationDeclaration = operationMap.get( operationName );
+
 			if( operationDeclaration instanceof OneWayOperationDeclaration ) {
 				OneWayOperationDeclaration oneWayOperation = (OneWayOperationDeclaration) operationDeclaration;
 				current_operation.getFirstChild( "operation_name" ).setValue( oneWayOperation.id() );
@@ -468,13 +591,16 @@ public class MetaJolie extends JavaService {
 						insertTypeDefinition(
 							listOfGeneratedTypesInTypeDefinition,
 							listOfGeneratedTypesInValues,
-							oneWayOperation.requestType(), null );
+							oneWayOperation.requestType() );
 					} else {
-						insertTypeDefinition(
+						String extendedTypeName =
+							new StringBuilder().append( operationName ).append( "ExtendedRequest" ).toString();
+						current_operation.getFirstChild( "input" ).setValue( extendedTypeName );
+						insertTypeDefinitionExtended(
 							listOfGeneratedTypesInTypeDefinition,
 							listOfGeneratedTypesInValues,
 							oneWayOperation.requestType(),
-							owExtender.requestType() );
+							owExtender.requestType(), extendedTypeName );
 					}
 				}
 
@@ -484,20 +610,25 @@ public class MetaJolie extends JavaService {
 				current_operation.getFirstChild( "operation_name" ).setValue( requestResponseOperation.id() );
 				current_operation.getFirstChild( "documentation" )
 					.setValue( requestResponseOperation.getDocumentation().orElse( "" ) );
-				current_operation.getFirstChild( "input" ).setValue( requestResponseOperation.requestType().name() );
-				current_operation.getFirstChild( "output" ).setValue( requestResponseOperation.responseType().name() );
+				current_operation.getFirstChild( "input" )
+					.setValue( requestResponseOperation.requestType().name() );
+				current_operation.getFirstChild( "output" )
+					.setValue( requestResponseOperation.responseType().name() );
 				if( !isNativeType( requestResponseOperation.requestType().name() ) ) {
 					if( rrExtender == null ) {
 						insertTypeDefinition(
 							listOfGeneratedTypesInTypeDefinition,
 							listOfGeneratedTypesInValues,
-							requestResponseOperation.requestType(), null );
+							requestResponseOperation.requestType() );
 					} else {
-						insertTypeDefinition(
+						String extendedTypeName =
+							new StringBuilder().append( operationName ).append( "ExtendedRequest" ).toString();
+						current_operation.getFirstChild( "input" ).setValue( extendedTypeName );
+						insertTypeDefinitionExtended(
 							listOfGeneratedTypesInTypeDefinition,
 							listOfGeneratedTypesInValues,
 							requestResponseOperation.requestType(),
-							rrExtender.requestType() );
+							rrExtender.requestType(), extendedTypeName );
 					}
 				}
 				if( !isNativeType( requestResponseOperation.responseType().name() ) ) {
@@ -505,12 +636,15 @@ public class MetaJolie extends JavaService {
 						insertTypeDefinition(
 							listOfGeneratedTypesInTypeDefinition,
 							listOfGeneratedTypesInValues,
-							requestResponseOperation.responseType(), null );
+							requestResponseOperation.responseType() );
 					} else {
-						insertTypeDefinition(
+						String extendedTypeName =
+							new StringBuilder().append( operationName ).append( "ExtendedResponse" ).toString();
+						current_operation.getFirstChild( "output" ).setValue( extendedTypeName );
+						insertTypeDefinitionExtended(
 							listOfGeneratedTypesInTypeDefinition,
 							listOfGeneratedTypesInValues,
-							requestResponseOperation.responseType(), rrExtender.responseType() );
+							requestResponseOperation.responseType(), rrExtender.responseType(), extendedTypeName );
 					}
 				}
 				Map< String, TypeDefinition > faults = requestResponseOperation.faults();
@@ -521,10 +655,10 @@ public class MetaJolie extends JavaService {
 							.deepCopy( getFault(
 								listOfGeneratedTypesInTypeDefinition,
 								listOfGeneratedTypesInValues,
-								f.getKey(), f.getValue(), null ) );
+								f.getKey(), f.getValue() ) );
 					} else {
 						current_operation.getChildren( "fault" ).get( faultCounter )
-							.deepCopy( getFault(
+							.deepCopy( getFaultExtended(
 								listOfGeneratedTypesInTypeDefinition,
 								listOfGeneratedTypesInValues,
 								f.getKey(), f.getValue(),
@@ -564,10 +698,8 @@ public class MetaJolie extends JavaService {
 		} else {
 			response.getFirstChild( "location" ).setValue( "undefined" );
 		}
-		if( portInfo.protocolId() != null ) {
+		if( checkProtocol( portInfo.protocolId() ) ) {
 			response.getFirstChild( "protocol" ).setValue( portInfo.protocolId() );
-		} else {
-			response.getFirstChild( "protocol" ).setValue( "" );
 		}
 
 		// scan all the interfaces of the inputPort
@@ -594,10 +726,8 @@ public class MetaJolie extends JavaService {
 		response.getFirstChild( "name" ).setValue( portInfo.id() );
 
 		response.getFirstChild( "location" ).setValue( portInfo.location().toString() );
-		if( portInfo.protocolId() != null ) {
+		if( checkProtocol( portInfo.protocolId() ) ) {
 			response.getFirstChild( "protocol" ).setValue( portInfo.protocolId() );
-		} else {
-			response.getFirstChild( "protocol" ).setValue( "" );
 		}
 
 		// scan all the interfaces of the inputPort
@@ -668,10 +798,8 @@ public class MetaJolie extends JavaService {
 		response.getFirstChild( "name" ).setValue( portInfo.id() );
 
 		response.getFirstChild( "location" ).setValue( portInfo.location().toString() );
-		if( portInfo.protocolId() != null ) {
+		if( checkProtocol( portInfo.protocolId() ) ) {
 			response.getFirstChild( "protocol" ).setValue( portInfo.protocolId() );
-		} else {
-			response.getFirstChild( "protocol" ).setValue( "" );
 		}
 
 		// scan all the interfaces of the inputPort
@@ -702,7 +830,31 @@ public class MetaJolie extends JavaService {
 
 	}
 
+	private boolean checkProtocol( String protocolId ) {
+		return protocolId != null && !protocolId.isEmpty();
+	}
+
 	private Value getFault(
+		ArrayList< TypeDefinition > listOfGeneratedTypesInTypeDefinition,
+		ArrayList< Value > listOfGeneratedTypesInValues,
+		String faultname,
+		TypeDefinition typedef ) {
+		Value type = Value.create();
+		type.getFirstChild( "name" ).setValue( faultname );
+		if( typedef != null ) {
+			if( typedef.name().equals( "undefined" ) ) {
+				type.getFirstChild( "type" ).deepCopy( getTypeUndefined() );
+			} else if( !isNativeType( typedef.name() ) ) {
+				type.getFirstChild( "type" ).getFirstChild( "link_name" ).setValue( typedef.name() );
+				insertTypeDefinition( listOfGeneratedTypesInTypeDefinition, listOfGeneratedTypesInValues, typedef );
+			} else {
+				type.getFirstChild( "type" ).deepCopy( getNativeType( typedef.name() ) );
+			}
+		}
+		return type;
+	}
+
+	private Value getFaultExtended(
 		ArrayList< TypeDefinition > listOfGeneratedTypesInTypeDefinition,
 		ArrayList< Value > listOfGeneratedTypesInValues,
 		String faultname,
@@ -714,9 +866,11 @@ public class MetaJolie extends JavaService {
 			if( typedef.name().equals( "undefined" ) ) {
 				type.getFirstChild( "type" ).deepCopy( getTypeUndefined() );
 			} else if( !isNativeType( typedef.name() ) ) {
-				type.getFirstChild( "type" ).getFirstChild( "link_name" ).setValue( typedef.name() );
-				insertTypeDefinition( listOfGeneratedTypesInTypeDefinition, listOfGeneratedTypesInValues,
-					typedef, extension );
+				String extendedTypeName =
+					new StringBuilder().append( "TypeLink_" ).append( getTypeLinkCounter() ).toString();
+				type.getFirstChild( "type" ).getFirstChild( "link_name" ).setValue( extendedTypeName );
+				insertTypeDefinitionExtended( listOfGeneratedTypesInTypeDefinition, listOfGeneratedTypesInValues,
+					typedef, extension, extendedTypeName );
 			} else {
 				type.getFirstChild( "type" ).deepCopy( getNativeType( typedef.name() ) );
 			}
@@ -757,10 +911,8 @@ public class MetaJolie extends JavaService {
 			} else {
 				response.getFirstChild( "location" ).setValue( "local" );
 			}
-			if( port.protocolId() != null ) {
+			if( checkProtocol( port.protocolId() ) ) {
 				response.getFirstChild( "protocol" ).setValue( port.protocolId() );
-			} else {
-				response.getFirstChild( "protocol" ).setValue( "" );
 			}
 
 		} else if( portInfo instanceof OutputPortInfo ) {
@@ -770,10 +922,8 @@ public class MetaJolie extends JavaService {
 			} else {
 				response.getFirstChild( "location" ).setValue( "local" );
 			}
-			if( port.protocolId() != null ) {
+			if( checkProtocol( port.protocolId() ) ) {
 				response.getFirstChild( "protocol" ).setValue( port.protocolId() );
-			} else {
-				response.getFirstChild( "protocol" ).setValue( "" );
 			}
 		}
 

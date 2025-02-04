@@ -36,6 +36,7 @@ from console import Console
 from file import File
 from string_utils import StringUtils 
 from runtime import Runtime
+from mustache import Mustache
 
 type MetaRenderCodeType {
     type: Type
@@ -89,6 +90,7 @@ service MetaRenderCode {
     embed File as File 
     embed StringUtils as StringUtils
     embed Runtime as Runtime
+    embed Mustache as Mustache
 
     execution: concurrent 
 
@@ -164,11 +166,22 @@ service MetaRenderCode {
             getSurfaceWithoutOutputPort@MySelf( request )( surface  )
 
             // insert outputPort
-            response = surface + "\n\noutputPort " + request.name + " {\n"
-                + _indentation_token + "protocol:" + request.protocol + "\n"
-                + _indentation_token + "location:\"" + request.location + "\"\n"
-                + _indentation_token + "interfaces:" + request.name + "Interface\n"
-                + "}\n\n"
+            data << {
+                name = request.name
+                surface = surface 
+                location = request.location 
+            }
+            if ( is_defined( request.protocol ) ) { data.protocol.protocol = request.protocol }
+            render@Mustache({
+                template = "
+{{{surface}}}
+
+outputPort {{name}} {
+\tlocation: \"{{location}}\"
+{{#protocol}}\tprotocol: {{protocol}}\n\t{{/protocol}}\tinterfaces: {{name}}Interface
+}"              
+                data << data
+            })( response )
         }] 
 
         [ getOperation( request )( response ) {
