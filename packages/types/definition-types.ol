@@ -155,7 +155,7 @@ type Interface: void {
 
 type Port: void {
   name: string
-  protocol: string
+  protocol?: string
   location: any
   interfaces*: Interface
 }
