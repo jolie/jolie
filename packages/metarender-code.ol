@@ -196,29 +196,31 @@ outputPort {{name}} {
                         if ( !(request.fault[ f ].type instanceof TypeUndefined)  ) {
 
                             if ( request.fault[ f ].type instanceof TypeLink ) {
-                                response = response + "(" + request.fault[ f ].type.link_name + ") "
+                                response = response + "(" + request.fault[ f ].type.link_name + ")"
                             }
                             if ( request.fault[ f ].type instanceof NativeType ) {
                                 getNativeType@MySelf( request.fault[ f ].type )( fault_native_type )
-                                response = response + "(" + fault_native_type + ") "
+                                response = response + "(" + fault_native_type + ")"
                             }
                                 
-                        };
-                        response = response + " "
+                        }
                     }
                 }
         }]
 
         [ getSurfaceWithoutOutputPort( request )( response ) {
             // insert types
+            // hashmap with type names for avoiding type duplication
             for( i = 0, i < #request.interfaces, i++ ) {
-                intf -> request.interfaces[ i ];
+                intf -> request.interfaces[ i ]
                 for( t = 0, t < #intf.types, t++ ) {
-                    tp -> intf.types[ t ];
-                    getTypeDefinition@MySelf( tp )( response_type );
-                    response = response + response_type
+                    if ( !types.( intf.types[ t ].name ) ) {
+                        types.( intf.types[ t ].name ) = true
+                        getTypeDefinition@MySelf( intf.types[ t ] )( response_type )
+                        response = response + response_type
+                    }
                 }
-            };
+            }
 
             // insert interface
             response = response + "interface " + request.name + "Interface {\n";
@@ -251,7 +253,7 @@ outputPort {{name}} {
                 }
             };
             if ( ow_count > 0 ) {
-                response = response + "OneWay:";
+                response = response + "OneWay:\n";
                 for ( x = 0, x < ow_count, x++ ) {
                     getOperation@MySelf( ow[ x ] )( op_rs  )
                     response = response + _indentation_string + op_rs
@@ -292,10 +294,10 @@ outputPort {{name}} {
                                 }
                                 response = response + .fault[ f ].name;
                                 if ( .fault[ f ].type instanceof TypeLink ) {
-                                        response = response + "( " + .fault[ f ].type.link_name + " ) "
+                                        response = response + "( " + .fault[ f ].type.link_name + " )"
                                 } else if ( .fault[ f ].type instanceof NativeType ) {
                                         getNativeType@MySelf(.fault[ f ].type  )( ntype )
-                                        response = response + "( " + ntype + " ) "
+                                        response = response + "( " + ntype + " )"
                                 }
                                 response = response + " "
                             }
@@ -309,7 +311,7 @@ outputPort {{name}} {
                     }
                 }
                 if ( ow_count > 0 ) {
-                    response = response + "OneWay:";
+                    response = response + "OneWay:\n";
                     for ( x = 0, x < ow_count, x++ ) {
                         with ( ow[ x ] ) {
                             response = response + _indentation_string + .operation_name + "( " + .input + " )";

@@ -1,0 +1,496 @@
+{
+    "input": {
+        "interfaces": [
+            {
+                "types": [
+                    {
+                        "documentation": "",
+                        "name": "TypeLink_5",
+                        "type": {
+                            "root_type": {
+                                "void_type": true
+                            },
+                            "sub_type": [
+                                {
+                                    "documentation": "",
+                                    "name": "thing",
+                                    "type": {
+                                        "root_type": {
+                                            "any_type": true
+                                        }
+                                    },
+                                    "cardinality": {
+                                        "min": 1,
+                                        "max": 1
+                                    }
+                                },
+                                {
+                                    "documentation": "",
+                                    "name": "extend",
+                                    "type": {
+                                        "root_type": {
+                                            "string_type": true
+                                        }
+                                    },
+                                    "cardinality": {
+                                        "min": 1,
+                                        "max": 1
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "documentation": "",
+                        "name": "call2ExtendedRequest",
+                        "type": {
+                            "root_type": {
+                                "void_type": true
+                            },
+                            "sub_type": [
+                                {
+                                    "documentation": "",
+                                    "name": "thing",
+                                    "type": {
+                                        "root_type": {
+                                            "any_type": true
+                                        }
+                                    },
+                                    "cardinality": {
+                                        "min": 1,
+                                        "max": 1
+                                    }
+                                },
+                                {
+                                    "documentation": "",
+                                    "name": "extend",
+                                    "type": {
+                                        "root_type": {
+                                            "string_type": true
+                                        }
+                                    },
+                                    "cardinality": {
+                                        "min": 1,
+                                        "max": 1
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "documentation": "",
+                        "name": "call3ExtendedRequest",
+                        "type": {
+                            "root_type": {
+                                "void_type": true
+                            },
+                            "sub_type": [
+                                {
+                                    "documentation": "",
+                                    "name": "ones",
+                                    "type": {
+                                        "link_name": "type1"
+                                    },
+                                    "cardinality": {
+                                        "min": 0,
+                                        "infinite": 1
+                                    }
+                                },
+                                {
+                                    "documentation": "",
+                                    "name": "extend",
+                                    "type": {
+                                        "root_type": {
+                                            "string_type": true
+                                        }
+                                    },
+                                    "cardinality": {
+                                        "min": 1,
+                                        "max": 1
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "documentation": "",
+                        "name": "call3ExtendedResponse",
+                        "type": {
+                            "root_type": {
+                                "void_type": true
+                            },
+                            "sub_type": [
+                                {
+                                    "documentation": "",
+                                    "name": "ones",
+                                    "type": {
+                                        "link_name": "type1"
+                                    },
+                                    "cardinality": {
+                                        "min": 0,
+                                        "infinite": 1
+                                    }
+                                },
+                                {
+                                    "documentation": "",
+                                    "name": "extend",
+                                    "type": {
+                                        "root_type": {
+                                            "string_type": true
+                                        }
+                                    },
+                                    "cardinality": {
+                                        "min": 1,
+                                        "max": 1
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "documentation": "",
+                        "name": "ow2ExtendedRequest",
+                        "type": {
+                            "root_type": {
+                                "void_type": true
+                            },
+                            "sub_type": [
+                                {
+                                    "documentation": "",
+                                    "name": "ones",
+                                    "type": {
+                                        "link_name": "type1"
+                                    },
+                                    "cardinality": {
+                                        "min": 0,
+                                        "infinite": 1
+                                    }
+                                },
+                                {
+                                    "documentation": "",
+                                    "name": "extend",
+                                    "type": {
+                                        "root_type": {
+                                            "string_type": true
+                                        }
+                                    },
+                                    "cardinality": {
+                                        "min": 1,
+                                        "max": 1
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "documentation": "",
+                        "name": "type1",
+                        "type": {
+                            "root_type": {
+                                "void_type": true
+                            },
+                            "sub_type": {
+                                "documentation": "",
+                                "name": "thing",
+                                "type": {
+                                    "root_type": {
+                                        "any_type": true
+                                    }
+                                },
+                                "cardinality": {
+                                    "min": 1,
+                                    "max": 1
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "documentation": "",
+                        "name": "type2",
+                        "type": {
+                            "root_type": {
+                                "void_type": true
+                            },
+                            "sub_type": {
+                                "documentation": "",
+                                "name": "ones",
+                                "type": {
+                                    "link_name": "type1"
+                                },
+                                "cardinality": {
+                                    "min": 0,
+                                    "infinite": 1
+                                }
+                            }
+                        }
+                    }
+                ],
+                "operations": [
+                    {
+                        "operation_name": "call1",
+                        "output": "type2",
+                        "input": "void",
+                        "documentation": ""
+                    },
+                    {
+                        "operation_name": "call2",
+                        "output": "void",
+                        "input": "call2ExtendedRequest",
+                        "documentation": ""
+                    },
+                    {
+                        "operation_name": "call3",
+                        "output": "call3ExtendedResponse",
+                        "input": "call3ExtendedRequest",
+                        "documentation": "",
+                        "fault": {
+                            "name": "FaultEx",
+                            "type": {
+                                "link_name": "TypeLink_5"
+                            }
+                        }
+                    },
+                    {
+                        "operation_name": "ow2",
+                        "input": "ow2ExtendedRequest",
+                        "documentation": ""
+                    }
+                ],
+                "documentation": "",
+                "name": "api"
+            },
+            {
+                "types": [
+                    {
+                        "documentation": "",
+                        "name": "TypeLink_6",
+                        "type": {
+                            "root_type": {
+                                "void_type": true
+                            },
+                            "sub_type": {
+                                "documentation": "",
+                                "name": "thing",
+                                "type": {
+                                    "root_type": {
+                                        "any_type": true
+                                    }
+                                },
+                                "cardinality": {
+                                    "min": 1,
+                                    "max": 1
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "documentation": "",
+                        "name": "call4ExtendedResponse",
+                        "type": {
+                            "root_type": {
+                                "void_type": true
+                            },
+                            "sub_type": {
+                                "documentation": "",
+                                "name": "ones",
+                                "type": {
+                                    "link_name": "type1"
+                                },
+                                "cardinality": {
+                                    "min": 0,
+                                    "infinite": 1
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "documentation": "",
+                        "name": "call5ExtendedRequest",
+                        "type": {
+                            "root_type": {
+                                "void_type": true
+                            },
+                            "sub_type": [
+                                {
+                                    "documentation": "",
+                                    "name": "thing",
+                                    "type": {
+                                        "root_type": {
+                                            "any_type": true
+                                        }
+                                    },
+                                    "cardinality": {
+                                        "min": 1,
+                                        "max": 1
+                                    }
+                                },
+                                {
+                                    "documentation": "",
+                                    "name": "extend",
+                                    "type": {
+                                        "root_type": {
+                                            "string_type": true
+                                        }
+                                    },
+                                    "cardinality": {
+                                        "min": 1,
+                                        "max": 1
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "documentation": "",
+                        "name": "call6ExtendedRequest",
+                        "type": {
+                            "root_type": {
+                                "void_type": true
+                            },
+                            "sub_type": [
+                                {
+                                    "documentation": "",
+                                    "name": "ones",
+                                    "type": {
+                                        "link_name": "type1"
+                                    },
+                                    "cardinality": {
+                                        "min": 0,
+                                        "infinite": 1
+                                    }
+                                },
+                                {
+                                    "documentation": "",
+                                    "name": "extend",
+                                    "type": {
+                                        "root_type": {
+                                            "string_type": true
+                                        }
+                                    },
+                                    "cardinality": {
+                                        "min": 1,
+                                        "max": 1
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "documentation": "",
+                        "name": "call6ExtendedResponse",
+                        "type": {
+                            "root_type": {
+                                "void_type": true
+                            },
+                            "sub_type": {
+                                "documentation": "",
+                                "name": "ones",
+                                "type": {
+                                    "link_name": "type1"
+                                },
+                                "cardinality": {
+                                    "min": 0,
+                                    "infinite": 1
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "documentation": "",
+                        "name": "ow1ExtendedRequest",
+                        "type": {
+                            "root_type": {
+                                "void_type": true
+                            },
+                            "sub_type": [
+                                {
+                                    "documentation": "",
+                                    "name": "thing",
+                                    "type": {
+                                        "root_type": {
+                                            "any_type": true
+                                        }
+                                    },
+                                    "cardinality": {
+                                        "min": 1,
+                                        "max": 1
+                                    }
+                                },
+                                {
+                                    "documentation": "",
+                                    "name": "extend",
+                                    "type": {
+                                        "root_type": {
+                                            "string_type": true
+                                        }
+                                    },
+                                    "cardinality": {
+                                        "min": 1,
+                                        "max": 1
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "documentation": "",
+                        "name": "type1",
+                        "type": {
+                            "root_type": {
+                                "void_type": true
+                            },
+                            "sub_type": {
+                                "documentation": "",
+                                "name": "thing",
+                                "type": {
+                                    "root_type": {
+                                        "any_type": true
+                                    }
+                                },
+                                "cardinality": {
+                                    "min": 1,
+                                    "max": 1
+                                }
+                            }
+                        }
+                    }
+                ],
+                "operations": [
+                    {
+                        "operation_name": "call4",
+                        "output": "call4ExtendedResponse",
+                        "input": "void",
+                        "documentation": ""
+                    },
+                    {
+                        "operation_name": "call5",
+                        "output": "void",
+                        "input": "call5ExtendedRequest",
+                        "documentation": ""
+                    },
+                    {
+                        "operation_name": "call6",
+                        "output": "call6ExtendedResponse",
+                        "input": "call6ExtendedRequest",
+                        "documentation": "",
+                        "fault": {
+                            "name": "FaultEx",
+                            "type": {
+                                "link_name": "TypeLink_6"
+                            }
+                        }
+                    },
+                    {
+                        "operation_name": "ow1",
+                        "input": "ow1ExtendedRequest",
+                        "documentation": ""
+                    }
+                ],
+                "documentation": "",
+                "name": "api2"
+            }
+        ],
+        "name": "input",
+        "location": "local"
+    }
+}
