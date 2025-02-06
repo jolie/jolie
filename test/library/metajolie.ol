@@ -2,12 +2,18 @@ from ..test-unit import TestUnitInterface
 from time import Time 
 from string-utils import StringUtils
 from metajolie import MetaJolie
+from file import File
+from console import Console
+from metarender-code import MetaRenderCode
 
 service Main {
 
     embed MetaJolie as MetaJolie
     embed StringUtils as StringUtils
     embed Time as Time
+    embed File as File
+    embed Console as Console
+    embed MetaRenderCode as MetaRenderCode
 
     inputPort TestUnitInput {
         location: "local"
@@ -758,6 +764,30 @@ service Main {
                         }
                     }
                 }
+
+                // check extenders
+                undef( rq )
+                rq.filename = "private/sample_service_with_extender.ol"
+                getInputPortMetaData@MetaJolie( rq )( meta_description )
+                
+                // check interfaces 
+                if ( #meta_description.input.interfaces != 2 ) {
+                    throw( TestFailed, "Test \"check extenders\": Expected 2 interfaces, found " +  #meta_description.input.interfaces )
+                }
+                readFile@File({
+                    filename = "library/private/sample_service_extender_input_meta.json"
+                    format = "json"
+                })( meta_json )
+                scope( comp_values ) {
+                        install( ComparisonFailed => throw( TestFailed, compare_values.ComparisonFailed ) )
+                        comp_req << { 
+                            v1 << meta_description
+                            v2 << meta_json 
+                        }
+                        //println@Console( valueToPrettyString@StringUtils( comp_req )  )()
+                        compareValuesVectorLight@MetaJolie( comp_req )()
+                }
+
 
         }
     }

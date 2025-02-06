@@ -25,12 +25,12 @@ service Main {
 			getMock@JolieMock( ipts )( mock )
 			// just testing if the code is syntactically correct
 			loadEmbeddedService@Runtime({ code = mock })()
-			
+
 			md5@MessageDigest( mock )( mockmd5 )
 			stats@Runtime()( stats )
 			if ( stats.os.name == "Linux" ) {
-				if ( mockmd5 != "7509a5739c24180fdfd1b658aa8e59b6" ) {
-					throw( TestFailed, "md5 of mock does not correspond, expected 7509a5739c24180fdfd1b658aa8e59b6, found " + mockmd5 )
+				if ( mockmd5 != "7f9b991b9f6d4559719cc7b99c537899" ) {
+					throw( TestFailed, "md5 of mock does not correspond, expected 7f9b991b9f6d4559719cc7b99c537899, found " + mockmd5 )
 				}
 			}
 		}

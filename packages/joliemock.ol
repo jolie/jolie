@@ -273,17 +273,17 @@ service Main {
             for( itf in request.input.interfaces ) {
                 for( o in itf.operations ) {
                     render_rq.template = "
-[ {{opname}}( request ){{#output}}(response) {
-    valueToPrettyString@StringUtils( request )( s ); println@Console( s )()
-    {{{type}}}
-}{{/output}}]
+    [ {{opname}}( request ){{#output}}(response) {
+        valueToPrettyString@StringUtils( request )( s ); println@Console( s )()
+        {{{type}}}
+    }{{/output}}]
 
 "                   
                     render_rq.data.opname = o.operation_name
                     if ( is_defined( o.output ) ) {
                         render_rq.data.output = ""
                         if ( o.output != "undefined" ) {
-                            rq.types -> itf.types; rq.type_name = o.output; rq.path = "\tresponse"
+                            rq.types -> itf.types; rq.type_name = o.output; rq.path = "\t\tresponse"
                             getTypeDefinitionRender@RenderResponseType( rq )( odef )
                             render_rq.data.output.type = odef
                         } 
