@@ -37,9 +37,6 @@ from file import File
 from string_utils import StringUtils 
 from runtime import Runtime
 
-from .public.interfaces.NativeCodeRenderInterface import NativeCodeRenderInterface
-
-
 type MetaRenderCodeType {
     type: Type
     indentation: string 
@@ -107,7 +104,7 @@ service MetaRenderCode {
     }
 
     define indentation_generation {
-        _indentation_string = "";
+        //_indentation_string = "";
         for ( _x = 0, _x < _indent, _x++ ) {
             _indentation_string = _indentation_string + _indentation_token
         }
@@ -364,7 +361,7 @@ service MetaRenderCode {
         [ getSubType( request )( response ) {
                 _indentation_string = request.indentation
                 indentify
-                response = response + _indentation_string + "." + request.subType.name
+                response = response + _indentation_string + request.subType.name
                 getCardinality@MySelf( request.subType.cardinality )( cardinality )
                 response = response + cardinality + ":"
                 getType@MySelf( { type << request.subType.type, indentation = _indentation_string } )( type_rs )
