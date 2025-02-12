@@ -281,12 +281,6 @@
 		</dependency>
 		<dependency>
 			<groupId>${project.groupId}</groupId>
-			<artifactId>jolie2surface</artifactId>
-			<version>${jolie.version}</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>${project.groupId}</groupId>
 			<artifactId>jolie2wsdl</artifactId>
 			<version>${jolie.version}</version>
 			<scope>test</scope>
