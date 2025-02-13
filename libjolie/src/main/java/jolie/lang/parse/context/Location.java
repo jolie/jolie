@@ -27,7 +27,7 @@ import java.io.Serializable;
 import java.net.URI;
 
 /**
- * Implements of the LSP specification of a Location.
+ * Implementation of the LSP specification of a Location.
  *
  * @see <a href=
  *      "https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#location">LSP
