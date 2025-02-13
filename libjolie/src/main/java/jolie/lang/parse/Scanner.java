@@ -1238,9 +1238,9 @@ public class Scanner {
 						retval = new Token( TokenType.DEEP_COPY_LEFT );
 					}
 					break;
-				default:
-					retval = new Token( TokenType.ERROR, tokenBuilder.toString() );
-					break;
+				// default:
+				// 	retval = new Token( TokenType.ERROR, tokenBuilder.toString() );
+				// 	break;
 			}
 
 			if ( retval == null ) {

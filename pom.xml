@@ -18,7 +18,7 @@
 		<jolie.email>webmaster@jolie-lang.org</jolie.email>
 		<jolie.organization>Jolie</jolie.organization>
 		<jolie.organizationUrl>https://www.jolie-lang.org</jolie.organizationUrl>
-		<pmd.version>7.5.0</pmd.version>
+		<pmd.version>7.10.0</pmd.version>
 		<scm.connection>scm:git:git://github.com/jolie/jolie.git</scm.connection>
 		<scm.developerConnection>scm:git:ssh://github.com:fmontesi/jolie/jolie.git</scm.developerConnection>
 		<scm.url>http://github.com/jolie/jolie/tree/master</scm.url>

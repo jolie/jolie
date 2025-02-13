@@ -23,7 +23,8 @@
 		<exclude name="AbstractClassWithoutAbstractMethod" />
 		<exclude name="LooseCoupling" />
 		<exclude name="GuardLogStatement" />
-		<exclude name="SwitchStmtsShouldHaveDefault" />
+		<exclude name="NonExhaustiveSwitch" />
+		<exclude name="ExhaustiveSwitchHasDefault" />
 		<exclude name="SystemPrintln" />
 		<exclude name="LiteralsFirstInComparisons" />
 
@@ -183,7 +184,7 @@
 		<exclude name="ConsecutiveLiteralAppends" />
 		<exclude name="UseStringBufferForStringAppends" />
 		<exclude name="AvoidInstantiatingObjectsInLoops" />
-		<exclude name="TooFewBranchesForASwitchStatement" />
+		<exclude name="TooFewBranchesForSwitch" />
 		<exclude name="InefficientEmptyStringCheck" />
 	</rule>
 </ruleset>

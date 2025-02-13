@@ -48,6 +48,8 @@ public class Helpers {
 			parent = url.toURI().toString();
 			parent = parent.substring( 0, parent.lastIndexOf( '/' ) );
 			break;
+		default:
+			break;
 		}
 		return parent;
 	}
