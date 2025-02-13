@@ -24,8 +24,10 @@ package jolie.lang.parse;
 
 import java.io.EOFException;
 import java.io.IOException;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Deque;
 import java.util.List;
 import org.apache.commons.text.similarity.LevenshteinDistance;
 
@@ -50,6 +52,21 @@ public abstract class AbstractParser {
 	private boolean backup = false;
 	private final List< Scanner.Token > backupTokens = new ArrayList<>();
 	private boolean metNewline = false;
+
+
+	/**
+	 * Stores Scanner information relating to the end of Tokens.
+	 *
+	 * @param tokenEndLine The line that a Token ends on.
+	 * @param tokenEndColumn The line column that a Token ends on.
+	 */
+	public record TokenEnd(int tokenEndLine, int tokenEndColumn) {
+	}
+
+	/**
+	 * Used to store the last two non-newline tokens for the purpose of creating ParsingContexts.
+	 */
+	protected final Deque< TokenEnd > previousTokenEnd = new ArrayDeque<>( 3 );
 
 	protected final String build( String... args ) {
 		stringBuilder.setLength( 0 );
@@ -85,6 +102,9 @@ public abstract class AbstractParser {
 		throws IOException {
 		if( tokens.isEmpty() ) {
 			token = scanner.getToken();
+			if( !token.is( Scanner.TokenType.NEWLINE ) ) {
+				saveTokenEnd();
+			}
 		} else {
 			token = tokens.remove( 0 );
 		}
@@ -293,6 +313,16 @@ public abstract class AbstractParser {
 	 */
 	public final List< String > codeLine() {
 		return scanner.codeLine();
+	}
+
+	/**
+	 * Returns the Scanner column and line of the end of the previously read token (excluding newline
+	 * tokens)
+	 *
+	 * @return The TokenEnd
+	 */
+	public final TokenEnd previousTokenEnd() {
+		return previousTokenEnd.getFirst();
 	}
 
 	/**
@@ -852,5 +882,16 @@ public abstract class AbstractParser {
 		ParsingContext context = getContext();
 		CodeCheckMessage exceptionMessage = CodeCheckMessage.withoutHelp( context, exception.getMessage() );
 		throw new ParserException( exceptionMessage );
+	}
+
+	/**
+	 * Saves the token end information of the Scanner, storing the TokenEnd of the last two non-newline
+	 * Tokens (including the corrent Token).
+	 */
+	protected void saveTokenEnd() {
+		if( previousTokenEnd.size() >= 2 ) {
+			previousTokenEnd.removeFirst();
+		}
+		previousTokenEnd.addLast( new TokenEnd( scanner.tokenEndLine(), scanner.tokenEndColumn() ) );
 	}
 }

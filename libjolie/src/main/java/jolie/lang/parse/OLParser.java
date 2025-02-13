@@ -43,6 +43,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 //import jolie.lang.CodeCheckMessage;
 import jolie.lang.Constants;
 import jolie.lang.Constants.EmbeddedServiceType;
@@ -1020,42 +1021,46 @@ public class OLParser extends AbstractParser {
 
 	private ExecutionInfo _parseExecutionInfo()
 		throws IOException, ParserException {
-		Constants.ExecutionMode mode = Constants.ExecutionMode.SEQUENTIAL;
-		setStartLine(); // remember line we started parsing execution info
-		nextToken();
-		boolean inCurlyBrackets = false;
-		if( token.is( Scanner.TokenType.COLON ) ) {
+		InternalParseResult< Constants.ExecutionMode > parseResult = parseInternals( true, () -> {
+			Constants.ExecutionMode mode = Constants.ExecutionMode.SEQUENTIAL;
+			setStartLine(); // remember line we started parsing execution info
 			nextToken();
-		} else if( token.is( Scanner.TokenType.LCURLY ) ) {
-			inCurlyBrackets = true;
-			nextToken();
-		} else {
+			boolean inCurlyBrackets = false;
+			if( token.is( Scanner.TokenType.COLON ) ) {
+				nextToken();
+			} else if( token.is( Scanner.TokenType.LCURLY ) ) {
+				inCurlyBrackets = true;
+				nextToken();
+			} else {
+				setEndLine(); // remember ending line of parsing execution for error
+				throwException( "expected : or { after execution" );
+			}
 			setEndLine(); // remember ending line of parsing execution for error
-			throwException( "expected : or { after execution" );
-		}
-		setEndLine(); // remember ending line of parsing execution for error
-		// assert token, set scope for eventual error
-		assertToken( Scanner.TokenType.ID, "expected execution modality", null, Keywords.EXECUTION );
-		switch( token.content() ) {
-		case "sequential":
-			mode = Constants.ExecutionMode.SEQUENTIAL;
-			break;
-		case "concurrent":
-			mode = Constants.ExecutionMode.CONCURRENT;
-			break;
-		case "single":
-			mode = Constants.ExecutionMode.SINGLE;
-			break;
-		default:
-			// throw error with scope set
-			throwExceptionWithScope( "Expected execution mode", null, Keywords.EXECUTION );
-			break;
-		}
-		nextToken();
-		if( inCurlyBrackets ) {
-			eat( Scanner.TokenType.RCURLY, "} expected" );
-		}
-		return new ExecutionInfo( getContext(), mode );
+			// assert token, set scope for eventual error
+			assertToken( Scanner.TokenType.ID, "expected execution modality", null, Keywords.EXECUTION );
+			switch( token.content() ) {
+			case "sequential":
+				mode = Constants.ExecutionMode.SEQUENTIAL;
+				break;
+			case "concurrent":
+				mode = Constants.ExecutionMode.CONCURRENT;
+				break;
+			case "single":
+				mode = Constants.ExecutionMode.SINGLE;
+				break;
+			default:
+				// throw error with scope set
+				throwExceptionWithScope( "Expected execution mode", null, Keywords.EXECUTION );
+				break;
+			}
+			nextToken();
+			if( inCurlyBrackets ) {
+				eat( Scanner.TokenType.RCURLY, "} expected" );
+			}
+			return mode;
+		} );
+
+		return new ExecutionInfo( parseResult.context(), parseResult.internals() );
 	}
 
 	private void parseConstants()
@@ -1577,6 +1582,63 @@ public class OLParser extends AbstractParser {
 		ServiceNode node = ServiceNode.create( ctx, serviceName, accessModifier, serviceNodeProgramBuilder.toProgram(),
 			parameter );
 		return node;
+	}
+
+	/**
+	 * A functional interface for parsing the internals of a Node. Identical to Supplier except with
+	 * some needed exceptions.
+	 *
+	 * @see java.util.function.Supplier
+	 * @param <T> Class containing the results of the parsing
+	 */
+	@FunctionalInterface
+	private interface ParsingLambda< T > {
+		/**
+		 * Performs the parsing
+		 *
+		 * @return The result of the parsing
+		 */
+		T get() throws IOException, ParserException;
+	}
+	private record InternalParseResult< I >(I internals, ParsingContext context) {
+	}
+
+	/**
+	 * Parses the internals for the creation of a Node and creates an appropriate ParsingContext
+	 *
+	 * @param readsNextToken Whether the lambda progresses the parser to the next token e.g. uses eat()
+	 * @param internalsParser A lambda that parses the internals of a Node.
+	 * @param <I> Type for the internals required to create the Node in question.
+	 */
+	private < I > InternalParseResult< I > parseInternals( boolean readsNextToken, ParsingLambda< I > internalsParser )
+		throws IOException, ParserException {
+		int startLine = scanner().line();
+		int startOffset = scanner().errorColumn();
+
+		I internals = internalsParser.get();
+		int endLine;
+		int endColumn;
+		if( readsNextToken ) {
+			TokenEnd lastTokenEnd = previousTokenEnd();
+			endLine = lastTokenEnd.tokenEndLine();
+			endColumn = lastTokenEnd.tokenEndColumn();
+		} else {
+			// in this case the last token is still currently in the parser, so the scanner's tokenEnd values
+			// are valid
+			endLine = scanner().tokenEndLine();
+			endColumn = scanner().tokenEndColumn();
+		}
+
+		List< String > codeLines = IntStream.rangeClosed( startLine, endLine )
+			.mapToObj( line -> scanner().getAllCodeLines()
+				.get( line ) )
+			.toList();
+
+		ParsingContext finalContext =
+			new URIParsingContext( scanner().source(), startLine, endLine,
+				startOffset, endColumn,
+				codeLines );
+		return new InternalParseResult<>( internals, finalContext );
 	}
 
 	/**
