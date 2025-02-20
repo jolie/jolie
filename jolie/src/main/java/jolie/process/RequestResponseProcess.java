@@ -225,7 +225,7 @@ public class RequestResponseProcess implements InputOperationProcess {
 							typeMismatch = new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME,
 								"Request-Response input operation output value TypeMismatch (operation "
 									+ operation.id() + "): " + e.getMessage() );
-									// TODO context should be added to message
+							// TODO context should be added to message
 							response = CommMessage.createFaultResponse( message, new FaultException(
 								Constants.TYPE_MISMATCH_FAULT_NAME, "Internal server error (TypeMismatch)" ) );
 							// Context not added as it should not & cannot be sent
