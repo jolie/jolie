@@ -23,6 +23,7 @@ package jolie.process;
 
 import jolie.ExecutionThread;
 import jolie.lang.Constants;
+import jolie.lang.parse.context.ParsingContext;
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
@@ -30,19 +31,21 @@ import jolie.runtime.expression.Expression;
 
 public class PostDecrementProcess implements Process, Expression {
 	final private VariablePath path;
+	final private ParsingContext context;
 
-	public PostDecrementProcess( VariablePath varPath ) {
+	public PostDecrementProcess( VariablePath varPath, ParsingContext context ) {
 		this.path = varPath;
+		this.context = context;
 	}
 
 	@Override
 	public Process copy( TransformationReason reason ) {
-		return new PostDecrementProcess( (VariablePath) path.cloneExpression( reason ) );
+		return new PostDecrementProcess( (VariablePath) path.cloneExpression( reason ), context );
 	}
 
 	@Override
 	public Expression cloneExpression( TransformationReason reason ) {
-		return new PostDecrementProcess( (VariablePath) path.cloneExpression( reason ) );
+		return new PostDecrementProcess( (VariablePath) path.cloneExpression( reason ), context );
 	}
 
 	@Override
@@ -62,7 +65,8 @@ public class PostDecrementProcess implements Process, Expression {
 			} else if( o instanceof Long ) {
 				val.setValue( ((Long) o).longValue() - 1 );
 			} else {
-				throw new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "expected type int, long, or double." );
+				throw new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "expected type int, long, or double." )
+					.addContext( this.context );
 			}
 		}
 	}
@@ -81,6 +85,7 @@ public class PostDecrementProcess implements Process, Expression {
 			val.setValue( ((Long) o).longValue() - 1 );
 		} else {
 			throw new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "expected type int, long, or double." )
+				.addContext( this.context )
 				.toRuntimeFaultException();
 		}
 		return orig;

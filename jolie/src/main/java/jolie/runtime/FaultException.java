@@ -23,8 +23,8 @@ package jolie.runtime;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
-
 import jolie.lang.Constants;
+import jolie.lang.parse.context.ParsingContext;
 
 /**
  * Java representation for a Jolie fault.
@@ -35,6 +35,7 @@ public class FaultException extends Exception {
 	private static final long serialVersionUID = jolie.lang.Constants.serialVersionUID();
 	private final String faultName;
 	private final Value value;
+	private ParsingContext context = null;
 
 	/**
 	 * Constructor. This constructor behaves as
@@ -123,6 +124,27 @@ public class FaultException extends Exception {
 		return new RuntimeFaultException( this );
 	}
 
+	/**
+	 * Adds a {@link ParsingContext} to this FaultException used to know the origin of the Fault. If
+	 * another context is attached it will be overwritten. Returns itself for method-chaining, useful
+	 * when {@link #toRuntimeFaultException()} is needed after.
+	 * 
+	 * @param context The {@link ParsingContext} to be added.
+	 * @return A reference to this object.
+	 */
+	public FaultException addContext( ParsingContext context ) {
+		this.context = context;
+		return this;
+	}
+
+	/**
+	 * @return The source location string for the added context or "Context not present" if context not added.
+	 */
+	public String getContextString() {
+		return context != null ? 
+			context.sourceName() + ":" + context.startLine() : "Context not present";
+	}
+
 	// A RuntimeFaultException is used for runtime errors from which it is
 	// impossible to recover from and continue the execution.
 	// A RuntimeFaultException wraps a FaultException.
@@ -134,6 +156,7 @@ public class FaultException extends Exception {
 		private final FaultException faultException;
 
 		private RuntimeFaultException( FaultException faultException ) {
+			super( faultException );
 			this.faultException = faultException;
 		}
 

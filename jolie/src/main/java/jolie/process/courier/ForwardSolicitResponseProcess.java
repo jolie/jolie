@@ -24,7 +24,6 @@ package jolie.process.courier;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.concurrent.ExecutionException;
-
 import jolie.ExecutionThread;
 import jolie.Interpreter;
 import jolie.lang.Constants;
@@ -139,7 +138,8 @@ public class ForwardSolicitResponseProcess implements Process {
 					} catch( TypeCheckingException e ) {
 						throw new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME,
 							"Received fault " + response.fault().faultName() + " TypeMismatch (" + operationName + "@"
-								+ outputPort.id() + "): " + e.getMessage() );
+								+ outputPort.id() + "): " + e.getMessage() )
+							.addContext( this.context );
 					}
 				}
 				throw response.fault();
@@ -149,7 +149,8 @@ public class ForwardSolicitResponseProcess implements Process {
 						aggregatedTypeDescription.responseType().check( response.value() );
 					} catch( TypeCheckingException e ) {
 						throw new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "Received message TypeMismatch ("
-							+ operationName + "@" + outputPort.id() + "): " + e.getMessage() );
+							+ operationName + "@" + outputPort.id() + "): " + e.getMessage() )
+							.addContext( this.context );
 					}
 				}
 			}
@@ -158,12 +159,14 @@ public class ForwardSolicitResponseProcess implements Process {
 			 * try { installProcess.run(); } catch( ExitingException e ) { assert false; }
 			 */
 		} catch( IOException e ) {
-			throw new FaultException( Constants.IO_EXCEPTION_FAULT_NAME, e );
+			throw new FaultException( Constants.IO_EXCEPTION_FAULT_NAME, e )
+				.addContext( this.context );
 		} catch( URISyntaxException e ) {
 			Interpreter.getInstance().logSevere( e );
 		} catch( TypeCheckingException e ) {
 			throw new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME,
-				"Output message TypeMismatch (" + operationName + "@" + outputPort.id() + "): " + e.getMessage() );
+				"Output message TypeMismatch (" + operationName + "@" + outputPort.id() + "): " + e.getMessage() )
+				.addContext( this.context );
 		} finally {
 			if( channel != null ) {
 				try {
