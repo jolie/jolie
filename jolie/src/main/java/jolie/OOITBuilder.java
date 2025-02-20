@@ -913,7 +913,7 @@ public class OOITBuilder implements UnitOLVisitor {
 			n.expression().accept( this );
 			expression = currExpression;
 		}
-		currProcess = new ThrowProcess( n.id(), expression );
+		currProcess = new ThrowProcess( n.id(), expression, n.context() );
 	}
 
 	@Override
@@ -1191,7 +1191,7 @@ public class OOITBuilder implements UnitOLVisitor {
 			operands[ i++ ] = new Operand( pair.key(), currExpression );
 		}
 
-		currExpression = new ProductExpression( operands );
+		currExpression = new ProductExpression( operands, n.context() );
 	}
 
 	@Override
@@ -1241,7 +1241,7 @@ public class OOITBuilder implements UnitOLVisitor {
 	@Override
 	public void visit( PreDecrementStatement n ) {
 		PreDecrementProcess p =
-			new PreDecrementProcess( buildVariablePath( n.variablePath() ) );
+			new PreDecrementProcess( buildVariablePath( n.variablePath() ), n.context() );
 		currProcess = p;
 		currExpression = p;
 	}
@@ -1249,7 +1249,7 @@ public class OOITBuilder implements UnitOLVisitor {
 	@Override
 	public void visit( PostDecrementStatement n ) {
 		PostDecrementProcess p =
-			new PostDecrementProcess( buildVariablePath( n.variablePath() ) );
+			new PostDecrementProcess( buildVariablePath( n.variablePath() ), n.context() );
 		currProcess = p;
 		currExpression = p;
 	}
@@ -1350,7 +1350,7 @@ public class OOITBuilder implements UnitOLVisitor {
 	@Override
 	public void visit( PreIncrementStatement n ) {
 		PreIncrementProcess p =
-			new PreIncrementProcess( buildVariablePath( n.variablePath() ) );
+			new PreIncrementProcess( buildVariablePath( n.variablePath() ), n.context() );
 		currProcess = p;
 		currExpression = p;
 	}
@@ -1358,7 +1358,7 @@ public class OOITBuilder implements UnitOLVisitor {
 	@Override
 	public void visit( PostIncrementStatement n ) {
 		PostIncrementProcess p =
-			new PostIncrementProcess( buildVariablePath( n.variablePath() ) );
+			new PostIncrementProcess( buildVariablePath( n.variablePath() ), n.context() );
 		currProcess = p;
 		currExpression = p;
 	}

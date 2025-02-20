@@ -21,15 +21,18 @@
 
 package jolie.runtime.expression;
 
+import jolie.lang.parse.context.ParsingContext;
 import jolie.process.TransformationReason;
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 
 public class ProductExpression implements Expression {
 	private final Operand[] children;
+	private final ParsingContext context;
 
-	public ProductExpression( Operand[] children ) {
+	public ProductExpression( Operand[] children, ParsingContext context ) {
 		this.children = children;
+		this.context = context;
 	}
 
 	@Override
@@ -40,7 +43,7 @@ public class ProductExpression implements Expression {
 		for( Operand operand : children ) {
 			cc[ i++ ] = new Operand( operand.type(), operand.expression().cloneExpression( reason ) );
 		}
-		return new ProductExpression( cc );
+		return new ProductExpression( cc, context );
 	}
 
 	@Override
@@ -56,6 +59,7 @@ public class ProductExpression implements Expression {
 					val.divide( children[ i ].expression().evaluate() );
 				} catch( ArithmeticException ae ) {
 					throw new FaultException( "ArithmeticException", ae.getLocalizedMessage() )
+						.addContext( this.context )
 						.toRuntimeFaultException();
 				}
 				break;

@@ -108,7 +108,13 @@ public class LocalCommChannel extends CommChannel implements PollableCommChannel
 		Interpreter interpreter = interpreter();
 		if( interpreter == null ) {
 			throw new IOException( "Sending Channel is closed" );
-		} else {
+		} else { /*
+					 * TODO: Handle Faults Context: if message contains a fault, remove its context? (remove or create
+					 * copy without?) (local channels are the only channel to also "send" the context) (could also
+					 * ignore, as the reciever should add its own context -> can/will give race conditions if not
+					 * cloned) Must create clone to not get wrong error lines for a Locally embeded service! Or must
+					 * make sure Fault is reported before sent!
+					 */
 			CompletableFuture< CommMessage > f = new CompletableFuture<>();
 			responseWaiters.put( message.requestId(), f );
 			interpreter.commCore().scheduleReceive( new CoLocalCommChannel( message, f ), listener.inputPort() );
