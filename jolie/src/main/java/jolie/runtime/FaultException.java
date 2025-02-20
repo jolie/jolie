@@ -138,11 +138,11 @@ public class FaultException extends Exception {
 	}
 
 	/**
-	 * @return The source location string for the added context or "Context not present" if context not added.
+	 * @return The source location string for the added context or "Context not present" if context not
+	 *         added.
 	 */
 	public String getContextString() {
-		return context != null ? 
-			context.sourceName() + ":" + context.startLine() : "Context not present";
+		return context != null ? context.sourceName() + ":" + context.startLine() : "Context not present";
 	}
 
 	// A RuntimeFaultException is used for runtime errors from which it is

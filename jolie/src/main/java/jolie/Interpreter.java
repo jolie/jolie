@@ -617,10 +617,12 @@ public class Interpreter {
 		StringWriter writer = new StringWriter();
 		try {
 			new ValuePrettyPrinter( fault.value(), writer,
-				"Thrown unhandled fault: " + fault.faultName() + "\nSource location: " + fault.getContextString() + "\nContent (if any)" ).run();
+				"Thrown unhandled fault: " + fault.faultName() + "\nSource location: " + fault.getContextString()
+					+ "\nContent (if any)" ).run();
 			logInfo( writer.toString() );
 		} catch( IOException e ) {
-			logInfo( "Thrown unhandled fault: " + fault.faultName() + "\nSource location: " + fault.getContextString() );
+			logInfo(
+				"Thrown unhandled fault: " + fault.faultName() + "\nSource location: " + fault.getContextString() );
 		}
 	}
 
