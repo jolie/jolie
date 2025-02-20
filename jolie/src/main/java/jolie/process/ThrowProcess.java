@@ -45,18 +45,16 @@ public class ThrowProcess implements Process {
 
 	@Override
 	public void run()
-		throws FaultException.RuntimeFaultException {
+		throws FaultException {
 		if( ExecutionThread.currentThread().isKilled() )
 			return;
 
 		if( expression == null ) {
 			throw new FaultException( faultName )
-				.addContext( this.context )
-				.toRuntimeFaultException();
+				.addContext( this.context );
 		} else {
 			throw new FaultException( faultName, expression.evaluate() )
-				.addContext( this.context )
-				.toRuntimeFaultException();
+				.addContext( this.context );
 		}
 	}
 
