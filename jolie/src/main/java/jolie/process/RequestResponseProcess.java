@@ -224,8 +224,7 @@ public class RequestResponseProcess implements InputOperationProcess {
 							log( "TYPE MISMATCH", response );
 							typeMismatch = new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME,
 								"Request-Response input operation output value TypeMismatch (operation "
-									+ operation.id() + "): " + e.getMessage() );
-							// TODO context should be added to message
+									+ operation.id() + "): " + e.getMessage() ).addContext( this.context );
 							response = CommMessage.createFaultResponse( message, new FaultException(
 								Constants.TYPE_MISMATCH_FAULT_NAME, "Internal server error (TypeMismatch)" ) );
 							// Context not added as it should not & cannot be sent
@@ -245,9 +244,8 @@ public class RequestResponseProcess implements InputOperationProcess {
 			} catch( TypeCheckingException e ) {
 				typeMismatch = new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME,
 					"Request-Response process TypeMismatch for fault " + f.faultName() + " (operation " + operation.id()
-						+ "): " + e.getMessage() ); // TODO context should be added to message
+						+ "): " + e.getMessage() ).addContext( this.context );
 				response = CommMessage.createFaultResponse( message, typeMismatch );
-				// Context not added as it should not & cannot be sent
 				responseStatus = OperationEndedEvent.ERROR;
 				details = typeMismatch.faultName();
 			}
