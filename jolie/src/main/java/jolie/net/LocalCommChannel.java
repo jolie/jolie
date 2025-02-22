@@ -25,7 +25,6 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
-
 import jolie.Interpreter;
 
 /**
@@ -61,6 +60,13 @@ public class LocalCommChannel extends CommChannel implements PollableCommChannel
 			if( message.requestId() != requestId ) {
 				throw new IOException( "Unexpected response message with id " + message.requestId() + " for operation "
 					+ message.operationName() + " in local channel" );
+			}
+			/*
+			 * if message contains a fault, then the fault needs to be cloned so the correct line numbers for
+			 * the fault is shown for both services.
+			 */
+			if( message.isFault() ) {
+				message = message.faultClone();
 			}
 			responseFut.complete( message );
 		}
@@ -108,13 +114,7 @@ public class LocalCommChannel extends CommChannel implements PollableCommChannel
 		Interpreter interpreter = interpreter();
 		if( interpreter == null ) {
 			throw new IOException( "Sending Channel is closed" );
-		} else { /*
-					 * TODO: Handle Faults Context: if message contains a fault, remove its context? (remove or create
-					 * copy without?) (local channels are the only channel to also "send" the context) (could also
-					 * ignore, as the reciever should add its own context -> can/will give race conditions if not
-					 * cloned) Must create clone to not get wrong error lines for a Locally embeded service! Or must
-					 * make sure Fault is reported before sent!
-					 */
+		} else {
 			CompletableFuture< CommMessage > f = new CompletableFuture<>();
 			responseWaiters.put( message.requestId(), f );
 			interpreter.commCore().scheduleReceive( new CoLocalCommChannel( message, f ), listener.inputPort() );

@@ -63,6 +63,17 @@ public class FaultException extends Exception {
 	}
 
 	/**
+	 * Constructor for cloning FaultException, removing contexts but keeping stacktace.
+	 *
+	 * @param f the FaultException to clone.
+	 */
+	public FaultException( FaultException f ) {
+		super( f );
+		this.faultName = f.faultName;
+		this.value = f.value;
+	}
+
+	/**
 	 * Constructor. Shortcut for {@code FaultException( faultName, Value.create( message ) )}
 	 *
 	 * @param faultName
@@ -83,6 +94,8 @@ public class FaultException extends Exception {
 		this.faultName = faultName;
 		this.value = value;
 	}
+
+
 
 	/**
 	 * Constructor. Shortcut for {@code FaultException( faultName, Value.create() )}
@@ -142,7 +155,12 @@ public class FaultException extends Exception {
 	 *         added.
 	 */
 	public String getContextString() {
-		return context != null ? context.sourceName() + ":" + context.startLine() : "Context not present";
+		return context != null
+			? new StringBuilder( context.sourceName() )
+				.append( ":" )
+				.append( context.startLine() )
+				.toString()
+			: "Context not present";
 	}
 
 	// A RuntimeFaultException is used for runtime errors from which it is
