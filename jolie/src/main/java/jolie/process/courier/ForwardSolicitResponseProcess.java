@@ -139,10 +139,10 @@ public class ForwardSolicitResponseProcess implements Process {
 						throw new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME,
 							"Received fault " + response.fault().faultName() + " TypeMismatch (" + operationName + "@"
 								+ outputPort.id() + "): " + e.getMessage() )
-							.addContext( this.context );
+									.addContext( this.context );
 					}
 				}
-				throw response.fault();
+				throw response.fault().addContext( this.context );
 			} else {
 				if( aggregatedTypeDescription.responseType() != null ) {
 					try {
@@ -150,7 +150,7 @@ public class ForwardSolicitResponseProcess implements Process {
 					} catch( TypeCheckingException e ) {
 						throw new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "Received message TypeMismatch ("
 							+ operationName + "@" + outputPort.id() + "): " + e.getMessage() )
-							.addContext( this.context );
+								.addContext( this.context );
 					}
 				}
 			}
@@ -166,7 +166,7 @@ public class ForwardSolicitResponseProcess implements Process {
 		} catch( TypeCheckingException e ) {
 			throw new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME,
 				"Output message TypeMismatch (" + operationName + "@" + outputPort.id() + "): " + e.getMessage() )
-				.addContext( this.context );
+					.addContext( this.context );
 		} finally {
 			if( channel != null ) {
 				try {
