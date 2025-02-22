@@ -196,8 +196,8 @@ public class SolicitResponseExpression implements Expression {
 						throw new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME,
 							"Received fault " + response.fault().faultName() + " TypeMismatch (" + operationId + "@"
 								+ outputPort.id() + "): " + e.getMessage() )
-							.addContext( this.context )
-							.toRuntimeFaultException();
+									.addContext( this.context )
+									.toRuntimeFaultException();
 					}
 				} else {
 					if( Interpreter.getInstance().isMonitoring() ) {
@@ -232,8 +232,8 @@ public class SolicitResponseExpression implements Expression {
 						}
 						throw new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "Received message TypeMismatch ("
 							+ operationId + "@" + outputPort.id() + "): " + e.getMessage() )
-							.addContext( this.context )
-							.toRuntimeFaultException();
+								.addContext( this.context )
+								.toRuntimeFaultException();
 					}
 				} else {
 					if( Interpreter.getInstance().isMonitoring() ) {
@@ -257,10 +257,10 @@ public class SolicitResponseExpression implements Expression {
 		} catch( TypeCheckingException e ) {
 			throw new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME,
 				"Output message TypeMismatch (" + operationId + "@" + outputPort.id() + "): " + e.getMessage() )
-				.addContext( this.context )
-				.toRuntimeFaultException();
+					.addContext( this.context )
+					.toRuntimeFaultException();
 		} catch( FaultException e ) {
-			throw e.toRuntimeFaultException();
+			throw e.addContext( this.context ).toRuntimeFaultException();
 		} finally {
 			if( channel != null ) {
 				try {
