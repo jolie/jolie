@@ -121,17 +121,12 @@ public class ParallelExecution {
 	private void signalFault( ParallelThread thread, FaultException f ) {
 		synchronized( this ) {
 			threads.remove( thread );
-			if( isKilled ) {
-				if( threads.isEmpty() ) {
-					notify();
-				}
-			} else {
-				if( fault == null ) {
-					fault = f;
-					notify();
-				} else if( threads.isEmpty() ) {
-					notify();
-				}
+
+			if( !isKilled && fault == null ) {
+				fault = f;
+				notify();
+			} else if( threads.isEmpty() ) {
+				notify();
 			}
 		}
 	}
