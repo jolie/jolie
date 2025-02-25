@@ -852,5 +852,5 @@ public class CommCore {
 		}
 	}
 
-	private boolean active = false;
+	private volatile boolean active = false;
 }
