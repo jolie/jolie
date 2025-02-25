@@ -66,7 +66,7 @@ public class PreDecrementProcess implements Process, Expression {
 				val.setValue( ((Long) o).longValue() - 1 );
 			} else {
 				throw new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "expected type int, long, or double." )
-					.addContext( this.context );
+					.withContext( this.context );
 			}
 		}
 	}
@@ -86,7 +86,7 @@ public class PreDecrementProcess implements Process, Expression {
 				val.setValue( ((Long) o).longValue() - 1 );
 			} else {
 				throw new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "expected type int, long, or double." )
-					.addContext( this.context )
+					.withContext( this.context )
 					.toRuntimeFaultException();
 			}
 		}

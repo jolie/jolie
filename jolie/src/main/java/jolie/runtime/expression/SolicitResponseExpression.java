@@ -196,7 +196,7 @@ public class SolicitResponseExpression implements Expression {
 						throw new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME,
 							"Received fault " + response.fault().faultName() + " TypeMismatch (" + operationId + "@"
 								+ outputPort.id() + "): " + e.getMessage() )
-									.addContext( this.context )
+									.withContext( this.context )
 									.toRuntimeFaultException();
 					}
 				} else {
@@ -232,7 +232,7 @@ public class SolicitResponseExpression implements Expression {
 						}
 						throw new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "Received message TypeMismatch ("
 							+ operationId + "@" + outputPort.id() + "): " + e.getMessage() )
-								.addContext( this.context )
+								.withContext( this.context )
 								.toRuntimeFaultException();
 					}
 				} else {
@@ -246,21 +246,21 @@ public class SolicitResponseExpression implements Expression {
 			}
 		} catch( TimeoutException e ) { // The response timed out
 			throw new FaultException( Constants.TIMEOUT_EXCEPTION_FAULT_NAME )
-				.addContext( this.context )
+				.withContext( this.context )
 				.toRuntimeFaultException();
 		} catch( IOException e ) {
 			throw new FaultException( Constants.IO_EXCEPTION_FAULT_NAME, e )
-				.addContext( this.context )
+				.withContext( this.context )
 				.toRuntimeFaultException();
 		} catch( URISyntaxException e ) {
 			Interpreter.getInstance().logSevere( e );
 		} catch( TypeCheckingException e ) {
 			throw new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME,
 				"Output message TypeMismatch (" + operationId + "@" + outputPort.id() + "): " + e.getMessage() )
-					.addContext( this.context )
+					.withContext( this.context )
 					.toRuntimeFaultException();
 		} catch( FaultException e ) {
-			throw e.addContext( this.context ).toRuntimeFaultException();
+			throw e.withContext( this.context ).toRuntimeFaultException();
 		} finally {
 			if( channel != null ) {
 				try {

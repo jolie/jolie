@@ -136,13 +136,13 @@ public class ForwardNotificationProcess implements Process {
 			}
 		} catch( IOException e ) {
 			throw new FaultException( Constants.IO_EXCEPTION_FAULT_NAME, e )
-				.addContext( this.context );
+				.withContext( this.context );
 		} catch( URISyntaxException e ) {
 			Interpreter.getInstance().logSevere( e );
 		} catch( TypeCheckingException e ) {
 			throw new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME,
 				"TypeMismatch (" + operationName + "@" + outputPort.id() + "): " + e.getMessage() )
-				.addContext( this.context );
+					.withContext( this.context );
 		} finally {
 			if( channel != null ) {
 				try {

@@ -61,13 +61,6 @@ public class LocalCommChannel extends CommChannel implements PollableCommChannel
 				throw new IOException( "Unexpected response message with id " + message.requestId() + " for operation "
 					+ message.operationName() + " in local channel" );
 			}
-			/*
-			 * if message contains a fault, then the fault needs to be cloned so the correct line numbers for
-			 * the fault is shown for both services.
-			 */
-			if( message.isFault() ) {
-				message = message.faultClone();
-			}
 			responseFut.complete( message );
 		}
 

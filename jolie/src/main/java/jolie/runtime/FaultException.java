@@ -35,7 +35,7 @@ public class FaultException extends Exception {
 	private static final long serialVersionUID = jolie.lang.Constants.serialVersionUID();
 	private final String faultName;
 	private final Value value;
-	private ParsingContext context = null;
+	private final ParsingContext context;
 
 	/**
 	 * Constructor. This constructor behaves as
@@ -63,14 +63,14 @@ public class FaultException extends Exception {
 	}
 
 	/**
-	 * Constructor for cloning FaultException, removing contexts but keeping stacktace.
-	 *
-	 * @param f the FaultException to clone.
+	 * @param f the FaultException that is base for clone.
+	 * @param context the context that the new FaultException should have.
 	 */
-	public FaultException( FaultException f ) {
+	private FaultException( FaultException f, ParsingContext context ) {
 		super( f );
 		this.faultName = f.faultName;
 		this.value = f.value;
+		this.context = context;
 	}
 
 	/**
@@ -93,6 +93,7 @@ public class FaultException extends Exception {
 		super();
 		this.faultName = faultName;
 		this.value = value;
+		this.context = null;
 	}
 
 
@@ -138,16 +139,13 @@ public class FaultException extends Exception {
 	}
 
 	/**
-	 * Adds a {@link ParsingContext} to this FaultException used to know the origin of the Fault. If
-	 * another context is attached it will be overwritten. Returns itself for method-chaining, useful
-	 * when {@link #toRuntimeFaultException()} is needed after.
+	 * Creates a new FaultException with a {@link ParsingContext} based on the original FaultException.
 	 * 
 	 * @param context The {@link ParsingContext} to be added.
-	 * @return A reference to this object.
+	 * @return new FaultException with same values apart from the new context.
 	 */
-	public FaultException addContext( ParsingContext context ) {
-		this.context = context;
-		return this;
+	public FaultException withContext( ParsingContext context ) {
+		return new FaultException( this, context );
 	}
 
 	/**
