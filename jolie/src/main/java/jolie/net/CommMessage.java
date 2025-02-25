@@ -162,28 +162,6 @@ public class CommMessage implements Serializable {
 	}
 
 	/**
-	 * Constructor used for cloning
-	 *
-	 * @param requestId the identifier for the request
-	 * @param operationName the operation name for this message
-	 * @param resourcePath the resource path for this message
-	 * @param value the message data to equip the message with
-	 * @param fault the fault to equip the message with
-	 * @param originalRequest the original request that this message is a response for
-	 * @param id the id number for the original CommMessage
-	 */
-	private CommMessage( long requestId, String operationName, String resourcePath, Value value, FaultException fault,
-		CommMessage originalRequest, long id ) {
-		this.requestId = requestId;
-		this.operationName = operationName;
-		this.resourcePath = resourcePath;
-		this.value = value;
-		this.fault = fault;
-		this.id = id;
-		this.originalRequest = originalRequest;
-	}
-
-	/**
 	 * Constructor
 	 *
 	 * @param requestId the identifier for the request
@@ -271,15 +249,5 @@ public class CommMessage implements Serializable {
 
 	public Optional< CommMessage > originalRequest() {
 		return Optional.ofNullable( originalRequest );
-	}
-
-	/**
-	 * For use in {@link LocalCommChannel}
-	 * 
-	 * @return a clone of the original CommMessage with only the fault being cloned
-	 */
-	public CommMessage faultClone() {
-		return new CommMessage( requestId, operationName, resourcePath, value, new FaultException( fault ),
-			originalRequest, id );
 	}
 }
