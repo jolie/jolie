@@ -62,7 +62,7 @@ public class JsUtils {
 		} else if( value.isInt() || value.isLong() || value.isBool() || value.isDouble() ) {
 			return value.strValue();
 		} else {
-			return '"' + JSONValue.escape( value.strValue() ) + '"';
+			return String.format( "\"%s\"", JSONValue.escape( value.strValue() ).replace( "\\/", "/" ) );
 		}
 	}
 
