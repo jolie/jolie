@@ -43,8 +43,8 @@ define check3
 {
 	if ( #v != 1 ) {
 		throw( TestFailed, "getJsonValue: invalid vector size" )
-	} else if ( v != "Hi" ) {
-		throw( TestFailed, "getJsonValue: wrong value" )
+	} else if ( v != "\"Hi/Ho\"\\" ) {
+		throw( TestFailed, "getJsonValue: wrong value: " + v )
 	}
 }
 
@@ -53,9 +53,9 @@ define check4
 	if (#v != 1 || #v._ != 1 || #v._._ != 2 ) {
 		throw( TestFailed, "getJsonValue: invalid vector size" )
 	} else if ( v._._[0] != "Hi" ) {
-		throw( TestFailed, "getJsonValue: wrong value" )
+		throw( TestFailed, "getJsonValue: wrong value: " + v._._[0] )
 	} else if ( v._._[1] != "Ho" ) {
-		throw( TestFailed, "getJsonValue: wrong value" )
+		throw( TestFailed, "getJsonValue: wrong value: " + v._._[1] )
 	}
 }
 
@@ -102,7 +102,7 @@ define doTest
 	};
 
 	undef( v );
-	v = "Hi";
+	v = "\"Hi/Ho\"\\";
 	check3;
 
 	getJsonString@JsonUtils( v )( str );
@@ -112,8 +112,8 @@ define doTest
 	if ( str != str2 ) {
 		throw( TestFailed, "getJsonString: JSON strings should match" )
 	};
-	if ( str != "{\"$\":\"Hi\"}" ) {
-		throw( TestFailed, "getJsonString: expected long root value" )
+	if ( str != "{\"$\":\"\\\"Hi/Ho\\\"\\\\\"}" ) {
+		throw( TestFailed, "getJsonString: expected long root value: " + str )
 	};
 
 	undef( v );
