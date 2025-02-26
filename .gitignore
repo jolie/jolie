@@ -11,6 +11,7 @@
 **/.idea/tasks.xml
 **/.idea/shelf
 **/*.iml
+test/library/private/derby.jar
 test/extensions/private/WS-test.jar
 test/extensions/private/WS-test/lib/
 test/library/private/DB-test/lib/
