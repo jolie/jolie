@@ -24,6 +24,7 @@ package jolie.process;
 import jolie.ExecutionThread;
 import jolie.Interpreter;
 import jolie.lang.parse.context.ParsingContext;
+import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
 import jolie.runtime.expression.Expression;
 import jolie.tracer.AssignmentTraceAction;
@@ -58,13 +59,16 @@ public class DeepCopyProcess implements Process {
 		if( ExecutionThread.currentThread().isKilled() )
 			return;
 
+		final Value targetValue;
 		if( rightExpression instanceof VariablePath ) {
+			targetValue = null;
 			leftPath.deepCopy( (VariablePath) rightExpression );
 		} else {
+			targetValue = leftPath.getValue();
 			if( copyLinks ) {
-				leftPath.getValue().deepCopyWithLinks( rightExpression.evaluate() );
+				targetValue.deepCopyWithLinks( rightExpression.evaluate() );
 			} else {
-				leftPath.getValue().deepCopy( rightExpression.evaluate() );
+				targetValue.deepCopy( rightExpression.evaluate() );
 			}
 		}
 		final Tracer tracer = Interpreter.getInstance().tracer();
@@ -73,7 +77,7 @@ public class DeepCopyProcess implements Process {
 			AssignmentTraceAction.Type.DEEPCOPY,
 			"COPIED",
 			null,
-			leftPath.getValue( ExecutionThread.currentThread().state().root().clone() ),
+			targetValue,
 			context ) );
 
 	}
