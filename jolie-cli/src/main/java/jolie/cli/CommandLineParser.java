@@ -55,6 +55,7 @@ import jolie.Interpreter;
 import jolie.JolieClassLoader;
 import jolie.lang.Constants;
 import jolie.lang.parse.Scanner;
+import jolie.lang.parse.module.ModuleSource;
 import jolie.runtime.correlation.CorrelationEngine;
 import jolie.util.UriUtils;
 
@@ -74,7 +75,7 @@ public class CommandLineParser implements AutoCloseable {
 	private final URL[] libURLs;
 	private final InputStream programStream;
 	private String charset = null;
-	private final File programFilepath;
+	private final URI programURI;
 	private final String[] arguments;
 	private final Map< String, Scanner.Token > constants = new HashMap<>();
 	private final JolieClassLoader jolieClassLoader;
@@ -179,15 +180,16 @@ public class CommandLineParser implements AutoCloseable {
 				getOptionString( "--cellId",
 					"set an integer as cell identifier, used for creating message ids. (max: "
 						+ Integer.MAX_VALUE + ")" ) )
+			.append(
+				getOptionString( "--stackTraces", "Print stack traces (default: false)" ) )
 			.toString();
 	}
 
 	private void parseCommandLineConstant( String input )
 		throws IOException {
-		try {
-			// for command line options use the system's default charset (null)
-			Scanner scanner =
-				new Scanner( new ByteArrayInputStream( input.getBytes() ), new URI( "urn:CommandLine" ), null );
+		// for command line options use the system's default charset (null)
+		try( Scanner scanner =
+			new Scanner( new ByteArrayInputStream( input.getBytes() ), new URI( "urn:CommandLine" ) ) ) {
 			Scanner.Token token = scanner.getToken();
 			if( token.is( Scanner.TokenType.ID ) ) {
 				String id = token.content();
@@ -475,8 +477,7 @@ public class CommandLineParser implements AutoCloseable {
 							if( Files.exists( Paths.get( japFilename ) ) ) {
 								try( JarFile japFile = new JarFile( japFilename ) ) {
 									Manifest manifest = japFile.getManifest();
-									olFilepath = UriUtils
-										.normalizeWindowsPath( parseJapManifestForMainProgram( manifest, japFile ) );
+									olFilepath = parseJapManifestForMainProgram( manifest, japFile );
 									libList.add( japFilename );
 									Collection< String > japOptions = parseJapManifestForOptions( manifest );
 									argsList.addAll( i + 1, japOptions );
@@ -603,7 +604,15 @@ public class CommandLineParser implements AutoCloseable {
 		isProgramCompiled = olFilepath.endsWith( ".olc" );
 		tracer = bTracer && !isProgramCompiled;
 		check = bCheck && !isProgramCompiled;
-		programFilepath = new File( olResult.source );
+		try {
+			if( olResult.source.startsWith( "jap" ) || olResult.source.startsWith( "file" ) ) {
+				programURI = new URI( olResult.source );
+			} else {
+				programURI = URI.create( "file:" + olResult.source );
+			}
+		} catch( URISyntaxException e ) {
+			throw new CommandLineException( e.getMessage() );
+		}
 		programStream = olResult.stream;
 
 		includePaths = new LinkedHashSet<>( includeList ).toArray( new String[ 0 ] );
@@ -648,7 +657,8 @@ public class CommandLineParser implements AutoCloseable {
 			filepath = new StringBuilder()
 				.append( "jap:file:" )
 				.append( UriUtils.normalizeWindowsPath( japFile.getName() ) )
-				.append( "!/" )
+				.append( "!" )
+				.append( filepath.startsWith( "/" ) ? "" : "/" )
 				.append( filepath )
 				.toString();
 		}
@@ -688,12 +698,16 @@ public class CommandLineParser implements AutoCloseable {
 		if( f.exists() ) {
 			result.stream = new FileInputStream( f );
 			result.source = f.toURI().getSchemeSpecificPart();
+		} else if( olFilepath.startsWith( "jap" ) ) {
+			olURL = new URL( olFilepath );
+			result.stream = olURL.openStream();
+			result.source = olURL.toString();
 		} else {
 			for( String includePath : includePaths ) {
 				if( includePath.startsWith( "jap:" ) ) {
 					try {
-						olURL = new URL( UriUtils.normalizeJolieUri(
-							UriUtils.normalizeWindowsPath( UriUtils.resolve( includePath, olFilepath ) ) ) );
+						olURL = new URI( UriUtils.normalizeJolieUri(
+							UriUtils.normalizeWindowsPath( UriUtils.resolve( includePath, olFilepath ) ) ) ).toURL();
 						result.stream = olURL.openStream();
 						result.source = olURL.toString();
 						break;
@@ -715,13 +729,13 @@ public class CommandLineParser implements AutoCloseable {
 
 			if( result.stream == null ) {
 				try {
-					olURL = new URL( olFilepath );
+					olURL = new URI( olFilepath ).toURL();
 					result.stream = olURL.openStream();
 					result.source = olFilepath;
 					if( result.stream == null ) {
 						throw new MalformedURLException();
 					}
-				} catch( MalformedURLException e ) {
+				} catch( MalformedURLException | URISyntaxException e ) {
 					olURL = classLoader.getResource( olFilepath );
 					if( olURL != null ) {
 						result.stream = olURL.openStream();
@@ -789,6 +803,9 @@ public class CommandLineParser implements AutoCloseable {
 	}
 
 	public Interpreter.Configuration getInterpreterConfiguration() throws CommandLineException, IOException {
+
+		ModuleSource source = ModuleSource.create( programURI );
+
 		return Interpreter.Configuration.create(
 			connectionsLimit,
 			cellId,
@@ -796,10 +813,8 @@ public class CommandLineParser implements AutoCloseable {
 			includePaths,
 			optionArgs,
 			libURLs,
-			programStream,
+			source,
 			charset,
-			programFilepath,
-			programFilepath.getParentFile(),
 			arguments,
 			constants,
 			jolieClassLoader,
@@ -815,7 +830,6 @@ public class CommandLineParser implements AutoCloseable {
 			packagePaths,
 			executionTarget,
 			parametersFilepath );
-
 	}
 
 	/**

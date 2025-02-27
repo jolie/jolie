@@ -28,8 +28,7 @@ public class Jolie2Wsdl {
 			args = cmdParser.getInterpreterConfiguration().arguments();
 
 			Program program = ParsingUtils.parseProgram(
-				cmdParser.getInterpreterConfiguration().inputStream(),
-				cmdParser.getInterpreterConfiguration().programFilepath().toURI(),
+				cmdParser.getInterpreterConfiguration().source(),
 				cmdParser.getInterpreterConfiguration().charset(),
 				cmdParser.getInterpreterConfiguration().includePaths(),
 				cmdParser.getInterpreterConfiguration().packagePaths(),

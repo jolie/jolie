@@ -54,10 +54,8 @@ public class ModuleFinderImpl implements ModuleFinder {
 	 */
 	private final Path workingDirectoryPath;
 
-	public ModuleFinderImpl( URI workingDirectoryPath, String[] packagePaths ) {
-		this.workingDirectoryPath =
-			Files.isRegularFile( Paths.get( workingDirectoryPath ) ) ? Paths.get( workingDirectoryPath ).getParent()
-				: Paths.get( workingDirectoryPath );
+	public ModuleFinderImpl( String[] packagePaths ) {
+		this.workingDirectoryPath = Paths.get( System.getProperty( "user.dir" ) );
 		this.packagePaths = Arrays.stream( packagePaths )
 			.map( Paths::get )
 			.toArray( Path[]::new );
@@ -95,13 +93,24 @@ public class ModuleFinderImpl implements ModuleFinder {
 
 		List< Path > errPathList = new ArrayList<>();
 
-		Path japPath;
 		try {
 			// 1. WDIR/lib/FIRST.jap with entry of REST.ol
 			// where importPath[0] = FIRST
 			// and importPath[1...] = REST
-			japPath =
+			Path japPath =
 				ModuleFinder.japLookup( this.workingDirectoryPath.resolve( "lib" ),
+					importPath.pathParts().get( 0 ) );
+			List< String > rest = importPath.pathParts().subList( 1, importPath.pathParts().size() );
+			return new JapSource( japPath, rest );
+		} catch( IOException e ) {
+			errPathList.add( Paths.get( e.getMessage() ) );
+		}
+		try {
+			// 1. ./lib/FIRST.jap with entry of REST.ol
+			// where importPath[0] = FIRST
+			// and importPath[1...] = REST
+			Path japPath =
+				ModuleFinder.japLookup( parentPath.resolve( "lib" ),
 					importPath.pathParts().get( 0 ) );
 			List< String > rest = importPath.pathParts().subList( 1, importPath.pathParts().size() );
 			return new JapSource( japPath, rest );
