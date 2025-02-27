@@ -444,6 +444,7 @@ public class OOITBuilder implements UnitOLVisitor {
 			if( item.interfaceExtender() == null ) {
 				extender = null;
 			} else {
+				visit( item.interfaceExtender() );
 				extender = interfaceExtenders.get( item.interfaceExtender().name() );
 			}
 			try {

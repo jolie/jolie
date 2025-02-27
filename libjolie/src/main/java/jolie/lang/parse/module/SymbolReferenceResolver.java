@@ -797,6 +797,9 @@ public class SymbolReferenceResolver {
 		for( OperationDeclaration oper : publicIfacesAndOps.operations() ) {
 			op.addOperation( oper );
 		}
+		for( InterfaceExtenderDefinition extenders : publicIfacesAndOps.extenders() ) {
+			n.program().addChild( extenders );
+		}
 	}
 
 	private final Map< URI, ModuleRecord > moduleMap;
@@ -907,10 +910,12 @@ public class SymbolReferenceResolver {
 	private static class InterfacesAndOperations {
 		private final List< InterfaceDefinition > ifaces;
 		private final List< OperationDeclaration > ops;
+		private final List< InterfaceExtenderDefinition > extenders;
 
 		private InterfacesAndOperations() {
 			ifaces = new ArrayList<>();
 			ops = new ArrayList<>();
+			extenders = new ArrayList<>();
 		}
 
 		public InterfaceDefinition[] interfaces() {
@@ -919,6 +924,10 @@ public class SymbolReferenceResolver {
 
 		public OperationDeclaration[] operations() {
 			return ops.toArray( new OperationDeclaration[] {} );
+		}
+
+		public InterfaceExtenderDefinition[] extenders() {
+			return extenders.toArray( new InterfaceExtenderDefinition[] {} );
 		}
 	}
 
@@ -945,6 +954,7 @@ public class SymbolReferenceResolver {
 					if( location.equals( Constants.LOCAL_LOCATION_KEYWORD ) ) {
 						result.ifaces.addAll( ip.getInterfaceList() );
 						for( InputPortInfo.AggregationItemInfo item : ip.aggregationList() ) {
+							result.extenders.add( item.interfaceExtender() );
 							for( String opName : item.outputPortList() ) {
 								OutputPortInfo op = internalOp.get( opName );
 								result.ifaces.addAll( op.getInterfaceList() );
@@ -953,6 +963,7 @@ public class SymbolReferenceResolver {
 						result.ops.addAll( ip.operations() );
 					}
 				}
+
 			}
 		}
 		return result;

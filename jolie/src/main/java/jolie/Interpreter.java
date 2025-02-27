@@ -618,7 +618,8 @@ public class Interpreter {
 		try {
 			new ValuePrettyPrinter( fault.value(), writer,
 				"Thrown unhandled fault: " + fault.faultName() + "\nSource location: " + fault.getContextString()
-					+ "\nContent (if any)" ).run();
+					+ "\nContent (if any)" )
+				.run();
 			logInfo( writer.toString() );
 		} catch( IOException e ) {
 			logInfo(
@@ -1216,7 +1217,7 @@ public class Interpreter {
 					semanticVerifier.constantFlags(),
 					semanticVerifier.correlationFunctionInfo(),
 					initValue ))
-						.build();
+					.build();
 			}
 
 		} catch( IOException | ParserException | ClassNotFoundException | ModuleException e ) {
