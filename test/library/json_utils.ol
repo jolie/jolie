@@ -1,10 +1,14 @@
 from ..test-unit import TestUnitInterface
 from json-utils import JsonUtils
+from string-utils import StringUtils
+from console import Console
 
 
 service Main {
 
     embed JsonUtils as JsonUtils
+	embed StringUtils as StringUtils 
+	embed Console as Console
 
 	inputPort TestUnitInput {
         location: "local"
@@ -216,6 +220,14 @@ service Main {
 				+ "  \"age\": 25"
 				+ "}"
 			})( validation )
+
+			if ( is_defined( validation.validationMessage ) ) {
+				valueToPrettyString@StringUtils( validation )( errors )
+				throw( TestFailed, errors )
+			}
+
+			
+
 		}
 	}
 }
