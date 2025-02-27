@@ -41,7 +41,7 @@ import jolie.runtime.typing.Type;
  * @author claudio guidi
  */
 @AndJarDeps( { "jolie-js.jar", "json-simple.jar", "json-schema-validator.jar", "slf4j-api.jar",
-	"jackson-databind.jar", "jackson-core.jar", "jackson-dataformat-yaml.jar", "jackson-annotation.jar" } )
+	"jackson-databind.jar", "jackson-core.jar", "jackson-dataformat-yaml.jar", "jackson-annotations.jar" } )
 public class JsonUtilsService extends JavaService {
 
 	public Value getJsonString( Value request ) throws FaultException {

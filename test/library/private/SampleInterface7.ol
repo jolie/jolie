@@ -53,7 +53,8 @@ interface TmpInterface7 {
     /**!documentation of operation tmp2*/
     tmp2( TLink )( TLink ) throws Fault2,
     tmp3( TInLine )( TInLine ) throws Fault3( string ) Fault4( TInLine ),
-    tmp4( TSimple )( TSimple )
+    tmp4( TSimple )( TSimple ),
+    tmp5( TChoice )( TChoice )
    
 }
 
