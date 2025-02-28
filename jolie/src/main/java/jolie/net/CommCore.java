@@ -600,10 +600,7 @@ public class CommCore {
 						}
 					}
 				}
-				try {
-					Thread.sleep( 50 ); // msecs
-				} catch( InterruptedException e ) {
-				}
+				Thread.yield();
 			}
 
 			channels.forEach( ( c ) -> {
@@ -855,5 +852,5 @@ public class CommCore {
 		}
 	}
 
-	private boolean active = false;
+	private volatile boolean active = false;
 }
