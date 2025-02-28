@@ -88,7 +88,7 @@ public class ScopeProcess implements Process {
 			} catch( ExitingException e ) {
 				throw e;
 			} catch( Exception e ) {
-				fault = new FaultException( e );
+				fault = new FaultException( e ); // TODO find and add context?
 			}
 		}
 	}

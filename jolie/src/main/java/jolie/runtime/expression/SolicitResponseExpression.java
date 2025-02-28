@@ -26,7 +26,6 @@ import java.net.URISyntaxException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-
 import jolie.ExecutionThread;
 import jolie.Interpreter;
 import jolie.lang.Constants;
@@ -196,7 +195,8 @@ public class SolicitResponseExpression implements Expression {
 						}
 						throw new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME,
 							"Received fault " + response.fault().faultName() + " TypeMismatch (" + operationId + "@"
-								+ outputPort.id() + "): " + e.getMessage() )
+								+ outputPort.id() + "): " + e.getMessage(),
+							this.context )
 							.toRuntimeFaultException();
 					}
 				} else {
@@ -208,7 +208,7 @@ public class SolicitResponseExpression implements Expression {
 								Long.toString( response.id() ) ) );
 					}
 				}
-				throw response.fault();
+				throw response.fault().withContext( context ).toRuntimeFaultException();
 			} else {
 				if( types.responseType() != null ) {
 					try {
@@ -231,7 +231,8 @@ public class SolicitResponseExpression implements Expression {
 									Long.toString( response.id() ) ) );
 						}
 						throw new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "Received message TypeMismatch ("
-							+ operationId + "@" + outputPort.id() + "): " + e.getMessage() ).toRuntimeFaultException();
+							+ operationId + "@" + outputPort.id() + "): " + e.getMessage(), this.context )
+							.toRuntimeFaultException();
 					}
 				} else {
 					if( Interpreter.getInstance().isMonitoring() ) {
@@ -243,17 +244,18 @@ public class SolicitResponseExpression implements Expression {
 				}
 			}
 		} catch( TimeoutException e ) { // The response timed out
-			throw new FaultException( Constants.TIMEOUT_EXCEPTION_FAULT_NAME ).toRuntimeFaultException();
+			throw new FaultException( Constants.TIMEOUT_EXCEPTION_FAULT_NAME, this.context )
+				.toRuntimeFaultException();
 		} catch( IOException e ) {
-			throw new FaultException( Constants.IO_EXCEPTION_FAULT_NAME, e ).toRuntimeFaultException();
+			throw new FaultException( Constants.IO_EXCEPTION_FAULT_NAME, e, this.context )
+				.toRuntimeFaultException();
 		} catch( URISyntaxException e ) {
 			Interpreter.getInstance().logSevere( e );
 		} catch( TypeCheckingException e ) {
 			throw new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME,
-				"Output message TypeMismatch (" + operationId + "@" + outputPort.id() + "): " + e.getMessage() )
+				"Output message TypeMismatch (" + operationId + "@" + outputPort.id() + "): " + e.getMessage(),
+				this.context )
 				.toRuntimeFaultException();
-		} catch( FaultException e ) {
-			throw e.toRuntimeFaultException();
 		} finally {
 			if( channel != null ) {
 				try {

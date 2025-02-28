@@ -66,7 +66,7 @@ public class OutputPort {
 			}
 			return response.value();
 		} catch( ExecutionException | InterruptedException | IOException e ) {
-			throw new FaultException( Constants.IO_EXCEPTION_FAULT_NAME, e );
+			throw new FaultException( Constants.IO_EXCEPTION_FAULT_NAME, e ); // TODO add context?
 		}
 	}
 
