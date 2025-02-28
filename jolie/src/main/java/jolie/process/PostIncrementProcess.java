@@ -63,8 +63,8 @@ public class PostIncrementProcess implements Process, Expression {
 			} else if( o instanceof Long ) {
 				val.setValue( ((Long) o).longValue() + 1 );
 			} else {
-				throw new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "expected type int, long, or double." )
-					.withContext( this.context );
+				throw new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "expected type int, long, or double.",
+					this.context );
 			}
 		}
 	}
@@ -88,8 +88,8 @@ public class PostIncrementProcess implements Process, Expression {
 				orig = Value.create( ((Long) o).longValue() );
 				val.setValue( ((Long) o).longValue() + 1 );
 			} else {
-				throw new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "expected type int, long, or double." )
-					.withContext( this.context )
+				throw new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "expected type int, long, or double.",
+					this.context )
 					.toRuntimeFaultException();
 			}
 		}

@@ -50,11 +50,9 @@ public class ThrowProcess implements Process {
 			return;
 
 		if( expression == null ) {
-			throw new FaultException( faultName )
-				.withContext( this.context );
+			throw new FaultException( faultName, this.context );
 		} else {
-			throw new FaultException( faultName, expression.evaluate() )
-				.withContext( this.context );
+			throw new FaultException( faultName, expression.evaluate(), this.context );
 		}
 	}
 

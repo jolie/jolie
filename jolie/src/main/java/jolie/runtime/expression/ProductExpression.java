@@ -58,8 +58,7 @@ public class ProductExpression implements Expression {
 				try {
 					val.divide( children[ i ].expression().evaluate() );
 				} catch( ArithmeticException ae ) {
-					throw new FaultException( "ArithmeticException", ae.getLocalizedMessage() )
-						.withContext( this.context )
+					throw new FaultException( "ArithmeticException", ae.getLocalizedMessage(), this.context )
 						.toRuntimeFaultException();
 				}
 				break;

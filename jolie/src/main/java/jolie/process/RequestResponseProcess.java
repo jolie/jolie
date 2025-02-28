@@ -224,7 +224,8 @@ public class RequestResponseProcess implements InputOperationProcess {
 							log( "TYPE MISMATCH", response );
 							typeMismatch = new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME,
 								"Request-Response input operation output value TypeMismatch (operation "
-									+ operation.id() + "): " + e.getMessage() ).withContext( this.context );
+									+ operation.id() + "): " + e.getMessage(),
+								this.context );
 							response = CommMessage.createFaultResponse( message, new FaultException(
 								Constants.TYPE_MISMATCH_FAULT_NAME, "Internal server error (TypeMismatch)" ) );
 							// Context not added as it should not & cannot be sent
@@ -244,7 +245,8 @@ public class RequestResponseProcess implements InputOperationProcess {
 			} catch( TypeCheckingException e ) {
 				typeMismatch = new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME,
 					"Request-Response process TypeMismatch for fault " + f.faultName() + " (operation " + operation.id()
-						+ "): " + e.getMessage() ).withContext( this.context );
+						+ "): " + e.getMessage(),
+					this.context );
 				response = CommMessage.createFaultResponse( message, typeMismatch );
 				responseStatus = OperationEndedEvent.ERROR;
 				details = typeMismatch.faultName();
@@ -270,7 +272,7 @@ public class RequestResponseProcess implements InputOperationProcess {
 			}
 		} catch( IOException e ) {
 			// Interpreter.getInstance().logSevere( e );
-			throw new FaultException( Constants.IO_EXCEPTION_FAULT_NAME, e ).withContext( this.context );
+			throw new FaultException( Constants.IO_EXCEPTION_FAULT_NAME, e, this.context );
 		} finally {
 			try {
 				channel.release(); // TODO: what if the channel is in disposeForInput?

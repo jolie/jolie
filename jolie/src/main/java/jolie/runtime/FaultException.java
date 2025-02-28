@@ -38,16 +38,32 @@ public class FaultException extends Exception {
 	private final ParsingContext context;
 
 	/**
-	 * Constructor. This constructor behaves as
-	 * {@code FaultException( faultName, Value.create( t.getMessage() ) )}, but it also adds a
+	 * Constructor. Shortcut for {@code FaultException( faultNmae, t, context )}.
+	 *
+	 * This constructor behaves as {@code FaultException( faultName, Value.create( t.getMessage() ) )},
+	 * but it also adds a {@code stackTrace} subnode to the value of this fault containing the stack
+	 * trace of the passed {@link Throwable} t.
+	 *
+	 * @param faultName the name of the fault
+	 * @param t the {@link Throwable} whose message and stack trace should be read
+	 */
+	public FaultException( String faultName, Throwable t ) {
+		this( faultName, t, null );
+	}
+
+	/**
+	 * Constructor.
+	 *
+	 * This constructor behaves as
+	 * {@code FaultException( faultName, Value.create( t.getMessage() ), context )}, but it also adds a
 	 * {@code stackTrace} subnode to the value of this fault containing the stack trace of the passed
 	 * {@link Throwable} t.
 	 *
 	 * @param faultName the name of the fault
 	 * @param t the {@link Throwable} whose message and stack trace should be read
 	 */
-	public FaultException( String faultName, Throwable t ) {
-		this( faultName, Value.create( t.getMessage() ) );
+	public FaultException( String faultName, Throwable t, ParsingContext context ) {
+		this( faultName, Value.create( t.getMessage() ), context );
 		ByteArrayOutputStream bs = new ByteArrayOutputStream();
 		t.printStackTrace( new PrintStream( bs ) );
 		value.getNewChild( "stackTrace" ).setValue( bs.toString() );
@@ -60,6 +76,16 @@ public class FaultException extends Exception {
 	 */
 	public FaultException( Throwable t ) {
 		this( t.getClass().getSimpleName(), t );
+	}
+
+	/**
+	 * Constructor. Shortcut for {@code FaultException( t.getClass().getSimpleName(), t, context )}.
+	 *
+	 * @param t
+	 * @param context
+	 */
+	public FaultException( Throwable t, ParsingContext context ) {
+		this( t.getClass().getSimpleName(), t, context );
 	}
 
 	/**
@@ -84,18 +110,39 @@ public class FaultException extends Exception {
 	}
 
 	/**
-	 * Constructor.
+	 * Constructor. Shortcut for {@code FaultException( faultName, Value.create( message ), context )}
+	 *
+	 * @param faultName
+	 * @param message
+	 * @param context
+	 */
+	public FaultException( String faultName, String message, ParsingContext context ) {
+		this( faultName, Value.create( message ), context );
+	}
+
+	/**
+	 * Constructor. Shortcut for {@code FaultException( faultName, value, null )}
 	 *
 	 * @param faultName the name of the fault
 	 * @param value the {@link Value} containing the fault data
 	 */
 	public FaultException( String faultName, Value value ) {
+		this( faultName, value, null );
+	}
+
+	/**
+	 * Constructor.
+	 *
+	 * @param faultName the name of the fault
+	 * @param value the {@link Value} containing the fault data
+	 * @param context the {@link ParsingContext} containing info of where the fault happened
+	 */
+	public FaultException( String faultName, Value value, ParsingContext context ) {
 		super();
 		this.faultName = faultName;
 		this.value = value;
-		this.context = null;
+		this.context = context;
 	}
-
 
 
 	/**
@@ -105,6 +152,10 @@ public class FaultException extends Exception {
 	 */
 	public FaultException( String faultName ) {
 		this( faultName, Value.create() );
+	}
+
+	public FaultException( String faultName, ParsingContext context ) {
+		this( faultName, Value.create(), context );
 	}
 
 	@Override
@@ -140,7 +191,7 @@ public class FaultException extends Exception {
 
 	/**
 	 * Creates a new FaultException with a {@link ParsingContext} based on the original FaultException.
-	 * 
+	 *
 	 * @param context The {@link ParsingContext} to be added.
 	 * @return new FaultException with same values apart from the new context.
 	 */
