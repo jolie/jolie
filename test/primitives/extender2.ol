@@ -13,7 +13,7 @@ interface NothingServiceInterface {
 service NothingService {
 
     inputPort TaskService2 {
-      location: "local"
+      location: "local://NothingService"
       interfaces: NothingServiceInterface
     }
 
@@ -32,18 +32,23 @@ interface extender TokenExtender {
 
 service EmbedderService {
 
-  embed NothingService as NothingService
+  embed NothingService
+
+  outputPort NothingService {
+    Location: "local://NothingService"
+    Interfaces: NothingServiceInterface
+  }
 
   inputPort input {    
-    location: "local"
+    location: "local://EmbedderService"
     protocol: "sodep"
     aggregates: NothingService with TokenExtender
   }
 
   courier input {
     [ nothing( request )( response ){
-      response.token = 1
       forward( request )( response )
+      response.token = 1
     } ]
   }
 
@@ -53,11 +58,24 @@ service EmbedderService {
 
 }
 
+type TestWithTokenType {
+  header: string
+  token: int
+}
 
+interface NothingServiceInterfaceWithToken {
+  requestResponse:
+    nothing( TestWithTokenType )( TokenType ) throws InvalidToken
+}
 
 service Main {
 
-    embed EmbedderService as EmbedderService
+    embed EmbedderService
+
+    outputPort EmbedderService {
+      Location: "local://EmbedderService"
+      Interfaces: NothingServiceInterfaceWithToken
+    }
 
     inputPort TestUnitInput {
         location: "local"
