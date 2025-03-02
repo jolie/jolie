@@ -42,8 +42,8 @@ service EmbedderService {
 
   courier input {
     [ nothing( request )( response ){
-      response.token = 1
       forward( request )( response )
+      response.token = 1
     } ]
   }
 
