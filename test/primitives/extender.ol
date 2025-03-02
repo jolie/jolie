@@ -7,7 +7,7 @@ type TestType {
 
 interface NothingServiceInterface {
   requestResponse:
-    nothing( TestType )(void)
+    nothing( TestType )( void )
 }
 
 service NothingService {
@@ -22,7 +22,6 @@ service NothingService {
     }
 }
 
-
 type TokenType { token: int }
 
 interface extender TokenExtender {
@@ -34,16 +33,15 @@ service EmbedderService {
 
   embed NothingService as NothingService
 
-  inputPort input {    
+  inputPort input {
     location: "local"
-    protocol: "sodep"
     aggregates: NothingService with TokenExtender
   }
 
   courier input {
     [ nothing( request )( response ){
-      response.token = "return-token"
       forward( request )( response )
+      response.token = 1
     } ]
   }
 
@@ -52,8 +50,6 @@ service EmbedderService {
   }
 
 }
-
-
 
 service Main {
 
