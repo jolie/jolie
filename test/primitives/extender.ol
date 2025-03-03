@@ -34,7 +34,7 @@ service EmbedderService {
   embed NothingService as NothingService
 
   inputPort input {
-    location: "local"
+    location: "local://EmbedderService"
     aggregates: NothingService with TokenExtender
   }
 
@@ -51,9 +51,24 @@ service EmbedderService {
 
 }
 
+type TestWithTokenType {
+  header: string
+  token: int
+}
+
+interface NothingServiceInterfaceWithToken {
+  requestResponse:
+    nothing( TestWithTokenType )( TokenType ) throws InvalidToken
+}
+
 service Main {
 
-    embed EmbedderService as EmbedderService
+    embed EmbedderService
+
+    outputPort EmbedderService {
+        location: "local://EmbedderService"
+        interfaces: NothingServiceInterfaceWithToken
+    }
 
     inputPort TestUnitInput {
         location: "local"
