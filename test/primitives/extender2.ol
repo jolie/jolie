@@ -7,7 +7,7 @@ type TestType {
 
 interface NothingServiceInterface {
   requestResponse:
-    nothing( TestType )(void)
+    nothing( TestType )( void )
 }
 
 service NothingService {
@@ -21,7 +21,6 @@ service NothingService {
         nothing( req )( res ) { nullProcess }
     }
 }
-
 
 type TokenType { token: int }
 
@@ -41,7 +40,6 @@ service EmbedderService {
 
   inputPort input {    
     location: "local://EmbedderService"
-    protocol: "sodep"
     aggregates: NothingService with TokenExtender
   }
 
