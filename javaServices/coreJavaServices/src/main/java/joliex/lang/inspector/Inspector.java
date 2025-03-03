@@ -20,18 +20,35 @@
 
 package joliex.lang.inspector;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import jolie.Interpreter;
 import jolie.cli.CommandLineException;
 import jolie.cli.CommandLineParser;
-import jolie.Interpreter;
 import jolie.lang.CodeCheckException;
 import jolie.lang.parse.ParserException;
 import jolie.lang.parse.SemanticVerifier;
-import jolie.lang.parse.ast.*;
+import jolie.lang.parse.ast.InputPortInfo;
+import jolie.lang.parse.ast.InterfaceDefinition;
+import jolie.lang.parse.ast.OneWayOperationDeclaration;
+import jolie.lang.parse.ast.OperationDeclaration;
+import jolie.lang.parse.ast.OutputPortInfo;
+import jolie.lang.parse.ast.Program;
+import jolie.lang.parse.ast.RequestResponseOperationDeclaration;
+import jolie.lang.parse.ast.ServiceNode;
 import jolie.lang.parse.ast.types.TypeChoiceDefinition;
 import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
 import jolie.lang.parse.ast.types.TypeInlineDefinition;
 import jolie.lang.parse.module.ModuleException;
+import jolie.lang.parse.module.ModuleSource;
 import jolie.lang.parse.util.Interfaces;
 import jolie.lang.parse.util.ParsingUtils;
 import jolie.lang.parse.util.ProgramInspector;
@@ -40,11 +57,6 @@ import jolie.runtime.JavaService;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 import jolie.runtime.embedding.RequestResponse;
-
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.*;
 
 public class Inspector extends JavaService {
 	private static final class FileInspectionResponse {
@@ -186,15 +198,15 @@ public class Inspector extends JavaService {
 			SemanticVerifier.Configuration configuration =
 				new SemanticVerifier.Configuration( interpreterConfiguration.executionTarget() );
 			configuration.setCheckForMain( false );
-			final InputStream sourceIs;
+			final ModuleSource ms;
 			if( source.isPresent() ) {
-				sourceIs = new ByteArrayInputStream( source.get().getBytes() );
+				ms = ModuleSource.create( interpreterConfiguration.source().uri(),
+					new ByteArrayInputStream( source.get().getBytes() ), ServiceNode.DEFAULT_MAIN_SERVICE_NAME );
 			} else {
-				sourceIs = interpreterConfiguration.inputStream();
+				ms = interpreterConfiguration.source();
 			}
 			Program program = ParsingUtils.parseProgram(
-				sourceIs,
-				interpreterConfiguration.programFilepath().toURI(),
+				ms,
 				interpreterConfiguration.charset(),
 				includePaths,
 				// interpreterConfiguration.packagePaths(),

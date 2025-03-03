@@ -22,6 +22,8 @@
 
 package jolie.lang.parse.util;
 
+import java.io.IOException;
+import java.util.Map;
 import jolie.lang.CodeCheckException;
 import jolie.lang.parse.ParserException;
 import jolie.lang.parse.Scanner;
@@ -29,14 +31,10 @@ import jolie.lang.parse.SemanticVerifier;
 import jolie.lang.parse.ast.Program;
 import jolie.lang.parse.module.ModuleException;
 import jolie.lang.parse.module.ModuleParsingConfiguration;
+import jolie.lang.parse.module.ModuleSource;
 import jolie.lang.parse.module.Modules;
 import jolie.lang.parse.module.Modules.ModuleParsedResult;
 import jolie.lang.parse.util.impl.ProgramInspectorCreatorVisitor;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
-import java.util.Map;
 
 /**
  * Utility class for accessing the functionalities of the JOLIE parsing library without having to
@@ -48,8 +46,7 @@ public class ParsingUtils {
 	private ParsingUtils() {}
 
 	public static Program parseProgram(
-		InputStream inputStream,
-		URI source,
+		ModuleSource source,
 		String charset,
 		String[] includePaths,
 		String[] packagePaths,
@@ -68,7 +65,7 @@ public class ParsingUtils {
 			includeDocumentation,
 			false );
 
-		ModuleParsedResult parseResult = Modules.parseModule( configuration, inputStream, source );
+		ModuleParsedResult parseResult = Modules.parseModule( configuration, source );
 
 		SemanticVerifier semanticVerifier = new SemanticVerifier( parseResult.mainProgram(),
 			parseResult.symbolTables(), semanticConfiguration );
@@ -77,8 +74,7 @@ public class ParsingUtils {
 	}
 
 	public static Program parseProgram(
-		InputStream inputStream,
-		URI source,
+		ModuleSource source,
 		String charset,
 		String[] includePaths,
 		String[] packagePaths,
@@ -88,7 +84,6 @@ public class ParsingUtils {
 		boolean includeDocumentation )
 		throws IOException, ParserException, CodeCheckException, ModuleException {
 		return parseProgram(
-			inputStream,
 			source,
 			charset,
 			includePaths,
@@ -103,7 +98,6 @@ public class ParsingUtils {
 	 * Works just like parseProgram, but returns the SemanticVerifier instead. Is used by the
 	 * languageserver for the vscode extension
 	 *
-	 * @param inputStream
 	 * @param source
 	 * @param charset
 	 * @param includePaths
@@ -119,8 +113,7 @@ public class ParsingUtils {
 	 * @throws ModuleException
 	 */
 	public static SemanticVerifier parseProgramModule(
-		InputStream inputStream,
-		URI source,
+		ModuleSource source,
 		String charset,
 		String[] includePaths,
 		String[] packagePaths,
@@ -137,7 +130,7 @@ public class ParsingUtils {
 			definedConstants,
 			includeDocumentation, false );
 
-		ModuleParsedResult parseResult = Modules.parseModule( configuration, inputStream, source );
+		ModuleParsedResult parseResult = Modules.parseModule( configuration, source );
 		SemanticVerifier semanticVerifier = new SemanticVerifier( parseResult.mainProgram(),
 			parseResult.symbolTables(), semanticConfiguration );
 		semanticVerifier.validate();

@@ -20,6 +20,7 @@
 package jolie.lang.parse.module;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.Arrays;
 import java.util.stream.Stream;
 import jolie.lang.parse.OLParseTreeOptimizer;
@@ -39,27 +40,23 @@ public class ModuleParser {
 		this.parserConfiguration = parserConfiguration;
 	}
 
-	public ModuleRecord parse( Scanner scanner )
-		throws ParserException, IOException, ModuleException {
-		return parse( scanner, new String[ 0 ] );
-	}
-
 	public ModuleRecord parse( ModuleSource module ) throws ParserException, IOException, ModuleException {
-		String[] additionalPath;
+		URI[] additionalPath;
 		if( module.includePath().isPresent() ) {
-			additionalPath = new String[] { module.includePath().get() };
+			additionalPath = new URI[] { module.includePath().get() };
 		} else {
-			additionalPath = new String[ 0 ];
+			additionalPath = new URI[ 0 ];
 		}
-		return this.parse( new Scanner( module.openStream().get(), module.uri(),
-			parserConfiguration.charset(), parserConfiguration.includeDocumentation() ), additionalPath );
-
+		try( Scanner scanner =
+			new Scanner( module, parserConfiguration.charset(), parserConfiguration.includeDocumentation() ) ) {
+			return this.parse( scanner, additionalPath );
+		}
 	}
 
-	public ModuleRecord parse( Scanner scanner, String[] additionalIncludePaths )
+	public ModuleRecord parse( Scanner scanner, URI[] additionalIncludePaths )
 		throws ParserException, IOException, ModuleException {
 		String[] includePaths = Stream.concat( Arrays.stream( parserConfiguration.includePaths() ),
-			Arrays.stream( additionalIncludePaths ) )
+			Arrays.stream( additionalIncludePaths ).map( URI::toString ) )
 			.distinct().toArray( String[]::new );
 		OLParser olParser = new OLParser( scanner, includePaths, parserConfiguration.classLoader() );
 		olParser.putConstants( parserConfiguration.constantsMap() );

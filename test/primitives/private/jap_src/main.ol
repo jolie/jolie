@@ -1,5 +1,5 @@
 // Test path resolution inside of JAPs
-include "d1/d2/twice_api.iol"
+include "twice/d1/d2/twice_api.iol"
 
 inputPort TwiceInput {
 location: "local"

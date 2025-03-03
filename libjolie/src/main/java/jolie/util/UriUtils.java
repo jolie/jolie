@@ -22,6 +22,8 @@ package jolie.util;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import jolie.lang.Constants;
@@ -62,8 +64,21 @@ public class UriUtils {
 		if( target.startsWith( JAP_FILE_PREFIX ) ) {
 			if( context.startsWith( JAP_FILE_PREFIX ) ) {
 				result = context + "/" + target.substring( JAP_FILE_PREFIX.length() );
-			} else if( Files.exists( Paths.get( context ) ) ) {
-				result = JAP_FILE_PREFIX + context + "/" + target.substring( JAP_FILE_PREFIX.length() );
+			} else {
+				Path path = null;
+				try {
+					path = Paths.get( context );
+				} catch( InvalidPathException e ) {
+					// try convert string to uri before continue
+					try {
+						URI uri = new URI( context );
+						path = Paths.get( uri );
+					} catch( URISyntaxException e1 ) {
+					}
+				}
+				if( Files.exists( path ) ) {
+					result = JAP_FILE_PREFIX + context + "/" + target.substring( JAP_FILE_PREFIX.length() );
+				}
 			}
 		}
 
