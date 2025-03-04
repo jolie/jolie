@@ -500,16 +500,6 @@ service JsonSchema {
     embed JsonSchema2 as JsonSchema2
     embed JsonSchema3 as JsonSchema3
 
-    outputPort MySelf {
-        location: "local://internalJsonSchema"
-        interfaces: JSONSchemaGeneratorInterface
-    }
-
-    inputPort JSONSchemaGeneratorInternal {
-        location: "local://internalJsonSchema"
-        interfaces: JSONSchemaGeneratorInterface
-    }
-
     inputPort JSONSchemaGenerator {
         location: "local"
         interfaces: JSONSchemaGeneratorInterface
