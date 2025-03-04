@@ -98,9 +98,14 @@ service Main {
                 }
             }
 
-            getOpenApiDefinition@OpenApi( request )( openapijson ) 
+            getInputPortMetaData@MetaJolie( { filename = "./library/private/openapi-test.ol" } )( meta_description )
+            for ( i in meta_description.input.interfaces ) {
+                for( t in i.types ) {
+                    request.types[ #request.types ] << t 
+                }
+            }
 
-            println@Console( openapijson )()
+            getOpenApiDefinition@OpenApi( request )( openapijson ) 
 
             validateJson@JsonUtils({
                 json = openapijson

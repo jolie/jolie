@@ -159,6 +159,8 @@ service OpenApi {
                 host = request.servers[ 0 ].host
                 basePath = request.servers[ 0 ].basePath
             }
+
+            println@Console("init\n" + valueToPrettyString@StringUtils( openapi ))()
             // schemes
             if ( #request.servers[ 0 ].schemes == 1 ) {
                 openapi.schemes._ = request.servers[ 0 ].schemes // because it must be converted as an array
@@ -168,14 +170,17 @@ service OpenApi {
             // tags
             if ( is_defined( request.tags ) ) {
                 if ( #request.tags == 1 ) {
-                    opeanpi.tags._ << request.tags   // because it must be converted as an array
-                } else { opeanpi.tags << request.tags }
+                    openapi.tags._ << request.tags   // because it must be converted as an array
+                } else { openapi.tags << request.tags }
             }
+
+            println@Console("tags\n" + valueToPrettyString@StringUtils( openapi ))()
 
             // servers
             openapi.host = request.servers[ 0 ].host
             openapi.basePath = request.servers[ 0 ].basePath
 
+println@Console("servers\n" + valueToPrettyString@StringUtils( openapi ))()
             // paths
             for( path in request.paths ) {
                 foreach ( method : path ) {
@@ -210,18 +215,18 @@ service OpenApi {
                     // consumes
                     if ( is_defined( path.( method ).consumes ) ) {
                         if ( #path.( method ).consumes == 1 ) {
-                            openapi.paths.( path ).( method )._ = path.( method ).consumes
+                            openapi.paths.( path ).( method ).consumes._ = path.( method ).consumes
                         } else {
-                            openapi.paths.( path ).( method ) << path.( method ).consumes
+                            openapi.paths.( path ).( method ).consumes << path.( method ).consumes
                         }
                     }
 
                     // produces
                     if ( is_defined( path.( method ).produces ) ) {
                         if ( #path.( method ).produces == 1 ) {
-                            openapi.paths.( path ).( method )._ = path.( method ).produces
+                            openapi.paths.( path ).( method ).produces._ = path.( method ).produces
                         } else {
-                            openapi.paths.( path ).( method ) << path.( method ).produces
+                            openapi.paths.( path ).( method ).produces << path.( method ).produces
                         }
                     }
 
@@ -243,11 +248,12 @@ service OpenApi {
                         cur_par -> openapi.paths.( path ).( method ).parameters[ 0 ]._[ par ]
                         cur_par.name = path.( method ).parameters[ par ].name
                         
-                        if ( par.( method ).parameters[ par ].in instanceof InBody ) {
-                                cur_par << {
-                                    in = "body"
-                                    required = par.( method ).parameters[ par ].required
-                                }
+                        println@Console("inbody\n" + valueToPrettyString@StringUtils( path.( method ).parameters[ par ].in ))()
+                        if ( path.( method ).parameters[ par ].in instanceof InBody ) {
+                            println@Console("sono qui")()
+                                cur_par.in = "body"
+                                cur_par.required = par.( method ).parameters[ par ].required
+                                
                                 if ( path.( method ).parameters[ par ].in.body instanceof InBodySchema ) {
                                     type -> request.paths[ p ].( op ).parameters[ par ].in.in_body.schema_type
                                     cur_par.schema << getType@JsonSchema( {
@@ -255,19 +261,22 @@ service OpenApi {
                                         schemaVersion = request.version
                                     } )
                                 } else if ( path.( method ).parameters[ par ].in.body instanceof InBodyRef ) {
-                                    cur_par.schema.("$ref") = "#/definitions/" + par.( method ).parameters[ par ].in.body.schema_ref
+                                    println@Console("sono qui2")()
+                                    cur_par.schema.("$ref") = "#/definitions/" + path.( method ).parameters[ par ].in.body.schema_ref
                                 }
-                        } else if ( par.( method ).parameters[ par ].in instanceof InOther ) {
+                        } else if ( path.( method ).parameters[ par ].in instanceof InOther ) {
                                 cur_par << getNativeType@JsonSchema( path.( method ).parameters[ par ].in.other.nativeType )
                                 cur_par.in = par.( method ).parameters[ par ].in.other
                             
-                                if ( is_defined( par.( method ).parameters[ par ].in.other.allowEmptyValue ) ) {
+                                if ( is_defined( path.( method ).parameters[ par ].in.other.allowEmptyValue ) ) {
                                     cur_par.allowEmptyValue = par.( method ).parameters[ par ].in.other.allowEmptyValue
                                 }
                         }
                     }
                 }
             }
+
+            println@Console("paths\n" + valueToPrettyString@StringUtils( openapi ))()
 
             // definitions
             for( d in request.types ) {
@@ -276,9 +285,11 @@ service OpenApi {
                     schemaVersion = request.version
                 })( openapi.definitions[ #openapi.definitions ] ) 
             }
-
+println@Console("definitions\n" + valueToPrettyString@StringUtils( openapi ))()
         
-            getJsonString@JsonUtils( opeanpi )( response )
+            getJsonString@JsonUtils( openapi )( response )
+
+            println@Console("response\n" + response )()
             // necessary for converting null into {}
             replaceAll@StringUtils( response { regex = ":null", replacement = ":{}"})( response )
 
