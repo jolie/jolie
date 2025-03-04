@@ -73,5 +73,11 @@
    			<artifactId>commons-text</artifactId>
    			<version>1.10.0</version>
 		</dependency>
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter</artifactId>
+			<scope>test</scope>
+			<version>5.9.2</version>
+		</dependency>
 	</dependencies>
 </project>
