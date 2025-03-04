@@ -21,24 +21,32 @@ package jolie.lang.parse.module;
 
 import java.io.InputStream;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.nio.file.Paths;
 import java.util.Optional;
+import jolie.lang.parse.ast.Program;
 
 /**
- * An implementation of Source for internal Jolie, which can be initiate directly from InputStream
+ * An implementation of Source for internal Jolie
  */
-class InputStreamSource implements ModuleSource {
+class ProgramSource implements ModuleSource {
 
-	private final InputStream is;
+	@SuppressWarnings( "PMD" )
+	private final Program program; // TODO move program reference on other classes to this field
 	private final URI uri;
 	private final String name;
 
-	public InputStreamSource( InputStream is, URI uri, String name ) {
-		this.is = is;
+	public ProgramSource( Program program, URI uri, String name ) {
+		this.program = program;
 		this.uri = uri;
 		this.name = name;
 	}
+
+	public ProgramSource( Program program, URI uri ) {
+		this.program = program;
+		this.uri = uri;
+		this.name = null;
+	}
+
 
 	@Override
 	public URI uri() {
@@ -50,34 +58,30 @@ class InputStreamSource implements ModuleSource {
 	 */
 	@Override
 	public Optional< URI > includePath() {
-		return this.parentURI();
+		return Optional.empty();
 	}
 
 	@Override
 	public InputStream openStream() {
-		return this.is;
+		throw new UnsupportedOperationException( "This method should not be called on ProgramSource" );
 	}
 
 	@Override
 	public String name() {
-		return this.name;
+		return this.name == null
+			? this.uri.getSchemeSpecificPart().substring( this.uri.getSchemeSpecificPart().lastIndexOf( "/" ) + 1 )
+			: this.name;
 	}
 
 	@Override
 	public Optional< URI > parentURI() {
-		switch( this.uri.getScheme() ) {
-		case "jap":
-			try {
-				return Optional
-					.of( new URI( this.uri.toString().substring( 0, this.uri.toString().lastIndexOf( '/' ) ) ) );
-			} catch( URISyntaxException e ) {
-				return Optional.empty();
-			}
-		case "file":
-			return Optional.of( Paths.get( this.uri ).getParent().toUri() );
-		default:
-			return Optional.empty();
+		if( this.uri.getScheme() != null && this.uri.getScheme().equals( "jap" ) ) {
+			return Optional
+				.of( URI.create( this.uri.toString().substring( 0, this.uri.toString().lastIndexOf( "/" ) ) ) );
 		}
+		if( Paths.get( this.uri ).toFile().exists() ) {
+			return Optional.of( Paths.get( this.uri ).getParent().toUri() );
+		}
+		return Optional.empty();
 	}
-
 }

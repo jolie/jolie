@@ -55,8 +55,7 @@ public class Compiler {
 	public void compile( OutputStream ostream )
 		throws IOException, ParserException, CodeCheckException, CommandLineException, ModuleException {
 		Program program = ParsingUtils.parseProgram(
-			cmdConfig.inputStream(),
-			cmdConfig.programFilepath().toURI(),
+			cmdConfig.source(),
 			cmdConfig.charset(),
 			cmdConfig.includePaths(),
 			cmdConfig.packagePaths(),
@@ -74,7 +73,7 @@ public class Compiler {
 	public void compile()
 		throws IOException, ParserException, CodeCheckException, CommandLineException, ModuleException {
 		try( OutputStream os =
-			new FileOutputStream( cmdConfig.programFilepath() + "c" ) ) {
+			new FileOutputStream( cmdConfig.source().uri() + "c" ) ) {
 			compile( os );
 		}
 	}

@@ -18,41 +18,41 @@
  */
 package jolie.embedding.jolie;
 
-import jolie.cli.CommandLineException;
-import jolie.cli.CommandLineParser;
+import java.io.IOException;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import jolie.Interpreter;
+import jolie.cli.CommandLineException;
 import jolie.lang.parse.ast.Program;
 import jolie.runtime.embedding.EmbeddedServiceLoader;
 import jolie.runtime.embedding.EmbeddedServiceLoadingException;
 import jolie.runtime.expression.Expression;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 
-
+/**
+ * A Jolie service loader for loading a Jolie service from a parsed program. This loader is used to
+ * load an internal Jolie service which is translated from service block before ModuleSystem.
+ */
 public class InternalJolieServiceLoader extends EmbeddedServiceLoader {
 	private final Interpreter interpreter;
 
+	/**
+	 * Create a new InternalJolieServiceLoader for legacy embedding.
+	 *
+	 * @param channelDest the expression defining the channel destination of the service to be loaded.
+	 * @param currInterpreter the interpreter which is currently loading the service.
+	 * @param serviceName the name of the service to be loaded.
+	 * @param program the parsed program of the service to be loaded.
+	 * @throws IOException if an error occurs while interpreting the given program.
+	 * @throws CommandLineException if an error occurs while interpreting the given program.
+	 */
 	public InternalJolieServiceLoader( Expression channelDest, Interpreter currInterpreter, String serviceName,
 		Program program )
 		throws IOException, CommandLineException {
 		super( channelDest );
 
-		List< String > newArgs = new ArrayList<>();
-		newArgs.add( "-i" );
-		newArgs.add( currInterpreter.programDirectory().getAbsolutePath() );
-
-		String[] options = currInterpreter.optionArgs();
-		newArgs.addAll( Arrays.asList( options ) );
-		newArgs.add( "#" + serviceName + ".ol" );
-		CommandLineParser commandLineParser =
-			new CommandLineParser( newArgs.toArray( new String[] {} ), currInterpreter.getClassLoader(), true );
 		interpreter = new Interpreter(
-			commandLineParser.getInterpreterConfiguration(),
+			currInterpreter.configuration(),
 			currInterpreter,
 			program );
 	}

@@ -19,14 +19,12 @@
 
 package jolie.runtime.embedding;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import jolie.Interpreter;
 import jolie.lang.parse.ast.ServiceNode;
+import jolie.lang.parse.module.ModuleSource;
 import jolie.lang.parse.util.ProgramBuilder;
 import jolie.runtime.Value;
 import jolie.runtime.expression.Expression;
@@ -41,12 +39,9 @@ public class JolieServiceNodeLoader extends ServiceNodeLoader {
 
 	@Override
 	public void load( Value v ) throws EmbeddedServiceLoadingException {
-		Path servicePath = Paths.get( serviceNode().context().source() );
+		ModuleSource source = ModuleSource.create( serviceNode() );
 		Interpreter.Configuration configuration = Interpreter.Configuration.create(
-			super.interpreter().configuration(),
-			servicePath.toFile(),
-			new ByteArrayInputStream( "".getBytes() ),
-			serviceNode().name() );
+			super.interpreter().configuration(), source );
 
 		Interpreter interpreter;
 		try {

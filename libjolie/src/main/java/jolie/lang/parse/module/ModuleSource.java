@@ -19,21 +19,13 @@
 
 package jolie.lang.parse.module;
 
-import java.io.BufferedInputStream;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
 import java.util.Optional;
-import java.util.jar.Attributes;
-import java.util.jar.JarFile;
-import java.util.jar.Manifest;
-import java.util.zip.ZipEntry;
-import jolie.lang.Constants;
+import jolie.lang.parse.ast.ServiceNode;
 
 /**
  * an Interface of Joile module Source
@@ -48,108 +40,66 @@ public interface ModuleSource {
 	/**
 	 * @return an optional include path for parsing this module
 	 */
-	Optional< String > includePath();
+	Optional< URI > includePath();
 
 	/**
 	 * @return an InputStream of source
 	 */
-	Optional< InputStream > openStream();
-}
+	InputStream openStream() throws IOException;
 
+	/**
+	 * @return name of module
+	 */
+	String name();
 
-class PathSource implements ModuleSource {
+	/**
+	 * @return name of module
+	 */
+	Optional< URI > parentURI();
 
-	private final Path path;
-
-	public PathSource( Path p ) {
-		this.path = p;
-	}
-
-	@Override
-	public URI uri() {
-		return this.path.toUri();
+	/**
+	 * Creates a new ModuleSource instance from given ServiceNode. This creation method is used by the
+	 * ServiceLoader
+	 *
+	 * @param node the ServiceNode from which the ModuleSource is created
+	 * @return a new ModuleSource instance
+	 */
+	public static ModuleSource create( ServiceNode node ) {
+		return new ProgramSource( node.program(), node.context().source(), node.name() );
 	}
 
 	/**
-	 * the include path of ol file should be empty
+	 * Creates a new ModuleSource instance from given URI and InputStream. This creation method is used
+	 * for parsing Jolie code string or parsing an include files
+	 *
+	 * @param uri the URI of the module
+	 * @param is the InputStream of the module
+	 * @param name Service name to execute
+	 * @return a new ModuleSource instance
 	 */
-	@Override
-	public Optional< String > includePath() {
-		return Optional.empty();
-	}
-
-	@Override
-	public Optional< InputStream > openStream() {
-		try {
-			InputStream is = new FileInputStream( this.path.toFile() );
-			// wrap with BufferInputStream for improve performance
-			return Optional.of( new BufferedInputStream( is ) );
-		} catch( FileNotFoundException e ) {
-			return Optional.empty();
-		}
-	}
-}
-
-
-class JapSource implements ModuleSource {
-
-	private final JarFile japFile;
-	private final URI uri;
-	private final String filePath;
-	private final Path parentPath;
-	private final ZipEntry moduleEntry;
-
-	public JapSource( Path f ) throws IOException {
-		this.japFile = new JarFile( f.toFile() );
-		this.uri = f.toUri();
-		Manifest manifest = this.japFile.getManifest();
-
-		if( manifest != null ) { // See if a main program is defined through a Manifest attribute
-			Attributes attrs = manifest.getMainAttributes();
-			this.filePath = attrs.getValue( Constants.Manifest.MAIN_PROGRAM );
-			this.parentPath = Paths.get( this.filePath ).getParent();
-			moduleEntry = japFile.getEntry( this.filePath );
-			if( moduleEntry == null ) {
-				throw new IOException();
-			}
-		} else {
-			throw new IOException();
-		}
-	}
-
-	public JapSource( Path f, List< String > path ) throws IOException {
-		this.japFile = new JarFile( f.toFile() );
-		this.uri = f.toUri();
-		this.filePath = String.join( "/", path );
-		moduleEntry = japFile.getEntry( this.filePath + ".ol" );
-		if( moduleEntry == null ) {
-			throw new FileNotFoundException(
-				this.filePath + " in " + f.toString() );
-		}
-		this.parentPath = Paths.get( this.filePath ).getParent();
+	public static ModuleSource create( URI uri, InputStream is, String name ) {
+		return new InputStreamSource( is, uri, name );
 	}
 
 	/**
-	 * additional includePath of JAP source is a parent path of the main execution file defined at main
-	 * program
+	 * Creates a new ModuleSource instance from given URI. This creation method is used when parsing
+	 * from a file or a jap archive.
+	 *
+	 * @param uri the URI of the module
+	 * @return a new ModuleSource instance
+	 * @throws FileNotFoundException if the file does not exist
 	 */
-	@Override
-	public Optional< String > includePath() {
-		return Optional
-			.of( "jap:" + this.uri.toString() + "!/" + (this.parentPath != null ? this.parentPath.toString() : "") );
-	}
-
-	@Override
-	public URI uri() {
-		return this.uri;
-	}
-
-	@Override
-	public Optional< InputStream > openStream() {
-		try {
-			return Optional.of( this.japFile.getInputStream( this.moduleEntry ) );
-		} catch( IOException e ) {
-			return Optional.empty();
+	public static ModuleSource create( URI uri ) throws FileNotFoundException {
+		if( uri.getScheme() == null ) {
+			return new ProgramSource( null, uri );
+		}
+		switch( uri.getScheme() ) {
+		case "jap":
+			return new JapSource( uri );
+		case "file":
+			return new PathSource( Paths.get( uri ) );
+		default:
+			return new ProgramSource( null, uri );
 		}
 	}
 }
