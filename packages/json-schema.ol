@@ -271,17 +271,13 @@ private service JsonSchema2 {
                 response.type = "number"
                 response.format = "double"
             } else if ( is_defined( request.nativeType.any_type ) ) {
-                response.anyOf[0].type = "string"
-                response.anyOf[1].type = "number"
-                response.anyOf[2].type = "boolean"
+                response.type = "string"
             } else if ( is_defined( request.nativeType.raw_type ) ) {
                 response.type = "string"
                 response.format = "binary"
             } else if ( is_defined( request.nativeType.void_type ) ) {
-                response << {
-                    type = "object"                
-                    nullable = true 
-                }
+                response.type = "object"                
+                response.("x-nullable") = true 
             } else if ( is_defined( request.nativeType.bool_type ) ) {
                 response.type = "boolean"
             }
