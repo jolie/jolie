@@ -52,8 +52,7 @@ public class Jolie2Java {
 		semanticConfiguration.setCheckForMain( false );
 
 		final Program program = ParsingUtils.parseProgram(
-			interpreterConfiguration.inputStream(),
-			interpreterConfiguration.programFilepath().toURI(),
+			interpreterConfiguration.source(),
 			interpreterConfiguration.charset(),
 			interpreterConfiguration.includePaths(),
 			interpreterConfiguration.packagePaths(),
