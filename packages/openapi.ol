@@ -143,6 +143,11 @@ service OpenApi {
     embed JsonUtils as JsonUtils
     embed JsonSchema as JsonSchema
 
+    inputPort OpenApi {
+        location: "local"
+        interfaces: OpenApiInterface
+    }
+
 
     main {
         [  getOpenApiDefinition( request )( response ) {

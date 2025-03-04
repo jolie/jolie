@@ -67,8 +67,8 @@ service Main {
                         url = "http://swagger.io"
                     }
                 }
-                paths[ 0 ] << {
-                    get << {
+                paths[ 0 ] << "/pet" {
+                    post << {
                         tags[ 0 ] = "pet"
                         summary = "Add a new pet to the store"
                         description = ""
@@ -76,7 +76,7 @@ service Main {
                         consumes[ 0 ] = "application/json"
                         consumes[ 1 ] = "application/xml"
                         produces[ 0 ] = "application/xml"
-                        produces[ 1 ] "application/json"
+                        produces[ 1 ] = "application/json"
                         parameters << {
                             name = "body"
                             description = "Pet object that needs to be added to the store"
@@ -85,73 +85,23 @@ service Main {
                                 body.schema_ref = "Pet"
                             }
                         }
-                        responses << {
-
+                        responses[ 0 ] << {
+                            status = 400
+                            description = "Ivalid Input"
                         }
-
-}
-
-      type Parameter {
-    name: string
-    in: InBody | InOther
-    required?: bool
-    description?: string
-
-
-    }
-
-    type OperationObject {
-    tags*: string
-    summary?: string
-    description?: string
-    externalDocs?: ExternalDocs
-    operationId: string
-    consumes*: string
-    produces*: string
-    parameters*: Parameter
-    responses*: Responses
-}
-
-    paths*: string {
-        get?: OperationObject
-        post?: OperationObject
-        delete?: OperationObject
-        put?: OperationObject
-        /* TODO
-        .options?: OperationObject
-        .head?: OperationObject
-        .patch?: OperationObject
-        .parameters?:
-        */
-    }
-    types*: TypeDefinition
-    /* TODO
-      .security?
-      .securityDefinitions?
-      .defintions?
-
-    */
-    version: string( enum(["2.0","3.0"]))
+                        responses[ 1 ] << {
+                            status = 422
+                            description = "Validation Exception"
+                        }
+                    }
+                }
             }
 
-
-            getInputPortMetaData@MetaJolie( { filename = "private/sample_service_joliedoclib.ol" } )( meta_description )
-            for ( i in meta_description.input.interfaces ) {
-                for( t in i.types ) {}
-            }
-
+            getOpenApiDefinition@OpenApi( request )( openapijson ) 
 
             validateJson@JsonUtils({
-                json = "{\n" 
-                    + "  \"openapi\": \"3.0.0\",\n" 
-                    + "  \"info\": { \"title\": \"Test API\", \"version\": \"1.0\" },\n" 
-                    + "  \"paths\": {},\n" 
-                    + "  \"components\": {\n"
-                    + "     \"schemas\":" 
-                    + schema_string 
-                    + "  }\n"
-                    + "}"
-                schema = openapi_schema3 
+                json = openapijson
+                schema = openapi_schema2
             })( validation )
 
             
