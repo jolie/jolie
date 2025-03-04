@@ -1,129 +1,129 @@
 type Order: void {
-	.petId?:long
-	.quantity?:int
-	.id?:long
-	.shipDate?:string
-	.complete?:bool
-	.status?:string( enum( ["placed", "approved", "delivered"] ) )
+	petId?:long
+	quantity?:int
+	id?:long
+	shipDate?:string
+	complete?:bool
+	status?:string( enum( ["placed", "approved", "delivered"] ) )
 }
 type Category: void {
-	.name?:string
-	.id?:long
+	name?:string
+	id?:long
 }
 type User: void {
-	.firstName?:string
-	.lastName?:string
-	.password?:string
-	.userStatus?:int
-	.phone?:string
-	.id?:long
-	.email?:string
-	.username?:string
+	firstName?:string
+	lastName?:string
+	password?:string
+	userStatus?:int
+	phone?:string
+	id?:long
+	email?:string
+	username?:string
 }
 type Tag: void {
-	.name?:string
-	.id?:long
+	name?:string
+	id?:long
 }
 type Pet: void {
-	.photoUrls[0,*]: string
-	.name:string // Example: doggie
-	.id?:long
-	.category?:Category
-	.tags[0,*]: Tag
-	.status?:string( enum( ["available", "pending", "sold"] ) )
+	photoUrls[0,*]: string
+	name:string // Example: doggie
+	id?:long
+	category?:Category
+	tags[0,*]: Tag
+	status?:string( enum( ["available", "pending", "sold"] ) )
 }
 type ApiResponse: void {
-	.code?:int
-	.type?:string
-	.message?:string
+	code?:int
+	type?:string
+	message?:string
 }
 type addPetRequest: void {
-	.body: Pet
+	body: Pet
 }
 type addPetResponse: undefined
 type updatePetRequest: void {
-	.body: Pet
+	body: Pet
 }
 type updatePetResponse: undefined
 type getUserByNameRequest: void {
-	._pusername:string
+	pusername:string
 }
 type getUserByNameResponse: User
 type deleteUserRequest: void {
-	._pusername:string
+	pusername:string
 }
 type deleteUserResponse: undefined
 type updateUserRequest: void {
-	._pusername:string
-	.body: User
+	pusername:string
+	body: User
 }
 type updateUserResponse: undefined
 type findPetsByStatusRequest: void {
-	._qstatus[0,*]: string( enum( ["available", "pending", "sold"] ) )
+	qstatus[0,*]: string( enum( ["available", "pending", "sold"] ) )
 }
 type findPetsByStatusResponse: void {
-	._[0,*]:Pet
+	pets[0,*]:Pet
 }
 type createUsersWithListInputRequest: void {
-	.body[0,*]: User
+	body[0,*]: User
 }
 type createUsersWithListInputResponse: undefined
 type uploadFileRequest: void {
-	._ppetId:long
-	.additionalMetadata?:string
-	.file?:raw
+	ppetId:long
+	additionalMetadata?:string
+	file?:raw
 }
 type uploadFileResponse: ApiResponse
 type getInventoryRequest: void {
 }
 type getInventoryResponse: undefined
 type loginUserRequest: void {
-	._qusername:string
-	._qpassword:string
+	qusername:string
+	qpassword:string
 }
 type loginUserResponse: string
 type createUserRequest: void {
-	.body: User
+	body: User
 }
 type createUserResponse: undefined
 type createUsersWithArrayInputRequest: void {
-	.body[0,*]: User
+	body[0,*]: User
 }
 type createUsersWithArrayInputResponse: undefined
 type findPetsByTagsRequest: void {
-	._qtags[0,*]: string
+	qtags[0,*]: string
 }
 type findPetsByTagsResponse: void {
-	._[0,*]:Pet
+	pets[0,*]:Pet
 }
 type placeOrderRequest: void {
-	.body: Order
+	body: Order
 }
 type placeOrderResponse: Order
 type logoutUserRequest: void {
 }
 type logoutUserResponse: undefined
 type updatePetWithFormRequest: void {
-	._ppetId:long
-	.name?:string
-	.status?:string
+	ppetId:long
+	name?:string
+	status?:string
 }
 type updatePetWithFormResponse: undefined
 type getPetByIdRequest: void {
-	._ppetId:long
+	ppetId:long
 }
 type getPetByIdResponse: Pet
 type deletePetRequest: void {
-	.api_key?:string
-	._ppetId:long
+	apikey?:string
+	ppetId:long
 }
 type deletePetResponse: undefined
 type getOrderByIdRequest: void {
-	._porderId:long( ranges( [1L, 0L] ) )
+	porderId:long( ranges( [1L, 0L] ) )
 }
 type getOrderByIdResponse: Order
 type deleteOrderRequest: void {
-	._porderId:long( ranges( [1L, *] ) )
+	porderId:long( ranges( [1L, *] ) )
 }
 type deleteOrderResponse: undefined
 

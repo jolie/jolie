@@ -160,7 +160,7 @@ service OpenApi {
                 basePath = request.servers[ 0 ].basePath
             }
 
-            println@Console("init\n" + valueToPrettyString@StringUtils( openapi ))()
+            
             // schemes
             if ( #request.servers[ 0 ].schemes == 1 ) {
                 openapi.schemes._ = request.servers[ 0 ].schemes // because it must be converted as an array
@@ -174,13 +174,11 @@ service OpenApi {
                 } else { openapi.tags << request.tags }
             }
 
-            println@Console("tags\n" + valueToPrettyString@StringUtils( openapi ))()
-
             // servers
             openapi.host = request.servers[ 0 ].host
             openapi.basePath = request.servers[ 0 ].basePath
 
-println@Console("servers\n" + valueToPrettyString@StringUtils( openapi ))()
+
             // paths
             for( path in request.paths ) {
                 foreach ( method : path ) {
@@ -248,11 +246,10 @@ println@Console("servers\n" + valueToPrettyString@StringUtils( openapi ))()
                         cur_par -> openapi.paths.( path ).( method ).parameters[ 0 ]._[ par ]
                         cur_par.name = path.( method ).parameters[ par ].name
                         
-                        println@Console("inbody\n" + valueToPrettyString@StringUtils( path.( method ).parameters[ par ].in ))()
                         if ( path.( method ).parameters[ par ].in instanceof InBody ) {
-                            println@Console("sono qui")()
+                            
                                 cur_par.in = "body"
-                                cur_par.required = par.( method ).parameters[ par ].required
+                                cur_par.required = path.( method ).parameters[ par ].required
                                 
                                 if ( path.( method ).parameters[ par ].in.body instanceof InBodySchema ) {
                                     type -> request.paths[ p ].( op ).parameters[ par ].in.in_body.schema_type
@@ -261,12 +258,13 @@ println@Console("servers\n" + valueToPrettyString@StringUtils( openapi ))()
                                         schemaVersion = request.version
                                     } )
                                 } else if ( path.( method ).parameters[ par ].in.body instanceof InBodyRef ) {
-                                    println@Console("sono qui2")()
+                                    
                                     cur_par.schema.("$ref") = "#/definitions/" + path.( method ).parameters[ par ].in.body.schema_ref
                                 }
                         } else if ( path.( method ).parameters[ par ].in instanceof InOther ) {
                                 cur_par << getNativeType@JsonSchema( path.( method ).parameters[ par ].in.other.nativeType )
                                 cur_par.in = par.( method ).parameters[ par ].in.other
+                                cur_par.name = path.( method ).parameters[ par ].name
                             
                                 if ( is_defined( path.( method ).parameters[ par ].in.other.allowEmptyValue ) ) {
                                     cur_par.allowEmptyValue = par.( method ).parameters[ par ].in.other.allowEmptyValue
@@ -276,20 +274,21 @@ println@Console("servers\n" + valueToPrettyString@StringUtils( openapi ))()
                 }
             }
 
-            println@Console("paths\n" + valueToPrettyString@StringUtils( openapi ))()
 
             // definitions
             for( d in request.types ) {
                 getTypeDefinition@JsonSchema( {
                     typeDefinition << d
                     schemaVersion = request.version
-                })( openapi.definitions[ #openapi.definitions ] ) 
+                })( typedef ) 
+                foreach( name : typedef ) {
+                    openapi.definitions.( name ) << typedef.( name )
+                }
+
             }
-println@Console("definitions\n" + valueToPrettyString@StringUtils( openapi ))()
         
             getJsonString@JsonUtils( openapi )( response )
 
-            println@Console("response\n" + response )()
             // necessary for converting null into {}
             replaceAll@StringUtils( response { regex = ":null", replacement = ":{}"})( response )
 
