@@ -51,9 +51,7 @@ type MinMax {
 
 type GetNumberRefinedTypeResponse {
     anyOf*: MinMax
-} | {
-    MinMax
-}
+} | MinMax
 
 type SchemaVersion: string( enum(["2.0","3.0"]) )
 
@@ -188,8 +186,8 @@ private service JsonSchema2 {
                 if ( #request.numberRefined.ranges > 1 ) {
                     throw( GenerationError, "Multiple ranges cannot be converted in openApi 2.0")
                 } else {
-                    if ( is_defined( request.numberRefined.ranges.min ) ) { response.minimum = request.ranges.min }
-                    if ( is_defined( request.numberRefined.ranges.max ) ) { response.maximum = request.ranges.max }
+                    if ( is_defined( request.numberRefined.ranges.min ) ) { response.minimum = request.numberRefined.ranges.min }
+                    if ( is_defined( request.numberRefined.ranges.max ) ) { response.maximum = request.numberRefined.ranges.max }
                 }
         }]
 
@@ -372,8 +370,8 @@ private service JsonSchema3 {
                         if ( is_defined( r.max ) ) { response.anyOf[ index ].maximum = r.max }
                     }
                 } else {
-                    if ( is_defined( request.numberRefined.ranges.min ) ) { response.minimum = request.ranges.min }
-                    if ( is_defined( request.numberRefined.ranges.max ) ) { response.maximum = request.ranges.max }
+                    if ( is_defined( request.numberRefined.ranges.min ) ) { response.minimum = request.numberRefined.ranges.min }
+                    if ( is_defined( request.numberRefined.ranges.max ) ) { response.maximum = request.numberRefined.ranges.max }
                 }
         }]
 
