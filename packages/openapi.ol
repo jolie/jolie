@@ -278,7 +278,7 @@ service OpenApi {
             }
 
         
-            getJsonString@JsonUtils( json )( response );
+            getJsonString@JsonUtils( opeanpi )( response )
             // necessary for converting null into {}
             replaceAll@StringUtils( response { regex = ":null", replacement = ":{}"})( response )
 

@@ -41,6 +41,7 @@ service Main {
                         url = "http://www.apache.org/licenses/LICENSE-2.0.html"
                     }
                 }
+                version = "2.0"
                 servers << {
                     host = "petstore.swagger.io"
                     basePath = "/v2"
@@ -98,6 +99,8 @@ service Main {
             }
 
             getOpenApiDefinition@OpenApi( request )( openapijson ) 
+
+            println@Console( openapijson )()
 
             validateJson@JsonUtils({
                 json = openapijson
