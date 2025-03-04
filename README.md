@@ -20,7 +20,7 @@ For documentation on the interpreter, see <https://github.com/jolie/jolie/wiki/I
 
 # Roadmap :chart_with_upwards_trend:
 
-You can check [our roadmap](https://github.com/orgs/jolie/projects/1) to see what's staged for the next release.
+You can check [our roadmap](https://github.com/orgs/jolie/projects/3) to see what's staged for the next release.
 
 # Contributing :computer:
 
@@ -47,7 +47,6 @@ Thank you to all our contributors!
 Discussions can take place over different media.
 
 - Our [GitHub repository](https://github.com/jolie/jolie), in the forms of [discussion threads](https://github.com/jolie/jolie/discussions), [issues](https://github.com/jolie/jolie/issues), and [pull requests](https://github.com/jolie/jolie/pulls).
-- E-mail, by sending an e-mail to `jolie-devel@googlegroups.com`. Anybody can send to the group. You can also register to the e-mail group at this link: https://groups.google.com/g/jolie-devel.
 - Chat or Audio/Video calls. See below for a link to our Discord server.
 
 ### Discord

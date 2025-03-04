@@ -26,7 +26,6 @@ package jolie.net;
 import java.io.Serializable;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
-
 import jolie.Interpreter;
 import jolie.lang.Constants;
 import jolie.runtime.FaultException;
