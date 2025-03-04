@@ -32,7 +32,7 @@ public class CodeCheckMessage {
 	private final String help;
 
 	/**
-	 * Private contructer of codeCheckMessage
+	 * Private constructor of codeCheckMessage
 	 *
 	 * @param context
 	 * @param description
@@ -45,7 +45,7 @@ public class CodeCheckMessage {
 	}
 
 	/**
-	 * public contructer of CodeCheckMessage, for when the message includes a help message
+	 * public constructor of CodeCheckMessage, for when the message includes a help message
 	 *
 	 * @param context
 	 * @param description
@@ -62,7 +62,7 @@ public class CodeCheckMessage {
 	}
 
 	/**
-	 * Public contructer of CodeCheckMessage, when information is in a OLSyntaxNode, help message
+	 * Public constructor of CodeCheckMessage, when information is in a OLSyntaxNode, help message
 	 * included
 	 *
 	 * @param node
@@ -82,7 +82,7 @@ public class CodeCheckMessage {
 	}
 
 	/**
-	 * Public contructer of CodeCheckMessage, which du not include help in the message
+	 * Public constructor of CodeCheckMessage, which du not include help in the message
 	 *
 	 * @param context
 	 * @param description
@@ -93,7 +93,7 @@ public class CodeCheckMessage {
 	}
 
 	/**
-	 * Public contructer of CodeCheckMessage, when information is in a OLSyntaxNode, no help message
+	 * Public constructor of CodeCheckMessage, when information is in a OLSyntaxNode, no help message
 	 * included
 	 *
 	 * @param node
