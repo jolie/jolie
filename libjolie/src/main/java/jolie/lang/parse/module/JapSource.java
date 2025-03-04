@@ -39,6 +39,7 @@ import jolie.lang.Constants;
 class JapSource implements ModuleSource {
 
 	private final JarFile japFile;
+	private final URI japURI;
 	private final URI uri;
 	private final String filePath;
 	private final Path parentPath;
@@ -52,24 +53,30 @@ class JapSource implements ModuleSource {
 	 * @throws IllegalArgumentException if the URI scheme is not 'jap'
 	 */
 	public JapSource( URI uri ) throws FileNotFoundException {
-		if( !uri.getScheme().equals( "jap" ) ) {
-			throw new IllegalArgumentException( "Passing uri is scheme is invalid, expected 'jap'" );
-		}
 		try {
-			URI fileURI = new URI( uri.getSchemeSpecificPart() );
+			URI fileURI;
+			if( uri.getScheme().equals( "jap" ) ) {
+				fileURI = new URI( uri.getSchemeSpecificPart() );
+			} else if( uri.getScheme().equals( "file" ) ) {
+				fileURI = uri;
+			} else {
+				throw new IllegalArgumentException( "Passing uri is scheme is invalid, expected 'jap' or 'file'" );
+			}
 			if( fileURI.toString().contains( "!" ) ) {
 				// uri contains entry point
 				String japURIStrings[] = fileURI.toString().split( "!" );
+				String moduleTarget =
+					japURIStrings[ 1 ].endsWith( ".ol" ) ? japURIStrings[ 1 ] : japURIStrings[ 1 ] + ".ol";
 				this.japFile = new JarFile( Paths.get( new URI( japURIStrings[ 0 ] ) ).toFile() );
 				if( this.japFile.getEntry( japURIStrings[ 1 ] ) != null ) {
-					this.filePath = japURIStrings[ 1 ];
+					this.filePath = moduleTarget;
 					this.moduleEntry = this.japFile.getEntry( this.filePath );
 				} else {
-					if( japURIStrings[ 1 ].startsWith( "/" ) ) { // try with/without trailing slash
-						this.filePath = japURIStrings[ 1 ].substring( 1 );
+					if( moduleTarget.startsWith( "/" ) ) { // try with/without trailing slash
+						this.filePath = moduleTarget.substring( 1 );
 						this.moduleEntry = this.japFile.getEntry( this.filePath );
 					} else {
-						this.filePath = "/" + japURIStrings[ 1 ];
+						this.filePath = "/" + moduleTarget;
 						this.moduleEntry = this.japFile.getEntry( this.filePath );
 					}
 				}
@@ -94,6 +101,8 @@ class JapSource implements ModuleSource {
 		} catch( IOException | URISyntaxException e ) {
 			throw new FileNotFoundException( uri.toString() );
 		}
+		this.japURI = URI.create(
+			"jap:" + Paths.get( this.japFile.getName() ).toUri().toString() );
 		this.uri = URI.create(
 			"jap:" + Paths.get( this.japFile.getName() ).toUri().toString() + "!/"
 				+ this.moduleEntry.getName() );
@@ -101,7 +110,8 @@ class JapSource implements ModuleSource {
 	}
 
 	/**
-	 * Constructs a JapSource from the specified path and file path list.
+	 * Constructs a JapSource from the specified path and file path list. This constructor is use for
+	 * lookup on lib directory
 	 *
 	 * @param path the base path of the .jap file
 	 * @param importParts a list of strings representing the path within the .jap file
@@ -120,6 +130,8 @@ class JapSource implements ModuleSource {
 					this.filePath + " in " + path.toString() );
 			}
 			this.parentPath = Paths.get( this.filePath ).getParent();
+			this.japURI = URI.create(
+				"jap:" + path.toUri().toString() );
 			this.uri = URI.create(
 				"jap:" + Paths.get( this.japFile.getName() ).toUri().toString() + "!/"
 					+ this.moduleEntry.getName() );
@@ -158,6 +170,13 @@ class JapSource implements ModuleSource {
 			.of( URI.create(
 				"jap:" + Paths.get( this.japFile.getName() ).toUri().toString() + "!/"
 					+ (this.parentPath != null ? this.parentPath.toString().replace( "\\", "/" ) : "") ) );
+	}
+
+	/**
+	 * @return URI to jap file
+	 */
+	public URI japURI() {
+		return this.japURI;
 	}
 }
 

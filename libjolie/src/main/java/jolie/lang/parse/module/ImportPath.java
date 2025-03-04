@@ -31,6 +31,13 @@ public class ImportPath {
 		return pathParts.get( 0 ).isEmpty();
 	}
 
+	public String toRelativePathString() {
+		if( !this.isRelativeImport() ) {
+			throw new IllegalStateException( "This import path is targeting packages module" );
+		}
+		return String.join( "/", this.pathParts() ).substring( 1 );
+	}
+
 	@Override
 	public String toString() {
 		return String.join( ".", this.pathParts() );
