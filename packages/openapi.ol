@@ -33,15 +33,15 @@ type ExternalDocs {
     description?: string
 }
 
-type InBodySchema {
+type SchemaType {
     schema_type: Type             // used when there are more parameters in the body
 }
 
-type InBodyRef {
+type SchemaRef {
     schema_ref?: string           // add a reference to a schema
 }
 type InBody  {
-    body: InBodySchema | InBodyRef
+    body: SchemaType | SchemaRef
 }
 
 type InOther {
@@ -233,10 +233,12 @@ service OpenApi {
                         for( res  in path.( method ).responses ) {
                             openapi.paths.( path ).( method ).responses.( res.status ).description = res.description
                             if ( is_defined( res.schema ) ) {
-                                openapi.paths.( path ).( method ).responses.( res.status ).schema << getType@JsonSchema( {
-                                    type << res.schema 
-                                    schemaVersion = request.version 
-                                })
+                                if ( res.schema instanceof SchemaType ) {
+                                    openapi.paths.( path ).( method ).responses.( res.status ).schema << getType@JsonSchema( {
+                                        type << res.schema 
+                                        schemaVersion = request.version 
+                                    })
+                                }
                             }
                         }
                     }
@@ -245,29 +247,37 @@ service OpenApi {
                     for( par = 0, par < #path.( method ).parameters, par++ ) {
                         cur_par -> openapi.paths.( path ).( method ).parameters[ 0 ]._[ par ]
                         cur_par.name = path.( method ).parameters[ par ].name
+                        if ( is_defined( ath.( method ).parameters[ par ].required ) ) {
+                            cur_par.required = path.( method ).parameters[ par ].required
+                        }
                         
                         if ( path.( method ).parameters[ par ].in instanceof InBody ) {
                             
                                 cur_par.in = "body"
-                                cur_par.required = path.( method ).parameters[ par ].required
-                                
-                                if ( path.( method ).parameters[ par ].in.body instanceof InBodySchema ) {
+                               
+                        
+                                if ( path.( method ).parameters[ par ].in.body instanceof SchemaType ) {
                                     type -> request.paths[ p ].( op ).parameters[ par ].in.in_body.schema_type
                                     cur_par.schema << getType@JsonSchema( {
                                         type << par.( method ).parameters[ par ].in.body.schema_type
                                         schemaVersion = request.version
                                     } )
-                                } else if ( path.( method ).parameters[ par ].in.body instanceof InBodyRef ) {
+                                } else if ( path.( method ).parameters[ par ].in.body instanceof SchemaRef ) {
                                     
                                     cur_par.schema.("$ref") = "#/definitions/" + path.( method ).parameters[ par ].in.body.schema_ref
                                 }
                         } else if ( path.( method ).parameters[ par ].in instanceof InOther ) {
-                                cur_par << getNativeType@JsonSchema( path.( method ).parameters[ par ].in.other.nativeType )
-                                cur_par.in = par.( method ).parameters[ par ].in.other
+                                cur_par << getNativeType@JsonSchema( {
+                                    nativeType << path.( method ).parameters[ par ].in.other.nativeType
+                                    schemaVersion = request.version
+                                } )
+                                cur_par.in = path.( method ).parameters[ par ].in.other
                                 cur_par.name = path.( method ).parameters[ par ].name
-                            
+                                if ( is_defined( path.( method ).parameters[ par ].required ) ) {
+                                    cur_par.required = path.( method ).parameters[ par ].required
+                                }
                                 if ( is_defined( path.( method ).parameters[ par ].in.other.allowEmptyValue ) ) {
-                                    cur_par.allowEmptyValue = par.( method ).parameters[ par ].in.other.allowEmptyValue
+                                    cur_par.allowEmptyValue = path.( method ).parameters[ par ].in.other.allowEmptyValue
                                 }
                         }
                     }
