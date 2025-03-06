@@ -812,8 +812,8 @@ public class SymbolReferenceResolver {
 					.findFirst()
 					.ifPresent( o -> {
 						OutputPortInfo aggregatedOp = (OutputPortInfo) o;
-						aggregatedOp.getInterfaceList().forEach(op::addInterface);
-						aggregatedOp.operations().forEach(op::addOperation);
+						aggregatedOp.getInterfaceList().forEach( op::addInterface );
+						aggregatedOp.operations().forEach( op::addOperation );
 					} );
 			}
 		}

@@ -810,7 +810,9 @@ public class OOITBuilder implements UnitOLVisitor {
 
 		return new OneWayTypeDescription(
 			getOrBuildExtendedType( decl.requestType(),
-			Arrays.asList(extendedRequestResponseOperationDecls).stream().map(e->e.requestType()).toArray(TypeDefinition[]::new) ) );
+				Arrays.asList( extendedRequestResponseOperationDecls ).stream()
+					.map( OneWayOperationDeclaration::requestType )
+					.toArray( TypeDefinition[]::new ) ) );
 	}
 
 	private RequestResponseTypeDescription buildRequestResponseTypeDescription(
@@ -848,7 +850,7 @@ public class OOITBuilder implements UnitOLVisitor {
 		for( Entry< String, TypeDefinition > entry : decl.faults().entrySet() ) {
 			List< TypeDefinition > extendedFaultTypes =
 				extendedDeclList.stream().map( e -> {
-					if( e.id() == "*" ) {
+					if( e.id().equals( "*" ) ) {
 						return e.faults().values().stream().collect( Collectors.toList() );
 					} else {
 						return Collections.singletonList( e.faults().get( entry.getKey() ) );
@@ -862,10 +864,10 @@ public class OOITBuilder implements UnitOLVisitor {
 		}
 		typeDescription = new RequestResponseTypeDescription(
 			getOrBuildExtendedType( decl.requestType(),
-				extendedDeclList.stream().map( e -> e.requestType() )
+				extendedDeclList.stream().map( RequestResponseOperationDeclaration::requestType )
 					.toArray( TypeDefinition[]::new ) ),
 			getOrBuildExtendedType( decl.responseType(),
-				extendedDeclList.stream().map( e -> e.responseType() )
+				extendedDeclList.stream().map( RequestResponseOperationDeclaration::responseType )
 					.toArray( TypeDefinition[]::new ) ),
 			faults );
 		return typeDescription;

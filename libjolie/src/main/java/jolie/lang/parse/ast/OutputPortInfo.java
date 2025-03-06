@@ -30,7 +30,7 @@ public class OutputPortInfo extends PortInfo {
 
 	private OLSyntaxNode protocol = null;
 	private OLSyntaxNode location = null;
-	private List<InterfaceExtenderDefinition> interfaceExtenders = new ArrayList<>();
+	private final List< InterfaceExtenderDefinition > interfaceExtenders = new ArrayList<>();
 
 	public OutputPortInfo( ParsingContext context, String id ) {
 		super( context, id );
@@ -48,7 +48,7 @@ public class OutputPortInfo extends PortInfo {
 	 * @param interfaceExtender the interfaceExtender to set
 	 */
 	public void addInterfaceExtender( InterfaceExtenderDefinition interfaceExtender ) {
-		this.interfaceExtenders.add(interfaceExtender);
+		this.interfaceExtenders.add( interfaceExtender );
 	}
 
 	@Override
@@ -72,6 +72,6 @@ public class OutputPortInfo extends PortInfo {
 	 * @return the interfaceExtender
 	 */
 	public InterfaceExtenderDefinition[] interfaceExtenders() {
-		return interfaceExtenders.toArray(new InterfaceExtenderDefinition[0]);
+		return interfaceExtenders.toArray( new InterfaceExtenderDefinition[ 0 ] );
 	}
 }
