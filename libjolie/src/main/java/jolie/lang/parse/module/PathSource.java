@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 Narongrit Unwerawattana <narongrit.kie@gmail.com>
+ * Copyright (C) 2025 Narongrit Unwerawattana <narongrit.kie@gmail.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -19,30 +19,38 @@
 
 package jolie.lang.parse.module;
 
+import java.io.BufferedInputStream;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.net.URI;
-import java.net.URISyntaxException;
-import java.nio.file.Paths;
+import java.nio.file.Path;
 import java.util.Optional;
 
 /**
- * An implementation of Source for internal Jolie, which can be initiate directly from InputStream
+ * A module source that located on the file system.
+ *
  */
-class InputStreamSource implements ModuleSource {
+class PathSource implements ModuleSource {
 
-	private final InputStream is;
-	private final URI uri;
-	private final String name;
+	private final Path path;
 
-	public InputStreamSource( InputStream is, URI uri, String name ) {
-		this.is = is;
-		this.uri = uri;
-		this.name = name;
+	/**
+	 * Construct a new PathSource from given path.
+	 *
+	 * @param p a path to the source file
+	 * @throws FileNotFoundException if the given path does not exist.
+	 */
+	public PathSource( Path p ) throws FileNotFoundException {
+		if( !p.toFile().exists() ) {
+			throw new FileNotFoundException( p.toString() );
+		}
+		this.path = p;
 	}
 
 	@Override
 	public URI uri() {
-		return this.uri;
+		return this.path.toUri();
 	}
 
 	/**
@@ -50,34 +58,24 @@ class InputStreamSource implements ModuleSource {
 	 */
 	@Override
 	public Optional< URI > includePath() {
-		return this.parentURI();
+		return Optional.of( this.path.getParent().toUri() );
 	}
 
 	@Override
-	public InputStream openStream() {
-		return this.is;
+	public InputStream openStream() throws FileNotFoundException {
+		InputStream is = new FileInputStream( this.path.toFile() );
+		// wrap with BufferInputStream for improve performance
+		return new BufferedInputStream( is );
 	}
 
 	@Override
 	public String name() {
-		return this.name;
+		return this.path.getFileName().toString();
 	}
 
 	@Override
 	public Optional< URI > parentURI() {
-		switch( this.uri.getScheme() ) {
-		case "jap":
-			try {
-				return Optional
-					.of( new URI( this.uri.toString().substring( 0, this.uri.toString().lastIndexOf( '/' ) ) ) );
-			} catch( URISyntaxException e ) {
-				return Optional.empty();
-			}
-		case "file":
-			return Optional.of( Paths.get( this.uri ).getParent().toUri() );
-		default:
-			return Optional.empty();
-		}
+		return Optional.of( this.path.getParent().toUri() );
 	}
 
 }
