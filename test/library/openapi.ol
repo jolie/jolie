@@ -1,3 +1,25 @@
+/*
+
+ * Copyright (c) 2025 Claudio Guidi <guidiclaudio@gmail.com>
+
+ *   This program is free software; you can redistribute it and/or modify 
+ *   it under the terms of the GNU Library General Public License as      
+ *   published by the Free Software Foundation; either version 2 of the   
+ *   License, or (at your option) any later version.                      
+ *                                                                        
+ *   This program is distributed in the hope that it will be useful,      
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of       
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the        
+ *   GNU General Public License for more details.                         
+ *                                                                        
+ *   You should have received a copy of the GNU Library General Public    
+ *   License along with this program; if not, write to the                
+ *   Free Software Foundation, Inc.,                                      
+ *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.            
+ *                                                                        
+ *   For details about the authors of this software, see the AUTHORS file.
+*/
+
 from ..test-unit import TestUnitInterface
 from json-schema import JsonSchema
 from metajolie import MetaJolie
@@ -37,8 +59,7 @@ service Main {
                 }
             }
 
-            
-
+        
             request << {
                  info << {
                     description ="This is a sample server Petstore server.  You can find out more about..."
@@ -220,7 +241,7 @@ service Main {
                             required = false
                             description = "Updated name of the pet"
                             in << {
-                                other << "formData" {
+                                other << "header" {
                                     nativeType.string_type = true
                                 }
                             } 
@@ -230,7 +251,7 @@ service Main {
                             required = false
                             description = "Updated status of the pet"
                             in << {
-                                other << "formData" {
+                                other << "header" {
                                     nativeType.string_type = true
                                 }
                             } 
@@ -290,16 +311,22 @@ service Main {
             }
     
 
-            println@Console( valueToPrettyString@StringUtils( request ) )()
+            //println@Console( valueToPrettyString@StringUtils( request ) )()
             getOpenApiDefinition@OpenApi( request )( openapijson ) 
-            println@Console( openapijson )()
-
+        
             validateJson@JsonUtils({
                 json = openapijson
                 schema = openapi_schema2
             })( validation )
 
-            
+            request.version = "3.0"
+            getOpenApiDefinition@OpenApi( request )( openapijson ) 
+            //println@Console( openapijson )()
+
+            validateJson@JsonUtils({
+                json = openapijson
+                schema = openapi_schema3
+            })( validation )
 
             if ( is_defined( validation.validationMessage ) ) {
                 valueToPrettyString@StringUtils( validation )( errors )

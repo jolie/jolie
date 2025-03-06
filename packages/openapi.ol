@@ -45,7 +45,7 @@ type InBody  {
 }
 
 type InOther {
-    other: string(enum(["query","header","path","formData"])) {
+    other: string(enum(["query","header","path"])) {
         nativeType: NativeType
         allowEmptyValue?: bool
     }
@@ -134,7 +134,7 @@ interface OpenApiInterface {
 }
 
 
-service OpenApi {
+private service OpenApi2 {
 
     execution: concurrent 
 
@@ -143,7 +143,7 @@ service OpenApi {
     embed JsonUtils as JsonUtils
     embed JsonSchema as JsonSchema
 
-    inputPort OpenApi {
+    inputPort OpenApi2 {
         location: "local"
         interfaces: OpenApiInterface
     }
@@ -299,10 +299,198 @@ service OpenApi {
         
             getJsonString@JsonUtils( openapi )( response )
 
-            // necessary for converting null into {}
-            replaceAll@StringUtils( response { regex = ":null", replacement = ":{}"})( response )
-
+    
         } ]
 
     }
 }
+
+
+private service OpenApi3 {
+
+    execution: concurrent 
+
+    embed Console as Console
+    embed StringUtils as StringUtils
+    embed JsonUtils as JsonUtils
+    embed JsonSchema as JsonSchema
+
+    inputPort OpenApi3 {
+        location: "local"
+        interfaces: OpenApiInterface
+    }
+
+
+    main {
+        [  getOpenApiDefinition( request )( response ) {
+
+            // 2.0
+            openapi << {
+                openapi = "3.0.0"
+                info << request.info
+            }
+
+            
+            // servers
+            for( server = 0, server < #request.servers, server++ ) {
+                for( scheme = 0, scheme < #request.servers[ server ].schemes, scheme++ ) {
+                    openapi.servers[ server ]._.url = request.servers[ server ].schemes[ scheme ] + "://" + request.servers[ s ].host + request.servers[ s ].basePath
+                }
+            }
+
+            // tags
+            if ( is_defined( request.tags ) ) {
+                if ( #request.tags == 1 ) {
+                    openapi.tags._ << request.tags   // because it must be converted as an array
+                } else { openapi.tags << request.tags }
+            }
+
+
+            // paths
+            for( path in request.paths ) {
+                foreach ( method : path ) {
+
+                    // paths.tags
+                    if ( #path.( method ).tags == 1 ) {
+                        openapi.paths.( path ).( method ).tags._ << path.( method ).tags // because it must be converted as an array
+                    } else {
+                        openapi.paths.( path ).( method ).tags << path.( method ).tags
+                    }
+
+                    // paths.summary
+                    if ( is_defined( path.( method ).summary ) ) {
+                            openapi.paths.( path ).( method ).summary = path.( method ).summary
+                    }
+
+                    // paths.description
+                    if ( is_defined( path.( method ).description ) ) {
+                        openapi.paths.( path ).( method ).description = path.( method ).description
+                    }
+                      
+                    // paths.externalDocs
+                    if ( is_defined( path.( method ).externalDocs ) ) {
+                        openapi.paths.( path ).( method ).externalDocs << path.( method ).externalDocs
+                    }
+
+                    // paths.operationId
+                    if ( is_defined( path.( method ).operationId ) ) {
+                        openapi.paths.( path ).( method ).operationId = path.( method ).operationId
+                    }
+
+                    // parameters or requestBody
+                    for( par = 0, par < #path.( method ).parameters, par++ ) {
+                        
+                        // requestBody
+                        if ( path.( method ).parameters[ par ].in instanceof InBody ) {
+
+                                cur_body -> openapi.paths.( path ).( method ).requestBody
+                                if ( is_defined( ath.( method ).parameters[ par ].required ) ) {
+                                    cur_body.required = path.( method ).parameters[ par ].required
+                                }
+                                                              
+                                if ( path.( method ).parameters[ par ].in.body instanceof SchemaType ) {
+                                    for( c in path.( method ).consumes ) {
+                                        type -> request.paths[ p ].( op ).parameters[ par ].in.in_body.schema_type
+                                        cur_body.content.( c ).schema << getType@JsonSchema( {
+                                            type << par.( method ).parameters[ par ].in.body.schema_type
+                                            schemaVersion = request.version
+                                        } )
+                                    }
+                                } else if ( path.( method ).parameters[ par ].in.body instanceof SchemaRef ) {
+                                    for( c in path.( method ).consumes ) {
+                                        cur_body.content.( c ).schema.("$ref") = "#/components/schemas/" + path.( method ).parameters[ par ].in.body.schema_ref
+                                    }
+                                }
+                        // parameters
+                        } else if ( path.( method ).parameters[ par ].in instanceof InOther ) {
+                                cur_par -> openapi.paths.( path ).( method ).parameters._[ par ]
+                                cur_par.schema << getNativeType@JsonSchema( {
+                                    nativeType << path.( method ).parameters[ par ].in.other.nativeType
+                                    schemaVersion = request.version
+                                } )
+                                cur_par.in = path.( method ).parameters[ par ].in.other
+                                cur_par.explode = true
+                                cur_par.name = path.( method ).parameters[ par ].name
+                                if ( is_defined( path.( method ).parameters[ par ].required ) ) {
+                                    cur_par.required = path.( method ).parameters[ par ].required
+                                }
+                                if ( is_defined( path.( method ).parameters[ par ].in.other.allowEmptyValue ) ) {
+                                    cur_par.allowEmptyValue = path.( method ).parameters[ par ].in.other.allowEmptyValue
+                                }
+                        }
+                    }
+
+
+
+                    // responses
+                    if ( is_defined(  path.( method ).responses ) ) {
+                        for( res  in path.( method ).responses ) {
+                            openapi.paths.( path ).( method ).responses.( res.status ).description = res.description
+                            if ( is_defined( res.schema ) ) {
+                                for( p in path.( method ).produces ) {
+                                    if ( res.schema instanceof SchemaType ) {
+                                        openapi.paths.( path ).( method ).responses.( res.status ).content.( p ).schema << getType@JsonSchema( {
+                                            type << res.schema 
+                                            schemaVersion = request.version 
+                                        })
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    
+                }
+            }
+
+
+            // definitions
+            for( d in request.types ) {
+                getTypeDefinition@JsonSchema( {
+                    typeDefinition << d
+                    schemaVersion = request.version
+                })( typedef ) 
+                foreach( name : typedef ) {
+                    openapi.components.schemas.( name ) << typedef.( name )
+                }
+
+            }
+        
+            getJsonString@JsonUtils( openapi )( response )
+
+    
+        } ]
+
+    }
+}
+
+service OpenApi {
+
+    execution: concurrent 
+
+    embed Console as Console
+    embed StringUtils as StringUtils
+    embed JsonUtils as JsonUtils
+    embed JsonSchema as JsonSchema
+    embed OpenApi2 as OpenApi2
+    embed OpenApi3 as OpenApi3
+    
+
+    inputPort OpenApi {
+        location: "local"
+        interfaces: OpenApiInterface
+    }
+
+
+    main {
+        [  getOpenApiDefinition( request )( response ) {
+            if ( request.version == "2.0" ) { getOpenApiDefinition@OpenApi2( request )( openapi ) }
+            else if ( request.version == "3.0" ) { getOpenApiDefinition@OpenApi3( request )( openapi ) }
+
+            
+            // necessary for converting null into {}
+            replaceAll@StringUtils( openapi { regex = ":null", replacement = ":{}"})( response )
+        }]
+    }
+}
+
