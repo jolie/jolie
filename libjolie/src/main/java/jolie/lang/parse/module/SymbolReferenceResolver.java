@@ -974,7 +974,6 @@ public class SymbolReferenceResolver {
 						result.ops.addAll( ip.operations() );
 					}
 				}
-
 			}
 		}
 		return result;

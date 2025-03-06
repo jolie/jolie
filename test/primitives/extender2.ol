@@ -85,7 +85,7 @@ service Main {
             nothing@EmbedderService({
                 header = "test"
                 token = 1
-            })()
+            })(r)
             if ( r.token != 2 ) {
               throw( TestFailed, "expect response.token to be " + 2 + ", got " + r.token )
             }

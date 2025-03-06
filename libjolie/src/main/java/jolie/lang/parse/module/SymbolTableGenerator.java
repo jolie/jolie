@@ -390,7 +390,14 @@ public class SymbolTableGenerator {
 		public void visit( SolicitResponseForwardStatement n ) {}
 
 		@Override
-		public void visit( InterfaceExtenderDefinition n ) {}
+		public void visit( InterfaceExtenderDefinition n ) {
+			try {
+				this.symbolTable.addSymbol( n.name(), n );
+			} catch( DuplicateSymbolException e ) {
+				this.valid = false;
+				this.error = new ModuleException( CodeCheckMessage.withoutHelp( n.context(), e.toString() ) );
+			}
+		}
 
 		@Override
 		public void visit( InlineTreeExpressionNode n ) {}

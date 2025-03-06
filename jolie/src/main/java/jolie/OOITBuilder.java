@@ -617,6 +617,9 @@ public class OOITBuilder implements UnitOLVisitor {
 			if( item.interfaceExtender() == null ) {
 				extender = null;
 			} else {
+				if( !interfaceExtenders.containsKey( item.interfaceExtender().name() ) ) {
+					visit( item.interfaceExtender() );
+				}
 				extender = interfaceExtenders.get( item.interfaceExtender().name() );
 				if( extender == null ) {
 					error( n.context(), "Unable to find interface extender " + item.interfaceExtender().name() );

@@ -23,9 +23,6 @@ import java.io.IOException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import jolie.Interpreter;
-import jolie.lang.parse.ast.InputPortInfo;
-import jolie.lang.parse.ast.InputPortInfo.AggregationItemInfo;
-import jolie.lang.parse.ast.OLSyntaxNode;
 import jolie.lang.parse.ast.ServiceNode;
 import jolie.lang.parse.module.ModuleSource;
 import jolie.lang.parse.util.ProgramBuilder;
@@ -51,16 +48,6 @@ public class JolieServiceNodeLoader extends ServiceNodeLoader {
 			ProgramBuilder builder = new ProgramBuilder( serviceNode().context() );
 			builder.addChild( serviceNode() );
 
-			// add all interface extender definitions to program builder
-			for( OLSyntaxNode node : serviceNode().program().children() ) {
-				if( node instanceof InputPortInfo ) {
-					for( AggregationItemInfo aggregationItemInfo : ((InputPortInfo) node).aggregationList() ) {
-						if( aggregationItemInfo.interfaceExtender() != null ) {
-							builder.addChild( aggregationItemInfo.interfaceExtender() );
-						}
-					}
-				}
-			}
 			interpreter = new Interpreter(
 				configuration,
 				interpreter().symbolTables(),
