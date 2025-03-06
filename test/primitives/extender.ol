@@ -33,7 +33,7 @@ service EmbedderService {
 
   embed NothingService as NothingService
 
-  inputPort input {    
+  inputPort input {
     location: "local://EmbedderService"
     aggregates: NothingService with TokenExtender
   }
