@@ -21,6 +21,8 @@
 
 package jolie.lang.parse.ast;
 
+import java.util.ArrayList;
+import java.util.List;
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.context.ParsingContext;
 
@@ -28,6 +30,7 @@ public class OutputPortInfo extends PortInfo {
 
 	private OLSyntaxNode protocol = null;
 	private OLSyntaxNode location = null;
+	private List<InterfaceExtenderDefinition> interfaceExtenders = new ArrayList<>();
 
 	public OutputPortInfo( ParsingContext context, String id ) {
 		super( context, id );
@@ -39,6 +42,13 @@ public class OutputPortInfo extends PortInfo {
 
 	public void setLocation( OLSyntaxNode location ) {
 		this.location = location;
+	}
+
+	/**
+	 * @param interfaceExtender the interfaceExtender to set
+	 */
+	public void addInterfaceExtender( InterfaceExtenderDefinition interfaceExtender ) {
+		this.interfaceExtenders.add(interfaceExtender);
 	}
 
 	@Override
@@ -56,5 +66,12 @@ public class OutputPortInfo extends PortInfo {
 
 	public OLSyntaxNode location() {
 		return location;
+	}
+
+	/**
+	 * @return the interfaceExtender
+	 */
+	public InterfaceExtenderDefinition[] interfaceExtenders() {
+		return interfaceExtenders.toArray(new InterfaceExtenderDefinition[0]);
 	}
 }

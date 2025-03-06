@@ -21,6 +21,7 @@ package jolie.lang.parse.module;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -797,8 +798,24 @@ public class SymbolReferenceResolver {
 		for( OperationDeclaration oper : publicIfacesAndOps.operations() ) {
 			op.addOperation( oper );
 		}
-		for( InterfaceExtenderDefinition extenders : publicIfacesAndOps.extenders() ) {
-			n.program().addChild( extenders );
+		for( AggregationItemInfo oper : publicIfacesAndOps.aggregationInfo() ) {
+			if( oper.interfaceExtender() != null ) {
+				op.addInterfaceExtender( oper.interfaceExtender() );
+			}
+
+			for( String opName : oper.outputPortList() ) {
+				// adds operations and interface of the aggregated OutputPort to embedding port
+				n.program()
+					.children()
+					.stream()
+					.filter( ol -> ol instanceof OutputPortInfo && ((OutputPortInfo) ol).id().equals( opName ) )
+					.findFirst()
+					.ifPresent( o -> {
+						OutputPortInfo aggregatedOp = (OutputPortInfo) o;
+						aggregatedOp.getInterfaceList().forEach(op::addInterface);
+						aggregatedOp.operations().forEach(op::addOperation);
+					} );
+			}
 		}
 	}
 
@@ -910,12 +927,12 @@ public class SymbolReferenceResolver {
 	private static class InterfacesAndOperations {
 		private final List< InterfaceDefinition > ifaces;
 		private final List< OperationDeclaration > ops;
-		private final List< InterfaceExtenderDefinition > extenders;
+		private final List< InputPortInfo.AggregationItemInfo > aggregationInfo;
 
 		private InterfacesAndOperations() {
 			ifaces = new ArrayList<>();
 			ops = new ArrayList<>();
-			extenders = new ArrayList<>();
+			aggregationInfo = new ArrayList<>();
 		}
 
 		public InterfaceDefinition[] interfaces() {
@@ -926,8 +943,8 @@ public class SymbolReferenceResolver {
 			return ops.toArray( new OperationDeclaration[] {} );
 		}
 
-		public InterfaceExtenderDefinition[] extenders() {
-			return extenders.toArray( new InterfaceExtenderDefinition[] {} );
+		public InputPortInfo.AggregationItemInfo[] aggregationInfo() {
+			return aggregationInfo.toArray( new InputPortInfo.AggregationItemInfo[] {} );
 		}
 	}
 
@@ -953,13 +970,7 @@ public class SymbolReferenceResolver {
 					String location = ((ConstantStringExpression) ip.location()).value();
 					if( location.equals( Constants.LOCAL_LOCATION_KEYWORD ) ) {
 						result.ifaces.addAll( ip.getInterfaceList() );
-						for( InputPortInfo.AggregationItemInfo item : ip.aggregationList() ) {
-							result.extenders.add( item.interfaceExtender() );
-							for( String opName : item.outputPortList() ) {
-								OutputPortInfo op = internalOp.get( opName );
-								result.ifaces.addAll( op.getInterfaceList() );
-							}
-						}
+						result.aggregationInfo.addAll( Arrays.asList( ip.aggregationList() ) );
 						result.ops.addAll( ip.operations() );
 					}
 				}

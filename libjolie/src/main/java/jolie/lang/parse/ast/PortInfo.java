@@ -104,7 +104,10 @@ public abstract class PortInfo extends OLSyntaxNode implements OperationCollecto
 	}
 
 	public void addInterface( InterfaceDefinition iface ) {
-		interfaceList.add( iface );
+		// TODO this is a hack to avoid interface duplicates. fix it
+		if( !interfaceList.stream().anyMatch( o -> iface.name().equals( o.name() ) ) ) {
+			interfaceList.add( iface );
+		}
 	}
 
 	protected static String extractProtocolId( OLSyntaxNode protocolNode ) {
