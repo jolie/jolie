@@ -68,6 +68,9 @@ service Main {
                 header = "test"
                 token = 1
             })()
+            if ( r.token != 2 ) {
+              throw( TestFailed, "expect response.token to be " + 2 + ", got " + r.token )
+            }
         }
     }
 

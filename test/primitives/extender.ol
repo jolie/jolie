@@ -41,7 +41,7 @@ service EmbedderService {
   courier input {
     [ nothing( request )( response ){
       forward( request )( response )
-      response.token = 1
+      response.token = 2
     } ]
   }
 
@@ -80,7 +80,10 @@ service Main {
             nothing@EmbedderService({
                 header = "test"
                 token = 1
-            })()
+            })(r)
+            if ( r.token != 2 ) {
+              throw( TestFailed, "expect response.token to be " + 2 + ", got " + r.token )
+            }
         }
     }
 

@@ -39,14 +39,14 @@ service EmbedderService {
   }
 
   inputPort input {    
-    location: "local://EmbedderService"
+    location: "local://EmbedderService2"
     aggregates: NothingService with TokenExtender
   }
 
   courier input {
     [ nothing( request )( response ){
       forward( request )( response )
-      response.token = 1
+      response.token = 2
     } ]
   }
 
@@ -71,7 +71,7 @@ service Main {
     embed EmbedderService
 
     outputPort EmbedderService {
-      Location: "local://EmbedderService"
+      Location: "local://EmbedderService2"
       Interfaces: NothingServiceInterfaceWithToken
     }
 
@@ -86,6 +86,9 @@ service Main {
                 header = "test"
                 token = 1
             })()
+            if ( r.token != 2 ) {
+              throw( TestFailed, "expect response.token to be " + 2 + ", got " + r.token )
+            }
         }
     }
 
