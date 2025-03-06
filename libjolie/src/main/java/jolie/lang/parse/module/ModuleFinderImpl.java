@@ -75,15 +75,12 @@ public class ModuleFinderImpl implements ModuleFinder {
 			} else {
 				return this.findAbsoluteImport( importPath, parentPath );
 			}
-		} catch( ModuleNotFoundException e ) {
-			throw e;
 		} catch( FileNotFoundException e ) {
 			throw new ModuleNotFoundException( importPath, Paths.get( e.getMessage() ) );
 		}
 	}
 
 	private ModuleSource findJapScheme( URI source, ImportPath importPath ) throws ModuleNotFoundException {
-
 		try {
 			if( importPath.isRelativeImport() ) {
 				if( source.getScheme() != null && source.getScheme().equals( "jap" ) ) {
@@ -101,8 +98,6 @@ public class ModuleFinderImpl implements ModuleFinder {
 			} else {
 				return this.findAbsoluteImport( importPath, Paths.get( source.getSchemeSpecificPart() ) );
 			}
-		} catch( ModuleNotFoundException e ) {
-			throw e;
 		} catch( URISyntaxException | IOException e ) {
 			throw new ModuleNotFoundException( importPath, Paths.get( source.getSchemeSpecificPart() ) );
 		}
