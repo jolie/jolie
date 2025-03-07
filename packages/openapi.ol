@@ -139,7 +139,7 @@ type GetOpenApiFromJolieMetaDataRequest {
   port: Port
   host: string
   scheme: string( enum(["http","https"]))
-  easyInterface?: bool
+  level0?: bool
   template?: undefined
 }
 
@@ -517,8 +517,8 @@ service OpenApi {
 
         [ getOpenApiFromJolieMetaData( request )( response ) {
 
-            easyInterface = false
-            if ( is_defined( request.easyInterface ) ) { easyInterface = request.easyInterface }
+            level0 = false
+            if ( is_defined( request.level0 ) ) { level0 = request.level0 }
             
             /* creating a map name-types for managing type links */
             for( itf in request.port.interfaces ) { 
@@ -577,7 +577,7 @@ service OpenApi {
                         if ( is_defined( request.template.( oper.operation_name ).template ) ) {
                             __template  = request.template.( oper.operation_name ).template
                         } 
-                        if ( !easyInterface && !( __template instanceof void  ) ) {
+                        if ( !level0 && !( __template instanceof void  ) ) {
                             if ( __method == "" || __method instanceof void ) {
                                 throw( DefinitionError, "Template " + __given_template.template + " of operation " + oper.operation_name + " does not define the method, not permitted" )
                             }
