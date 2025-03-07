@@ -35,11 +35,6 @@ public class Program extends OLSyntaxNode {
 		this.children = children;
 	}
 
-	// public void addChild( OLSyntaxNode node )
-	// {
-	// children.add( node );
-	// }
-
 	public List< OLSyntaxNode > children() {
 		return children;
 	}
