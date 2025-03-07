@@ -29,13 +29,13 @@ type GetJsonValueRequest: any {
 }
 type GetJsonValueResponse: undefined
 
-type ValidateJsonRequest: void {
+type ValidateJsonRequest {
 	json: string 
 	schema: string 
 }
 
-type ValidateJsonResponse: void {
-	validationMessage*: void {
+type ValidateJsonResponse {
+	validationMessage* {
 		message: string 
 		code: string 
 		type: string 
