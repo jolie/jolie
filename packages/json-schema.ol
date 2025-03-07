@@ -1,22 +1,21 @@
 /*
-
  * Copyright (c) 2025 Claudio Guidi <guidiclaudio@gmail.com>
 
- *   This program is free software; you can redistribute it and/or modify 
- *   it under the terms of the GNU Library General Public License as      
- *   published by the Free Software Foundation; either version 2 of the   
- *   License, or (at your option) any later version.                      
- *                                                                        
- *   This program is distributed in the hope that it will be useful,      
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of       
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the        
- *   GNU General Public License for more details.                         
- *                                                                        
- *   You should have received a copy of the GNU Library General Public    
- *   License along with this program; if not, write to the                
- *   Free Software Foundation, Inc.,                                      
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.            
- *                                                                        
+ *   This program is free software; you can redistribute it and/or modify
+ *   it under the terms of the GNU Library General Public License as 
+ *   published by the Free Software Foundation; either version 2 of the
+ *   License, or (at your option) any later version.   
+ *                       
+ *   This program is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of      
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the       
+ *   GNU General Public License for more details.        
+ *                         
+ *   You should have received a copy of the GNU Library General Public
+ *   License along with this program; if not, write to the    
+ *   Free Software Foundation, Inc.,                
+ *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *            
  *   For details about the authors of this software, see the AUTHORS file.
 */
 
@@ -38,7 +37,7 @@ from runtime import Runtime
 
 
 
-type GetSchemasResponse: void {
+type GetSchemasResponse {
   definitions*: undefined
 }
 
@@ -55,42 +54,42 @@ type GetNumberRefinedTypeResponse {
 
 type SchemaVersion: string( enum(["2.0","3.0"]) )
 
-type GetTypeDefinitionRequest: void {
+type GetTypeDefinitionRequest {
     schemaVersion: SchemaVersion
     typeDefinition: TypeDefinition
 }
 
-type GetTypeRequest: void {
+type GetTypeRequest {
     schemaVersion: SchemaVersion
     type: Type
 }
 
-type GetTypeInLineRequest: void {
+type GetTypeInLineRequest {
     schemaVersion: SchemaVersion
     typeInLine: TypeInLine
 }
 
-type GetTypeChoiceRequest: void {
+type GetTypeChoiceRequest {
     schemaVersion: SchemaVersion
     typeChoice: TypeChoice
 }
 
-type GetTypeLinkRequest: void {
+type GetTypeLinkRequest {
     schemaVersion: SchemaVersion
     typeLink: TypeLink
 }
 
-type GetSubType: void {
+type GetSubType {
     schemaVersion: SchemaVersion
     subType: SubType
 }
 
-type GetNativeTypeRequest: void {
+type GetNativeTypeRequest {
     schemaVersion: SchemaVersion
     nativeType: NativeType  
 }
 
-type GetNumberRefinedTypeRequest: void {
+type GetNumberRefinedTypeRequest {
     schemaVersion: SchemaVersion
     numberRefined: GetNumberRefinedTypeVersionedRequest
 }
