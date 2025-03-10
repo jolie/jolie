@@ -918,11 +918,7 @@ public class Interpreter {
 	 * @return the path at which the file to be interpreted has been found
 	 */
 	public String programFilepath() {
-		if( configuration.source().parentURI().isPresent() ) {
-			return configuration.source().parentURI().get().toString();
-		} else {
-			return "";
-		}
+		return configuration.source().uri().toString();
 	}
 
 	/**
