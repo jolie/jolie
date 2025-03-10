@@ -522,7 +522,7 @@ public class FileService extends JavaService {
 	public String getRealServiceDirectory()
 		throws FaultException {
 		try {
-			return Paths.get( interpreter().programFilepath() ).toRealPath().getParent().toString();
+			return Paths.get( interpreter().configuration().source().uri() ).getParent().toRealPath().toString();
 		} catch( IOException e ) {
 			throw new FaultException( "IOException", e );
 		}
@@ -530,7 +530,7 @@ public class FileService extends JavaService {
 
 	@RequestResponse
 	public String getServiceFileName() {
-		return Paths.get( interpreter().programFilepath() ).getFileName().toString();
+		return interpreter().programFilename();
 	}
 
 	@RequestResponse
