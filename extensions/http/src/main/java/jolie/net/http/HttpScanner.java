@@ -42,14 +42,9 @@ public class HttpScanner {
 		readChar();
 	}
 
-	public String readLine()
-		throws IOException {
-		return readLine( true );
-	}
-
-	public String readLine( boolean readChar )
-		throws IOException {
-		if( readChar ) {
+	public String readLine() throws IOException {
+		// RFC 7230 section 3.2 allows one leading whitespace
+		if( Scanner.isHorizontalWhitespace( ch ) ) {
 			readChar();
 		}
 
@@ -65,6 +60,15 @@ public class HttpScanner {
 			if( ch != '\n' ) {
 				throw new IOException( "malformed CR-LF sequence" );
 			}
+		}
+
+		if( tokenBuilder.length() == 0 ) {
+			return "";
+		}
+
+		// RFC 7230 section 3.2 allows one trailing whitespace
+		if( Scanner.isHorizontalWhitespace( tokenBuilder.charAt( tokenBuilder.length() - 1 ) ) ) {
+			tokenBuilder.deleteCharAt( tokenBuilder.length() - 1 );
 		}
 		return tokenBuilder.toString();
 	}
