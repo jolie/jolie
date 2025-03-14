@@ -106,14 +106,14 @@ public class LSPParser {
 			do {
 				// the chunk header contains the size in hex format
 				// and could contain additional parameters which we ignore atm
-				String chunkHeader = scanner.readLine( false );
+				String chunkHeader = scanner.readLine();
 				String chunkSize = chunkHeader.split( ";", 2 )[ 0 ];
 				try {
 					l = Integer.parseInt( chunkSize, 16 );
 				} catch( NumberFormatException e ) {
 					throw new IOException( "Illegal chunk size " + chunkSize );
 				}
-				// parses the real chunk with the specified size, follwed by CR-LF
+				// parses the real chunk with the specified size, followed by CR-LF
 				if( l > 0 ) {
 					totalLen += l;
 					byte[] chunk = new byte[ l ];
