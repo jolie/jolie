@@ -686,7 +686,7 @@ public class Scanner implements AutoCloseable {
 	 * @param c the character to check
 	 * @return <code>true</code> if <code>c</code> is a horizontal separator (whitespace)
 	 */
-	private static boolean isHorizontalWhitespace( char c )
+	public static boolean isHorizontalWhitespace( char c )
 	{
 		return c == '\t' || c == ' ';
 	}
