@@ -19,23 +19,117 @@
 
 package jolie;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.function.BiPredicate;
+import java.util.stream.Collectors;
 import jolie.lang.Constants;
-import jolie.lang.Keywords;
 import jolie.lang.Constants.ExecutionMode;
 import jolie.lang.Constants.OperandType;
+import jolie.lang.Keywords;
 import jolie.lang.parse.CorrelationFunctionInfo;
 import jolie.lang.parse.CorrelationFunctionInfo.CorrelationPairInfo;
 import jolie.lang.parse.OLParser;
-import jolie.lang.parse.UnitOLVisitor;
 import jolie.lang.parse.Scanner;
-import jolie.lang.parse.ast.*;
+import jolie.lang.parse.UnitOLVisitor;
+import jolie.lang.parse.ast.AddAssignStatement;
+import jolie.lang.parse.ast.AssignStatement;
+import jolie.lang.parse.ast.CompareConditionNode;
+import jolie.lang.parse.ast.CompensateStatement;
+import jolie.lang.parse.ast.CorrelationSetInfo;
 import jolie.lang.parse.ast.CorrelationSetInfo.CorrelationVariableInfo;
+import jolie.lang.parse.ast.CurrentHandlerStatement;
+import jolie.lang.parse.ast.DeepCopyStatement;
+import jolie.lang.parse.ast.DefinitionCallStatement;
+import jolie.lang.parse.ast.DefinitionNode;
+import jolie.lang.parse.ast.DivideAssignStatement;
+import jolie.lang.parse.ast.DocumentationComment;
+import jolie.lang.parse.ast.EmbedServiceNode;
+import jolie.lang.parse.ast.EmbeddedServiceNode;
+import jolie.lang.parse.ast.ExecutionInfo;
+import jolie.lang.parse.ast.ExitStatement;
+import jolie.lang.parse.ast.ForEachArrayItemStatement;
+import jolie.lang.parse.ast.ForEachSubNodeStatement;
+import jolie.lang.parse.ast.ForStatement;
+import jolie.lang.parse.ast.IfStatement;
+import jolie.lang.parse.ast.ImportStatement;
+import jolie.lang.parse.ast.InputPortInfo;
+import jolie.lang.parse.ast.InstallFixedVariableExpressionNode;
+import jolie.lang.parse.ast.InstallFunctionNode;
+import jolie.lang.parse.ast.InstallStatement;
+import jolie.lang.parse.ast.InterfaceDefinition;
+import jolie.lang.parse.ast.InterfaceExtenderDefinition;
+import jolie.lang.parse.ast.LinkInStatement;
+import jolie.lang.parse.ast.LinkOutStatement;
+import jolie.lang.parse.ast.MultiplyAssignStatement;
+import jolie.lang.parse.ast.NDChoiceStatement;
+import jolie.lang.parse.ast.NotificationOperationStatement;
+import jolie.lang.parse.ast.NullProcessStatement;
+import jolie.lang.parse.ast.OLSyntaxNode;
+import jolie.lang.parse.ast.OneWayOperationDeclaration;
+import jolie.lang.parse.ast.OneWayOperationStatement;
+import jolie.lang.parse.ast.OperationDeclaration;
+import jolie.lang.parse.ast.OutputPortInfo;
+import jolie.lang.parse.ast.ParallelStatement;
+import jolie.lang.parse.ast.PointerStatement;
+import jolie.lang.parse.ast.PostDecrementStatement;
+import jolie.lang.parse.ast.PostIncrementStatement;
+import jolie.lang.parse.ast.PreDecrementStatement;
+import jolie.lang.parse.ast.PreIncrementStatement;
+import jolie.lang.parse.ast.Program;
+import jolie.lang.parse.ast.ProvideUntilStatement;
+import jolie.lang.parse.ast.RequestResponseOperationDeclaration;
+import jolie.lang.parse.ast.RequestResponseOperationStatement;
+import jolie.lang.parse.ast.RunStatement;
+import jolie.lang.parse.ast.Scope;
+import jolie.lang.parse.ast.SequenceStatement;
+import jolie.lang.parse.ast.ServiceNode;
 import jolie.lang.parse.ast.ServiceNode.ParameterConfiguration;
+import jolie.lang.parse.ast.SolicitResponseOperationStatement;
+import jolie.lang.parse.ast.SpawnStatement;
+import jolie.lang.parse.ast.SubtractAssignStatement;
+import jolie.lang.parse.ast.SynchronizedStatement;
+import jolie.lang.parse.ast.ThrowStatement;
+import jolie.lang.parse.ast.TypeCastExpressionNode;
+import jolie.lang.parse.ast.UndefStatement;
+import jolie.lang.parse.ast.ValueVectorSizeExpressionNode;
+import jolie.lang.parse.ast.VariablePathNode;
+import jolie.lang.parse.ast.WhileStatement;
 import jolie.lang.parse.ast.courier.CourierChoiceStatement;
 import jolie.lang.parse.ast.courier.CourierDefinitionNode;
 import jolie.lang.parse.ast.courier.NotificationForwardStatement;
 import jolie.lang.parse.ast.courier.SolicitResponseForwardStatement;
-import jolie.lang.parse.ast.expression.*;
+import jolie.lang.parse.ast.expression.AndConditionNode;
+import jolie.lang.parse.ast.expression.ConstantBoolExpression;
+import jolie.lang.parse.ast.expression.ConstantDoubleExpression;
+import jolie.lang.parse.ast.expression.ConstantIntegerExpression;
+import jolie.lang.parse.ast.expression.ConstantLongExpression;
+import jolie.lang.parse.ast.expression.ConstantStringExpression;
+import jolie.lang.parse.ast.expression.FreshValueExpressionNode;
+import jolie.lang.parse.ast.expression.IfExpressionNode;
+import jolie.lang.parse.ast.expression.InlineTreeExpressionNode;
+import jolie.lang.parse.ast.expression.InstanceOfExpressionNode;
+import jolie.lang.parse.ast.expression.IsTypeExpressionNode;
+import jolie.lang.parse.ast.expression.NotExpressionNode;
+import jolie.lang.parse.ast.expression.OrConditionNode;
+import jolie.lang.parse.ast.expression.ProductExpressionNode;
+import jolie.lang.parse.ast.expression.SolicitResponseExpressionNode;
+import jolie.lang.parse.ast.expression.SumExpressionNode;
+import jolie.lang.parse.ast.expression.VariableExpressionNode;
+import jolie.lang.parse.ast.expression.VoidExpressionNode;
 import jolie.lang.parse.ast.types.TypeChoiceDefinition;
 import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
@@ -47,18 +141,90 @@ import jolie.net.ports.InputPort;
 import jolie.net.ports.Interface;
 import jolie.net.ports.InterfaceExtender;
 import jolie.net.ports.OutputPort;
+import jolie.process.AddAssignmentProcess;
+import jolie.process.AssignmentProcess;
+import jolie.process.CallProcess;
+import jolie.process.CompensateProcess;
+import jolie.process.CurrentHandlerProcess;
+import jolie.process.DeepCopyProcess;
+import jolie.process.DefinitionProcess;
+import jolie.process.DivideAssignmentProcess;
+import jolie.process.ExitProcess;
+import jolie.process.ForEachArrayItemProcess;
+import jolie.process.ForEachSubNodeProcess;
+import jolie.process.ForProcess;
+import jolie.process.IfProcess;
+import jolie.process.InputOperationProcess;
+import jolie.process.InstallProcess;
+import jolie.process.LinkInProcess;
+import jolie.process.LinkOutProcess;
+import jolie.process.MakePointerProcess;
+import jolie.process.MultiplyAssignmentProcess;
+import jolie.process.NDChoiceProcess;
+import jolie.process.NotificationProcess;
+import jolie.process.NullProcess;
+import jolie.process.OneWayProcess;
+import jolie.process.ParallelProcess;
+import jolie.process.PostDecrementProcess;
+import jolie.process.PostIncrementProcess;
+import jolie.process.PreDecrementProcess;
+import jolie.process.PreIncrementProcess;
 import jolie.process.Process;
-import jolie.process.*;
+import jolie.process.ProvideUntilProcess;
+import jolie.process.RequestResponseProcess;
+import jolie.process.RunProcess;
+import jolie.process.ScopeProcess;
+import jolie.process.SequentialProcess;
+import jolie.process.SolicitResponseProcess;
+import jolie.process.SpawnProcess;
+import jolie.process.SubtractAssignmentProcess;
+import jolie.process.SynchronizedProcess;
+import jolie.process.ThrowProcess;
+import jolie.process.UndefProcess;
+import jolie.process.WhileProcess;
 import jolie.process.courier.ForwardNotificationProcess;
 import jolie.process.courier.ForwardSolicitResponseProcess;
-import jolie.runtime.*;
+import jolie.runtime.ClosedVariablePath;
+import jolie.runtime.CompareOperators;
+import jolie.runtime.GlobalVariablePath;
+import jolie.runtime.InstallFixedVariablePath;
+import jolie.runtime.InvalidIdException;
+import jolie.runtime.OneWayOperation;
+import jolie.runtime.RequestResponseOperation;
+import jolie.runtime.Value;
+import jolie.runtime.VariablePath;
+import jolie.runtime.VariablePathBuilder;
 import jolie.runtime.correlation.CorrelationSet;
 import jolie.runtime.correlation.CorrelationSet.CorrelationPair;
 import jolie.runtime.embedding.EmbeddedServiceLoader;
 import jolie.runtime.embedding.EmbeddedServiceLoader.EmbeddedServiceConfiguration;
 import jolie.runtime.embedding.EmbeddedServiceLoaderCreationException;
-import jolie.runtime.expression.*;
+import jolie.runtime.expression.AndCondition;
+import jolie.runtime.expression.CastBoolExpression;
+import jolie.runtime.expression.CastDoubleExpression;
+import jolie.runtime.expression.CastIntExpression;
+import jolie.runtime.expression.CastLongExpression;
+import jolie.runtime.expression.CastStringExpression;
+import jolie.runtime.expression.CompareCondition;
+import jolie.runtime.expression.Expression;
 import jolie.runtime.expression.Expression.Operand;
+import jolie.runtime.expression.FreshValueExpression;
+import jolie.runtime.expression.IfExpression;
+import jolie.runtime.expression.InlineTreeExpression;
+import jolie.runtime.expression.InstanceOfExpression;
+import jolie.runtime.expression.IsBoolExpression;
+import jolie.runtime.expression.IsDefinedExpression;
+import jolie.runtime.expression.IsDoubleExpression;
+import jolie.runtime.expression.IsIntExpression;
+import jolie.runtime.expression.IsLongExpression;
+import jolie.runtime.expression.IsStringExpression;
+import jolie.runtime.expression.NotExpression;
+import jolie.runtime.expression.OrCondition;
+import jolie.runtime.expression.ProductExpression;
+import jolie.runtime.expression.SolicitResponseExpression;
+import jolie.runtime.expression.SumExpression;
+import jolie.runtime.expression.ValueVectorSizeExpression;
+import jolie.runtime.expression.VoidExpression;
 import jolie.runtime.typing.BasicType;
 import jolie.runtime.typing.OneWayTypeDescription;
 import jolie.runtime.typing.RequestResponseTypeDescription;
@@ -67,11 +233,6 @@ import jolie.runtime.typing.TypeCheckingException;
 import jolie.util.ArrayListMultiMap;
 import jolie.util.MultiMap;
 import jolie.util.Pair;
-
-import java.io.IOException;
-import java.util.*;
-import java.util.Map.Entry;
-import java.util.function.BiPredicate;
 
 /**
  * Builds an interpretation tree by visiting a Jolie abstract syntax tree.
@@ -95,6 +256,7 @@ public class OOITBuilder implements UnitOLVisitor {
 	private boolean registerSessionStarters = false;
 	private InputPort currCourierInputPort = null;
 	private String currCourierOperationName = null;
+	private InterfaceExtenderDefinition currInterfaceExtender = null;
 	private final Map< String, Map< String, AggregationConfiguration > > aggregationConfigurations =
 		new HashMap<>(); // Input port name -> (operation name -> aggregation configuration)
 	private final Map< String, InterfaceExtender > interfaceExtenders =
@@ -328,8 +490,19 @@ public class OOITBuilder implements UnitOLVisitor {
 		currentOutputPort = n.id();
 		notificationTypes.put( currentOutputPort, new HashMap<>() );
 		solicitResponseTypes.put( currentOutputPort, new HashMap<>() );
-		for( OperationDeclaration decl : n.operations() ) {
-			decl.accept( this );
+		if( n.interfaceExtenders().length > 0 ) {
+			for( InterfaceExtenderDefinition extender : n.interfaceExtenders() ) {
+				// we extend the type without visiting the interface extender
+				currInterfaceExtender = extender;
+				for( OperationDeclaration decl : n.operations() ) {
+					decl.accept( this );
+				}
+				currInterfaceExtender = null;
+			}
+		} else {
+			for( OperationDeclaration decl : n.operations() ) {
+				decl.accept( this );
+			}
 		}
 		currentOutputPort = null;
 
@@ -444,7 +617,13 @@ public class OOITBuilder implements UnitOLVisitor {
 			if( item.interfaceExtender() == null ) {
 				extender = null;
 			} else {
+				if( !interfaceExtenders.containsKey( item.interfaceExtender().name() ) ) {
+					visit( item.interfaceExtender() );
+				}
 				extender = interfaceExtenders.get( item.interfaceExtender().name() );
+				if( extender == null ) {
+					error( n.context(), "Unable to find interface extender " + item.interfaceExtender().name() );
+				}
 			}
 			try {
 				outputPort = interpreter.getOutputPort( outputPortName );
@@ -625,6 +804,20 @@ public class OOITBuilder implements UnitOLVisitor {
 		return new OneWayTypeDescription( getOrBuildType( decl.requestType() ) );
 	}
 
+	private OneWayTypeDescription buildOneWayExtendedTypeDescription( OneWayOperationDeclaration decl,
+		OneWayOperationDeclaration extendedOneWayOperationDecl,
+		OneWayOperationDeclaration... extendedRequestResponseOperationDecls ) {
+		if( decl == null || extendedOneWayOperationDecl == null ) {
+			return null;
+		}
+
+		return new OneWayTypeDescription(
+			getOrBuildExtendedType( decl.requestType(),
+				Arrays.asList( extendedRequestResponseOperationDecls ).stream()
+					.map( OneWayOperationDeclaration::requestType )
+					.toArray( TypeDefinition[]::new ) ) );
+	}
+
 	private RequestResponseTypeDescription buildRequestResponseTypeDescription(
 		RequestResponseOperationDeclaration decl ) {
 		if( decl == null ) {
@@ -639,6 +832,46 @@ public class OOITBuilder implements UnitOLVisitor {
 		typeDescription = new RequestResponseTypeDescription(
 			getOrBuildType( decl.requestType() ),
 			getOrBuildType( decl.responseType() ),
+			faults );
+		return typeDescription;
+	}
+
+	private RequestResponseTypeDescription buildRequestResponseExtendedTypeDescription(
+		RequestResponseOperationDeclaration decl,
+		RequestResponseOperationDeclaration... extendedRequestResponseOperationDecls ) {
+		if( decl == null ) {
+			return null;
+		}
+
+		List< RequestResponseOperationDeclaration > extendedDeclList =
+			Arrays.asList( extendedRequestResponseOperationDecls ).stream()
+				.filter( Objects::nonNull ).collect( Collectors.toList() );
+
+		RequestResponseTypeDescription typeDescription;
+		Map< String, Type > faults = new HashMap<>();
+
+		for( Entry< String, TypeDefinition > entry : decl.faults().entrySet() ) {
+			List< TypeDefinition > extendedFaultTypes =
+				extendedDeclList.stream().map( e -> {
+					if( e.id().equals( "*" ) ) {
+						return e.faults().values().stream().collect( Collectors.toList() );
+					} else {
+						return Collections.singletonList( e.faults().get( entry.getKey() ) );
+					}
+				} ).flatMap( Collection::stream )
+					.filter( Objects::nonNull ).collect( Collectors.toList() );
+			if( !extendedFaultTypes.isEmpty() ) {
+				faults.put( entry.getKey(),
+					getOrBuildExtendedType( entry.getValue(), extendedFaultTypes.toArray( new TypeDefinition[ 0 ] ) ) );
+			}
+		}
+		typeDescription = new RequestResponseTypeDescription(
+			getOrBuildExtendedType( decl.requestType(),
+				extendedDeclList.stream().map( RequestResponseOperationDeclaration::requestType )
+					.toArray( TypeDefinition[]::new ) ),
+			getOrBuildExtendedType( decl.responseType(),
+				extendedDeclList.stream().map( RequestResponseOperationDeclaration::responseType )
+					.toArray( TypeDefinition[]::new ) ),
 			faults );
 		return typeDescription;
 	}
@@ -659,7 +892,13 @@ public class OOITBuilder implements UnitOLVisitor {
 						getOrBuildType( decl.requestType() ) ) );
 			}
 		} else {
-			typeDescription = buildOneWayTypeDescription( decl );
+			if( currInterfaceExtender != null ) {
+				typeDescription = buildOneWayExtendedTypeDescription( decl,
+					(OneWayOperationDeclaration) currInterfaceExtender.operationsMap().get( decl.id() ),
+					currInterfaceExtender.defaultOneWayOperation() );
+			} else {
+				typeDescription = buildOneWayTypeDescription( decl );
+			}
 			notificationTypes.get( currentOutputPort ).put( decl.id(), typeDescription );
 		}
 
@@ -687,7 +926,13 @@ public class OOITBuilder implements UnitOLVisitor {
 					new RequestResponseOperation( decl.id(), typeDescription ) );
 			}
 		} else {
-			typeDescription = buildRequestResponseTypeDescription( decl );
+			if( currInterfaceExtender != null ) {
+				typeDescription = buildRequestResponseExtendedTypeDescription( decl,
+					(RequestResponseOperationDeclaration) currInterfaceExtender.operationsMap().get( decl.id() ),
+					currInterfaceExtender.defaultRequestResponseOperation() );
+			} else {
+				typeDescription = buildRequestResponseTypeDescription( decl );
+			}
 			solicitResponseTypes.get( currentOutputPort ).put( decl.id(), typeDescription );
 		}
 
@@ -1424,6 +1669,30 @@ public class OOITBuilder implements UnitOLVisitor {
 			return typeMap.get( typeDefinition );
 		}
 		return buildType( typeDefinition );
+	}
+
+	private Type getOrBuildExtendedType( TypeDefinition typeDefinition, TypeDefinition... extendedTypeDefinitions ) {
+		Type f, result;
+		extendedTypeDefinitions = Arrays.asList( extendedTypeDefinitions ).stream().filter( Objects::nonNull )
+			.toArray( TypeDefinition[]::new );
+		Type[] extendTypes = new Type[ extendedTypeDefinitions.length ];
+		if( typeMap.containsKey( typeDefinition ) ) {
+			f = typeMap.get( typeDefinition );
+		} else {
+			f = buildType( typeDefinition );
+		}
+		result = f;
+		int i = 0;
+		for( TypeDefinition extendedTypeDefinition : extendedTypeDefinitions ) {
+			if( typeMap.containsKey( extendedTypeDefinition ) ) {
+				extendTypes[ i ] = typeMap.get( extendedTypeDefinition );
+			} else {
+				extendTypes[ i ] = buildType( extendedTypeDefinition );
+			}
+			result = Type.extend( result, extendTypes[ i ] );
+			i++;
+		}
+		return result;
 	}
 
 	@Override
