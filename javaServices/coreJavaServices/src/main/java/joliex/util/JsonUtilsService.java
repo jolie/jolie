@@ -25,18 +25,23 @@ package joliex.util;
 
 import java.io.IOException;
 import java.io.StringReader;
+import java.util.Set;
+
+import com.networknt.schema.*;
 import jolie.js.JsUtils;
 import jolie.runtime.AndJarDeps;
 import jolie.runtime.FaultException;
 import jolie.runtime.JavaService;
 import jolie.runtime.Value;
+import jolie.runtime.embedding.RequestResponse;
 import jolie.runtime.typing.Type;
 
 /**
  *
  * @author claudio guidi
  */
-@AndJarDeps( { "jolie-js.jar", "json-simple.jar" } )
+@AndJarDeps( { "jolie-js.jar", "json-simple.jar", "json-schema-validator.jar", "slf4j-api.jar",
+	"jackson-databind.jar", "jackson-core.jar", "jackson-dataformat-yaml.jar", "jackson-annotations.jar" } )
 public class JsonUtilsService extends JavaService {
 
 	public Value getJsonString( Value request ) throws FaultException {
@@ -75,5 +80,28 @@ public class JsonUtilsService extends JavaService {
 		}
 
 		return ret;
+	}
+
+	@RequestResponse
+	public Value validateJson( Value request ) {
+		String schemaStr = request.getFirstChild( "schema" ).strValue();
+		String json = request.getFirstChild( "json" ).strValue();
+		Value response = Value.create();
+		JsonSchema schema = JsonSchemaFactory.getInstance( SpecVersion.VersionFlag.V202012 ).getSchema( schemaStr,
+			SchemaValidatorsConfig.builder().build() );
+		Set< ValidationMessage > assertions = schema.validate( json, InputFormat.JSON, executionContext -> {
+			executionContext.getExecutionConfig().setFormatAssertionsEnabled( true );
+		} );
+
+		for( ValidationMessage validationMessage : assertions.stream().toList() ) {
+			Value message = Value.create();
+			message.getFirstChild( "message" ).setValue( validationMessage.getMessage() );
+			message.getFirstChild( "code" ).setValue( validationMessage.getCode() );
+			message.getFirstChild( "error" ).setValue( validationMessage.getError() );
+			message.getFirstChild( "type" ).setValue( validationMessage.getType() );
+			response.getChildren( "validationMessage" ).add( message );
+		}
+
+		return response;
 	}
 }
