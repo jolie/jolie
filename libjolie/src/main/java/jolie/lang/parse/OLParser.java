@@ -1580,6 +1580,42 @@ public class OLParser extends AbstractParser {
 	}
 
 	/**
+	 * A functional interface for parsing the internals of a Node. Identical to Supplier except with
+	 * some needed exceptions.
+	 *
+	 * @see java.util.function.Supplier
+	 * @param <T> Class containing the results of the parsing
+	 */
+	@FunctionalInterface
+	private interface ParsingLambda< T > {
+		/**
+		 * Performs the parsing
+		 *
+		 * @return The result of the parsing
+		 */
+		T get() throws IOException, ParserException;
+	}
+	private record InternalParseResult< I >(I internals, ParsingContext context) {
+	}
+
+	/**
+	 * Parses the internals for the creation of a Node and creates an appropriate ParsingContext
+	 *
+	 * @param internalsParser A lambda that parses the internals of a Node.
+	 * @param <I> Type for the internals required to create the Node in question.
+	 */
+	private < I > InternalParseResult< I > parseInternals( ParsingLambda< I > internalsParser )
+		throws IOException, ParserException {
+		ParsingContext earlyContext = getContext();
+		I internals = internalsParser.get();
+		setEndLine();
+		ParsingContext finalContext = new URIParsingContext( scanner().source(), earlyContext.startLine(), endLine(),
+			earlyContext.startColumn(), errorColumn(),
+			earlyContext.enclosingCode() );
+		return new InternalParseResult<>( internals, finalContext );
+	}
+
+	/**
 	 * Parses a service node, i.e. service service_name ( varpath : type ) {}
 	 */
 	private void parseService()
@@ -1594,129 +1630,147 @@ public class OLParser extends AbstractParser {
 			nextToken();
 			return;
 		}
-		setStartLine(); // remember line we started parsing service at
-		nextToken();
-
-		Constants.EmbeddedServiceType tech = Constants.EmbeddedServiceType.SERVICENODE;
 		Map< String, String > configMap = new HashMap<>();
-
-		setEndLine(); // remember endline of parsing service for error
-		assertToken( Scanner.TokenType.ID, "expected service name" );
-		ParsingContext ctx = getContext();
-		String serviceName = token.content();
-		nextToken();
-
-		Pair< String, TypeDefinition > parameter = parseServiceParameter();
-
-		setEndLine();// remember endline of parsing service for error
-		// look for curly bracket with scope and scopeName in case of error
-		eat( Scanner.TokenType.LCURLY, "expected {", serviceName, Keywords.SERVICE );
-		// jolie internal service's Interface
-		InterfaceDefinition[] internalIfaces = null;
-
-		DefinitionNode internalMain = null;
-		SequenceStatement internalInit = null;
-
-		ProgramBuilder serviceBlockProgramBuilder = new ProgramBuilder( getContext() );
-		boolean keepRun = true;
-
-		while( keepRun ) {
-			Optional< Scanner.Token > internalForwardDocToken = parseForwardDocumentation();
-			switch( token.content() ) {
-			case "Interfaces": // internal service node syntax
-				internalIfaces = parseInternalServiceInterface();
-				break;
-			case "include":
-				parseInclude();
-				break;
-			case "cset":
-				for( CorrelationSetInfo csetInfo : _parseCorrelationSets() ) {
-					serviceBlockProgramBuilder.addChild( csetInfo );
-				}
-				break;
-			case "execution":
-				serviceBlockProgramBuilder.addChild( _parseExecutionInfo() );
-				break;
-			case "courier":
-				serviceBlockProgramBuilder.addChild( parseCourierDefinition() );
-				break;
-			case "init":
-				if( internalInit == null ) {
-					internalInit = new SequenceStatement( getContext() );
-				}
-				internalInit.addChild( parseInit() );
-				break;
-			case "main":
-				// remember start and end line for error
-				setStartLine();
-				setEndLine();
-				if( internalMain != null ) {
-					throwException( "you must specify only one main definition" );
-				}
-				internalMain = parseMain();
-				break;
-			case "inputPort":
-			case "outputPort":
-				PortInfo p = _parsePort();
-				parseBackwardAndSetDocumentation( p, internalForwardDocToken );
-				serviceBlockProgramBuilder.addChild( p );
-				break;
-			case "define":
-				serviceBlockProgramBuilder.addChild( parseDefinition() );
-				break;
-			case "embed":
-				EmbedServiceNode embedServiceNode = parseEmbeddedServiceNode();
-				if( embedServiceNode.isNewPort() ) {
-					serviceBlockProgramBuilder
-						.addChild( embedServiceNode.bindingPort() );
-				}
-				serviceBlockProgramBuilder.addChild( embedServiceNode );
-				break;
-			case "foreign":
-				nextToken();
-				String technology = token.content();
-				if( technology.equals( "java" ) ) {
-					tech = Constants.EmbeddedServiceType.SERVICENODE_JAVA;
-				}
-				nextToken();
-				eat( Scanner.TokenType.LCURLY, "expected {" );
-				while( token.isNot( Scanner.TokenType.RCURLY ) ) {
-					String key = token.content();
-					nextToken();
-					eat( Scanner.TokenType.COLON, "expected :" );
-					String value = "";
-					while( !hasMetNewline() ) {
-						if( token.is( Scanner.TokenType.DOT ) ) {
-							value += ".";
-						} else {
-							value += token.content();
-						}
-						nextToken();
-					}
-					configMap.put( key, value );
-				}
-				setEndLine(); // remember end line for error
-				eat( Scanner.TokenType.RCURLY, "expected }" );
-			default:
-				setEndLine(); // remember end line for error
-				if( token.isNot( Scanner.TokenType.EOF ) ) {
-					setStartLine(); // remember start line for error
-				}
-				// assert with scopeName and scope in case of error
-				assertToken( Scanner.TokenType.RCURLY, "unexpected term found inside service " + serviceName,
-					serviceName, "service" );
-				keepRun = false;
-			}
+		record Internals(Constants.EmbeddedServiceType tech, InterfaceDefinition[] internalIfaces,
+			DefinitionNode internalMain, SequenceStatement internalInit,
+			ProgramBuilder serviceBlockProgramBuilder, String serviceName, Pair< String, TypeDefinition > parameter) {
 		}
-		setEndLine(); // remember end line for error
-		eat( Scanner.TokenType.RCURLY, "expected }" );
+		InternalParseResult< Internals > parseResult = parseInternals( () -> {
+			setStartLine(); // remember line we started parsing service at
+			nextToken();
+
+			Constants.EmbeddedServiceType tech = Constants.EmbeddedServiceType.SERVICENODE;
+
+			setEndLine(); // remember endline of parsing service for error
+			assertToken( Scanner.TokenType.ID, "expected service name" );
+			String serviceName = token.content();
+			nextToken();
+
+			Pair< String, TypeDefinition > parameter = parseServiceParameter();
+
+			setEndLine();// remember endline of parsing service for error
+			// look for curly bracket with scope and scopeName in case of error
+			eat( Scanner.TokenType.LCURLY, "expected {", serviceName, Keywords.SERVICE );
+			// jolie internal service's Interface
+			InterfaceDefinition[] internalIfaces = null;
+
+			DefinitionNode internalMain = null;
+			SequenceStatement internalInit = null;
+
+			ProgramBuilder serviceBlockProgramBuilder = new ProgramBuilder( getContext() );
+
+			boolean keepRun = true;
+
+			while( keepRun ) {
+				Optional< Scanner.Token > internalForwardDocToken = parseForwardDocumentation();
+				switch( token.content() ) {
+				case "Interfaces": // internal service node syntax
+					internalIfaces = parseInternalServiceInterface();
+					break;
+				case "include":
+					parseInclude();
+					break;
+				case "cset":
+					for( CorrelationSetInfo csetInfo : _parseCorrelationSets() ) {
+						serviceBlockProgramBuilder.addChild( csetInfo );
+					}
+					break;
+				case "execution":
+					serviceBlockProgramBuilder.addChild( _parseExecutionInfo() );
+					break;
+				case "courier":
+					serviceBlockProgramBuilder.addChild( parseCourierDefinition() );
+					break;
+				case "init":
+					if( internalInit == null ) {
+						internalInit = new SequenceStatement( getContext() );
+					}
+					internalInit.addChild( parseInit() );
+					break;
+				case "main":
+					// remember start and end line for error
+					setStartLine();
+					setEndLine();
+					if( internalMain != null ) {
+						throwException( "you must specify only one main definition" );
+					}
+					internalMain = parseMain();
+					break;
+				case "inputPort":
+				case "outputPort":
+					PortInfo p = _parsePort();
+					parseBackwardAndSetDocumentation( p, internalForwardDocToken );
+					serviceBlockProgramBuilder.addChild( p );
+					break;
+				case "define":
+					serviceBlockProgramBuilder.addChild( parseDefinition() );
+					break;
+				case "embed":
+					EmbedServiceNode embedServiceNode = parseEmbeddedServiceNode();
+					if( embedServiceNode.isNewPort() ) {
+						serviceBlockProgramBuilder
+							.addChild( embedServiceNode.bindingPort() );
+					}
+					serviceBlockProgramBuilder.addChild( embedServiceNode );
+					break;
+				case "foreign":
+					nextToken();
+					String technology = token.content();
+					if( technology.equals( "java" ) ) {
+						tech = Constants.EmbeddedServiceType.SERVICENODE_JAVA;
+					}
+					nextToken();
+					eat( Scanner.TokenType.LCURLY, "expected {" );
+					while( token.isNot( Scanner.TokenType.RCURLY ) ) {
+						String key = token.content();
+						nextToken();
+						eat( Scanner.TokenType.COLON, "expected :" );
+						String value = "";
+						while( !hasMetNewline() ) {
+							if( token.is( Scanner.TokenType.DOT ) ) {
+								value += ".";
+							} else {
+								value += token.content();
+							}
+							nextToken();
+						}
+						configMap.put( key, value );
+					}
+					setEndLine(); // remember end line for error
+					eat( Scanner.TokenType.RCURLY, "expected }" );
+				default:
+					setEndLine(); // remember end line for error
+					if( token.isNot( Scanner.TokenType.EOF ) ) {
+						setStartLine(); // remember start line for error
+					}
+					// assert with scopeName and scope in case of error
+					assertToken( Scanner.TokenType.RCURLY, "unexpected term found inside service " + serviceName,
+						serviceName, "service" );
+					keepRun = false;
+				}
+			}
+			setEndLine(); // remember end line for error
+			eat( Scanner.TokenType.RCURLY, "expected }" );
+			return new Internals( tech, internalIfaces, internalMain, internalInit, serviceBlockProgramBuilder,
+				serviceName, parameter );
+		} );
+
+		Internals internals = parseResult.internals();
+		InterfaceDefinition[] internalIfaces = internals.internalIfaces();
+		DefinitionNode internalMain = internals.internalMain();
+		SequenceStatement internalInit = internals.internalInit();
+		ProgramBuilder serviceBlockProgramBuilder = internals.serviceBlockProgramBuilder();
+		String serviceName = internals.serviceName();
+		Pair< String, TypeDefinition > parameter = internals.parameter();
+		Constants.EmbeddedServiceType tech = internals.tech();
+
 		// it is a Jolie internal service
 		if( internalIfaces != null && internalIfaces.length > 0 ) {
 			if( internalMain == null ) {
 				setEndLine(); // remember end line for error
 				throwException( "You must specify a main for service " + serviceName );
 			}
-			EmbeddedServiceNode node = createInternalService( ctx, serviceName, internalIfaces,
+			EmbeddedServiceNode node = createInternalService( parseResult.context(), serviceName, internalIfaces,
 				internalInit, internalMain, programBuilder );
 			programBuilder.addChild( node );
 		} else {
@@ -1729,7 +1783,7 @@ public class OLParser extends AbstractParser {
 			switch( tech ) {
 			case SERVICENODE:
 				serviceNode = createJolieServiceNode(
-					ctx,
+					parseResult.context(),
 					serviceName,
 					parameter,
 					accessModifier,
@@ -1740,7 +1794,7 @@ public class OLParser extends AbstractParser {
 				break;
 			default:
 				serviceNode = createForeignServiceNode(
-					ctx,
+					parseResult.context(),
 					serviceName,
 					parameter,
 					accessModifier,
