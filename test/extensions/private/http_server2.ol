@@ -30,13 +30,22 @@ Protocol: http
 Interfaces: ServerInterface
 }
 
+// Explicit test for http service aggregation on the TLS endpoint:
+// ServerInputS -> ServerForward -> ServerInput
+
+outputPort ServerForward {
+Location: Location_HTTPServer
+Protocol: http
+Interfaces: ServerInterface
+}
+
 inputPort ServerInputS {
 Location: Location_HTTPsServer
 Protocol: https {
 	.ssl.keyStore = "extensions/private/keystore.jks";
 	.ssl.keyStorePassword = KeystorePassword
 }
-Interfaces: ServerInterface
+Aggregates: ServerForward
 }
 
 main
