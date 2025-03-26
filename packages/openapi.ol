@@ -23,6 +23,9 @@ from types.definition-types import TypeDefinition
 from types.definition-types import Type
 from types.definition-types import NativeType
 from types.definition-types import Port
+from types.definition-types import TypeLink
+from types.definition-types import TypeInLine
+from types.definition-types import TypeChoice
 
 from console import Console
 from string-utils import StringUtils
@@ -136,11 +139,23 @@ interface OpenApiInterface {
 }
 
 type GetOpenApiFromJolieMetaDataRequest {
-  port: Port
-  host: string
-  scheme: string( enum(["http","https"]))
-  level0?: bool
-  template?: undefined
+    port: Port
+    host: string
+    scheme: string( enum(["http","https"]))
+    level0?: bool
+    version: string   // version of the document
+    template {
+            operations* {
+                operation: string 
+                path: string
+                method: string( enum(["get","post","put","delete"]))
+                faultsMapping* {
+                    jolieFault: string
+                    httpCode: int    
+                }
+            }
+    }
+    openApiVersion: string( enum(["2.0","3.0"]))    // version of the openapi
 }
 
 interface OpenApiGenerationInterface {
@@ -479,6 +494,10 @@ private service OpenApi3 {
     }
 }
 
+constants {
+    ERROR_TYPE_NAME = "ErrorType"
+}
+
 service OpenApi {
 
     execution: concurrent 
@@ -517,6 +536,13 @@ service OpenApi {
 
         [ getOpenApiFromJolieMetaData( request )( response ) {
 
+            // prepare template hashmap 
+            if ( is_defined( request.template ) ) {
+                for( op in request.operations ) {
+                    templateHashmap.( op.operation.name ) << op 
+                }
+            }
+
             level0 = false
             if ( is_defined( request.level0 ) ) { level0 = request.level0 }
             
@@ -530,7 +556,7 @@ service OpenApi {
                 info << {
                     title = request.port.name + " API"
                     description = ""
-                    version = ""
+                    version = request.version
                 }
                 servers << {                  
                     host = request.host
@@ -538,6 +564,9 @@ service OpenApi {
                     schemes = request.scheme
                 }
             }
+
+            /* creating hashmap for faults */
+            
 
             
             /* importing of tags and all the types */
@@ -550,7 +579,35 @@ service OpenApi {
                 }
                 for ( itftp in request.port.interfaces[ itf ].types ) {
                     openapi.types[ #openapi.types ] << itftp
+                    // cration of types hashmap
+                    typesHashmap.( request.port.interfaces[ itf ].name ).( itftp.name ) << itftp
                 }
+
+                // adding a general type InternalServerError for managing 500 codes
+                errorType << {
+                    name = ERROR_TYPE_NAME
+                    type << {
+                        root_type.void_type = true
+                        sub_type[ 0 ] << {
+                            name = "faultName"
+                            cardinality << {
+                                min = 1
+                                max = 1
+                            }
+                            type.root_type.string_type = true
+                        }
+                        sub_type[ 1 ] << {
+                            name = "message"
+                            cardinality << {
+                                min = 1
+                                max = 1
+                            }
+                            type.root_type.string_type = true
+                        }
+                    }
+                }
+                openapi.types[ #openapi.types ] << errorType
+                typesHashmap.( request.port.interfaces[ itf ].name ).( ERROR_TYPE_NAME ) << itftp
             }
             
 
@@ -562,91 +619,88 @@ service OpenApi {
             // for each interface in the port
             for( int_i = 0, int_i < #request.port.interfaces, int_i++ ) {
                 c_interface -> request.port.interfaces[ int_i ]
-                c_interface_name = c_interface.name
                 
                 // for each operations in the interfaces
                 for( o = 0, o < #c_interface.operations, o++ ) {
-                        oper -> c_interface.operations[ o ]
-                        if ( LOG ) { println@Console("Analyzing operation:" + oper.operation_name )() }
-                        error_prefix =  "ERROR on port " + request.port.name + ", operation " + oper.operation_name + ":" + "the operation has been declared to be imported as a REST ";
+                        c_op -> c_interface.operations[ o ]
+                        if ( LOG ) { println@Console("Analyzing operation:" + c_op.operation_name )() }
+                        error_prefix =  "ERROR on port " + request.port.name + ", operation " + c_op.operation_name + ":" + "the operation has been declared to be imported as a REST ";
                         
-                        undef( __template )
-                        undef( __method )
+                        undef( c_template )
+                    
                         // defining method
-                        __method = request.template.( oper.operation_name ).method
-                        if ( is_defined( request.template.( oper.operation_name ).template ) ) {
-                            __template  = request.template.( oper.operation_name ).template
+                        if ( is_defined( templateHashmap.( c_op.operation_name ) ) ) {
+                            c_template  << templateHashmap.( c_op.operation_name )
                         } 
-                        if ( !level0 && !( __template instanceof void  ) ) {
-                            if ( __method == "" || __method instanceof void ) {
-                                throw( DefinitionError, "Template " + __given_template.template + " of operation " + oper.operation_name + " does not define the method, not permitted" )
-                            }
-                        } 
-                        
-                        if ( __method instanceof void ) {
-                            __method = "post"
-                        }
 
-                        if ( LOG ) { println@Console("Operation Template:" + __template )() }
+                        if ( LOG ) { println@Console("Operation Template:" + c_template )() }
 
                         path_counter++;
 
                         // start definition of specific path method
-                        with( openapi.paths[ path_counter ].( __method ) ) {
-                            // general data
-                            .tags = c_interface_name;
-                            .description = "";
-                            .operationId = oper.operation_name;
-                            .consumes[0] = "application/json";
-                            .produces = "application/json";
+                        // general data
+                        openapi.paths[ path_counter ].( c_template.method ) << {
+                            tags = c_interface.name
+                            description = ""
+                            operationId = oper.operation_name
+                            consumes = "application/json"
+                            produces = "application/json"
+                        }
 
-                            // standard responses
+                        // standard responses
 
-                            // 200
-                            with( .responses[ 0 ] ) {
-                                    .status = 200;
-                                    .description = "OK";
-                                    tp_resp_count = 0; tp_resp_found = false;
+                        // 200
+                        openapi.paths[ path_counter ].( c_template.method ).responses[ 0 ] << {
+                            status = 200
+                            description = "Success"
+                        }
+                        // schema_link is added only if the response has a type
+                        if ( is_defined( typesHashmap.( c_interface.name ).( c_op.output ) ) ) {
+                            openapi.paths[ path_counter ].( c_template.method ).responses[ 0 ].schema.link_name << typesHashmap.( c_interface.name ).( c_op.output )
+                        }
 
-                                    // looking for response type in the list of the interface types
-                                    while( !tp_resp_found && tp_resp_count < #c_interface.types ) {
-                                        if ( c_interface.types[ tp_resp_count ].name == oper.output ) {
-                                            tp_resp_found = true
-                                        } else {
-                                            tp_resp_count++
-                                        }
-                                    };
-                                    if ( tp_resp_found ) {
-                                        // if the response type has been found, the schema link to the definition is reported
-                                        .schema.link_name << c_interface.types[ tp_resp_count ].name
-                                    }
+
+                        // 500 added by default, it covers all the not mapped faults
+                        openapi.paths[ path_counter ].( c_template.method ).responses[ 1 ] << {
+                            status = 500
+                            description = "resource not found"
+                            schema.link_name = ERROR_TYPE_NAME
+                        }
+
+                        // mapped faults
+                        for( fm in c_template.faultsMapping ) {
+                            // http code 500 is added by default, and covers all the not mapped faults
+                            if ( fm.httpCode == 500 ) {
+                                throw( DefinitionError, "HttpCode 500 in fault mapping, not permitted")
                             }
-
-                            // 404
-                            with( .responses[ 1 ] ) {
-                                .status = 404;
-                                .description = "resource not found"
+                            responses_index = #openapi.paths[ path_counter ].( c_template.method ).responses
+                            openapi.paths[ path_counter ].( c_template.method ).responses[ responses_index ]<< {
+                                status = fm.httpCode
+                                description = fm.jolieFault
+                                schema.link_name = 
                             }
-                            undef( fnames )
+                        } 
+                    
+                        undef( fnames )
 
-                            // if jolie faults exist, they will be collected under 500
-                            if ( #oper.fault > 0 ) {
-                                for ( f = 0, f < #oper.fault, f++ ) {
-                                        
-                                        gdff.fault -> oper.fault[ f ];
-                                        gdff.name = fnames[ #fnames ] = JOLIE_FAULT_PREFIX + jolieFaultTypeCounter
-                                        getFaultDefinitionForOpenAPI@Utils( gdff )( fault_definition )
-                                        openapi.definitions[ #openapi.definitions ] << fault_definition
-                                        jolieFaultTypeCounter++     
-                                }
-                                with( .responses[ 2 ] ) {
-                                    .status = 500;
-                                    gsff.name -> fnames
-                                    getSchemaForFaults@Utils( gsff )( .schema )
-                                    .description = "JolieFault"
-                                }
+                            
+                        if ( #c_op.fault > 0 ) {
+                            for ( f = 0, f < #c_op.fault, f++ ) {
+                                    
+                                    gdff.fault -> c_op.fault[ f ];
+                                    gdff.name = fnames[ #fnames ] = JOLIE_FAULT_PREFIX + jolieFaultTypeCounter
+                                    getFaultDefinitionForOpenAPI@Utils( gdff )( fault_definition )
+                                    openapi.definitions[ #openapi.definitions ] << fault_definition
+                                    jolieFaultTypeCounter++     
                             }
-                        };
+                            with( .responses[ 2 ] ) {
+                                .status = 500;
+                                gsff.name -> fnames
+                                getSchemaForFaults@Utils( gsff )( .schema )
+                                .description = "JolieFault"
+                            }
+                        }
+                        
 
                         // analyzing request
                         openapi_params_count = -1
@@ -678,14 +732,14 @@ service OpenApi {
                         }
 
                         // request analysis depends on the presence of a template
-                        if ( !( __template instanceof void ) ) {
+                        if ( !( c_template instanceof void ) ) {
                             
                             // the template exists, thus the parameters of the template must be separated from the body if they exist
-                            getParamList@JesterUtils( __template )( found_params )
+                            getParamList@JesterUtils( c_template )( found_params )
 
                             if ( found_params ) {
                                     /* there are parameters in the template */
-                                    error_prefix = error_prefix + "with template " + __template + " ";
+                                    error_prefix = error_prefix + "with template " + c_template + " ";
                                     if ( !tp_found ) {
                                             error_msg = current_type.name +  ": the request type does not declare any field";
                                             throw( DefinitionError, error_msg )
@@ -798,7 +852,7 @@ service OpenApi {
                             }
                         } else {
                             /* the template is not defined */
-                            __template = "/" + oper.operation_name;
+                            c_template = "/" + oper.operation_name;
 
                             /* if it is a GET, extract the query params from the request message */
                             if ( __method == "get" ) {
@@ -832,7 +886,7 @@ service OpenApi {
                                                 }
                                             }
                                             ;
-                                            __template = __template + "/{" + current_sbt.name + "}"
+                                            c_template = c_template + "/{" + current_sbt.name + "}"
                                     }
                             } else {
                                 // methods POST, PUT, DELETE
@@ -845,10 +899,10 @@ service OpenApi {
 
                                     }
                             };
-                            if ( LOG ) { println@Console( "Template automatically generated:" + __template )() }
+                            if ( LOG ) { println@Console( "Template automatically generated:" + c_template )() }
                         }
                         ;
-                        splr = __template
+                        splr = c_template
                         splr.regex = "\\?"
                         split@StringUtils( splr )( splres );
                         openapi.paths[ path_counter ] = splres.result[ 0 ]
