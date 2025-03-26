@@ -21,6 +21,8 @@ package jolie.lang.parse.module;
 
 import java.io.InputStream;
 import java.net.URI;
+import java.net.URISyntaxException;
+import java.nio.file.Paths;
 import java.util.Optional;
 
 /**
@@ -30,10 +32,12 @@ class InputStreamSource implements ModuleSource {
 
 	private final InputStream is;
 	private final URI uri;
+	private final String name;
 
-	protected InputStreamSource( InputStream is, URI uri ) {
+	public InputStreamSource( InputStream is, URI uri, String name ) {
 		this.is = is;
 		this.uri = uri;
+		this.name = name;
 	}
 
 	@Override
@@ -45,12 +49,35 @@ class InputStreamSource implements ModuleSource {
 	 * the include path of ol file should be empty
 	 */
 	@Override
-	public Optional< String > includePath() {
-		return Optional.empty();
+	public Optional< URI > includePath() {
+		return this.parentURI();
 	}
 
 	@Override
-	public Optional< InputStream > openStream() {
-		return Optional.of( this.is );
+	public InputStream openStream() {
+		return this.is;
 	}
+
+	@Override
+	public String name() {
+		return this.name;
+	}
+
+	@Override
+	public Optional< URI > parentURI() {
+		switch( this.uri.getScheme() ) {
+		case "jap":
+			try {
+				return Optional
+					.of( new URI( this.uri.toString().substring( 0, this.uri.toString().lastIndexOf( '/' ) ) ) );
+			} catch( URISyntaxException e ) {
+				return Optional.empty();
+			}
+		case "file":
+			return Optional.of( Paths.get( this.uri ).getParent().toUri() );
+		default:
+			return Optional.empty();
+		}
+	}
+
 }

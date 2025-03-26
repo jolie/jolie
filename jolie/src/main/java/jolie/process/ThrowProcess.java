@@ -22,6 +22,7 @@
 package jolie.process;
 
 import jolie.ExecutionThread;
+import jolie.lang.parse.context.ParsingContext;
 import jolie.runtime.FaultException;
 import jolie.runtime.expression.Expression;
 
@@ -29,15 +30,17 @@ import jolie.runtime.expression.Expression;
 public class ThrowProcess implements Process {
 	final private String faultName;
 	final private Expression expression;
+	final private ParsingContext context;
 
-	public ThrowProcess( String faultName, Expression expression ) {
+	public ThrowProcess( String faultName, Expression expression, ParsingContext context ) {
 		this.faultName = faultName;
 		this.expression = expression;
+		this.context = context;
 	}
 
 	@Override
 	public Process copy( TransformationReason reason ) {
-		return new ThrowProcess( faultName, expression );
+		return new ThrowProcess( faultName, expression, context );
 	}
 
 	@Override
@@ -47,9 +50,9 @@ public class ThrowProcess implements Process {
 			return;
 
 		if( expression == null ) {
-			throw new FaultException( faultName );
+			throw new FaultException( faultName, this.context );
 		} else {
-			throw new FaultException( faultName, expression.evaluate() );
+			throw new FaultException( faultName, expression.evaluate(), this.context );
 		}
 	}
 

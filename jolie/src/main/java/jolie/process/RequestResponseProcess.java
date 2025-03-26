@@ -23,7 +23,6 @@ package jolie.process;
 
 import java.io.IOException;
 import java.util.concurrent.Future;
-
 import jolie.ExecutionThread;
 import jolie.Interpreter;
 import jolie.lang.Constants;
@@ -175,7 +174,9 @@ public class RequestResponseProcess implements InputOperationProcess {
 			Interpreter.getInstance().logSevere(
 				"Request-Response process for " + operation.id() +
 					" threw an undeclared fault for that operation (" + f.faultName() + "), throwing TypeMismatch" );
+			// TODO context should be added to message
 			f = new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "Internal server error" );
+			// Context not added as it should not & cannot be sent
 		}
 		return CommMessage.createFaultResponse( request, f );
 	}
@@ -223,9 +224,11 @@ public class RequestResponseProcess implements InputOperationProcess {
 							log( "TYPE MISMATCH", response );
 							typeMismatch = new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME,
 								"Request-Response input operation output value TypeMismatch (operation "
-									+ operation.id() + "): " + e.getMessage() );
+									+ operation.id() + "): " + e.getMessage(),
+								this.context );
 							response = CommMessage.createFaultResponse( message, new FaultException(
 								Constants.TYPE_MISMATCH_FAULT_NAME, "Internal server error (TypeMismatch)" ) );
+							// Context not added as it should not & cannot be sent
 							responseStatus = OperationEndedEvent.ERROR;
 							details = Constants.TYPE_MISMATCH_FAULT_NAME;
 						}
@@ -242,7 +245,8 @@ public class RequestResponseProcess implements InputOperationProcess {
 			} catch( TypeCheckingException e ) {
 				typeMismatch = new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME,
 					"Request-Response process TypeMismatch for fault " + f.faultName() + " (operation " + operation.id()
-						+ "): " + e.getMessage() );
+						+ "): " + e.getMessage(),
+					this.context );
 				response = CommMessage.createFaultResponse( message, typeMismatch );
 				responseStatus = OperationEndedEvent.ERROR;
 				details = typeMismatch.faultName();
@@ -268,7 +272,7 @@ public class RequestResponseProcess implements InputOperationProcess {
 			}
 		} catch( IOException e ) {
 			// Interpreter.getInstance().logSevere( e );
-			throw new FaultException( Constants.IO_EXCEPTION_FAULT_NAME, e );
+			throw new FaultException( Constants.IO_EXCEPTION_FAULT_NAME, e, this.context );
 		} finally {
 			try {
 				channel.release(); // TODO: what if the channel is in disposeForInput?

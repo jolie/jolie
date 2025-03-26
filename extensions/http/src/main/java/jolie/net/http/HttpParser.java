@@ -91,7 +91,6 @@ public class HttpParser {
 			value = scanner.readLine();
 			switch( name ) {
 			case "set-cookie":
-				// cookie = parseSetCookie( value );
 				if( (cookie = parseSetCookie( value )) != null ) {
 					message.addSetCookie( cookie );
 				}
@@ -185,7 +184,7 @@ public class HttpParser {
 
 		nextToken();
 		if( !token.isKeywordIgnoreCase( HTTP ) )
-			throw new UnsupportedHttpVersionException( "Invalid HTTP header: expected HTTP version" );
+			throw new UnsupportedHttpVersionException( "Expected HTTP version" );
 
 		if( scanner.currentCharacter() != '/' )
 			throw new UnsupportedHttpVersionException( "Expected HTTP version" );
@@ -214,11 +213,11 @@ public class HttpParser {
 		throws IOException {
 		HttpMessage message = new HttpMessage( HttpMessage.Type.RESPONSE );
 		if( scanner.currentCharacter() != '/' )
-			throw new IOException( "Expected HTTP version" );
+			throw new UnsupportedHttpVersionException( "Expected HTTP version" );
 
 		String version = scanner.readWord();
 		if( !("1.1".equals( version ) || "1.0".equals( version )) )
-			throw new IOException( "Unsupported HTTP version specified: " + version );
+			throw new UnsupportedHttpVersionException( "Unsupported HTTP version specified: " + version );
 
 		nextToken();
 		tokenAssert( Scanner.TokenType.INT );
@@ -289,14 +288,14 @@ public class HttpParser {
 			do {
 				// the chunk header contains the size in hex format
 				// and could contain additional parameters which we ignore atm
-				String chunkHeader = scanner.readLine( false );
+				String chunkHeader = scanner.readLine();
 				String chunkSize = chunkHeader.split( ";", 2 )[ 0 ];
 				try {
 					l = Integer.parseInt( chunkSize, 16 );
 				} catch( NumberFormatException e ) {
 					throw new IOException( "Illegal chunk size " + chunkSize );
 				}
-				// parses the real chunk with the specified size, follwed by CR-LF
+				// parses the real chunk with the specified size, followed by CR-LF
 				if( l > 0 ) {
 					totalLen += l;
 					byte[] chunk = new byte[ l ];

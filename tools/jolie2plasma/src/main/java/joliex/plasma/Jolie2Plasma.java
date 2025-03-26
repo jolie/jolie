@@ -54,8 +54,7 @@ public class Jolie2Plasma {
 
 			try( Writer writer = new BufferedWriter( new FileWriter( arguments[ 0 ] ) ) ) {
 				Program program = ParsingUtils.parseProgram(
-					cmdParser.getInterpreterConfiguration().inputStream(),
-					cmdParser.getInterpreterConfiguration().programFilepath().toURI(),
+					cmdParser.getInterpreterConfiguration().source(),
 					cmdParser.getInterpreterConfiguration().charset(),
 					cmdParser.getInterpreterConfiguration().includePaths(),
 					cmdParser.getInterpreterConfiguration().packagePaths(),
