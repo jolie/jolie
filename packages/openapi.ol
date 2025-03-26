@@ -148,8 +148,8 @@ type GetOpenApiFromJolieMetaDataRequest {
     template {
             operations* {
                 operation: string 
-                path: string
-                method: string( enum(["get","post","put","delete"]))
+                path?: string
+                method: string( enum(["get","post","put","delete","patch"]))
                 faultsMapping* {
                     jolieFault: string
                     httpCode: int    
@@ -159,11 +159,40 @@ type GetOpenApiFromJolieMetaDataRequest {
     openApiVersion: string( enum(["2.0","3.0"]))    // version of the openapi
 }
 
-interface OpenApiGenerationInterface {
-    RequestResponse:
-        getOpenApiFromJolieMetaData( GetOpenApiFromJolieMetaDataRequest )( string ) throws DefinitionError( string )
+type CheckTypeConsistencyRequest: void {
+    typeMap: undefined 
+    typeName: string
 }
 
+
+type CheckBranchChoiceConsistency: void {
+    branch: Type
+    typeMap: undefined 
+}
+
+type GetActualCurrentTypeRequest: void {
+    typeMap: undefined 
+    typeName: string
+}
+
+type GetParamsListResponse: bool {
+    query*: undefined
+    path*: undefined
+}
+
+
+interface OpenApiGenerationInterface {
+    RequestResponse:
+        getOpenApiFromJolieMetaData( GetOpenApiFromJolieMetaDataRequest )( string ) throws DefinitionError( string ),
+        checkTypeConsistency( CheckTypeConsistencyRequest )( bool ) throws DefinitionError
+}
+
+interface OpenApiGenerationInterfacePrivate {
+    RequestResponse:
+        getParamListFromPathTemplate( string )( GetParamsListResponse ),
+        checkBranchChoiceConsistency( CheckBranchChoiceConsistency )( bool ) throws DefinitionError,
+        getActualCurrentType( GetActualCurrentTypeRequest )( string )
+}
 
 private service OpenApi2 {
 
@@ -513,13 +542,13 @@ service OpenApi {
     embed Trees as Trees
 
     outputPort MySelf {
-        interfaces: OpenApiInterface
+        interfaces: OpenApiInterface, OpenApiGenerationInterface, OpenApiGenerationInterfacePrivate
     }
     
 
     inputPort OpenApi {
         location: "local"
-        interfaces: OpenApiInterface, OpenApiGenerationInterface
+        interfaces: OpenApiInterface, OpenApiGenerationInterface, OpenApiGenerationInterfacePrivate
     }
 
     init {
@@ -540,23 +569,28 @@ service OpenApi {
 
             // prepare template hashmap 
             if ( is_defined( request.template ) ) {
-                templateHashmap = getHashMap@Trees({
-                    vector -> request.operations
-                    key = "name"
-                })
                 for( op in request.operations ) {
                     templateHashmap.( op.operation.name ) << op 
                 }
             }
+            
 
             level0 = false
             if ( is_defined( request.level0 ) ) { level0 = request.level0 }
             
-            /* creating a map name-types for managing type links */
+            /* creating a map name-types and a map of faults for managing type links */
             for( itf in request.port.interfaces ) { 
-                for( tps in itf.types ) { type_map.( tps.name ) << tps }
+                for( tps in itf.types ) { typeMap.( tps.name ) << tps }
+                for( op in itf.operations ) {
+                    for( f in op.faults ) {
+                        faultsMap.( op.operation_name ).( f.name ) << f
+                    }
+                }
             } 
 
+            /* creating hashmap for faults */
+
+            
             /* creating openapi definition file */
             openapi << {
                 info << {
@@ -569,11 +603,8 @@ service OpenApi {
                     basePath = "/"
                     schemes = request.scheme
                 }
+                version = request.openApiVersion
             }
-
-            /* creating hashmap for faults */
-            
-
             
             /* importing of tags and all the types */
             for( itf = 0, utf < #request.port.interfaces, itf++ ) {
@@ -586,7 +617,7 @@ service OpenApi {
                 for ( itftp in request.port.interfaces[ itf ].types ) {
                     openapi.types[ #openapi.types ] << itftp
                     // cration of types hashmap
-                    typesHashmap.( request.port.interfaces[ itf ].name ).( itftp.name ) << itftp
+                    typeMap.( itftp.name ) << itftp
                 }
 
                 // adding a general type InternalServerError for managing 500 codes
@@ -613,7 +644,7 @@ service OpenApi {
                     }
                 }
                 openapi.types[ #openapi.types ] << errorType
-                typesHashmap.( request.port.interfaces[ itf ].name ).( ERROR_TYPE_NAME ) << itftp
+                typeMap.( ERROR_TYPE_NAME ) << itftp
             }
             
 
@@ -628,298 +659,318 @@ service OpenApi {
                 
                 // for each operations in the interfaces
                 for( o = 0, o < #c_interface.operations, o++ ) {
-                        c_op -> c_interface.operations[ o ]
-                        if ( LOG ) { println@Console("Analyzing operation:" + c_op.operation_name )() }
-                        error_prefix =  "ERROR on port " + request.port.name + ", operation " + c_op.operation_name + ":" + "the operation has been declared to be imported as a REST ";
-                        
-                        undef( c_template )
+                    c_op -> c_interface.operations[ o ]
+                    if ( LOG ) { println@Console("Analyzing operation:" + c_op.operation_name )() }
+                    error_prefix =  "ERROR on port " + request.port.name + ", operation " + c_op.operation_name + ":" + "the operation has been declared to be imported as a REST ";
                     
-                        // defining method
-                        if ( is_defined( templateHashmap.( c_op.operation_name ) ) ) {
-                            c_template  << templateHashmap.( c_op.operation_name )
+                    undef( c_template )
+                
+                    // defining method
+                    if ( is_defined( templateHashmap.( c_op.operation_name ) ) ) {
+                        c_template  << templateHashmap.( c_op.operation_name )
+                    } 
+
+                    if ( LOG ) { println@Console("Operation Template:" + c_template )() }
+
+                    path_counter++;
+
+                    // start definition of specific path method
+                    // general data
+                    if ( is_defined( c_template.path ) ) {
+                        split@StringUtils( c_template.path {
+                            regex = "\\?"
+                        } )( splres )
+                        openapi.paths[ path_counter ] = splres.result[ 0 ]
+                    } else {
+                        // if there is not template, the path is just the name of the operation
+                        openapi.paths[ path_counter ] = "/" + c_op.operation_name
+                    }
+
+                    if ( is_defined( c_template.method ) ) {
+                        method = c_template.method
+                    } else {
+                        // if there is not template, the default method is post
+                        method = "post"
+                    }
+
+
+                    openapi.paths[ path_counter ].( method ) << {
+                        tags = c_interface.name
+                        description = ""
+                        operationId = c_op.operation_name
+                        consumes = "application/json"
+                        produces = "application/json"
+                    }
+
+                    // standard responses
+
+                    // 200
+                    openapi.paths[ path_counter ].( method ).responses[ 0 ] << {
+                        status = 200
+                        description = "Success"
+                    }
+                    // schema_link is added only if the response has a type
+                    if ( is_defined( typeMap.( c_op.output ) ) ) {
+                        openapi.paths[ path_counter ].( method ).responses[ 0 ].schema.link_name << typeMap.( c_op.output )
+                    }
+
+
+                    // 500 added by default, it covers all the not mapped faults
+                    openapi.paths[ path_counter ].( method ).responses[ 1 ] << {
+                        status = 500
+                        description = "resource not found"
+                        schema.link_name = ERROR_TYPE_NAME
+                    }
+
+                    // mapped faults
+                    for( fm in c_template.faultsMapping ) {
+                        // http code 500 is added by default, and covers all the not mapped faults
+                        if ( fm.httpCode == 500 ) {
+                            throw( DefinitionError, "HttpCode 500 in fault mapping, not permitted")
+                        }
+                        responses_index = #openapi.paths[ path_counter ].( method ).responses
+                        openapi.paths[ path_counter ].( method ).responses[ responses_index ]<< {
+                            status = fm.httpCode
+                            description = fm.jolieFault
+                            schema << faultsMap.( c_op.operation_name ).( fm.jolieFault )
+                        }
+                    } 
+                
+                    undef( fnames )
+
+                    // analyzing request
+
+
+                    /* finding request type description */
+                    api_request_type << typeMap.( c_op.input )
+
+                    // checking request type consistency and get the actual one
+                    if ( !(api_request_type instanceof void ) ) {
+                        // a request type has been found
+                        // check the consistency of the root type of the type: it cannot be void, etc
+                        checkTypeConsistency@MySelf( {
+                            typeName = api_request_type.name
+                            typeMap -> typeMap
+                        } )( response )
+
+                        // in case the request type is a link, we must find the last linked type and pointing to that type
+                        getActualCurrentType@MySelf( {
+                            typeName = api_request_type.name
+                            typeMap -> typeMap
+                        } )( actual_type_name )
+                        api_request_type << typeMap.( actual_type_name )
+                    } 
+
+                           
+                    // the template exists, thus the parameters of the template must be separated from the body if they exist
+                    getParamListFromPathTemplate@MySelf( c_template.path )( found_params )
+
+                    if ( found_params ) {
+                        /* there are parameters in the template */
+                        if ( api_request_type instanceof void ) {
+                            // void request is not allowed in case of params
+                            throw( DefinitionError, api_request_type.name +  ": the request type does not declare any field" )
+                        } else if ( api_request_type.type instanceof TypeChoice ) {
+                            // type choice are not allowed in case of params
+                            throw( DefinitionError, api_request_type.name +  ": the request type cannot be a choice type when the template specifies parameters in the URL" )
                         } 
 
-                        if ( LOG ) { println@Console("Operation Template:" + c_template )() }
-
-                        path_counter++;
-
-                        // start definition of specific path method
-                        // general data
-                        openapi.paths[ path_counter ].( c_template.method ) << {
-                            tags = c_interface.name
-                            description = ""
-                            operationId = oper.operation_name
-                            consumes = "application/json"
-                            produces = "application/json"
-                        }
-
-                        // standard responses
-
-                        // 200
-                        openapi.paths[ path_counter ].( c_template.method ).responses[ 0 ] << {
-                            status = 200
-                            description = "Success"
-                        }
-                        // schema_link is added only if the response has a type
-                        if ( is_defined( typesHashmap.( c_interface.name ).( c_op.output ) ) ) {
-                            openapi.paths[ path_counter ].( c_template.method ).responses[ 0 ].schema.link_name << typesHashmap.( c_interface.name ).( c_op.output )
-                        }
-
-
-                        // 500 added by default, it covers all the not mapped faults
-                        openapi.paths[ path_counter ].( c_template.method ).responses[ 1 ] << {
-                            status = 500
-                            description = "resource not found"
-                            schema.link_name = ERROR_TYPE_NAME
-                        }
-
-                        // mapped faults
-                        for( fm in c_template.faultsMapping ) {
-                            // http code 500 is added by default, and covers all the not mapped faults
-                            if ( fm.httpCode == 500 ) {
-                                throw( DefinitionError, "HttpCode 500 in fault mapping, not permitted")
-                            }
-                            responses_index = #openapi.paths[ path_counter ].( c_template.method ).responses
-                            openapi.paths[ path_counter ].( c_template.method ).responses[ responses_index ]<< {
-                                status = fm.httpCode
-                                description = fm.jolieFault
-                                schema.link_name = 
-                            }
-                        } 
+                        /* if there are parameters in the template path the request type must be analyzed */
+                        // ranging over the subtypes of the request for finding those field that corresponds to those in the template
+                        undef( body_params )
+                        for( sbt in api_request_type.type.sub_type ) {
+                            if ( sbt.cardinality.min > 0 ) { required = true } else { required = false }
                     
-                        undef( fnames )
-
-                            
-                        if ( #c_op.fault > 0 ) {
-                            for ( f = 0, f < #c_op.fault, f++ ) {
-                                    
-                                    gdff.fault -> c_op.fault[ f ];
-                                    gdff.name = fnames[ #fnames ] = JOLIE_FAULT_PREFIX + jolieFaultTypeCounter
-                                    getFaultDefinitionForOpenAPI@Utils( gdff )( fault_definition )
-                                    openapi.definitions[ #openapi.definitions ] << fault_definition
-                                    jolieFaultTypeCounter++     
-                            }
-                            with( .responses[ 2 ] ) {
-                                .status = 500;
-                                gsff.name -> fnames
-                                getSchemaForFaults@Utils( gsff )( .schema )
-                                .description = "JolieFault"
-                            }
-                        }
-                        
-
-                        // analyzing request
-                        openapi_params_count = -1
-                        current_openapi_path -> openapi.paths[ path_counter ].( __method )
-
-                        /* finding request type description */
-                        tp_count = 0; tp_found = false;
-                        while( !tp_found && tp_count < #c_interface.types ) {
-                            if ( c_interface.types[ tp_count ].name == oper.input ) {
-                                tp_found = true
-                            } else {
-                                tp_count++
-                            }
-                        }
-
-                        if ( tp_found ) {
-                            // a request type has been found
-                            // check the consistency of the root type of the type: it cannot be void, etc
-                            check_rq = c_interface.types[ tp_count ].name
-                            check_rq.type_map -> type_map
-                            checkTypeConsistency@JesterUtils( check_rq )()
-
-                            // in case the request type is a link, we must find the last linked type and pointing to that type
-                            real_current_type -> c_interface.types[ tp_count ]
-                            get_actual_ctype_rq = c_interface.types[ tp_count ].name
-                            get_actual_ctype_rq.type_map -> type_map 
-                            getActualCurrentType@JesterUtils( get_actual_ctype_rq )( actual_type_name );
-                            current_type -> type_map.( actual_type_name )
-                        }
-
-                        // request analysis depends on the presence of a template
-                        if ( !( c_template instanceof void ) ) {
-                            
-                            // the template exists, thus the parameters of the template must be separated from the body if they exist
-                            getParamList@JesterUtils( c_template )( found_params )
-
-                            if ( found_params ) {
-                                    /* there are parameters in the template */
-                                    error_prefix = error_prefix + "with template " + c_template + " ";
-                                    if ( !tp_found ) {
-                                            error_msg = current_type.name +  ": the request type does not declare any field";
-                                            throw( DefinitionError, error_msg )
-                                    } else if ( current_type.type instanceof TypeChoice ) {
-                                            error_msg = current_type.name +  ": the request type cannot be a choice type when the template specifies parameters in the URL"
-                                            throw( DefinitionError, error_msg )
-                                    } else {
-                                            /* if there are parameters in the template the request type must be analyzed */
-                                            // ranging over the subtypes of the request for finding those field that corresponds to those in the template
-                                            undef( body_params )
-                                            for( sbt = 0, sbt < #current_type.type.sub_type, sbt++ ) {
-                                                
-                                                current_sbt -> current_type.type.sub_type[ sbt ];
-                                                current_root_type -> current_sbt.type.root_type;  
-                                                __str_to_search = current_sbt.name 
-                                                __found = ""
-                                                check_param_found
-                                                // variable __found can be "body", "path" or "query"   
-
-                                                /* path and query parameters msut be defined separately, whereas body parameters must be collected 
-                                                under a single parameter here named "body" */                           
-                                                
-                                                // preparing the definition of the current parameter if it is in path or query
-                                                if ( __found != "body" ) {
-                                                    openapi_params_count++;
-                                                    with( current_openapi_path.parameters[ openapi_params_count ] ) {
-                                                        /* if a parameter name corresponds with a node of the type, such a node must be declared as a simple native type node */
-                                                        .name = current_sbt.name;
-                                                        if ( current_sbt.cardinality.min > 0 ) {
-                                                            .required = true
-                                                        };
-                                                        
-                                                        // a path or query parameter cannot be a structured type in jolie
-                                                        if ( current_sbt.type instanceof TypeInLine ) {
-                                                            if ( #current_sbt.type.sub_type > 0 ) {
-                                                                error_msg = "Type " + current_type.name +  ", field " + current_sbt.name + "  has been declared as a type with subnodes which is not permitted when it is used in a template"
-                                                                throw( DefinitionError, error_msg )
-                                                            }
-                                                        } else if ( current_sbt.type instanceof TypeChoice ) {
-                                                            error_msg = "Type " + current_type.name +  ", field " + current_sbt.name + "  has been declared as a type choice. Not permitted when a template is defined"
-                                                            throw( DefinitionError, error_msg )
-                                                        } else if ( current_sbt.type instanceof TypeLink ) {
-                                                                get_actual_ctype_rq = current_sbt.type.link_name
-                                                                get_actual_ctype_rq.type_map -> type_map 
-                                                                getActualCurrentType@JesterUtils( get_actual_ctype_rq )( sbt_actual_linked_type )
-                                                                if ( type_map.( sbt_actual_linked_type ).sub_type > 0 ) {
-                                                                    error_msg = "Type " + current_type.name +  ", field " + current_sbt.name + " cannot reference to another type because it is a path parameter"
-                                                                    throw( DefinitionError, error_msg )
-                                                                }
-                                                        }
-
-                                                        .in.other = __found;
-                                                        .in.other.type << current_sbt.type 
-                                                    }
-                                                } else {
-                                                    // it is a body parameter
-                                                    body_params[ #body_params ] << current_sbt
-                                                }
-                                            }
-
-                                            // checking if there are parameters in the body and preparing their definition
-                                            if ( #body_params > 0 && __method != "get" ) {
-                                                // creating a type on the fly which contains all the body parameters
-
-                                                undef( body_type ) 
-                                                body_type.root_type.void_type = true 
-                                                for ( bp in body_params ) {
-                                                    body_type.sub_type[ #body_type.sub_type ] << bp
-                                                }
-
-                                                
-                                                openapi_params_count++
-                                                current_openapi_path.parameters[ openapi_params_count ] << {
-                                                    name = "body"
-                                                    required = true
-                                                    in.in_body.schema_type << body_type
-                                                }
-                                                
-                                            }
+                            if ( is_defined( found_params.query.( sbt.name ) ) || is_defined( found_params.path.( sbt.name ) ) ) {
+                                /* path and query parameters msut be defined separately, whereas body parameters must be collected 
+                                under a single parameter here named "body" */    
+                                // a path or query parameter cannot be a structured type in jolie
+                                if ( sbt.type instanceof TypeInLine ) {
+                                    if ( #sbt.type.sub_type > 0 ) {
+                                        throw( DefinitionError, "Type " + api_request_type.name +  ", field " + sbt.name + "  has been declared as a type with subnodes which is not permitted when it is used in a template" )
                                     }
+                                } else if ( sbt.type instanceof TypeChoice ) {
+                                    throw( DefinitionError, "Type " + api_request_type.name +  ", field " + sbt.name + "  has been declared as a type choice. Not permitted when a template is defined" )
+                                } else if ( sbt.type instanceof TypeLink ) {
+                                    sbt_actual_linked_type = getActualCurrentType@MySelf( sbt.type.link_name {
+                                        typeMap -> typeMap
+                                    } )
+                                    if ( #typeMap.( sbt_actual_linked_type ).sub_type > 0 ) {
+                                        throw( DefinitionError, "Type " + api_request_type.name +  ", field " + sbt.name + " cannot reference to another type because it is a path parameter" )
+                                    }
+                                }                
+
+                                paramType = "path" 
+                                if ( is_defined( found_params.query.( sbt.name ) )  ) { paramType = "query" }
+                                                   
+                                openapi.paths[ path_counter ].( method ).parameters[ #openapi.paths[ path_counter ].( method ).parameters ] << {
+                                    /* if a parameter name corresponds with a node of the type, such a node must be declared as a simple native type node */
+                                    name = sbt.name
+                                    required = required
+                                    in.other << paramType {
+                                        type << sbt.type 
+                                    }
+                                }
 
                             } else {
-                                    // there are not parameters in the template
-                                    /* the root type of the request type must be always void */
-                                    if ( !tp_found ) {
-                                        if ( oper.input != "void" ) {
-                                            println@Console( "operation " + oper.operation_name + " cannot have the request message declared as void" )();
-                                            throw( DefinitionError )
-                                        }
-                                    } 
+                                // it is a body parameter
+                                body_params[ #body_params ] << sbt
+                            }
 
-                                    if ( __method == "get" ) {
-                                            if ( tp_found ) {
-                                                    if ( #current_type.type.sub_type > 0 || current_type instanceof TypeChoice ) {
-                                                    println@Console( current_type.name + ": this request tyoe message is joined to a get method without any template, thus it cannot be declared as a choice type nor it cannot contain subnodes" )();
-                                                    throw( DefinitionError )
-                                                }
-                                            }
-                                    } else {
-                                        // methods POST, PUT, DELETE
-                                            if ( tp_found ) {
-                                                /* the fields of the request type must be transformed into parameters */
-                                                current_openapi_path.parameters[ openapi_params_count ] << {
-                                                    name = "body"
-                                                    required = true
-                                                    in.in_body.schema_type << current_type.type
-                                                }
-                                            }
-                                    }
+                            if ( method == "get" && #body_params > 0 ) throw( DefinitionError, "Type " + api_request_type.name +  ", field " + sbt.name + ": with method get, body params are not allowed")
+
+                            // checking if there are parameters in the body and preparing their definition
+                            if ( #body_params > 0 ) {
+                                // creating a type on the fly which contains all the body parameters
+                                undef( body_type ) 
+                                body_type.root_type.void_type = true 
+                                for ( bp in body_params ) {
+                                    body_type.sub_type[ #body_type.sub_type ] << bp
+                                }
+
+                                
+                                openapi.paths[ path_counter ].( method ).parameters[ #openapi.paths[ path_counter ].( method ).parameters ] << {
+                                    name = "body"
+                                    required = required
+                                    in.in_body.schema_type << body_type
+                                }
+                                
+                            }
+                        }          
+
+                    } else {
+                        // there are not parameters in the template
+                        /* the root type of the request type must be always void */
+                        if ( method == "get" ) {
+                            // in case there is not template path and method is get, api_request_type must be void
+                            if ( !( api_request_type instanceof void ) ) {
+                                throw( DefinitionError, "Operation  " + c_op.operation_name + " has been declared as a GET method without any path template, but the request type is not void" )
                             }
                         } else {
-                            /* the template is not defined */
-                            c_template = "/" + oper.operation_name;
-
-                            /* if it is a GET, extract the query params from the request message */
-                            if ( __method == "get" ) {
-                                    for( sbt = 0, sbt < #current_type.type.sub_type, sbt++ ) {
-                                            /* casting */
-                                            current_sbt -> current_type.type.sub_type[ sbt ];
-                                            current_root_type -> current_sbt.type.root_type;
-
-                                            openapi_params_count++;
-                                            with( current_openapi_path.parameters[ openapi_params_count ] ) {
-                                                .name = current_sbt.name;
-                                                if ( current_sbt.cardinality.min > 0 ) {
-                                                    .required = true
-                                                };
-
-                                                if ( current_sbt.type instanceof TypeInLine  ) {
-                                                        if ( #current_sbt.type.sub_type > 0 ) {
-                                                                error_msg = "Type " + current_type.name  + ": field " + current_sbt.name + " has a type with subnodes which is not permitted"
-                                                                throw( DefinitionError, error_msg )
-                                                        };
-                                                        .in.other = "query";
-                                                        .in.other.type << current_sbt.type
-
-                                                        if ( current_sbt.type instanceof TypeLink ) {
-                                                                error_msg = "Type " + current_type.name  + ": field " + current_sbt.name + " cannot reference to another type because it is a path parameter"
-                                                                throw( DefinitionError, error_msg )
-                                                        }
-                                                } else {
-                                                        error_msg = "Type " + current_type.name  + ": field " + current_sbt.name + " of request type is not an inline type. REST template for GET method cannot be created!"
-                                                        throw( DefinitionError, error_msg )
-                                                }
-                                            }
-                                            ;
-                                            c_template = c_template + "/{" + current_sbt.name + "}"
-                                    }
-                            } else {
-                                // methods POST, PUT, DELETE
-                                    if ( tp_found ) {
-                                        with( current_openapi_path.parameters ) {
-                                            .in.in_body.schema_ref = real_current_type.name;
-                                            .name = "body";
-                                            .required = true
-                                        }
-
-                                    }
-                            };
-                            if ( LOG ) { println@Console( "Template automatically generated:" + c_template )() }
+                            // methods POST, PUT, DELETE, PATCH
+                            if ( !(api_request_type instanceof void ) ) {
+                                /* the fields of the request type must be transformed into parameters */
+                                openapi.paths[ path_counter ].( method ).parameters[ #openapi.paths[ path_counter ].( method ).parameters ] << {
+                                    name = "body"
+                                    required = true
+                                    in.in_body.schema_type << api_request_type.type
+                                }
+                            }
                         }
-                        ;
-                        splr = c_template
-                        splr.regex = "\\?"
-                        split@StringUtils( splr )( splres );
-                        openapi.paths[ path_counter ] = splres.result[ 0 ]
                     }
-                
-            }
-            if ( ! is_defined( openapi.paths ) ) {
-                println@Console( "WARNING: No operation to be exported (= OpenAPI path) has been found. Has the input port been specified correctly?" )()
+                            
+                }                 
             }
             
             getOpenApiDefinition@MySelf( openapi )( response )
+        }]
+
+        [ checkTypeConsistency( request )( response ) {
+
+            current_type -> request.typeMap.( request.typeName )
+            scope( analysis ) {
+                install( DefinitionError => {
+                    throw( DefinitionError, "Type " + current_type.name + ": root native type must be void" )
+                })
+
+                // link
+                if ( current_type.type instanceof TypeLink ) {
+                    checkTypeConsistency@MySelf( {  
+                        typeName = current_type.type.link_name
+                        typeMap -> request.typeMap
+                    } )( response )
+                } 
+                
+                // choice
+                else if ( current_type.type instanceof TypeChoice ) 
+                {
+                    checkBranchChoiceConsistency@MySelf( {
+                        branch -> current_type.type.choice.left_type
+                        typeMap -> request.typeMap
+                    } )( response )
+                    checkBranchChoiceConsistency@MySelf( {
+                        branch -> current_type.type.choice.right_type
+                        typeMap -> request.typeMap
+                    } )( response )
+                }
+                // usual typeinline
+                else if ( !is_defined( current_type.type.root_type.void_type ) ) {
+                    throw( DefinitionError, "" )
+                }
+            }
+            response = true
+        }]
+
+         /* private operations */
+        [ checkBranchChoiceConsistency( request )( response ) {
+            response = true
+            if ( request.branch instanceof TypeLink ) {
+                checkTypeConsistency@MySelf( {
+                    typeName = check_rq.link_name
+                    typeMap -> request.typeMap
+                } )( response )
+            } else if ( request.branch instanceof TypeChoice ) {
+                checkBranchChoiceConsistency@MySelf(  {
+                    branch -> request.branch.choice.left_type
+                    typeMap -> request.typeMap
+                } )( response )
+                checkBranchChoiceConsistency@MySelf( {
+                    branch -> request.branch.choice.right_type
+                    typeMap -> request.typeMap
+                } )( response )
+            } else if ( request.branch instanceof TypeInLine ) {
+                if ( !is_defined( request.branch.root_type.void_type ) ) {
+                    throw( DefinitionError, "" )
+                } 
+            }
+        }]
+
+        [ getActualCurrentType( request )( response ) {
+            current_type -> request.typeMap.( request.typeName )
+            if ( current_type.type instanceof TypeLink ) {
+                getActualCurrentType@MySelf( {
+                    typeName = current_type.type.link_name
+                    typeMap -> request.typeMap
+                } )( response )
+            } else {
+                response = current_type.name
+            } 
+        }]
+
+        [ getParamListFromPathTemplate( request )( response ) {
+            response = false
+            // separate path from query params
+            split@StringUtils( request {
+                regex = "\\?"
+            } )( splres )
+            pathpart = splres.result[ 0 ]
+            querypart = splres.result[ 1 ]
+
+            // path part
+            split@StringUtils( pathpart {
+                regex =  "/"
+            } )( splres )
+            for( pr in splres.result ) {
+                // extract tokens within {}, it means there is a path param
+                params = find@StringUtils( pr { regex = "\\{(.*)\\}" } )
+                if ( params == 1 ) {
+                    response = true
+                    response.path.( params.group[ 1 ] ) = params.group[ 1 ]
+                }
+            }
+
+            // query part
+            if ( !( querypart instanceof void ) )  {
+                split@StringUtils( querypart { regex =  "&|=" } )( splres )
+                for( pr in splres.result ) {
+                    // extract tokens within {}, it means there is a query param
+                    find@StringUtils( pr { regex = "\\{(.*)\\}" } )( params )
+                    if ( params == 1 ) {
+                        response = true
+                        response.query.( params.group[ 1 ] ) = params.group[ 1 ]
+                    }
+                }
+            }
         }]
     }
 }
