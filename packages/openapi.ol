@@ -32,6 +32,7 @@ from string-utils import StringUtils
 from json-utils import JsonUtils
 from json-schema import JsonSchema
 from runtime import Runtime
+from trees import Trees
 
 type ExternalDocs {
     url: string
@@ -509,6 +510,7 @@ service OpenApi {
     embed JsonSchema as JsonSchema
     embed OpenApi2 as OpenApi2
     embed OpenApi3 as OpenApi3
+    embed Trees as Trees
 
     outputPort MySelf {
         interfaces: OpenApiInterface
@@ -538,6 +540,10 @@ service OpenApi {
 
             // prepare template hashmap 
             if ( is_defined( request.template ) ) {
+                templateHashmap = getHashMap@Trees({
+                    vector -> request.operations
+                    key = "name"
+                })
                 for( op in request.operations ) {
                     templateHashmap.( op.operation.name ) << op 
                 }
