@@ -32,7 +32,6 @@ from string-utils import StringUtils
 from json-utils import JsonUtils
 from json-schema import JsonSchema
 from runtime import Runtime
-from trees import Trees
 
 type ExternalDocs {
     url: string
@@ -146,15 +145,15 @@ type GetOpenApiFromJolieMetaDataRequest {
     level0?: bool
     version: string   // version of the document
     template {
-            operations* {
-                operation: string 
-                path?: string
-                method: string( enum(["get","post","put","delete","patch"]))
-                faultsMapping* {
-                    jolieFault: string
-                    httpCode: int    
-                }
+        operations* {
+            operation: string 
+            path?: string
+            method: string( enum(["get","post","put","delete","patch"]))
+            faultsMapping* {
+                jolieFault: string
+                httpCode: int    
             }
+        }
     }
     openApiVersion: string( enum(["2.0","3.0"]))    // version of the openapi
 }
@@ -525,7 +524,8 @@ private service OpenApi3 {
 }
 
 constants {
-    ERROR_TYPE_NAME = "ErrorType"
+    ERROR_TYPE_NAME = "ErrorType",
+    LOG = true
 }
 
 service OpenApi {
@@ -539,7 +539,6 @@ service OpenApi {
     embed JsonSchema as JsonSchema
     embed OpenApi2 as OpenApi2
     embed OpenApi3 as OpenApi3
-    embed Trees as Trees
 
     outputPort MySelf {
         interfaces: OpenApiInterface, OpenApiGenerationInterface, OpenApiGenerationInterfacePrivate
@@ -569,8 +568,8 @@ service OpenApi {
 
             // prepare template hashmap 
             if ( is_defined( request.template ) ) {
-                for( op in request.operations ) {
-                    templateHashmap.( op.operation.name ) << op 
+                for( op in request.template.operations ) {
+                    templateHashmap.( op.operation ) << op 
                 }
             }
             
@@ -607,7 +606,7 @@ service OpenApi {
             }
             
             /* importing of tags and all the types */
-            for( itf = 0, utf < #request.port.interfaces, itf++ ) {
+            for( itf = 0, itf < #request.port.interfaces, itf++ ) {
                 openapi.tags[ itf ] << {
                     name = request.port.interfaces[ itf ].name                   
                 }
@@ -670,7 +669,7 @@ service OpenApi {
                         c_template  << templateHashmap.( c_op.operation_name )
                     } 
 
-                    if ( LOG ) { println@Console("Operation Template:" + c_template )() }
+                    if ( LOG ) { println@Console("Operation Template:" + valueToPrettyString@StringUtils( c_template ) )() }
 
                     path_counter++;
 
@@ -683,7 +682,7 @@ service OpenApi {
                         openapi.paths[ path_counter ] = splres.result[ 0 ]
                     } else {
                         // if there is not template, the path is just the name of the operation
-                        openapi.paths[ path_counter ] = "/" + c_op.operation_name
+                        c_template.path = openapi.paths[ path_counter ] = "/" + c_op.operation_name
                     }
 
                     if ( is_defined( c_template.method ) ) {
@@ -862,6 +861,7 @@ service OpenApi {
                 }                 
             }
             
+            println@Console( valueToPrettyString@StringUtils( openapi ) )()
             getOpenApiDefinition@MySelf( openapi )( response )
         }]
 

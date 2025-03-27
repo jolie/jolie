@@ -51,7 +51,7 @@ service Main {
             readFile@File( { filename ="library/private/openapi-schema2_0.json" })( openapi_schema2 )
             readFile@File( { filename ="library/private/openapi-schema3_0.json" })( openapi_schema3 )
 
-            getInputPortMetaData@MetaJolie( { filename = "./library/private/openapi-test.ol" } )( meta_description )
+            getInputPortMetaData@MetaJolie( { filename = "./library/private/openapi-test-service1.ol" } )( meta_description )
             for ( i in meta_description.input.interfaces ) {
                 for( t in i.types ) {
                     hashmap.( t.name ) << t.type
@@ -332,6 +332,54 @@ service Main {
                 valueToPrettyString@StringUtils( validation )( errors )
                 throw( TestFailed, "schema:" + schema_string + "\n" + errors )
             }
+
+
+            // testing getOpenApiFromJolieMetaData
+
+            getInputPortMetaData@MetaJolie( { filename = "./library/private/openapi-test-service2.ol" } )( meta_description )
+            openapi_request << {
+                port << meta_description.input
+                host = "localhost:8080"
+                scheme = "http"
+                level0 = false
+                version = "1.0"
+                template << {
+                    operations[ 0 ] << {
+                        operation = "getOrders"
+                        path = "/orders?maxItems={maxItems}"
+                        method = "get"
+                    }
+                    operations[ 1 ] << {
+                        operation = "getOrdersByItem"
+                        path = "/orders/{orderId}"
+                        method = "get"
+                        faultsMapping[ 0 ] << {
+                            jolieFault = "OrderNotFound"
+                            httpCode = 404    
+                        }
+                    }
+                    operations[ 2 ] << {
+                        operation = "putOrder"
+                        path = "/orders"
+                        method = "put"
+                    }
+                    operations[ 3 ] << {
+                        operation = "deleteOrder"
+                        path = "/orders/{orderId}"
+                        method = "delete"
+                        faultsMapping[ 0 ] << {
+                            jolieFault = "OrderNotFound"
+                            httpCode = 404    
+                        }
+                    }
+                }
+                openApiVersion = "2.0"
+            }     
+            getOpenApiFromJolieMetaData@OpenApi( openapi_request )( openapijson )
+            validateJson@JsonUtils({
+                json = openapijson
+                schema = openapi_schema2
+            })( validation )  
 
         }
     }
