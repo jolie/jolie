@@ -763,6 +763,7 @@ service OpenApi {
                            
                     // the template exists, thus the parameters of the template must be separated from the body if they exist
                     getParamListFromPathTemplate@MySelf( c_template.path )( found_params )
+                    if ( LOG ) { println@Console( valueToPrettyString@StringUtils( found_params ) )() }
 
                     if ( found_params ) {
                         /* there are parameters in the template */
@@ -952,7 +953,7 @@ service OpenApi {
             } )( splres )
             for( pr in splres.result ) {
                 // extract tokens within {}, it means there is a path param
-                params = find@StringUtils( pr { regex = "\\{(.*)\\}" } )
+                params << find@StringUtils( pr { regex = "\\{(.*)\\}" } )
                 if ( params == 1 ) {
                     response = true
                     response.path.( params.group[ 1 ] ) = params.group[ 1 ]
@@ -964,7 +965,7 @@ service OpenApi {
                 split@StringUtils( querypart { regex =  "&|=" } )( splres )
                 for( pr in splres.result ) {
                     // extract tokens within {}, it means there is a query param
-                    find@StringUtils( pr { regex = "\\{(.*)\\}" } )( params )
+                    params << find@StringUtils( pr { regex = "\\{(.*)\\}" } )
                     if ( params == 1 ) {
                         response = true
                         response.query.( params.group[ 1 ] ) = params.group[ 1 ]
