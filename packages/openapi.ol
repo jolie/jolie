@@ -316,9 +316,9 @@ private service OpenApi2 {
                                
                         
                                 if ( path.( method ).parameters[ par ].in.body instanceof SchemaType ) {
-                                    type -> request.paths[ p ].( op ).parameters[ par ].in.in_body.schema_type
+                                    type -> request.paths[ p ].( op ).parameters[ par ].in.body.schema_type
                                     cur_par.schema << getType@JsonSchema( {
-                                        type << par.( method ).parameters[ par ].in.body.schema_type
+                                        type << path.( method ).parameters[ par ].in.body.schema_type
                                         schemaVersion = request.version
                                     } )
                                 } else if ( path.( method ).parameters[ par ].in.body instanceof SchemaRef ) {
@@ -449,9 +449,9 @@ private service OpenApi3 {
                                                               
                                 if ( path.( method ).parameters[ par ].in.body instanceof SchemaType ) {
                                     for( c in path.( method ).consumes ) {
-                                        type -> request.paths[ p ].( op ).parameters[ par ].in.in_body.schema_type
+                                        type -> request.paths[ p ].( op ).parameters[ par ].in.body.schema_type
                                         cur_body.content.( c ).schema << getType@JsonSchema( {
-                                            type << par.( method ).parameters[ par ].in.body.schema_type
+                                            type << path.( method ).parameters[ par ].in.body.schema_type
                                             schemaVersion = request.version
                                         } )
                                     }
@@ -525,7 +525,7 @@ private service OpenApi3 {
 
 constants {
     ERROR_TYPE_NAME = "ErrorType",
-    LOG = true
+    LOG = false
 }
 
 service OpenApi {
@@ -581,7 +581,7 @@ service OpenApi {
             for( itf in request.port.interfaces ) { 
                 for( tps in itf.types ) { typeMap.( tps.name ) << tps }
                 for( op in itf.operations ) {
-                    for( f in op.faults ) {
+                    for( f in op.fault ) {
                         faultsMap.( op.operation_name ).( f.name ) << f
                     }
                 }
@@ -609,9 +609,6 @@ service OpenApi {
             for( itf = 0, itf < #request.port.interfaces, itf++ ) {
                 openapi.tags[ itf ] << {
                     name = request.port.interfaces[ itf ].name                   
-                }
-                if ( is_defined( request.port.interfaces[ itf ].documentation) ) {
-                    openapi.description = request.port.interfaces[ itf ].documentation
                 }
                 for ( itftp in request.port.interfaces[ itf ].types ) {
                     openapi.types[ #openapi.types ] << itftp
@@ -710,7 +707,7 @@ service OpenApi {
                     }
                     // schema_link is added only if the response has a type
                     if ( is_defined( typeMap.( c_op.output ) ) ) {
-                        openapi.paths[ path_counter ].( method ).responses[ 0 ].schema.link_name << typeMap.( c_op.output )
+                        openapi.paths[ path_counter ].( method ).responses[ 0 ].schema.link_name = c_op.output
                     }
 
 
@@ -731,7 +728,7 @@ service OpenApi {
                         openapi.paths[ path_counter ].( method ).responses[ responses_index ]<< {
                             status = fm.httpCode
                             description = fm.jolieFault
-                            schema << faultsMap.( c_op.operation_name ).( fm.jolieFault )
+                            schema << faultsMap.( c_op.operation_name ).( fm.jolieFault ).type
                         }
                     } 
                 
@@ -785,17 +782,16 @@ service OpenApi {
                                 /* path and query parameters msut be defined separately, whereas body parameters must be collected 
                                 under a single parameter here named "body" */    
                                 // a path or query parameter cannot be a structured type in jolie
-                                if ( sbt.type instanceof TypeInLine ) {
-                                    if ( #sbt.type.sub_type > 0 ) {
-                                        throw( DefinitionError, "Type " + api_request_type.name +  ", field " + sbt.name + "  has been declared as a type with subnodes which is not permitted when it is used in a template" )
-                                    }
+                                sbt_actual_type << sbt.type
+                                if ( sbt.type instanceof TypeInLine && ( #sbt.type.sub_type > 0)  ) {
+                                    throw( DefinitionError, "Type " + api_request_type.name +  ", field " + sbt.name + "  has been declared as a type with subnodes which is not permitted when it is used in a template" )
                                 } else if ( sbt.type instanceof TypeChoice ) {
                                     throw( DefinitionError, "Type " + api_request_type.name +  ", field " + sbt.name + "  has been declared as a type choice. Not permitted when a template is defined" )
                                 } else if ( sbt.type instanceof TypeLink ) {
-                                    sbt_actual_linked_type = getActualCurrentType@MySelf( sbt.type.link_name {
+                                    sbt_actual_type << getActualCurrentType@MySelf( sbt.type.link_name {
                                         typeMap -> typeMap
                                     } )
-                                    if ( #typeMap.( sbt_actual_linked_type ).sub_type > 0 ) {
+                                    if ( #typeMap.( sbt_actual_type ).sub_type > 0 ) {
                                         throw( DefinitionError, "Type " + api_request_type.name +  ", field " + sbt.name + " cannot reference to another type because it is a path parameter" )
                                     }
                                 }                
@@ -808,7 +804,7 @@ service OpenApi {
                                     name = sbt.name
                                     required = required
                                     in.other << paramType {
-                                        type << sbt.type 
+                                        nativeType << sbt_actual_type.root_type
                                     }
                                 }
 
@@ -832,7 +828,7 @@ service OpenApi {
                                 openapi.paths[ path_counter ].( method ).parameters[ #openapi.paths[ path_counter ].( method ).parameters ] << {
                                     name = "body"
                                     required = required
-                                    in.in_body.schema_type << body_type
+                                    in.body.schema_type << body_type
                                 }
                                 
                             }
@@ -853,7 +849,7 @@ service OpenApi {
                                 openapi.paths[ path_counter ].( method ).parameters[ #openapi.paths[ path_counter ].( method ).parameters ] << {
                                     name = "body"
                                     required = true
-                                    in.in_body.schema_type << api_request_type.type
+                                    in.body.schema_type << api_request_type.type
                                 }
                             }
                         }
@@ -861,8 +857,7 @@ service OpenApi {
                             
                 }                 
             }
-            
-            println@Console( valueToPrettyString@StringUtils( openapi ) )()
+        
             getOpenApiDefinition@MySelf( openapi )( response )
         }]
 

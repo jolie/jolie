@@ -319,6 +319,8 @@ service Main {
                 schema = openapi_schema2
             })( validation )
 
+        
+
             request.version = "3.0"
             getOpenApiDefinition@OpenApi( request )( openapijson ) 
             //println@Console( openapijson )()
@@ -380,6 +382,25 @@ service Main {
                 json = openapijson
                 schema = openapi_schema2
             })( validation )  
+
+            if ( is_defined( validation.validationMessage ) ) {
+                valueToPrettyString@StringUtils( validation )( errors )
+                throw( TestFailed, "openapi from meta jolie version 2.0 failed:" + schema_string + "\n" + errors )
+            }
+
+            openapi_request.openApiVersion = "3.0"
+            getOpenApiFromJolieMetaData@OpenApi( openapi_request )( openapijson )
+            
+            validateJson@JsonUtils({
+                json = openapijson
+                schema = openapi_schema3
+            })( validation )   
+
+            if ( is_defined( validation.validationMessage ) ) {
+                valueToPrettyString@StringUtils( validation )( errors )
+                throw( TestFailed, "openapi from meta jolie version 3.0 failed:" + schema_string + "\n" + errors )
+            }
+     
 
         }
     }
