@@ -29,6 +29,20 @@ type GetJsonValueRequest: any {
 }
 type GetJsonValueResponse: undefined
 
+type ValidateJsonRequest {
+	json: string 
+	schema: string 
+}
+
+type ValidateJsonResponse {
+	validationMessage* {
+		message: string 
+		code: string 
+		type: string 
+		error: string
+	}
+}
+
 interface JsonUtilsInterface {
 RequestResponse:
 	/**!
@@ -45,7 +59,13 @@ RequestResponse:
 	 * Each attribute corresponds to a child value, the default values (attribute "$" or singular value) are saved as the base values, nested arrays get mapped with the "_" helper childs (e.g. a[i][j] -> a._[i]._[j]), the rest gets converted recursively
 	 */
 	getJsonValue( GetJsonValueRequest )( GetJsonValueResponse )
-	      throws JSONCreationError
+	      throws JSONCreationError,
+
+
+	/** 
+	* Validates a json against a jsonSchema 
+	**/
+	validateJson( ValidateJsonRequest )( ValidateJsonResponse )
 }
 
 service JsonUtils {
