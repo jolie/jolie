@@ -183,6 +183,8 @@ public class CommandLineParser implements AutoCloseable {
 						+ Integer.MAX_VALUE + ")" ) )
 			.append(
 				getOptionString( "--stackTraces", "Print stack traces (default: false)" ) )
+			.append(
+				getOptionString( "-D<name>=<value>", "Set system property <name> to <value>" ) )
 			.toString();
 	}
 
@@ -468,6 +470,20 @@ public class CommandLineParser implements AutoCloseable {
 				}
 			} else if( "--version".equals( argsList.get( i ) ) ) {
 				throw new CommandLineException( getVersionString() );
+			} else if( argsList.get( i ).startsWith( "-D" ) ) {
+				// handle -D<name>=<value>
+				String[] parts = argsList.get( i ).substring( 2 ).split( "=", 2 );
+				try {
+					System.setProperty( parts[ 0 ], parts[ 1 ] );
+				} catch( SecurityException e ) {
+					// thrown if a security manager exists and its checkPermission method doesn't allow setting of the
+					// specified property.
+					throw new CommandLineException( "Cannot set system property: " + parts[ 0 ] );
+				} catch( IndexOutOfBoundsException | IllegalArgumentException | NullPointerException e ) {
+					// thrown if the parameter is not well formed
+					throw new CommandLineException(
+						"Invalid system property definition '" + argsList.get( i ) + "', expected -D<name>=<value>" );
+				}
 			} else if( olFilepath == null && !argsList.get( i ).startsWith( "-" ) ) {
 				final String path = argsList.get( i );
 				if( path.endsWith( ".jap" ) ) {
