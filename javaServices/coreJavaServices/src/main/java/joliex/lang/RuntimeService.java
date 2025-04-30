@@ -265,6 +265,51 @@ public class RuntimeService extends JavaService {
 		return retVal;
 	}
 
+	public Value getProperty( Value request ) {
+		final String prop = System.getProperty( request.strValue() );
+		final Value response = Value.create();
+		if( prop != null ) {
+			response.setValue( prop );
+		} else if( request.hasChildren( "default" ) ) {
+			response.setValue( request.getFirstChild( "default" ).strValue() );
+		}
+		return response;
+	}
+
+	public Value getProperties() {
+		final Value response = Value.create();
+		for( String key : System.getProperties().stringPropertyNames() ) {
+			Value entry = response.getNewChild( key );
+			entry.setValue( System.getProperty( key ) );
+		}
+		return response;
+	}
+
+	public Value clearProperty( String key ) {
+		final String previous = System.clearProperty( key );
+		if( previous != null ) {
+			final Value response = Value.create();
+			response.setValue( previous );
+			return response;
+		} else {
+			return Value.create();
+		}
+	}
+
+	@SuppressWarnings( "PMD.LinguisticNaming" )
+	public Value setProperty( Value request ) {
+		final String key = request.getFirstChild( "key" ).strValue();
+		final String value = request.getFirstChild( "value" ).strValue();
+		final String previous = System.setProperty( key, value );
+		if( previous != null ) {
+			final Value response = Value.create();
+			response.setValue( previous );
+			return response;
+		} else {
+			return Value.create();
+		}
+	}
+
 	@RequestResponse
 	public void loadLibrary( String libraryPath )
 		throws FaultException {

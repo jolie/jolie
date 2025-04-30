@@ -89,6 +89,16 @@ type GetOutputPortsResponse: void {
 	}
 }
 
+type GetPropertyRequest: string(regex(".+")) {
+	/// The default value returned if there is no property with that key.
+	.default?: string 
+}
+
+type SetPropertyRequest: void {
+	.key:NonEmptyString //< The name of the system property.
+	.value:string //< The value of the system property.
+}
+
 type HaltRequest: void {
 	.status?: int //< The status code to return to the execution environment
 }
@@ -115,6 +125,7 @@ type Stats:void {
 	}
 }
 
+type NonEmptyString : string(regex(".+"))
 type MaybeString:void | string
 
 interface RuntimeInterface {
@@ -191,6 +202,18 @@ RequestResponse:
 
 	/// Returns the value of an environment variable.
 	getenv(string)(MaybeString),
+
+	/// Returns the value of a system variable.If the property is not preset it returns void or a default value if one is provided.
+	getProperty(GetPropertyRequest)(MaybeString),
+
+	/// Returns all system properties (the value of a property is stored under a node named as the property). 
+	getProperties(void)(undefined),
+
+	/// Removes the value of a system variable and returns the previous string value of the system property, or void if there was no property with that key.
+	clearProperty(NonEmptyString)(MaybeString),
+
+	/// Sets the value of a system variable and returns the previous string value of the system property, or void if there was no property with that key.
+	setProperty(SetPropertyRequest)(MaybeString),
 
 	/// Returns the version of the Jolie interpreter running this service.
 	getVersion(void)(string)
