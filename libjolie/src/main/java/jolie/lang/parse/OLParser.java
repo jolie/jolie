@@ -865,47 +865,53 @@ public class OLParser extends AbstractParser {
 
 	private EmbedServiceNode parseEmbeddedServiceNode()
 		throws IOException, ParserException {
-		nextToken();
-		setStartLine();
-		int startLine = getContext().startLine();
-		int startColumn = getContext().startColumn();
-		int endColumn = -1;
-		ParsingContext ctx = getContext();
-		String serviceName = token.content();
-		OutputPortInfo bindingPort = null;
-		boolean hasNewKeyword = false;
-		OLSyntaxNode passingParam = null;
-		nextToken();
-		if( token.is( Scanner.TokenType.LPAREN ) ) {
+		// define record of things needed for creating the EmbedServiceNode
+		record EmbedServiceNodeInternals(String serviceName, OutputPortInfo bindingPort, boolean hasNewKeyword,
+			OLSyntaxNode passingParam) {
+		}
+		InternalParseResult< EmbedServiceNodeInternals > parseResult = parseInternals( () -> {
 			nextToken();
-			if( !token.is( Scanner.TokenType.RPAREN ) ) {
-				passingParam = parseBasicExpression();
+			setStartLine();
+			String serviceName = token.content();
+			OutputPortInfo bindingPort = null;
+			boolean hasNewKeyword = false;
+			OLSyntaxNode passingParam = null;
+			nextToken();
+			if( token.is( Scanner.TokenType.LPAREN ) ) {
+				nextToken();
+				if( !token.is( Scanner.TokenType.RPAREN ) ) {
+					passingParam = parseBasicExpression();
+				}
+				eat( Scanner.TokenType.RPAREN, "expected )" );
 			}
-			eat( Scanner.TokenType.RPAREN, "expected )" );
-		}
-		if( token.is( Scanner.TokenType.AS ) ) {
-			nextToken();
-			hasNewKeyword = true;
-			assertToken( Scanner.TokenType.ID, "expected output port name" );
-			endColumn = getContext().endColumn();
-			setEndLine();
-			ctx =
-				new URIParsingContext( getContext().source(), startLine, endLine(), startColumn,
-					endColumn, codeLine() );
-			bindingPort = new OutputPortInfo( ctx, token.content() );
-			nextToken();
-		} else if( token.isKeyword( "in" ) ) {
-			nextToken();
-			assertToken( Scanner.TokenType.ID, "expected output port name" );
-			endColumn = getContext().endColumn();
-			setEndLine();
-			ctx =
-				new URIParsingContext( getContext().source(), startLine, endLine(), startColumn,
-					endColumn, codeLine() );
-			bindingPort = new OutputPortInfo( ctx, token.content() );
-			nextToken();
-		}
-		return new EmbedServiceNode( ctx, serviceName, bindingPort, hasNewKeyword, passingParam );
+			if( token.is( Scanner.TokenType.AS ) ) {
+				hasNewKeyword = true;
+				InternalParseResult< String > PortResult = parseInternals( () -> {
+					nextToken();
+					assertToken( Scanner.TokenType.ID, "expected output port name" );
+					setEndLine();
+					String portId = token.content();
+					nextToken();
+					return portId;
+				} );
+				bindingPort = new OutputPortInfo( PortResult.context, PortResult.internals );
+			} else if( token.isKeyword( "in" ) ) {
+				InternalParseResult< String > PortResult = parseInternals( () -> {
+					nextToken();
+					assertToken( Scanner.TokenType.ID, "expected output port name" );
+					setEndLine();
+					String portId = token.content();
+					nextToken();
+					return portId;
+				} );
+				bindingPort = new OutputPortInfo( PortResult.context, PortResult.internals );
+			}
+			return new EmbedServiceNodeInternals( serviceName, bindingPort, hasNewKeyword, passingParam );
+		} );
+		EmbedServiceNodeInternals internals = parseResult.internals();
+		// create the EmbedServiceNode using the internals.
+		return new EmbedServiceNode( parseResult.context, internals.serviceName, internals.bindingPort,
+			internals.hasNewKeyword, internals.passingParam );
 	}
 
 
