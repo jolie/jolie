@@ -1021,7 +1021,7 @@ public class OLParser extends AbstractParser {
 
 	private ExecutionInfo _parseExecutionInfo()
 		throws IOException, ParserException {
-		InternalParseResult< Constants.ExecutionMode > parseResult = parseInternals( true, () -> {
+		InternalParseResult< Constants.ExecutionMode > parseResult = parseInternals( () -> {
 			Constants.ExecutionMode mode = Constants.ExecutionMode.SEQUENTIAL;
 			setStartLine(); // remember line we started parsing execution info
 			nextToken();
@@ -1615,28 +1615,18 @@ public class OLParser extends AbstractParser {
 	/**
 	 * Parses the internals for the creation of a Node and creates an appropriate ParsingContext
 	 *
-	 * @param readsNextToken Whether the lambda progresses the parser to the next token e.g. uses eat()
 	 * @param internalsParser A lambda that parses the internals of a Node.
 	 * @param <I> Type for the internals required to create the Node in question.
 	 */
-	private < I > InternalParseResult< I > parseInternals( boolean readsNextToken, ParsingLambda< I > internalsParser )
+	private < I > InternalParseResult< I > parseInternals( ParsingLambda< I > internalsParser )
 		throws IOException, ParserException {
 		int startLine = scanner().line();
 		int startOffset = scanner().errorColumn();
 
 		I internals = internalsParser.get();
-		int endLine;
-		int endColumn;
-		if( readsNextToken ) {
-			TokenEnd lastTokenEnd = previousTokenEnd();
-			endLine = lastTokenEnd.tokenEndLine();
-			endColumn = lastTokenEnd.tokenEndColumn();
-		} else {
-			// in this case the last token is still currently in the parser, so the scanner's tokenEnd values
-			// are valid
-			endLine = scanner().tokenEndLine();
-			endColumn = scanner().tokenEndColumn();
-		}
+		TokenEnd lastTokenEnd = previousTokenEnd();
+		int endLine = lastTokenEnd.tokenEndLine();
+		int endColumn = lastTokenEnd.tokenEndColumn();
 
 		List< String > codeLines = IntStream.rangeClosed( startLine, endLine )
 			.mapToObj( line -> scanner().getAllCodeLines()
