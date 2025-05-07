@@ -103,6 +103,13 @@ public abstract class AbstractParser {
 		if( tokens.isEmpty() ) {
 			token = scanner.getToken();
 			if( !token.is( Scanner.TokenType.NEWLINE ) ) {
+				/*
+				 * We need to save the token end position here in order to maintain previousTokenEnd, which is
+				 * needed to create correct ParsingContexts in OLParser using parseInternals. We do not save if the
+				 * token is newline because nextToken() in that case immediately calls this method again,
+				 * overwriting the tokenEnd before we can use it.
+				 */
+
 				saveTokenEnd();
 			}
 		} else {

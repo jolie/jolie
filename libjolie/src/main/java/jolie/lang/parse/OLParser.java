@@ -1600,6 +1600,15 @@ public class OLParser extends AbstractParser {
 		 */
 		T get() throws IOException, ParserException;
 	}
+	/**
+	 * The result of running a ParsingLambda along with a ParsingContext over the block of code that was
+	 * parsed.
+	 *
+	 * @param <I> Type with fields needed to create an OLSyntaxNode with. If the OLSyntaxNode has
+	 *        multiple parameters in its constructor, define a record class with them and use it here.
+	 * @param internals Holds the information gathered by the ParsingLambda.
+	 * @param context The ParsingContext of the part of code that was parsed.
+	 */
 	private record InternalParseResult< I >(I internals, ParsingContext context) {
 	}
 
