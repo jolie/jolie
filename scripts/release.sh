@@ -1,3 +1,5 @@
+#!/bin/sh
+
 VER=$1
 if [ -z "$VER" ]; then
 	echo "Usage: $0 <version>"
