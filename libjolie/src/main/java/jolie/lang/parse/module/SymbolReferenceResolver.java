@@ -960,9 +960,7 @@ public class SymbolReferenceResolver {
 		InterfacesAndOperations result = new InterfacesAndOperations();
 
 		for( OLSyntaxNode n : node.program().children() ) {
-			if( n instanceof OutputPortInfo ) {
-				// OutputPortInfo nodes are currently not processed further.
-			} else if( n instanceof InputPortInfo ) {
+			if( n instanceof InputPortInfo ) {
 				InputPortInfo ip = (InputPortInfo) n;
 				if( ip.location() instanceof ConstantStringExpression ) {
 					String location = ((ConstantStringExpression) ip.location()).value();
