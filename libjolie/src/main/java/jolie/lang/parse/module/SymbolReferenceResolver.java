@@ -957,13 +957,11 @@ public class SymbolReferenceResolver {
 	 */
 	private static InterfacesAndOperations getInterfacesFromInputPortLocal(
 		ServiceNode node ) {
-		Map< String, OutputPortInfo > internalOp = new HashMap<>();
 		InterfacesAndOperations result = new InterfacesAndOperations();
 
 		for( OLSyntaxNode n : node.program().children() ) {
 			if( n instanceof OutputPortInfo ) {
-				OutputPortInfo op = (OutputPortInfo) n;
-				internalOp.put( op.id(), op );
+				// OutputPortInfo nodes are currently not processed further.
 			} else if( n instanceof InputPortInfo ) {
 				InputPortInfo ip = (InputPortInfo) n;
 				if( ip.location() instanceof ConstantStringExpression ) {
