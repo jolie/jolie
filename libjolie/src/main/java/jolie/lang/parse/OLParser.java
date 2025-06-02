@@ -43,6 +43,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 //import jolie.lang.CodeCheckMessage;
 import jolie.lang.Constants;
 import jolie.lang.Constants.EmbeddedServiceType;
@@ -864,47 +865,53 @@ public class OLParser extends AbstractParser {
 
 	private EmbedServiceNode parseEmbeddedServiceNode()
 		throws IOException, ParserException {
-		nextToken();
-		setStartLine();
-		int startLine = getContext().startLine();
-		int startColumn = getContext().startColumn();
-		int endColumn = -1;
-		ParsingContext ctx = getContext();
-		String serviceName = token.content();
-		OutputPortInfo bindingPort = null;
-		boolean hasNewKeyword = false;
-		OLSyntaxNode passingParam = null;
-		nextToken();
-		if( token.is( Scanner.TokenType.LPAREN ) ) {
+		// define record of things needed for creating the EmbedServiceNode
+		record EmbedServiceNodeInternals(String serviceName, OutputPortInfo bindingPort, boolean hasNewKeyword,
+			OLSyntaxNode passingParam) {
+		}
+		InternalParseResult< EmbedServiceNodeInternals > parseResult = parseInternals( () -> {
 			nextToken();
-			if( !token.is( Scanner.TokenType.RPAREN ) ) {
-				passingParam = parseBasicExpression();
+			setStartLine();
+			String serviceName = token.content();
+			OutputPortInfo bindingPort = null;
+			boolean hasNewKeyword = false;
+			OLSyntaxNode passingParam = null;
+			nextToken();
+			if( token.is( Scanner.TokenType.LPAREN ) ) {
+				nextToken();
+				if( !token.is( Scanner.TokenType.RPAREN ) ) {
+					passingParam = parseBasicExpression();
+				}
+				eat( Scanner.TokenType.RPAREN, "expected )" );
 			}
-			eat( Scanner.TokenType.RPAREN, "expected )" );
-		}
-		if( token.is( Scanner.TokenType.AS ) ) {
-			nextToken();
-			hasNewKeyword = true;
-			assertToken( Scanner.TokenType.ID, "expected output port name" );
-			endColumn = getContext().endColumn();
-			setEndLine();
-			ctx =
-				new URIParsingContext( getContext().source(), startLine, endLine(), startColumn,
-					endColumn, codeLine() );
-			bindingPort = new OutputPortInfo( ctx, token.content() );
-			nextToken();
-		} else if( token.isKeyword( "in" ) ) {
-			nextToken();
-			assertToken( Scanner.TokenType.ID, "expected output port name" );
-			endColumn = getContext().endColumn();
-			setEndLine();
-			ctx =
-				new URIParsingContext( getContext().source(), startLine, endLine(), startColumn,
-					endColumn, codeLine() );
-			bindingPort = new OutputPortInfo( ctx, token.content() );
-			nextToken();
-		}
-		return new EmbedServiceNode( ctx, serviceName, bindingPort, hasNewKeyword, passingParam );
+			if( token.is( Scanner.TokenType.AS ) ) {
+				hasNewKeyword = true;
+				InternalParseResult< String > PortResult = parseInternals( () -> {
+					nextToken();
+					assertToken( Scanner.TokenType.ID, "expected output port name" );
+					setEndLine();
+					String portId = token.content();
+					nextToken();
+					return portId;
+				} );
+				bindingPort = new OutputPortInfo( PortResult.context, PortResult.internals );
+			} else if( token.isKeyword( "in" ) ) {
+				InternalParseResult< String > PortResult = parseInternals( () -> {
+					nextToken();
+					assertToken( Scanner.TokenType.ID, "expected output port name" );
+					setEndLine();
+					String portId = token.content();
+					nextToken();
+					return portId;
+				} );
+				bindingPort = new OutputPortInfo( PortResult.context, PortResult.internals );
+			}
+			return new EmbedServiceNodeInternals( serviceName, bindingPort, hasNewKeyword, passingParam );
+		} );
+		EmbedServiceNodeInternals internals = parseResult.internals();
+		// create the EmbedServiceNode using the internals.
+		return new EmbedServiceNode( parseResult.context, internals.serviceName, internals.bindingPort,
+			internals.hasNewKeyword, internals.passingParam );
 	}
 
 
@@ -1020,42 +1027,46 @@ public class OLParser extends AbstractParser {
 
 	private ExecutionInfo _parseExecutionInfo()
 		throws IOException, ParserException {
-		Constants.ExecutionMode mode = Constants.ExecutionMode.SEQUENTIAL;
-		setStartLine(); // remember line we started parsing execution info
-		nextToken();
-		boolean inCurlyBrackets = false;
-		if( token.is( Scanner.TokenType.COLON ) ) {
+		InternalParseResult< Constants.ExecutionMode > parseResult = parseInternals( () -> {
+			Constants.ExecutionMode mode = Constants.ExecutionMode.SEQUENTIAL;
+			setStartLine(); // remember line we started parsing execution info
 			nextToken();
-		} else if( token.is( Scanner.TokenType.LCURLY ) ) {
-			inCurlyBrackets = true;
-			nextToken();
-		} else {
+			boolean inCurlyBrackets = false;
+			if( token.is( Scanner.TokenType.COLON ) ) {
+				nextToken();
+			} else if( token.is( Scanner.TokenType.LCURLY ) ) {
+				inCurlyBrackets = true;
+				nextToken();
+			} else {
+				setEndLine(); // remember ending line of parsing execution for error
+				throwException( "expected : or { after execution" );
+			}
 			setEndLine(); // remember ending line of parsing execution for error
-			throwException( "expected : or { after execution" );
-		}
-		setEndLine(); // remember ending line of parsing execution for error
-		// assert token, set scope for eventual error
-		assertToken( Scanner.TokenType.ID, "expected execution modality", null, Keywords.EXECUTION );
-		switch( token.content() ) {
-		case "sequential":
-			mode = Constants.ExecutionMode.SEQUENTIAL;
-			break;
-		case "concurrent":
-			mode = Constants.ExecutionMode.CONCURRENT;
-			break;
-		case "single":
-			mode = Constants.ExecutionMode.SINGLE;
-			break;
-		default:
-			// throw error with scope set
-			throwExceptionWithScope( "Expected execution mode", null, Keywords.EXECUTION );
-			break;
-		}
-		nextToken();
-		if( inCurlyBrackets ) {
-			eat( Scanner.TokenType.RCURLY, "} expected" );
-		}
-		return new ExecutionInfo( getContext(), mode );
+			// assert token, set scope for eventual error
+			assertToken( Scanner.TokenType.ID, "expected execution modality", null, Keywords.EXECUTION );
+			switch( token.content() ) {
+			case "sequential":
+				mode = Constants.ExecutionMode.SEQUENTIAL;
+				break;
+			case "concurrent":
+				mode = Constants.ExecutionMode.CONCURRENT;
+				break;
+			case "single":
+				mode = Constants.ExecutionMode.SINGLE;
+				break;
+			default:
+				// throw error with scope set
+				throwExceptionWithScope( "Expected execution mode", null, Keywords.EXECUTION );
+				break;
+			}
+			nextToken();
+			if( inCurlyBrackets ) {
+				eat( Scanner.TokenType.RCURLY, "} expected" );
+			}
+			return mode;
+		} );
+
+		return new ExecutionInfo( parseResult.context(), parseResult.internals() );
 	}
 
 	private void parseConstants()
@@ -1577,6 +1588,62 @@ public class OLParser extends AbstractParser {
 		ServiceNode node = ServiceNode.create( ctx, serviceName, accessModifier, serviceNodeProgramBuilder.toProgram(),
 			parameter );
 		return node;
+	}
+
+	/**
+	 * A functional interface for parsing the internals of a Node. Identical to Supplier except with
+	 * some needed exceptions.
+	 *
+	 * @see java.util.function.Supplier
+	 * @param <T> Class containing the results of the parsing
+	 */
+	@FunctionalInterface
+	private interface ParsingLambda< T > {
+		/**
+		 * Performs the parsing
+		 *
+		 * @return The result of the parsing
+		 */
+		T get() throws IOException, ParserException;
+	}
+	/**
+	 * The result of running a ParsingLambda along with a ParsingContext over the block of code that was
+	 * parsed.
+	 *
+	 * @param <I> Type with fields needed to create an OLSyntaxNode with. If the OLSyntaxNode has
+	 *        multiple parameters in its constructor, define a record class with them and use it here.
+	 * @param internals Holds the information gathered by the ParsingLambda.
+	 * @param context The ParsingContext of the part of code that was parsed.
+	 */
+	private record InternalParseResult< I >(I internals, ParsingContext context) {
+	}
+
+	/**
+	 * Parses the internals for the creation of a Node and creates an appropriate ParsingContext
+	 *
+	 * @param internalsParser A lambda that parses the internals of a Node.
+	 * @param <I> Type for the internals required to create the Node in question.
+	 */
+	private < I > InternalParseResult< I > parseInternals( ParsingLambda< I > internalsParser )
+		throws IOException, ParserException {
+		int startLine = scanner().line();
+		int startOffset = scanner().errorColumn();
+
+		I internals = internalsParser.get();
+		TokenEnd lastTokenEnd = previousTokenEnd();
+		int endLine = lastTokenEnd.tokenEndLine();
+		int endColumn = lastTokenEnd.tokenEndColumn();
+
+		List< String > codeLines = IntStream.rangeClosed( startLine, endLine )
+			.mapToObj( line -> scanner().getAllCodeLines()
+				.get( line ) )
+			.toList();
+
+		ParsingContext finalContext =
+			new URIParsingContext( scanner().source(), startLine, endLine,
+				startOffset, endColumn,
+				codeLines );
+		return new InternalParseResult<>( internals, finalContext );
 	}
 
 	/**

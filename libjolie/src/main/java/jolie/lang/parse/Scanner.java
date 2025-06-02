@@ -377,6 +377,8 @@ public class Scanner implements AutoCloseable {
 	private final ArrayList<String> readCodeLines = new ArrayList<>();
 	private int currColumn;					// column of the current character
 	private int errorColumn;				// column of the error character (first character of the current token or line)
+	private int tokenEndLine;				// Line the last returned token ended on
+	private int tokenEndColumn; 			// Column the last returned token ended on
 
 	/**
 	 * Constructor for arbitrary streams, used for CommandLineParser parsing constants
@@ -395,7 +397,7 @@ public class Scanner implements AutoCloseable {
 		line = 0;
 		startLine = 0;
 		endLine = 0;
-		currColumn = 0;
+		currColumn = -1;
 		readChar();
 	}
 
@@ -417,7 +419,7 @@ public class Scanner implements AutoCloseable {
 		line = 0;
 		startLine = 0;
 		endLine = 0;
-		currColumn = 0;
+		currColumn = -1;
 		readChar();
 	}
 
@@ -573,12 +575,11 @@ public class Scanner implements AutoCloseable {
 	}
 
 	/**
-	 * Returns the value minus one, because errorcolumn is set to currentcolumn while reading, and thus has 1 added to it
-	 * because the current column has already moved to the next characer of where the word started we are reading
-	 * @return the starting index of the token which is erroneous
+	 * Returns The 0-indexed column of the error character (first character of the current token)
+	 * @return the starting index of the token
 	 */
 	public int errorColumn() {
-		return errorColumn-1;
+		return errorColumn;
 	}
 
 	/**
@@ -626,6 +627,34 @@ public class Scanner implements AutoCloseable {
 	public void setEndLine(int endLine){
 		this.endLine = endLine;
 	}
+
+	/**
+	 * The 0-indexed line the last returned token ended on
+	 * @return Line the last returned token ended on
+	 */
+	public int tokenEndLine(){
+		return tokenEndLine;
+	}
+
+	/**
+	 * Returns the column the last returned token ended on +1 (for LSP specification compatibility)
+	 * @return Column the last returned token ended on +1
+	 */
+	public int tokenEndColumn() {
+		return tokenEndColumn;
+	}
+
+	/**
+	 * Saves the end line and column of a token. Sets tokenEndColumn and tokenEndLine correctly if run before readChar()
+	 * moves the Scanner past the last character of the Token.
+	 */
+	private void recordTokenEnd() {
+		// +1 to make the tokenEndColumn exclusive
+		tokenEndColumn = currColumn + 1;
+		tokenEndLine = line;
+	}
+
+
 
 	/*
 	 * used in AbstractParser getContextDuringError()
@@ -749,14 +778,10 @@ public class Scanner implements AutoCloseable {
 				readCodeLines.add( line(), temp );
 			}
 		}
-		if(ch == '\t'){
-			currColumn += Constants.TAB_SIZE; // column has to have the tabSize added to be correct for the error context
-		} else{
-			currColumn++;
-		}
+		currColumn++;
 		if ( ch == '\n' ) {
 			line++;
-			currColumn = 0;
+			currColumn = -1;
 		}
 	}
 
@@ -795,14 +820,10 @@ public class Scanner implements AutoCloseable {
 			}
 			readCodeLines.add( line(), temp );
 		}
-		if(ch == '\t'){
-			currColumn += Constants.TAB_SIZE; // increase the currentcolumn with tabSize instead of 1, when char is tab
-		} else{
-			currColumn++;
-		}
+		currColumn++;
 		if ( ch == '\n' ) {
 			line++;
-			currColumn = 0;
+			currColumn = -1;
 		}
 	}
 
@@ -869,6 +890,8 @@ public class Scanner implements AutoCloseable {
 			return new Token( TokenType.EOF );
 		}
 
+		errorColumn = currColumn;
+
 		boolean stopOneChar = false;
 		Token retval = null;
 		resetTokenBuilder();
@@ -913,6 +936,10 @@ public class Scanner implements AutoCloseable {
 					} else if ( ch == '.' ) { // DOT or REAL
 						state = State.DOT;
 					} else { // ONE CHARACTER TOKEN
+
+						//The ending column of One Character Tokens is the position of the character the Token is made of.
+						recordTokenEnd();
+
 						if ( ch == '(' ) {
 							retval = new Token( TokenType.LPAREN );
 						} else if ( ch == ')' ) {
@@ -1268,6 +1295,7 @@ public class Scanner implements AutoCloseable {
 					stopOneChar = false;
 				} else {
 					tokenBuilder.append( ch );
+					recordTokenEnd();
 					readChar();
 				}
 			} else {
@@ -1278,7 +1306,6 @@ public class Scanner implements AutoCloseable {
 		if ( retval == null ) {
 			retval = new Token( TokenType.ERROR );
 		}
-		errorColumn = currColumn-retval.content.length();
 		return retval;
 	}
 
