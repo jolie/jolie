@@ -381,8 +381,10 @@ public abstract class Type {
 		} else if( t2 instanceof TypeLink ) {
 			returnType = extend( t1, (TypeLink) t2 );
 		} else {
-			throw new UnsupportedOperationException( "extension not supported between " + t1.getClass().getSimpleName()
-				+ " and " + t2.getClass().getSimpleName() );
+			String t1Name = t1 != null ? t1.getClass().getSimpleName() : "(null error)";
+			String t2Name = t2 != null ? t2.getClass().getSimpleName() : "(null error)";
+			throw new UnsupportedOperationException( "extension not supported between " + t1Name
+				+ " and " + t2Name );
 		}
 		return returnType;
 	}
@@ -396,14 +398,16 @@ public abstract class Type {
 		} else if( t1 instanceof TypeLink ) {
 			returnType = extend( (TypeLink) t1, t2 );
 		} else {
-			throw new UnsupportedOperationException( "extension not supported between " + t1.getClass().getSimpleName()
-				+ " and " + t2.getClass().getSimpleName() );
+			String t1Name = t1 != null ? t1.getClass().getSimpleName() : "(null error)";
+			String t2Name = t2 != null ? t2.getClass().getSimpleName() : "(null error)";
+			throw new UnsupportedOperationException( "extension not supported between " + t1Name
+				+ " and " + t2Name );
 		}
 		return returnType;
 	}
 
 	private static Type extend( TypeLink t1, TypeImpl t2 ) {
-		return extend( t1.linkedType, t2 );
+		return extend( t1.linkedType, t2 ); // maybe throw exception here if linkedType is null?
 	}
 
 	private static Type extend( TypeChoice t1, TypeImpl t2 ) {
@@ -411,7 +415,7 @@ public abstract class Type {
 	}
 
 	private static Type extend( Type t1, TypeLink t2 ) {
-		return extend( t1, t2.linkedType );
+		return extend( t1, t2.linkedType ); // maybe throw exception here if linkedType is null?
 	}
 
 	private static Type extend( Type t1, TypeChoice t2 ) {
