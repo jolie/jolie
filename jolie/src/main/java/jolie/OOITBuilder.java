@@ -1688,8 +1688,8 @@ public class OOITBuilder implements UnitOLVisitor {
 				extendTypes[ i ] = typeMap.get( extendedTypeDefinition );
 			} else {
 				extendTypes[ i ] = buildType( extendedTypeDefinition );
-				resolveTypeLinks(); // quickfix for bug when it is a TypeLink being build
 			}
+			resolveTypeLinks(); // quickfix for bug when it is a TypeLink being build
 			result = Type.extend( result, extendTypes[ i ] );
 			i++;
 		}
