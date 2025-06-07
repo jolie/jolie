@@ -229,6 +229,7 @@ import jolie.runtime.typing.BasicType;
 import jolie.runtime.typing.OneWayTypeDescription;
 import jolie.runtime.typing.RequestResponseTypeDescription;
 import jolie.runtime.typing.Type;
+import jolie.runtime.typing.Type.TypeLink;
 import jolie.runtime.typing.TypeCheckingException;
 import jolie.util.ArrayListMultiMap;
 import jolie.util.MultiMap;
@@ -1672,26 +1673,19 @@ public class OOITBuilder implements UnitOLVisitor {
 	}
 
 	private Type getOrBuildExtendedType( TypeDefinition typeDefinition, TypeDefinition... extendedTypeDefinitions ) {
-		Type f, result;
+		Type result = getOrBuildType( typeDefinition );
+		if( result instanceof TypeLink ) {
+			resolveTypeLinks();
+		}
+
 		extendedTypeDefinitions = Arrays.asList( extendedTypeDefinitions ).stream().filter( Objects::nonNull )
 			.toArray( TypeDefinition[]::new );
-		Type[] extendTypes = new Type[ extendedTypeDefinitions.length ];
-		if( typeMap.containsKey( typeDefinition ) ) {
-			f = typeMap.get( typeDefinition );
-		} else {
-			f = buildType( typeDefinition );
-		}
-		result = f;
-		int i = 0;
 		for( TypeDefinition extendedTypeDefinition : extendedTypeDefinitions ) {
-			if( typeMap.containsKey( extendedTypeDefinition ) ) {
-				extendTypes[ i ] = typeMap.get( extendedTypeDefinition );
-			} else {
-				extendTypes[ i ] = buildType( extendedTypeDefinition );
+			Type extendType = getOrBuildType( extendedTypeDefinition );
+			if( extendType instanceof TypeLink ) {
+				resolveTypeLinks();
 			}
-			resolveTypeLinks(); // quickfix for bug when it is a TypeLink being build
-			result = Type.extend( result, extendTypes[ i ] );
-			i++;
+			result = Type.extend( result, extendType );
 		}
 		return result;
 	}
