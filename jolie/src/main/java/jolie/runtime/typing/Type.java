@@ -383,8 +383,8 @@ public abstract class Type {
 		} else {
 			String t1Name = t1 != null ? t1.getClass().getSimpleName() : "(null error)";
 			String t2Name = t2 != null ? t2.getClass().getSimpleName() : "(null error)";
-			throw new UnsupportedOperationException( "extension not supported between " + t1Name
-				+ " and " + t2Name );
+			throw new UnsupportedOperationException(
+				String.format( "extension not supported between %s and %s", t1Name, t2Name ) );
 		}
 		return returnType;
 	}
@@ -400,8 +400,8 @@ public abstract class Type {
 		} else {
 			String t1Name = t1 != null ? t1.getClass().getSimpleName() : "(null error)";
 			String t2Name = t2 != null ? t2.getClass().getSimpleName() : "(null error)";
-			throw new UnsupportedOperationException( "extension not supported between " + t1Name
-				+ " and " + t2Name );
+			throw new UnsupportedOperationException(
+				String.format( "extension not supported between %s and %s", t1Name, t2Name ) );
 		}
 		return returnType;
 	}
