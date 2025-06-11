@@ -1,5 +1,4 @@
 name: "Build and Push Standard Library Documentation"
-
 on:
   workflow_dispatch:
   workflow_run:
@@ -8,11 +7,14 @@ on:
       - Publish Release
     types:
       - completed
-
+    branches:
+      - master  # Only run on master branch (excludes PRs)
 jobs:
   check:
     runs-on: ubuntu-latest
     name: Test packages changed-files
+    # Only run if the previous workflow was successful and triggered by a push event
+    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' }} 
     outputs:
       any_changed: ${{ steps.changed-files-in-packages.outputs.any_changed }}
     steps:
