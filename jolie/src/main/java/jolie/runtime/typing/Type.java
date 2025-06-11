@@ -407,7 +407,8 @@ public abstract class Type {
 	}
 
 	private static Type extend( TypeLink t1, TypeImpl t2 ) {
-		return extend( t1.linkedType, t2 ); // maybe throw exception here if linkedType is null?
+		assert t1.linkedType != null;
+		return extend( t1.linkedType, t2 );
 	}
 
 	private static Type extend( TypeChoice t1, TypeImpl t2 ) {
@@ -415,7 +416,8 @@ public abstract class Type {
 	}
 
 	private static Type extend( Type t1, TypeLink t2 ) {
-		return extend( t1, t2.linkedType ); // maybe throw exception here if linkedType is null?
+		assert t2.linkedType != null;
+		return extend( t1, t2.linkedType );
 	}
 
 	private static Type extend( Type t1, TypeChoice t2 ) {
