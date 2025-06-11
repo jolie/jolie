@@ -104,6 +104,7 @@ import jolie.tracer.FileTracer;
 import jolie.tracer.PrintingTracer;
 import jolie.tracer.Tracer;
 import jolie.tracer.TracerUtils;
+import jolie.util.Helpers;
 
 /**
  * The Jolie interpreter engine. Multiple Interpreter instances can be run in the same JavaVM; this
@@ -628,7 +629,10 @@ public class Interpreter {
 	}
 
 	private String buildLogMessage( String message ) {
-		return String.format( "[%s] %s", logPrefix, message );
+		if( message == null ) {
+			return String.format( "[%s] null", logPrefix );
+		}
+		return String.format( "[%s] %s", logPrefix, Helpers.escapeControlChars( message ) );
 	}
 
 	/**

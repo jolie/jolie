@@ -34,11 +34,13 @@ import java.util.Map;
 import jolie.runtime.JavaService;
 import jolie.runtime.Value;
 import jolie.runtime.embedding.RequestResponse;
+import jolie.util.Helpers;
 
 public class ConsoleService extends JavaService {
 	private Map< String, String > sessionTokens;
 	private boolean sessionListeners = false;
 	private boolean enableTimestamp = false;
+	private boolean escapeControlChars = false;
 	private static final String TIMESTAMP_DEFAULT_FORMAT = "dd/MM/yyyy HH:mm:ss";
 	private String timestampFormat = TIMESTAMP_DEFAULT_FORMAT;
 
@@ -106,6 +108,9 @@ public class ConsoleService extends JavaService {
 
 	@RequestResponse
 	public void print( String s ) {
+		if( escapeControlChars ) {
+			s = Helpers.escapeControlChars( s );
+		}
 		if( enableTimestamp ) {
 			try {
 				SimpleDateFormat sdf = new SimpleDateFormat( timestampFormat );
@@ -122,6 +127,9 @@ public class ConsoleService extends JavaService {
 
 	@RequestResponse
 	public void println( String s ) {
+		if( escapeControlChars ) {
+			s = Helpers.escapeControlChars( s );
+		}
 		if( enableTimestamp ) {
 			try {
 				SimpleDateFormat sdf = new SimpleDateFormat( timestampFormat );
@@ -150,7 +158,11 @@ public class ConsoleService extends JavaService {
 			enableTimestamp = false;
 			timestampFormat = TIMESTAMP_DEFAULT_FORMAT;
 		}
+	}
 
+	@RequestResponse
+	public void escapeControlChars( Value request ) {
+		escapeControlChars = request.boolValue();
 	}
 
 	@RequestResponse
