@@ -1,0 +1,3 @@
+type typeInOtherFile {
+    token: int
+}
