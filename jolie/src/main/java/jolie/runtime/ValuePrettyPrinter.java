@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Map.Entry;
 
 import jolie.lang.NativeType;
+import jolie.util.Helpers;
 
 /**
  * Pretty printer for {@link Value} objects. This class is not thread safe.
@@ -88,10 +89,10 @@ public class ValuePrettyPrinter {
 				writer.write( s.substring( 0, Math.min( byteTruncation, s.length() ) ) + "..." );
 			} else if( value.isString() ) {
 				writer.write( '"' );
-				writer.write( value.valueObject().toString() );
+				writer.write( Helpers.escapeControlChars( value.valueObject().toString() ) );
 				writer.write( '"' );
 			} else {
-				writer.write( value.valueObject().toString() );
+				writer.write( Helpers.escapeControlChars( value.valueObject().toString() ) );
 			}
 		}
 		writer.write( '\n' );
