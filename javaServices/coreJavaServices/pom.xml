@@ -132,7 +132,7 @@
                                 <artifactItem>
                                     <groupId>org.apache.commons</groupId>
                                     <artifactId>commons-lang3</artifactId>
-                                    <version>3.0</version>
+                                    <version>3.18.0</version>
                                     <type>jar</type>
                                     <destFileName>commons-lang3.jar</destFileName>
                                 </artifactItem>
@@ -213,7 +213,7 @@
                                 <artifactItem>
                                     <groupId>org.apache.commons</groupId>
                                     <artifactId>commons-lang3</artifactId>
-                                    <version>3.0</version>
+                                    <version>3.18.0</version>
                                     <type>jar</type>
                                     <destFileName>commons-lang3.jar</destFileName>
                                 </artifactItem>
@@ -333,7 +333,7 @@
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
-            <version>3.0</version>
+            <version>3.18.0</version>
         </dependency>
         <dependency>
             <groupId>org.ini4j</groupId>
