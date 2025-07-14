@@ -87,13 +87,16 @@ class JapSource implements ModuleSource {
 				if( manifest != null ) {
 					// See if a main program is defined through a Manifest attribute
 					Attributes attrs = manifest.getMainAttributes();
-					this.filePath = attrs.getValue( Constants.Manifest.MAIN_PROGRAM );
-					this.moduleEntry = japFile.getEntry( this.filePath );
+					if( attrs.containsKey( Constants.Manifest.MAIN_PROGRAM ) ) {
+						this.filePath = attrs.getValue( Constants.Manifest.MAIN_PROGRAM );
+					} else {
+						this.filePath = Paths.get( this.japFile.getName() ).toUri().toString() + ".ol";
+					}
 				} else {
 					// guess by name
 					this.filePath = Paths.get( this.japFile.getName() ).toUri().toString() + ".ol";
-					this.moduleEntry = this.japFile.getEntry( this.filePath );
 				}
+				this.moduleEntry = this.japFile.getEntry( this.filePath );
 			}
 			if( this.moduleEntry == null ) {
 				throw new FileNotFoundException( uri.toString() );
