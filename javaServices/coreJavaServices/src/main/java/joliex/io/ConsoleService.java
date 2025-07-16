@@ -43,7 +43,7 @@ public class ConsoleService extends JavaService {
 	private String timestampFormat = TIMESTAMP_DEFAULT_FORMAT;
 
 	private class ConsoleInputThread extends Thread {
-		private boolean keepRun = true;
+		private volatile boolean keepRun = true;
 
 		public void kill() {
 			keepRun = false;
