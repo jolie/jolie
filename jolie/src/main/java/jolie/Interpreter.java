@@ -560,12 +560,10 @@ public class Interpreter {
 	 * @param terminationTimeout the timeout for the wait of the termination of running processes
 	 */
 	public void exit( long terminationTimeout ) {
-		synchronized( this ) {
-			if( exiting ) {
-				return;
-			} else {
-				exiting = true;
-			}
+		if( exiting ) {
+			return;
+		} else {
+			exiting = true;
 		}
 		exitingLock.lock();
 		try {
