@@ -270,7 +270,7 @@ public class Interpreter {
 	private final String logPrefix;
 	private final Tracer tracer;
 
-	private boolean check = false;
+	private volatile boolean check = false;
 	private final long persistentConnectionTimeout = 2 * 1000; // 2 seconds
 	private final long awaitTerminationTimeout = 5 * 1000; // 5 seconds
 
