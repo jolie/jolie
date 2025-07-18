@@ -22,6 +22,7 @@
 package joliex.util;
 
 
+import java.lang.ref.Cleaner;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -70,6 +71,8 @@ public class TimeService extends JavaService {
 	}
 
 	private TimeThread thread = null;
+	private final Cleaner cleaner = Cleaner.create();
+
 	private final DateFormat dateFormat, dateTimeFormat;
 	private final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
 	private final Map< Long, ScheduledFuture< ? > > scheduledFutureHashMap = new ConcurrentHashMap<>();
@@ -80,24 +83,13 @@ public class TimeService extends JavaService {
 		dateTimeFormat = DateFormat.getDateTimeInstance( DateFormat.SHORT, DateFormat.MEDIUM );
 	}
 
-	@Override
-	protected void finalize()
-		throws Throwable {
-		try {
-			if( thread != null ) {
-				thread.interrupt();
-			}
-		} finally {
-			super.finalize();
-		}
-	}
-
 	private void launchTimeThread( long waitTime, String callbackOperation, Value callbackValue ) {
 		waitTime = (waitTime > 0) ? waitTime : 0L;
 		if( thread != null ) {
 			thread.interrupt();
 		}
 		thread = new TimeThread( this, waitTime, callbackOperation, callbackValue );
+		cleaner.register( thread, thread::interrupt );
 		thread.start();
 	}
 
