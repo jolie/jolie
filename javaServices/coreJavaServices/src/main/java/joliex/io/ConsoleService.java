@@ -24,6 +24,7 @@ import java.io.FileDescriptor;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.lang.ref.Cleaner;
 import java.nio.channels.Channels;
 import java.nio.channels.ClosedByInterruptException;
 import java.text.SimpleDateFormat;
@@ -43,7 +44,7 @@ public class ConsoleService extends JavaService {
 	private String timestampFormat = TIMESTAMP_DEFAULT_FORMAT;
 
 	private class ConsoleInputThread extends Thread {
-		private boolean keepRun = true;
+		private volatile boolean keepRun = true;
 
 		public void kill() {
 			keepRun = false;
@@ -81,6 +82,7 @@ public class ConsoleService extends JavaService {
 	}
 
 	private ConsoleInputThread consoleInputThread;
+	private final Cleaner cleaner = Cleaner.create();
 
 	@RequestResponse
 	public void registerForInput( Value request ) {
@@ -91,17 +93,8 @@ public class ConsoleService extends JavaService {
 			}
 		}
 		consoleInputThread = new ConsoleInputThread();
+		cleaner.register( consoleInputThread, consoleInputThread::kill );
 		consoleInputThread.start();
-	}
-
-	@Override
-	protected void finalize()
-		throws Throwable {
-		try {
-			consoleInputThread.kill();
-		} finally {
-			super.finalize();
-		}
 	}
 
 	@RequestResponse

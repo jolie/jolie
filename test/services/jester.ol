@@ -139,9 +139,6 @@ define doTest {
     
     getJesterConfig@JesterConfigurator( jester )( config );
 
-
-    println@Console( s )()
-
     loadEmbeddedService@Runtime( { .filepath = "-C DEBUG=false" +
                                                 " -C API_ROUTER_HTTP=\"socket://" + router_host  + 
                                                 "\" -C API_ROUTER_HTTPS=\"local"  +

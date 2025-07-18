@@ -271,7 +271,7 @@ public class Interpreter {
 	private final String logPrefix;
 	private final Tracer tracer;
 
-	private boolean check = false;
+	private volatile boolean check = false;
 	private static final long PERSISTENT_CONNECTION_TIMEOUT = 2 * 1000; // 2 seconds
 	private static final long AWAIT_TERMINATION_TIMEOUT = 5 * 1000; // 5 seconds
 
@@ -561,12 +561,10 @@ public class Interpreter {
 	 * @param terminationTimeout the timeout for the wait of the termination of running processes
 	 */
 	public void exit( long terminationTimeout ) {
-		synchronized( this ) {
-			if( exiting ) {
-				return;
-			} else {
-				exiting = true;
-			}
+		if( exiting ) {
+			return;
+		} else {
+			exiting = true;
 		}
 		exitingLock.lock();
 		try {
