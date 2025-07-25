@@ -117,7 +117,9 @@ public class SocketCommChannel extends SelectableStreamingCommChannel {
 		throws IOException {
 		try {
 			protocol().send( ostream, message, istream );
-			ostream.flush();
+			if( socketChannel.isOpen() ) {
+				ostream.flush();
+			}
 		} catch( IllegalBlockingModeException e ) {
 			throw new IOException( e );
 		}
