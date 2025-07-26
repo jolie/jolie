@@ -51,6 +51,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
@@ -250,7 +251,7 @@ public class Interpreter {
 	private Interpreter parentInterpreter = null;
 
 	private Map< String, SessionStarter > sessionStarters = new HashMap<>();
-	private volatile boolean exiting = false;
+	private final AtomicBoolean exiting = new AtomicBoolean( false );
 	private final Lock exitingLock;
 	private final Condition exitingCondition;
 	private final CorrelationEngine correlationEngine;
@@ -561,11 +562,11 @@ public class Interpreter {
 	 * @param terminationTimeout the timeout for the wait of the termination of running processes
 	 */
 	public void exit( long terminationTimeout ) {
-		if( exiting ) {
+		if( !exiting.compareAndSet( false, true ) ) {
+			// Already exiting
 			return;
-		} else {
-			exiting = true;
 		}
+
 		exitingLock.lock();
 		try {
 			exitingCondition.signalAll();
@@ -602,7 +603,7 @@ public class Interpreter {
 	 * @see #exit()
 	 */
 	public boolean exiting() {
-		return exiting;
+		return exiting.get();
 	}
 
 	/**
