@@ -614,14 +614,21 @@ public class Interpreter {
 	public void logUnhandledFault( FaultException fault ) {
 		StringWriter writer = new StringWriter();
 		try {
-			new ValuePrettyPrinter( fault.value(), writer,
-				"Thrown unhandled fault: " + fault.faultName() + "\nSource location: " + fault.getContextString()
-					+ "\nContent (if any)" )
+			new ValuePrettyPrinter(
+				fault.value(),
+				writer,
+				String.format(
+					"Thrown unhandled fault: %s\nSource location: %s\nContent (if any)",
+					fault.faultName(),
+					fault.getContextString() ) )
 				.run();
 			logInfo( writer.toString() );
 		} catch( IOException e ) {
 			logInfo(
-				"Thrown unhandled fault: " + fault.faultName() + "\nSource location: " + fault.getContextString() );
+				String.format(
+					"Thrown unhandled fault: %s\nSource location: %s",
+					fault.faultName(),
+					fault.getContextString() ) );
 		}
 	}
 
