@@ -90,8 +90,8 @@ define doTest
   };
 
   getMetaData@MetaJolie( rq )( metadata )
-  if ( #metadata.types != 12 ) {
-      throw( TestFailed, "Expected 12 types in metadata, found " + #metadata.types )
+  if ( #metadata.types != 13 ) {
+      throw( TestFailed, "Expected 13 types in metadata, found " + #metadata.types )
   }
   for( t = 0, t < #metadata.types, t++ ) {
       if ( metadata.types[ t ].name == "T7" && metadata.types[ t ].type.undefined != true ) {
@@ -102,8 +102,8 @@ define doTest
   if ( #metadata.interfaces != 2 ) {
       throw( TestFailed, "Expected 2 interface in metadata, found " + #metadata.interfaces )
   }
-   if ( #metadata.interfaces.operations != 7 ) {
-      throw( TestFailed, "Expected 7 operations in metadata.interfaces[0], found " + #metadata.interfaces.operations )
+   if ( #metadata.interfaces.operations != 8 ) {
+      throw( TestFailed, "Expected 8 operations in metadata.interfaces[0], found " + #metadata.interfaces.operations )
   }
   if ( #metadata.input != 1 ) {
       throw( TestFailed, "Expected 1 input in metadata, found " + #metadata.input )
