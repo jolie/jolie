@@ -40,9 +40,8 @@ You can help improve our [website](https://www.jolie-lang.org). You can find its
 
 Discussions can take place over different media.
 
-- Our [GitHub repository](https://github.com/jolie/jolie), in the forms of [issues](https://github.com/jolie/jolie/issues) and [pull requests](https://github.com/jolie/jolie/pulls).
-- E-mail, by sending an e-mail to `jolie-devel@googlegroups.com`. Anybody can send to the group. You can also register to the e-mail group at this link: https://groups.google.com/g/jolie-devel.
-- Chat or Audio/Video calls. See below for links to our Discord and Slack channels.
+- Our [GitHub repository](https://github.com/jolie/jolie), in the forms of [discussion threads](https://github.com/jolie/jolie/discussions), [issues](https://github.com/jolie/jolie/issues), and [pull requests](https://github.com/jolie/jolie/pulls).
+- Chat or Audio/Video calls. See below for a link to our Discord server.
 
 ### Discord
 <p align="center">
