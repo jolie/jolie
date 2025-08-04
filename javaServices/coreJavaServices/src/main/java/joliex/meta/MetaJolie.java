@@ -54,8 +54,8 @@ public class MetaJolie extends JavaService {
 	private static final int MAX_CARD = Integer.MAX_VALUE;
 	// private ArrayList< TypeDefinition > listOfGeneratedTypesInTypeDefinition;
 	// private ArrayList< Value > listOfGeneratedTypesInValues;
-	private final ArrayList< String > nativeTypeList =
-		new ArrayList<>( Arrays.asList( "any", "string", "double", "int", "void", "bool", "long", "raw" ) );
+	private final ArrayList< String > nativeTypeList = new ArrayList<>(
+		Arrays.asList( "any", "string", "double", "int", "void", "bool", "long", "raw" ) );
 
 	private static class ValueTypeComparator implements Comparator< Value > {
 
@@ -77,8 +77,8 @@ public class MetaJolie extends JavaService {
 			case STRING:
 				response.getFirstChild( "string_type" ).setValue( true );
 				if( !type.refinements().isEmpty() ) {
-					ValueVector refinementVector =
-						response.getFirstChild( "string_type" ).getChildren( "refined_type" );
+					ValueVector refinementVector = response.getFirstChild( "string_type" )
+						.getChildren( "refined_type" );
 					type.refinements().stream().forEach( refinement -> {
 						Value refinedValue = Value.create();
 						if( refinement instanceof BasicTypeRefinementStringRegex ) {
@@ -225,7 +225,6 @@ public class MetaJolie extends JavaService {
 			}
 		return response;
 	}
-
 
 	private int getTypeLinkCounter() {
 		typeLinkCounter++;
@@ -592,15 +591,16 @@ public class MetaJolie extends JavaService {
 						|| (extender.operationsMap() != null
 							&& extender.operationsMap().get( oneWayOperation.id() ) != null) ) {
 						String extendedTypeName =
-							new StringBuilder().append( operationName ).append( "ExtendedRequest" ).toString();
+							new StringBuilder().append( operationName ).append( "ExtendedRequest" )
+								.toString();
 						current_operation.getFirstChild( "input" ).setValue( extendedTypeName );
 						TypeDefinition extendedType;
 						if( extender.defaultOneWayOperation() != null ) {
 							extendedType = extender.defaultOneWayOperation().requestType();
 						} else {
-							extendedType =
-								((OneWayOperationDeclaration) extender.operationsMap().get( oneWayOperation.id() ))
-									.requestType();
+							extendedType = ((OneWayOperationDeclaration) extender.operationsMap()
+								.get( oneWayOperation.id() ))
+								.requestType();
 						}
 						insertTypeDefinitionExtended(
 							listOfGeneratedTypesNames,
@@ -631,7 +631,8 @@ public class MetaJolie extends JavaService {
 						|| (extender.operationsMap() != null
 							&& extender.operationsMap().get( requestResponseOperation.id() ) != null) ) {
 						String extendedTypeName =
-							new StringBuilder().append( operationName ).append( "ExtendedRequest" ).toString();
+							new StringBuilder().append( operationName ).append( "ExtendedRequest" )
+								.toString();
 						current_operation.getFirstChild( "input" ).setValue( extendedTypeName );
 						TypeDefinition extendedType;
 						if( extender.defaultRequestResponseOperation() != null ) {
@@ -658,7 +659,8 @@ public class MetaJolie extends JavaService {
 						|| (extender.operationsMap() != null
 							&& extender.operationsMap().get( requestResponseOperation.id() ) != null) ) {
 						String extendedTypeName =
-							new StringBuilder().append( operationName ).append( "ExtendedResponse" ).toString();
+							new StringBuilder().append( operationName ).append( "ExtendedResponse" )
+								.toString();
 						current_operation.getFirstChild( "output" ).setValue( extendedTypeName );
 						TypeDefinition extendedType;
 						if( extender.defaultRequestResponseOperation() != null ) {
@@ -713,8 +715,6 @@ public class MetaJolie extends JavaService {
 
 		return itf;
 	}
-
-
 
 	private Value getInterface(
 		HashSet< String > listOfGeneratedTypesNames,
@@ -792,8 +792,6 @@ public class MetaJolie extends JavaService {
 		return itf;
 	}
 
-
-
 	private List< InterfaceDefinition > addInterfaceToList( List< InterfaceDefinition > list,
 		InterfaceDefinition intf ) {
 		if( !list.contains( intf ) ) {
@@ -801,7 +799,6 @@ public class MetaJolie extends JavaService {
 		}
 		return list;
 	}
-
 
 	private Value getOutputPort(
 		ArrayList< Value > listOfGeneratedTypesInValues,
@@ -871,7 +868,8 @@ public class MetaJolie extends JavaService {
 			InterfaceExtenderDefinition extender = null;
 			if( portInfo.aggregationList()[ x ].interfaceExtender() != null ) {
 				// the interfaces of the outputPort must be extended
-				// only default extension is processed. TODO: extending also specific operation declaration
+				// only default extension is processed. TODO: extending also specific operation
+				// declaration
 				extender = portInfo.aggregationList()[ x ].interfaceExtender();
 			}
 			for( InterfaceDefinition interfaceDefinition : outputPortList[ i ].getInterfaceList() ) {
@@ -977,8 +975,8 @@ public class MetaJolie extends JavaService {
 			if( typedef.name().equals( "undefined" ) ) {
 				type.getFirstChild( "type" ).deepCopy( getTypeUndefined() );
 			} else if( !isNativeType( typedef.name() ) ) {
-				String extendedTypeName =
-					new StringBuilder().append( "TypeLink_" ).append( getTypeLinkCounter() ).toString();
+				String extendedTypeName = new StringBuilder().append( "TypeLink_" ).append( getTypeLinkCounter() )
+					.toString();
 				type.getFirstChild( "type" ).getFirstChild( "link_name" ).setValue( extendedTypeName );
 				insertTypeDefinitionExtended( listOfGeneratedTypesNames, listOfGeneratedTypesInValues,
 					typedef, extension, extendedTypeName );
@@ -1080,7 +1078,8 @@ public class MetaJolie extends JavaService {
 		return new String[] {
 			"-i",
 			builder.toString(),
-			// String.join( jolie.lang.Constants.pathSeparator, interpreter().includePaths() ),
+			// String.join( jolie.lang.Constants.pathSeparator, interpreter().includePaths()
+			// ),
 			filename
 		};
 	}
@@ -1159,7 +1158,8 @@ public class MetaJolie extends JavaService {
 			if( typeToCast.getFirstChild( "root_type" ).getChildren( "int_type" ).size() > 0 ) {
 				response.setValue( message.intValue() );
 			}
-			// if( typeToCast.getFirstChild( "root_type" ).getChildren( "void_type" ).size() > 0 ) {
+			// if( typeToCast.getFirstChild( "root_type" ).getChildren( "void_type" ).size()
+			// > 0 ) {
 			// }
 			if( typeToCast.getFirstChild( "root_type" ).getChildren( "long_type" ).size() > 0 ) {
 				response.setValue( message.longValue() );
@@ -1171,23 +1171,21 @@ public class MetaJolie extends JavaService {
 			// casting subTypes
 			if( typeToCast.getChildren( "sub_type" ).size() > 0 ) {
 				// ranging over all the subfields of the message
-				if( message.children().size() == 0 ) {
-					throw new FaultException( "TypeMismatch", "No sub fields found when type requests them" );
-				} else {
-					ArrayList< String > foundSubTypes = new ArrayList<>();
-					for( Entry< String, ValueVector > e : message.children().entrySet() ) {
-						castingSubType( typeToCast.getChildren( "sub_type" ), e.getKey(),
-							message.getChildren( e.getKey() ), types, response );
-						foundSubTypes.add( e.getKey() );
-					}
-					for( Value subtype : typeToCast.getChildren( "sub_type" ) ) {
-						if( !foundSubTypes.contains( subtype.getFirstChild( "name" ).strValue() )
-							&& subtype.getFirstChild( "cardinality" ).getFirstChild( "min" ).intValue() > 0 ) {
-							throw new FaultException( "TypeMismatch", "Field "
-								+ subtype.getFirstChild( "name" ).strValue() + " must be present in the message" );
-						}
+
+				ArrayList< String > foundSubTypes = new ArrayList<>();
+				for( Entry< String, ValueVector > e : message.children().entrySet() ) {
+					castingSubType( typeToCast.getChildren( "sub_type" ), e.getKey(),
+						message.getChildren( e.getKey() ), types, response );
+					foundSubTypes.add( e.getKey() );
+				}
+				for( Value subtype : typeToCast.getChildren( "sub_type" ) ) {
+					if( !foundSubTypes.contains( subtype.getFirstChild( "name" ).strValue() )
+						&& subtype.getFirstChild( "cardinality" ).getFirstChild( "min" ).intValue() > 0 ) {
+						throw new FaultException( "TypeMismatch", "Field "
+							+ subtype.getFirstChild( "name" ).strValue() + " must be present in the message" );
 					}
 				}
+
 			} else if( message.children().size() > 0 ) {
 				throw new FaultException( "TypeMismatch",
 					"The message contains fields for a type defines with no fields" );
@@ -1218,8 +1216,8 @@ public class MetaJolie extends JavaService {
 
 		try( CommandLineParser cmdParser = new CommandLineParser( args, interpreter().getClassLoader() ) ) {
 
-			Configuration configuration =
-				new SemanticVerifier.Configuration( cmdParser.getInterpreterConfiguration().executionTarget() );
+			Configuration configuration = new SemanticVerifier.Configuration(
+				cmdParser.getInterpreterConfiguration().executionTarget() );
 			configuration.setCheckForMain( false );
 
 			Program program = ParsingUtils.parseProgram(
@@ -1282,8 +1280,8 @@ public class MetaJolie extends JavaService {
 		String[] args = getArgs( request.getFirstChild( "filename" ).strValue() );
 
 		try( CommandLineParser cmdParser = new CommandLineParser( args, interpreter().getClassLoader() ) ) {
-			Configuration configuration =
-				new SemanticVerifier.Configuration( cmdParser.getInterpreterConfiguration().executionTarget() );
+			Configuration configuration = new SemanticVerifier.Configuration(
+				cmdParser.getInterpreterConfiguration().executionTarget() );
 			configuration.setCheckForMain( false );
 			Program program = ParsingUtils.parseProgram(
 				cmdParser.getInterpreterConfiguration().source(),
@@ -1369,15 +1367,14 @@ public class MetaJolie extends JavaService {
 		HashSet< String > listOfGeneratedTypesNames = new HashSet<>();
 		ArrayList< Value > listOfGeneratedTypesInValues = new ArrayList<>();
 
-
 		List< InterfaceDefinition > interfaces = new ArrayList<>();
 		Value response = Value.create();
 		String[] args = getArgs( request.getFirstChild( "filename" ).strValue() );
 
 		try( CommandLineParser cmdParser = new CommandLineParser( args, MetaJolie.class.getClassLoader() ) ) {
 
-			Configuration configuration =
-				new SemanticVerifier.Configuration( cmdParser.getInterpreterConfiguration().executionTarget() );
+			Configuration configuration = new SemanticVerifier.Configuration(
+				cmdParser.getInterpreterConfiguration().executionTarget() );
 			configuration.setCheckForMain( false );
 
 			Program program = ParsingUtils.parseProgram(
@@ -1393,7 +1390,8 @@ public class MetaJolie extends JavaService {
 
 			URI originalFile = program.context().source();
 
-			// TODO: now the name of the service cannot be retrieved, to be considered during Jolie 2.0
+			// TODO: now the name of the service cannot be retrieved, to be considered
+			// during Jolie 2.0
 			// refactoring
 			response.getFirstChild( "service" ).getFirstChild( "name" ).setValue( "" );
 
@@ -1403,7 +1401,8 @@ public class MetaJolie extends JavaService {
 				for( int op = 0; op < outputPortList.length; op++ ) {
 					OutputPortInfo outputPort = outputPortList[ op ];
 					output.get( op ).deepCopy( getPort( outputPort, interfaces ) );
-					// response.getFirstChild( "service" ).getChildren( "output" ).get( op ).setValue( outputPort.id()
+					// response.getFirstChild( "service" ).getChildren( "output" ).get( op
+					// ).setValue( outputPort.id()
 					// );
 				}
 			}
@@ -1415,7 +1414,8 @@ public class MetaJolie extends JavaService {
 					InputPortInfo inputPort = inputPortList[ ip ];
 					input.get( ip )
 						.deepCopy( getInputPortInfoAndAddInterfacesToList( inputPort, outputPortList, interfaces ) );
-					// response.getFirstChild( "service" ).getChildren( "input" ).get( ip ).setValue( inputPort.id() );
+					// response.getFirstChild( "service" ).getChildren( "input" ).get( ip
+					// ).setValue( inputPort.id() );
 				}
 			}
 
@@ -1501,7 +1501,6 @@ public class MetaJolie extends JavaService {
 						}
 						comDepVect.add( v );
 					} );
-
 
 			}
 
