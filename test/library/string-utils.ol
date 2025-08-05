@@ -42,6 +42,12 @@ service Main {
 
 			if( fmt@su( { format = "Up to {pct,number,percent}", locale = "en-us", data.pct = 0.6 } ) != "Up to 60%" )
 				throw( TestFailed, "Up to 60%" )
+
+			findAll@su( "Hello1 Hello2 Hello3" {
+				regex = "Hello\\d+"
+			})( result ) 
+			if ( #result.group != 3 ) 
+				throw( TestFailed, "findAll: Expected 3 groups, got " + #result.group )
 		}
 	}
 }
