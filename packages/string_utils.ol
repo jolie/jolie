@@ -115,6 +115,7 @@ RequestResponse:
 	length(string)(int),
 	match(MatchRequest)(MatchResult),
 	find(MatchRequest)(MatchResult),
+	findAll(MatchRequest)(MatchResult),
 	replaceAll(ReplaceRequest)(string),
 	replaceFirst(ReplaceRequest)(string),
 	sort(StringItemList)(StringItemList),
