@@ -108,16 +108,18 @@ interface JSONSchemaGeneratorInterface {
    getNumberRefinedType( GetNumberRefinedTypeRequest )( GetNumberRefinedTypeResponse ) throws GenerationError( string )
 }
 
+type JsonSchemaParameters {
+    parentlocation: string 
+}
 
-
-private service JsonSchema2 {
+private service JsonSchema2( p : JsonSchemaParameters ){
 
     embed StringUtils as StringUtils
 
     execution: concurrent
 
     outputPort Parent {
-        location: "local://internalJsonSchema"
+        location: p.parentlocation
         interfaces: JSONSchemaGeneratorInterface
     }
 
@@ -151,14 +153,14 @@ private service JsonSchema2 {
     }
 }
 
-private service JsonSchema3 {
+private service JsonSchema3( p : JsonSchemaParameters ) {
 
     embed StringUtils as StringUtils
 
     execution: concurrent
 
     outputPort Parent {
-        location: "local://internalJsonSchema"
+        location: p.parentlocation
         interfaces: JSONSchemaGeneratorInterface
     }
 
@@ -218,16 +220,20 @@ service JsonSchema {
     execution: concurrent
 
     embed StringUtils as StringUtils
-    embed JsonSchema2 as JsonSchema2
-    embed JsonSchema3 as JsonSchema3
+    embed JsonSchema2({
+        parentlocation = "local://internalJsonSchemaTest"
+    }) as JsonSchema2
+    embed JsonSchema3({
+        parentlocation = "local://internalJsonSchemaTest"
+    }) as JsonSchema3
 
     outputPort MySelf {
-        location: "local://internalJsonSchema"
+        location: "local://internalJsonSchemaTest"
         interfaces: JSONSchemaGeneratorInterface
     }
 
     inputPort JSONSchemaGeneratorInternal {
-        location: "local://internalJsonSchema"
+        location: "local://internalJsonSchemaTest"
         interfaces: JSONSchemaGeneratorInterface
     }
 
