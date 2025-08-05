@@ -271,6 +271,27 @@ public class StringUtils extends JavaService {
 		return response;
 	}
 
+	public Value findAll( Value request ) {
+		Pattern p = Pattern.compile( request.getFirstChild( "regex" ).strValue() );
+		Matcher m = p.matcher( request.strValue() );
+		Value response = Value.create();
+		ValueVector groups = response.getChildren( "group" );
+		boolean found = false;
+		while( m.find() ) {
+			found = true;
+			response.setValue( 1 );
+
+
+			groups.add( Value.create( (m.group( 0 ) == null) ? "" : m.group( 0 ) ) );
+			for( int i = 0; i < m.groupCount(); i++ ) {
+				groups.add( Value.create( (m.group( i + 1 ) == null) ? "" : m.group( i + 1 ) ) );
+			}
+
+		}
+		response.setValue( found ? 1 : 0 );
+		return response;
+	}
+
 	public String leftPad( Value request ) {
 		String orig = request.strValue();
 		int length = request.getFirstChild( "length" ).intValue();
