@@ -33,6 +33,8 @@ from types.definition-types import DoubleRefinedType
 from types.definition-types import LongRefinedType
 from types.definition-types import TypeUndefined
 
+from runtime import Runtime
+
 from string-utils import StringUtils
 
 
@@ -109,7 +111,7 @@ interface JSONSchemaGeneratorInterface {
 }
 
 type JsonSchemaParameters {
-    parentlocation: string 
+    parentlocation: any 
 }
 
 private service JsonSchema2( p : JsonSchemaParameters ){
@@ -218,22 +220,22 @@ private service JsonSchema3( p : JsonSchemaParameters ) {
 service JsonSchema {
 
     execution: concurrent
+    embed Runtime as runtime
 
     embed StringUtils as StringUtils
     embed JsonSchema2({
-        parentlocation = "local://internalJsonSchemaTest"
+        parentlocation = getLocalLocation@runtime()
     }) as JsonSchema2
     embed JsonSchema3({
-        parentlocation = "local://internalJsonSchemaTest"
+        parentlocation = getLocalLocation@runtime()
     }) as JsonSchema3
 
     outputPort MySelf {
-        location: "local://internalJsonSchemaTest"
         interfaces: JSONSchemaGeneratorInterface
     }
 
     inputPort JSONSchemaGeneratorInternal {
-        location: "local://internalJsonSchemaTest"
+        location: "local"
         interfaces: JSONSchemaGeneratorInterface
     }
 
@@ -244,6 +246,7 @@ service JsonSchema {
 
     init {
         install( GenerationError => nullProcess )
+        getLocalLocation@runtime()(MySelf.location)
     }
 
     main
