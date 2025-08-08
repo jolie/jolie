@@ -1,102 +1,195 @@
 from console import Console
 from file import File
 from openapi import OpenApi
+from openapi import RestApiTemplate
+from args import Args
+from metajolie import MetaJolie
 
-
+constants {
+    RESTTEMPLATE = "rest-template.json"
+}
 
 service Jolie2OpenApi {
 
     embed Console as Console 
     embed File as File
     embed OpenApi as OpenApi
+    embed Args as Args
+    embed MetaJolie as MetaJolie
 
-
-    constants {
-        RESTTEMPLATE = "rest_template.json"
-    }
 
     init {
         install( Error => nullProcess )
+        install( Help => nullProcess )
+        install( ParametersError => nullProcess )
         install( DefinitionError => println@Console( main.DefinitionError )() )
     }
 
     main {
-        if ( #args < 4 || #args > 6 ) {
-            println@Console("Usage: jolie2openapi <service_filename> <input_port> <router_host> <output_folder> <scheme> [level0 true|false]")()
-            println@Console("<service_filename>:\tfilename of the jolie service")()
-            println@Console("<input_port>:\tinput port to be converted")()
-            println@Console("<router_host>:\turl of the host to be contacted for using rest apis")()
-            println@Console("<output_folder>:\toutput folder where storing the resulting json file")()
-            println@Console("<scheme>:\t http or https")()
-            
-            println@Console("[level0 true|false]:\t if set to true no external templates from rest_template.json will be applied. Default is false.")()
-            
-            println@Console()()
-            throw( Error )
-        }
-        
-        
-        service_filename = args[ 0 ]
-        service_input_port = args[ 1 ]
-        router_host = args [ 2 ]
-        wkdir = args[ 3 ]
-        scheme = args[ 4 ]
+        // default values
+        scheme = "http"
+        wkdir = "."
+        level0 = false
+        template_file = RESTTEMPLATE
+        openApiVersion = "3.0"
+        documentVersion = "1.0"
 
-        if ( #args == 6 ) {
-            level0 = bool( args[ 5 ] )
-        } else {
-            level0 = false
-        }
+        scope( get_args ) {
+            install( Help => nullProcess )
+            getParsedArgs@Args({
+                args << args
+                argsMap[ 0 ] << { 
+                    name = "service-filename"
+                    optional = false
+                    description = "Filename of the jolie service to be converted"
+                    isFlag = false
+                }
+                argsMap[ 1 ] << { 
+                    name = "input-port"
+                    optional = false
+                    description = "Input port to be converted"
+                    isFlag = false
+                }
+                argsMap[ 2 ] << { 
+                    name = "router-host"
+                    optional = false
+                    description = "Url of the host to be contacted for using rest apis"
+                    isFlag = false
+                }
+                argsMap[ 3 ] << { 
+                    name = "output-folder", 
+                    optional = true,
+                    description = "Output folder where storing the resulting json file. Default is the current folder",
+                    isFlag = false
+                }
+                argsMap[ 4 ] << { 
+                    name = "scheme", 
+                    optional = true,
+                    description = "http or https. Default is http",
+                    isFlag = false
+                }
+                argsMap[ 5 ] << { 
+                    name = "level0", 
+                    optional = true,
+                    description = "If set no external templates from rest-template.json will be applied",
+                    isFlag = true
+                }
+                argsMap[ 6 ] << { 
+                    name = "template-file", 
+                    optional = true,
+                    description = "Name of the rest api template file. Default is rest-template.json",
+                    isFlag = false
+                }
+                argsMap[ 7 ] << { 
+                    name = "openapi-version", 
+                    optional = true,
+                    description = "Version of the OpenApi to be conformant with (2.0 | 3.0). Default is 3.0",
+                    isFlag = false
+                }
+                argsMap[ 8 ] << { 
+                    name = "document-version", 
+                    optional = true,
+                    description = "Version of the generated document. Default is 1.0",
+                    isFlag = false
+                }
 
-        if( !level0 ) {
-            scope( load_template ) {
-                install( FileNotFound => 
-                        println@Console("rest_template.json not found")()
-                        throw( Error )
-                )
-                readFile@File( {
-                    filename = RESTTEMPLATE
-                    format = "json"
-                } )( template )
+            })( arguments )
+
+            // conversion od arguments into a hashmap
+            for ( a in arguments.parsedArgs ) {
+                arg_hashmap.( a.name ) << a
+            }
+
+            service_filename = arg_hashmap.("service-filename").value
+            input_port = arg_hashmap.("input-port").value
+            router_host = arg_hashmap.("router-host").value
+            
+            if ( is_defined( arg_hashmap.("output-folder") ) ) {
+                wkdir = arg_hashmap.("output-folder").value
+            }
+            if ( is_defined( arg_hashmap.scheme ) ) {
+                scheme = arg_hashmap.scheme.value
+            }
+            if ( is_defined( arg_hashmap.level0 ) ) {
+                level0 = true
+            }
+            if ( is_defined( arg_hashmap.("template-file") ) ) {
+                template_file = arg_hashmap.("template-file").value
+            }
+            if ( is_defined( arg_hashmap.("openapi-version") ) ) {
+                openApiVersion = arg_hashmap.("openapi-version").value
+            }
+            if ( is_defined( arg_hashmap.("document-version") ) ) {
+                documentVersion = arg_hashmap.("document-version").value
+            }
+            
+            
+
+
+            if( !level0 ) {
+                scope( load_template ) {
+                    install( FileNotFound => 
+                            println@Console( template_file + "not found")()
+                            throw( Error )
+                    )
+                    readFile@File( {
+                        filename = template_file
+                        format = "json"
+                    } )( template )
+                    if ( !( template instanceof RestApiTemplate ) ) {
+                        println@Console("Error: Template file " + template_file + " is not a valid RestApiTemplate.")()
+                        println@Console("RestApiTemplate must be a json file, conformant to the following type (expressed in jolie language):\n
+    type RestApiTemplate {
+        operations* {
+            operation: string 
+            path?: string
+            method: string( enum([\"get\",\"post\",\"put\",\"delete\",\"patch\"]))
+            faultsMapping* {
+                jolieFault: string
+                httpCode: int    
             }
         }
-
-        openapi << {
-            //filename = service_filename
-            host = router_host
-            //inputPort = service_input_port
-            level0 = level0
-
-
-            
-        }
-
-        if ( !level0 ) {
-            openapi.template -> template
-        }
-
-        port: Port
-            scheme: string( enum(["http","https"]))
-            version: string   // version of the document
-            template {
-                operations* {
-                    operation: string 
-                    path?: string
-                    method: string( enum(["get","post","put","delete","patch"]))
-                    faultsMapping* {
-                        jolieFault: string
-                        httpCode: int    
+    }")()
                     }
                 }
             }
-            openApiVersion: string( enum(["2.0","3.0"]))    // version of the openapi
 
-        println@Console("Creating json file... " )()
-        getOpenApiFromJolieMetaData@OpenApi( openapi )( f.content );
-        f.format = "text";
-        f.filename = wkdir + "/" + service_input_port + ".json"
-        writeFile@File( f )()
-        println@Console("Done.")()
+            getInputPortMetaData@MetaJolie( { filename = service_filename } )( meta )
+            for ( p in meta.input ) {
+                if ( p.name == input_port ) {
+                    port << p
+                }
+            }
+            if ( port instanceof void ) {
+                println@Console("Error: Input port " + input_port + " not found in service " + service_filename)()
+                throw( Error )
+            }
+
+            openapi << {
+                //filename = service_filename
+                host = router_host
+                //inputPort = service_input_port
+                level0 = level0
+                port << port
+                scheme  = scheme
+                version = documentVersion
+                openApiVersion = openApiVersion
+
+                
+            }
+
+            if ( !level0 ) {
+                openapi.template -> template
+            }
+
+            println@Console("Creating openapi file... " )()
+            getOpenApiFromJolieMetaData@OpenApi( openapi )( f.content );
+            writeFile@File( {
+                filename = wkdir + "/" + service_input_port + ".json"
+                format = "text"
+            } )()
+            println@Console("Done.")()
+        }
         
     }
 }

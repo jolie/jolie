@@ -22,7 +22,7 @@ type GetParsedResponse {
 
 interface ArgsInterface {
     RequestResponse:
-        getParsedArgs( GetParsedArgsRequest )( GetParsedResponse ) throws ParametersError( string )
+        getParsedArgs( GetParsedArgsRequest )( GetParsedResponse ) throws ParametersError( string ) Help
 
 }
 
@@ -43,9 +43,23 @@ service Args {
         interfaces: ArgsInterface
     }
 
+    define print_help {
+        println@Console("")()
+        println@Console("Documentation:\n")()
+        for ( arg in request.argsMap ) {
+            print@Console( "--" + rightPad@StringUtils( arg.name { length = 25, char = " " } ))()
+            if ( arg.optional ) { print@Console( "[optional] " )() } 
+            else { print@Console( "[required] " )() }
+            if ( arg.isFlag ) { print@Console( "[flag argument] " )() } 
+            else { print@Console( "[require value] " )() }
+            println@Console( arg.description )()
+        }
+    }
+
 
     init {
         install( ParametersError => nullProcess )
+        install( Help => nullProcess )
     }
 
     main {
@@ -73,22 +87,24 @@ service Args {
 
             // check if help has been requested
             if ( is_defined( parsedArgsHashMap.help ) ) {
-                for ( arg in request.argsMap ) {
-                    println@Console( "\t--" + arg.name + ":\t\t" + arg.description + "\t[optional=" + arg.optional +"]")()
-                }
+                print_help
+                throw Help
             } else {
                 // check optional arguments
                 for( arg in request.argsMap ) {
                     if ( !arg.optional && !is_defined( parsedArgsHashMap.( arg.name ) ) ) {
-                        println@Console( "Error: Missing required argument: " + arg.name )()
+                        println@Console( "❌ Error: Missing required argument: " + arg.name )()
+                        print_help
                         throw ParametersError( "Missing required argument: " + arg.name )
                     }
                     if ( is_defined( parsedArgsHashMap.( arg.name ) ) && arg.isFlag && !(parsedArgsHashMap.( arg.name ).value instanceof void ) ) {
-                        println@Console( "Warning: Argument " + arg.name + " is a flag and cannot have a value" ) ()
+                        println@Console( "❌ Error: Argument " + arg.name + " is a flag and cannot have a value\n" ) ()
+                        print_help
                         throw ParametersError( "Argument " + arg.name + " is a flag and cannot have a value" )
                     }
                     if ( is_defined( parsedArgsHashMap.( arg.name ) ) && !arg.isFlag && (parsedArgsHashMap.( arg.name ).value instanceof void ) ) {
-                        println@Console( "Warning: Argument " + arg.name + " must have a value." )()
+                        println@Console( "❌ Error: Argument " + arg.name + " must have a value.\n" )()
+                        print_help
                         throw ParametersError( "Argument " + arg.name + " must have a value" )
                     }
                 }
