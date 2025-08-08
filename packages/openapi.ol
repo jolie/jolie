@@ -138,23 +138,25 @@ interface OpenApiInterface {
         getOpenApiDefinition( GetOpenApiDefinitionRequest )( string )
 }
 
+type RestApiTemplate {
+    operations* {
+        operation: string 
+        path?: string
+        method: string( enum(["get","post","put","delete","patch"]))
+        faultsMapping* {
+            jolieFault: string
+            httpCode: int    
+        }
+    }
+}
+
 type GetOpenApiFromJolieMetaDataRequest {
     port: Port
     host: string
     scheme: string( enum(["http","https"]))
     level0?: bool
     version: string   // version of the document
-    template {
-        operations* {
-            operation: string 
-            path?: string
-            method: string( enum(["get","post","put","delete","patch"]))
-            faultsMapping* {
-                jolieFault: string
-                httpCode: int    
-            }
-        }
-    }
+    template: RestApiTemplate
     openApiVersion: string( enum(["2.0","3.0"]))    // version of the openapi
 }
 
