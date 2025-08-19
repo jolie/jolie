@@ -29,6 +29,50 @@ from json-utils import JsonUtils
 from file import File
 from openapi import OpenApi
 
+interface UtilsInterface {
+    RequestResponse:
+        checkRefSiblings( undefined )( void ) throws RefSiblingsError( string )
+}
+
+service OpenApiUtils {
+
+    execution: concurrent 
+
+    outputPort OpenApiUtils {
+        location: "local://OpenApiUtils"
+        interfaces: UtilsInterface
+    }
+
+    inputPort OpenApiUtils {
+        location: "local://OpenApiUtils"
+        interfaces: UtilsInterface
+    }
+
+    init {
+        install( RefSiblingsError => nullProcess )
+    }
+
+    main {
+        checkRefSiblings( request )( response ) {
+            count_elements = 0; found_ref = false
+            foreach( e : request ) {
+                count_elements++ 
+                if ( e == "$ref") { found_ref = true }
+                if ( !( request.( e ) instanceof void )) {
+                    scope( check_ref_siblings ) {
+                        install( RefSiblingsError => throw( RefSiblingsError, e + "->" + check_ref_siblings.RefSiblingsError ) )
+                        checkRefSiblings@OpenApiUtils( request.( e ) )()
+                    }
+                }
+            }
+            if ( found_ref && count_elements > 1 ) {
+                throw( RefSiblingsError, e )
+            }
+        }
+    }
+
+}
+
 
 service Main {
 
@@ -39,6 +83,12 @@ service Main {
     embed JsonUtils as JsonUtils
     embed File as File
     embed OpenApi as OpenApi
+    embed OpenApiUtils 
+
+    outputPort OpenApiUtils  {
+        location: "local://OpenApiUtils"
+        interfaces: UtilsInterface 
+    }
 
 	inputPort TestUnitInput {
         location: "local"
@@ -48,6 +98,7 @@ service Main {
     main {
         test()() {
 
+            // note that the schema for openapi 2.0 does not catch errors where there are siblings for $ref
             readFile@File( { filename ="library/private/openapi-schema2_0.json" })( openapi_schema2 )
             readFile@File( { filename ="library/private/openapi-schema3_0.json" })( openapi_schema3 )
 
@@ -311,7 +362,7 @@ service Main {
             }
     
 
-            //println@Console( valueToPrettyString@StringUtils( request ) )()
+            
             getOpenApiDefinition@OpenApi( request )( openapijson ) 
         
             validateJson@JsonUtils({
@@ -323,8 +374,7 @@ service Main {
 
             request.version = "3.0"
             getOpenApiDefinition@OpenApi( request )( openapijson ) 
-            //println@Console( openapijson )()
-
+           
             validateJson@JsonUtils({
                 json = openapijson
                 schema = openapi_schema3
@@ -371,17 +421,34 @@ service Main {
                         method = "delete"
                         faultsMapping[ 0 ] << {
                             jolieFault = "OrderNotFound"
+                            httpCode = 403    
+                        }
+                        faultsMapping[ 1 ] << {
+                            jolieFault = "OrderNotFound2"
                             httpCode = 404    
+                        }
+                        faultsMapping[ 2 ] << {
+                            jolieFault = "OrderNotFound3"
+                            httpCode = 405    
                         }
                     }
                 }
                 openApiVersion = "2.0"
             }     
+            
             getOpenApiFromJolieMetaData@OpenApi( openapi_request )( openapijson )
+            getJsonValue@JsonUtils( openapijson )( openapi_json_value )
+            if ( !is_defined( openapi_json_value.paths.("/orders" ).get.responses.("200").schema ) ) {
+                throw( TestFailed, "openapi from meta jolie version 2.0 failed: schema not found in response get of /orders" )
+            }
             validateJson@JsonUtils({
                 json = openapijson
                 schema = openapi_schema2
             })( validation )  
+            scope( check_ref_siblings ) {
+                install( RefSiblingsError => throw( TestFailed, "RefSiblingsError: " + check_ref_siblings.RefSiblingsError ) )
+                checkRefSiblings@OpenApiUtils( openapi_json_value )()
+            }
 
             if ( is_defined( validation.validationMessage ) ) {
                 valueToPrettyString@StringUtils( validation )( errors )
@@ -390,7 +457,8 @@ service Main {
 
             openapi_request.openApiVersion = "3.0"
             getOpenApiFromJolieMetaData@OpenApi( openapi_request )( openapijson )
-            
+            println@Console( openapijson )()
+            println@Console( valueToPrettyString@StringUtils( openapi_json_value ) )()
             validateJson@JsonUtils({
                 json = openapijson
                 schema = openapi_schema3
