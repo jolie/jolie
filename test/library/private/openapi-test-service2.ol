@@ -71,7 +71,7 @@ interface DemoInterface {
     getOrders( GetOrdersRequest )( GetOrdersResponse ),
     getOrdersByItem( GetOrdersByItemRequest )( GetOrdersByItemResponse ) throws OrderNotFound( OrderNotFoundType ),
     putOrder( PutOrderRequest )( void ),
-    deleteOrder( DeleteOrderRequest )( void ) throws OrderNotFound( OrderNotFoundType )
+    deleteOrder( DeleteOrderRequest )( void ) throws OrderNotFound( OrderNotFoundType ) OrderNotFound2( string ) OrderNotFound3( void )
 }
 
 service TestServiceForOpenApi {

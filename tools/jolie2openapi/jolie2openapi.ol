@@ -39,25 +39,25 @@ service Jolie2OpenApi {
             getParsedArgs@Args({
                 args << args
                 argsMap[ 0 ] << { 
-                    name = "service-filename"
+                    name = "filename"
                     optional = false
                     description = "Filename of the jolie service to be converted"
                     isFlag = false
                 }
                 argsMap[ 1 ] << { 
-                    name = "input-port"
+                    name = "ip"
                     optional = false
                     description = "Input port to be converted"
                     isFlag = false
                 }
                 argsMap[ 2 ] << { 
-                    name = "router-host"
+                    name = "router"
                     optional = false
                     description = "Url of the host to be contacted for using rest apis"
                     isFlag = false
                 }
                 argsMap[ 3 ] << { 
-                    name = "output-folder", 
+                    name = "output", 
                     optional = true,
                     description = "Output folder where storing the resulting json file. Default is the current folder",
                     isFlag = false
@@ -75,19 +75,19 @@ service Jolie2OpenApi {
                     isFlag = true
                 }
                 argsMap[ 6 ] << { 
-                    name = "template-file", 
+                    name = "template", 
                     optional = true,
                     description = "Name of the rest api template file. Default is rest-template.json",
                     isFlag = false
                 }
                 argsMap[ 7 ] << { 
-                    name = "openapi-version", 
+                    name = "openapi", 
                     optional = true,
                     description = "Version of the OpenApi to be conformant with (2.0 | 3.0). Default is 3.0",
                     isFlag = false
                 }
                 argsMap[ 8 ] << { 
-                    name = "document-version", 
+                    name = "docver", 
                     optional = true,
                     description = "Version of the generated document. Default is 1.0",
                     isFlag = false
@@ -100,12 +100,12 @@ service Jolie2OpenApi {
                 arg_hashmap.( a.name ) << a
             }
 
-            service_filename = arg_hashmap.("service-filename").value
-            input_port = arg_hashmap.("input-port").value
-            router_host = arg_hashmap.("router-host").value
+            service_filename = arg_hashmap.("filename").value
+            input_port = arg_hashmap.("ip").value
+            router_host = arg_hashmap.("router").value
             
-            if ( is_defined( arg_hashmap.("output-folder") ) ) {
-                wkdir = arg_hashmap.("output-folder").value
+            if ( is_defined( arg_hashmap.("output") ) ) {
+                wkdir = arg_hashmap.("output").value
             }
             if ( is_defined( arg_hashmap.scheme ) ) {
                 scheme = arg_hashmap.scheme.value
@@ -113,14 +113,14 @@ service Jolie2OpenApi {
             if ( is_defined( arg_hashmap.level0 ) ) {
                 level0 = true
             }
-            if ( is_defined( arg_hashmap.("template-file") ) ) {
-                template_file = arg_hashmap.("template-file").value
+            if ( is_defined( arg_hashmap.("template") ) ) {
+                template_file = arg_hashmap.("template").value
             }
-            if ( is_defined( arg_hashmap.("openapi-version") ) ) {
-                openApiVersion = arg_hashmap.("openapi-version").value
+            if ( is_defined( arg_hashmap.("openapi") ) ) {
+                openApiVersion = arg_hashmap.("openapi").value
             }
-            if ( is_defined( arg_hashmap.("document-version") ) ) {
-                documentVersion = arg_hashmap.("document-version").value
+            if ( is_defined( arg_hashmap.("docver") ) ) {
+                documentVersion = arg_hashmap.("docver").value
             }
             
             
@@ -129,7 +129,7 @@ service Jolie2OpenApi {
             if( !level0 ) {
                 scope( load_template ) {
                     install( FileNotFound => 
-                            println@Console( template_file + "not found")()
+                            println@Console( template_file + " not found")()
                             throw( Error )
                     )
                     readFile@File( {
@@ -185,8 +185,9 @@ service Jolie2OpenApi {
             println@Console("Creating openapi file... " )()
             getOpenApiFromJolieMetaData@OpenApi( openapi )( f.content );
             writeFile@File( {
-                filename = wkdir + "/" + service_input_port + ".json"
+                filename = wkdir + "/" + input_port + ".json"
                 format = "text"
+                content << f.content
             } )()
             println@Console("Done.")()
         }
