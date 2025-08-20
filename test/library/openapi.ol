@@ -457,8 +457,24 @@ service Main {
 
             openapi_request.openApiVersion = "3.0"
             getOpenApiFromJolieMetaData@OpenApi( openapi_request )( openapijson )
-            println@Console( openapijson )()
-            println@Console( valueToPrettyString@StringUtils( openapi_json_value ) )()
+            validateJson@JsonUtils({
+                json = openapijson
+                schema = openapi_schema3
+            })( validation )   
+
+            if ( is_defined( validation.validationMessage ) ) {
+                valueToPrettyString@StringUtils( validation )( errors )
+                throw( TestFailed, "openapi from meta jolie version 3.0 failed:" + schema_string + "\n" + errors )
+            }
+
+            
+
+            // setting two different types for the same error code, it has to generate a choice type
+            openapi_request.template.operations[ 3 ].faultsMapping[ 1 ] << {
+                jolieFault = "OrderNotFound2"
+                httpCode = 403    
+            }
+            getOpenApiFromJolieMetaData@OpenApi( openapi_request )( openapijson )
             validateJson@JsonUtils({
                 json = openapijson
                 schema = openapi_schema3
