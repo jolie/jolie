@@ -195,6 +195,51 @@ interface OpenApiGenerationInterfacePrivate {
         getActualCurrentType( GetActualCurrentTypeRequest )( string )
 }
 
+type UtilsGetChoiceTypeRequest: void {
+    item*: Type | NativeType
+}
+
+interface OpenApiUtilsInterface {
+    RequestResponse:
+        getChoiceType( UtilsGetChoiceTypeRequest )( Type ) 
+}
+
+private service OpenApiUtils {
+
+    execution: concurrent 
+
+    outputPort MySelf {
+        location: "local://OpenApiUtilsPackage"
+        interfaces: OpenApiUtilsInterface
+    }
+
+    inputPort OpenApiUtils {
+        location: "local://OpenApiUtilsPackage"
+        interfaces: OpenApiUtilsInterface
+    }
+
+    main {
+        getChoiceType( request )( response ) {
+            if ( #request.item == 1 ) {
+                 if ( request.item[ 0 ] instanceof NativeType ) {
+                    response.root_type << request.item[ 0 ]
+                } else{
+                    response << request.item[ 0 ]
+                }
+            } else {
+                if ( request.item[ 0 ] instanceof NativeType ) {
+                    response.choice.left_type.root_type << request.item[ 0 ]
+                } else{
+                    response.choice.left_type << request.item[ 0 ]
+                }
+                undef( request.item[ 0 ])
+                response.choice.right_type << getChoiceType@MySelf( request )
+            }
+            
+        }
+    }
+}
+
 private service OpenApi2 {
 
     execution: concurrent 
@@ -212,8 +257,6 @@ private service OpenApi2 {
 
     main {
         [  getOpenApiDefinition( request )( response ) {
-
-            println@Console( valueToPrettyString@StringUtils( request ) )() 
             // 2.0
             openapi << {
                 swagger = "2.0"
@@ -387,6 +430,12 @@ private service OpenApi3 {
     embed StringUtils as StringUtils
     embed JsonUtils as JsonUtils
     embed JsonSchema as JsonSchema
+    embed OpenApiUtils 
+
+    outputPort OpenApiUtils {
+        location: "local://OpenApiUtilsPackage"
+        interfaces: OpenApiUtilsInterface
+    }
 
     inputPort OpenApi3 {
         location: "local"
@@ -497,10 +546,29 @@ private service OpenApi3 {
 
                     // responses
                     if ( is_defined(  path.( method ).responses ) ) {
+                        undef( status_hashmap )
                         for( res  in path.( method ).responses ) {
-                            if ( !is_defined( openapi.paths.( path ).( method ).responses.( res.status ) ) ) {
+                            // creatin hashmpa from status, more responses could have the same status
+                            status_hashmap.( res.status ).item[ #status_hashmap.( res.status ).item ] << res 
+                        }
+                        foreach( status : status_hashmap ) {
+                            // for each status generate the response
+                            if ( #status_hashmap.( status ).item > 1 ) {
+                                for( p in path.( method ).produces ) {
+                                    for( i in status_hashmap.( status ).item ) {
+                                        req_choiceType.item[ #req_choiceType.item ] << i.schema
+                                    }
+                                    choiceType << getChoiceType@OpenApiUtils( req_choiceType )
+                                    openapi.paths.( path ).( method ).responses.( status ).content.( p ).schema << getTypeChoice@JsonSchema( {
+                                        typeChoice << choiceType 
+                                        schemaVersion = request.version 
+                                    })
+                                }
+                                for ( i in status_hashmap.( status ).item ) {
+                                    openapi.paths.( path ).( method ).responses.( status ).description += i.description + " "
+                                }
+                            } else {
                                 openapi.paths.( path ).( method ).responses.( res.status ).description = res.description
-                                // first occurence of the response for a given status
                                 for( p in path.( method ).produces ) {
                                     if ( res.schema instanceof Type ) {
                                         openapi.paths.( path ).( method ).responses.( res.status ).content.( p ).schema << getType@JsonSchema( {
@@ -519,30 +587,8 @@ private service OpenApi3 {
                                         })
                                     }   
                                 }
-                                
-                            } else {
-                                // other occurencies
-                                for( p in path.( method ).produces ) {
-                                    if ( openapi.paths.( path ).( method ).responses.( res.status ).content.( p ).schema instanceof NativeType) {
-                                        // in case the first occurence is a NatibveType it must be converted into a left choice typeinline type
-                                        tmp_schema << openapi.paths.( path ).( method ).responses.( res.status ).content.( p ).schema
-                                        // TODO
-                                    }
-                                    if ( res.schema instanceof Type ) {
-                                        openapi.paths.( path ).( method ).responses.( res.status ).content.( p ).schema << getType@JsonSchema( {
-                                            type << res.schema 
-                                            schemaVersion = request.version 
-                                        })
-                                    }
-                                    if ( res.schema instanceof NativeType ) {
-                                        openapi.paths.( path ).( method ).responses.( res.status ).content.( p ).schema << getNativeType@JsonSchema( {
-                                            nativeType << res.schema 
-                                            schemaVersion = request.version 
-                                        })
-                                    }
-                                }
-    
                             }
+
                         }
                     }
 
