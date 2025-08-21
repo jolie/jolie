@@ -1,0 +1,1164 @@
+openapi.ol...        root
+├─── types[0]
+│	├─── documentation:string = ""
+│	├─── name:string = "ApiResponse"
+│	╰─── type
+│		├─── root_type
+│		│	╰─── void_type:bool = true
+│		├─── sub_type[0]
+│		│	├─── documentation:string = ""
+│		│	├─── name:string = "code"
+│		│	├─── type
+│		│	│	╰─── root_type
+│		│	│		╰─── int_type:bool = true
+│		│	╰─── cardinality
+│		│		├─── min:int = 0
+│		│		╰─── max:int = 1
+│		├─── sub_type[1]
+│		│	├─── documentation:string = ""
+│		│	├─── name:string = "type"
+│		│	├─── type
+│		│	│	╰─── root_type
+│		│	│		╰─── string_type:bool = true
+│		│	╰─── cardinality
+│		│		├─── min:int = 0
+│		│		╰─── max:int = 1
+│		╰─── sub_type[2]
+│			├─── documentation:string = ""
+│			├─── name:string = "message"
+│			├─── type
+│			│	╰─── root_type
+│			│		╰─── string_type:bool = true
+│			╰─── cardinality
+│				├─── min:int = 0
+│				╰─── max:int = 1
+├─── types[1]
+│	├─── documentation:string = ""
+│	├─── name:string = "Category"
+│	╰─── type
+│		├─── root_type
+│		│	╰─── void_type:bool = true
+│		├─── sub_type[0]
+│		│	├─── documentation:string = ""
+│		│	├─── name:string = "name"
+│		│	├─── type
+│		│	│	╰─── root_type
+│		│	│		╰─── string_type:bool = true
+│		│	╰─── cardinality
+│		│		├─── min:int = 0
+│		│		╰─── max:int = 1
+│		╰─── sub_type[1]
+│			├─── documentation:string = ""
+│			├─── name:string = "id"
+│			├─── type
+│			│	╰─── root_type
+│			│		╰─── long_type:bool = true
+│			╰─── cardinality
+│				├─── min:int = 0
+│				╰─── max:int = 1
+├─── types[2]
+│	├─── documentation:string = ""
+│	├─── name:string = "Order"
+│	╰─── type
+│		├─── root_type
+│		│	╰─── void_type:bool = true
+│		├─── sub_type[0]
+│		│	├─── documentation:string = ""
+│		│	├─── name:string = "petId"
+│		│	├─── type
+│		│	│	╰─── root_type
+│		│	│		╰─── long_type:bool = true
+│		│	╰─── cardinality
+│		│		├─── min:int = 0
+│		│		╰─── max:int = 1
+│		├─── sub_type[1]
+│		│	├─── documentation:string = ""
+│		│	├─── name:string = "quantity"
+│		│	├─── type
+│		│	│	╰─── root_type
+│		│	│		╰─── int_type:bool = true
+│		│	╰─── cardinality
+│		│		├─── min:int = 0
+│		│		╰─── max:int = 1
+│		├─── sub_type[2]
+│		│	├─── documentation:string = ""
+│		│	├─── name:string = "id"
+│		│	├─── type
+│		│	│	╰─── root_type
+│		│	│		╰─── long_type:bool = true
+│		│	╰─── cardinality
+│		│		├─── min:int = 0
+│		│		╰─── max:int = 1
+│		├─── sub_type[3]
+│		│	├─── documentation:string = ""
+│		│	├─── name:string = "shipDate"
+│		│	├─── type
+│		│	│	╰─── root_type
+│		│	│		╰─── string_type:bool = true
+│		│	╰─── cardinality
+│		│		├─── min:int = 0
+│		│		╰─── max:int = 1
+│		├─── sub_type[4]
+│		│	├─── documentation:string = ""
+│		│	├─── name:string = "complete"
+│		│	├─── type
+│		│	│	╰─── root_type
+│		│	│		╰─── bool_type:bool = true
+│		│	╰─── cardinality
+│		│		├─── min:int = 0
+│		│		╰─── max:int = 1
+│		╰─── sub_type[5]
+│			├─── documentation:string = ""
+│			├─── name:string = "status"
+│			├─── type
+│			│	╰─── root_type
+│			│		╰─── string_type:bool = true
+│			│			╰─── refined_type
+│			│				├─── enum[0]:string = "placed"
+│			│				├─── enum[1]:string = "approved"
+│			│				╰─── enum[2]:string = "delivered"
+│			╰─── cardinality
+│				├─── min:int = 0
+│				╰─── max:int = 1
+├─── types[3]
+│	├─── documentation:string = ""
+│	├─── name:string = "Pet"
+│	╰─── type
+│		├─── root_type
+│		│	╰─── void_type:bool = true
+│		├─── sub_type[0]
+│		│	├─── documentation:string = ""
+│		│	├─── name:string = "photoUrls"
+│		│	├─── type
+│		│	│	╰─── root_type
+│		│	│		╰─── string_type:bool = true
+│		│	╰─── cardinality
+│		│		├─── min:int = 0
+│		│		╰─── infinite:int = 1
+│		├─── sub_type[1]
+│		│	├─── documentation:string = ""
+│		│	├─── name:string = "name"
+│		│	├─── type
+│		│	│	╰─── root_type
+│		│	│		╰─── string_type:bool = true
+│		│	╰─── cardinality
+│		│		├─── min:int = 1
+│		│		╰─── max:int = 1
+│		├─── sub_type[2]
+│		│	├─── documentation:string = ""
+│		│	├─── name:string = "id"
+│		│	├─── type
+│		│	│	╰─── root_type
+│		│	│		╰─── long_type:bool = true
+│		│	╰─── cardinality
+│		│		├─── min:int = 0
+│		│		╰─── max:int = 1
+│		├─── sub_type[3]
+│		│	├─── documentation:string = ""
+│		│	├─── name:string = "category"
+│		│	├─── type
+│		│	│	╰─── link_name:string = "Category"
+│		│	╰─── cardinality
+│		│		├─── min:int = 0
+│		│		╰─── max:int = 1
+│		├─── sub_type[4]
+│		│	├─── documentation:string = ""
+│		│	├─── name:string = "tags"
+│		│	├─── type
+│		│	│	╰─── link_name:string = "Tag"
+│		│	╰─── cardinality
+│		│		├─── min:int = 0
+│		│		╰─── infinite:int = 1
+│		╰─── sub_type[5]
+│			├─── documentation:string = ""
+│			├─── name:string = "status"
+│			├─── type
+│			│	╰─── root_type
+│			│		╰─── string_type:bool = true
+│			│			╰─── refined_type
+│			│				├─── enum[0]:string = "available"
+│			│				├─── enum[1]:string = "pending"
+│			│				╰─── enum[2]:string = "sold"
+│			╰─── cardinality
+│				├─── min:int = 0
+│				╰─── max:int = 1
+├─── types[4]
+│	├─── documentation:string = ""
+│	├─── name:string = "Tag"
+│	╰─── type
+│		├─── root_type
+│		│	╰─── void_type:bool = true
+│		├─── sub_type[0]
+│		│	├─── documentation:string = ""
+│		│	├─── name:string = "name"
+│		│	├─── type
+│		│	│	╰─── root_type
+│		│	│		╰─── string_type:bool = true
+│		│	╰─── cardinality
+│		│		├─── min:int = 0
+│		│		╰─── max:int = 1
+│		╰─── sub_type[1]
+│			├─── documentation:string = ""
+│			├─── name:string = "id"
+│			├─── type
+│			│	╰─── root_type
+│			│		╰─── long_type:bool = true
+│			╰─── cardinality
+│				├─── min:int = 0
+│				╰─── max:int = 1
+├─── types[5]
+│	├─── documentation:string = ""
+│	├─── name:string = "User"
+│	╰─── type
+│		├─── root_type
+│		│	╰─── void_type:bool = true
+│		├─── sub_type[0]
+│		│	├─── documentation:string = ""
+│		│	├─── name:string = "firstName"
+│		│	├─── type
+│		│	│	╰─── root_type
+│		│	│		╰─── string_type:bool = true
+│		│	╰─── cardinality
+│		│		├─── min:int = 0
+│		│		╰─── max:int = 1
+│		├─── sub_type[1]
+│		│	├─── documentation:string = ""
+│		│	├─── name:string = "lastName"
+│		│	├─── type
+│		│	│	╰─── root_type
+│		│	│		╰─── string_type:bool = true
+│		│	╰─── cardinality
+│		│		├─── min:int = 0
+│		│		╰─── max:int = 1
+│		├─── sub_type[2]
+│		│	├─── documentation:string = ""
+│		│	├─── name:string = "password"
+│		│	├─── type
+│		│	│	╰─── root_type
+│		│	│		╰─── string_type:bool = true
+│		│	╰─── cardinality
+│		│		├─── min:int = 0
+│		│		╰─── max:int = 1
+│		├─── sub_type[3]
+│		│	├─── documentation:string = ""
+│		│	├─── name:string = "userStatus"
+│		│	├─── type
+│		│	│	╰─── root_type
+│		│	│		╰─── int_type:bool = true
+│		│	╰─── cardinality
+│		│		├─── min:int = 0
+│		│		╰─── max:int = 1
+│		├─── sub_type[4]
+│		│	├─── documentation:string = ""
+│		│	├─── name:string = "phone"
+│		│	├─── type
+│		│	│	╰─── root_type
+│		│	│		╰─── string_type:bool = true
+│		│	╰─── cardinality
+│		│		├─── min:int = 0
+│		│		╰─── max:int = 1
+│		├─── sub_type[5]
+│		│	├─── documentation:string = ""
+│		│	├─── name:string = "id"
+│		│	├─── type
+│		│	│	╰─── root_type
+│		│	│		╰─── long_type:bool = true
+│		│	╰─── cardinality
+│		│		├─── min:int = 0
+│		│		╰─── max:int = 1
+│		├─── sub_type[6]
+│		│	├─── documentation:string = ""
+│		│	├─── name:string = "email"
+│		│	├─── type
+│		│	│	╰─── root_type
+│		│	│		╰─── string_type:bool = true
+│		│	╰─── cardinality
+│		│		├─── min:int = 0
+│		│		╰─── max:int = 1
+│		╰─── sub_type[7]
+│			├─── documentation:string = ""
+│			├─── name:string = "username"
+│			├─── type
+│			│	╰─── root_type
+│			│		╰─── string_type:bool = true
+│			╰─── cardinality
+│				├─── min:int = 0
+│				╰─── max:int = 1
+├─── types[6]
+│	├─── documentation:string = ""
+│	├─── name:string = "addPetRequest"
+│	╰─── type
+│		├─── root_type
+│		│	╰─── void_type:bool = true
+│		╰─── sub_type
+│			├─── documentation:string = ""
+│			├─── name:string = "body"
+│			├─── type
+│			│	╰─── link_name:string = "Pet"
+│			╰─── cardinality
+│				├─── min:int = 1
+│				╰─── max:int = 1
+├─── types[7]
+│	├─── documentation:string = ""
+│	├─── name:string = "addPetResponse"
+│	╰─── type
+│		╰─── undefined:bool = true
+├─── types[8]
+│	├─── documentation:string = ""
+│	├─── name:string = "createUserRequest"
+│	╰─── type
+│		├─── root_type
+│		│	╰─── void_type:bool = true
+│		╰─── sub_type
+│			├─── documentation:string = ""
+│			├─── name:string = "body"
+│			├─── type
+│			│	╰─── link_name:string = "User"
+│			╰─── cardinality
+│				├─── min:int = 1
+│				╰─── max:int = 1
+├─── types[9]
+│	├─── documentation:string = ""
+│	├─── name:string = "createUserResponse"
+│	╰─── type
+│		╰─── undefined:bool = true
+├─── types[10]
+│	├─── documentation:string = ""
+│	├─── name:string = "createUsersWithArrayInputRequest"
+│	╰─── type
+│		├─── root_type
+│		│	╰─── void_type:bool = true
+│		╰─── sub_type
+│			├─── documentation:string = ""
+│			├─── name:string = "body"
+│			├─── type
+│			│	╰─── link_name:string = "User"
+│			╰─── cardinality
+│				├─── min:int = 0
+│				╰─── infinite:int = 1
+├─── types[11]
+│	├─── documentation:string = ""
+│	├─── name:string = "createUsersWithArrayInputResponse"
+│	╰─── type
+│		╰─── undefined:bool = true
+├─── types[12]
+│	├─── documentation:string = ""
+│	├─── name:string = "createUsersWithListInputRequest"
+│	╰─── type
+│		├─── root_type
+│		│	╰─── void_type:bool = true
+│		╰─── sub_type
+│			├─── documentation:string = ""
+│			├─── name:string = "body"
+│			├─── type
+│			│	╰─── link_name:string = "User"
+│			╰─── cardinality
+│				├─── min:int = 0
+│				╰─── infinite:int = 1
+├─── types[13]
+│	├─── documentation:string = ""
+│	├─── name:string = "createUsersWithListInputResponse"
+│	╰─── type
+│		╰─── undefined:bool = true
+├─── types[14]
+│	├─── documentation:string = ""
+│	├─── name:string = "deleteOrderRequest"
+│	╰─── type
+│		├─── root_type
+│		│	╰─── void_type:bool = true
+│		╰─── sub_type
+│			├─── documentation:string = ""
+│			├─── name:string = "porderId"
+│			├─── type
+│			│	╰─── root_type
+│			│		╰─── long_type:bool = true
+│			│			╰─── refined_type
+│			│				╰─── ranges
+│			│					├─── min:long = 1
+│			│					╰─── infinite:bool = true
+│			╰─── cardinality
+│				├─── min:int = 1
+│				╰─── max:int = 1
+├─── types[15]
+│	├─── documentation:string = ""
+│	├─── name:string = "deleteOrderResponse"
+│	╰─── type
+│		╰─── undefined:bool = true
+├─── types[16]
+│	├─── documentation:string = ""
+│	├─── name:string = "deletePetRequest"
+│	╰─── type
+│		├─── root_type
+│		│	╰─── void_type:bool = true
+│		├─── sub_type[0]
+│		│	├─── documentation:string = ""
+│		│	├─── name:string = "ppetId"
+│		│	├─── type
+│		│	│	╰─── root_type
+│		│	│		╰─── long_type:bool = true
+│		│	╰─── cardinality
+│		│		├─── min:int = 1
+│		│		╰─── max:int = 1
+│		╰─── sub_type[1]
+│			├─── documentation:string = ""
+│			├─── name:string = "apikey"
+│			├─── type
+│			│	╰─── root_type
+│			│		╰─── string_type:bool = true
+│			╰─── cardinality
+│				├─── min:int = 0
+│				╰─── max:int = 1
+├─── types[17]
+│	├─── documentation:string = ""
+│	├─── name:string = "deletePetResponse"
+│	╰─── type
+│		╰─── undefined:bool = true
+├─── types[18]
+│	├─── documentation:string = ""
+│	├─── name:string = "deleteUserRequest"
+│	╰─── type
+│		├─── root_type
+│		│	╰─── void_type:bool = true
+│		╰─── sub_type
+│			├─── documentation:string = ""
+│			├─── name:string = "pusername"
+│			├─── type
+│			│	╰─── root_type
+│			│		╰─── string_type:bool = true
+│			╰─── cardinality
+│				├─── min:int = 1
+│				╰─── max:int = 1
+├─── types[19]
+│	├─── documentation:string = ""
+│	├─── name:string = "deleteUserResponse"
+│	╰─── type
+│		╰─── undefined:bool = true
+├─── types[20]
+│	├─── documentation:string = ""
+│	├─── name:string = "findPetsByStatusRequest"
+│	╰─── type
+│		├─── root_type
+│		│	╰─── void_type:bool = true
+│		╰─── sub_type
+│			├─── documentation:string = ""
+│			├─── name:string = "qstatus"
+│			├─── type
+│			│	╰─── root_type
+│			│		╰─── string_type:bool = true
+│			│			╰─── refined_type
+│			│				├─── enum[0]:string = "available"
+│			│				├─── enum[1]:string = "pending"
+│			│				╰─── enum[2]:string = "sold"
+│			╰─── cardinality
+│				├─── min:int = 0
+│				╰─── infinite:int = 1
+├─── types[21]
+│	├─── documentation:string = ""
+│	├─── name:string = "findPetsByStatusResponse"
+│	╰─── type
+│		├─── root_type
+│		│	╰─── void_type:bool = true
+│		╰─── sub_type
+│			├─── documentation:string = ""
+│			├─── name:string = "pets"
+│			├─── type
+│			│	╰─── link_name:string = "Pet"
+│			╰─── cardinality
+│				├─── min:int = 0
+│				╰─── infinite:int = 1
+├─── types[22]
+│	├─── documentation:string = ""
+│	├─── name:string = "findPetsByTagsRequest"
+│	╰─── type
+│		├─── root_type
+│		│	╰─── void_type:bool = true
+│		╰─── sub_type
+│			├─── documentation:string = ""
+│			├─── name:string = "qtags"
+│			├─── type
+│			│	╰─── root_type
+│			│		╰─── string_type:bool = true
+│			╰─── cardinality
+│				├─── min:int = 0
+│				╰─── infinite:int = 1
+├─── types[23]
+│	├─── documentation:string = ""
+│	├─── name:string = "findPetsByTagsResponse"
+│	╰─── type
+│		├─── root_type
+│		│	╰─── void_type:bool = true
+│		╰─── sub_type
+│			├─── documentation:string = ""
+│			├─── name:string = "pets"
+│			├─── type
+│			│	╰─── link_name:string = "Pet"
+│			╰─── cardinality
+│				├─── min:int = 0
+│				╰─── infinite:int = 1
+├─── types[24]
+│	├─── documentation:string = ""
+│	├─── name:string = "getInventoryRequest"
+│	╰─── type
+│		╰─── root_type
+│			╰─── void_type:bool = true
+├─── types[25]
+│	├─── documentation:string = ""
+│	├─── name:string = "getInventoryResponse"
+│	╰─── type
+│		╰─── undefined:bool = true
+├─── types[26]
+│	├─── documentation:string = ""
+│	├─── name:string = "getOrderByIdRequest"
+│	╰─── type
+│		├─── root_type
+│		│	╰─── void_type:bool = true
+│		╰─── sub_type
+│			├─── documentation:string = ""
+│			├─── name:string = "porderId"
+│			├─── type
+│			│	╰─── root_type
+│			│		╰─── long_type:bool = true
+│			│			╰─── refined_type
+│			│				╰─── ranges
+│			│					├─── min:long = 1
+│			│					╰─── max:long = 0
+│			╰─── cardinality
+│				├─── min:int = 1
+│				╰─── max:int = 1
+├─── types[27]
+│	├─── documentation:string = ""
+│	├─── name:string = "getOrderByIdResponse"
+│	╰─── type
+│		╰─── link_name:string = "Order"
+├─── types[28]
+│	├─── documentation:string = ""
+│	├─── name:string = "getPetByIdRequest"
+│	╰─── type
+│		├─── root_type
+│		│	╰─── void_type:bool = true
+│		╰─── sub_type
+│			├─── documentation:string = ""
+│			├─── name:string = "ppetId"
+│			├─── type
+│			│	╰─── root_type
+│			│		╰─── long_type:bool = true
+│			╰─── cardinality
+│				├─── min:int = 1
+│				╰─── max:int = 1
+├─── types[29]
+│	├─── documentation:string = ""
+│	├─── name:string = "getPetByIdResponse"
+│	╰─── type
+│		╰─── link_name:string = "Pet"
+├─── types[30]
+│	├─── documentation:string = ""
+│	├─── name:string = "getUserByNameRequest"
+│	╰─── type
+│		├─── root_type
+│		│	╰─── void_type:bool = true
+│		╰─── sub_type
+│			├─── documentation:string = ""
+│			├─── name:string = "pusername"
+│			├─── type
+│			│	╰─── root_type
+│			│		╰─── string_type:bool = true
+│			╰─── cardinality
+│				├─── min:int = 1
+│				╰─── max:int = 1
+├─── types[31]
+│	├─── documentation:string = ""
+│	├─── name:string = "getUserByNameResponse"
+│	╰─── type
+│		╰─── link_name:string = "User"
+├─── types[32]
+│	├─── documentation:string = ""
+│	├─── name:string = "loginUserRequest"
+│	╰─── type
+│		├─── root_type
+│		│	╰─── void_type:bool = true
+│		├─── sub_type[0]
+│		│	├─── documentation:string = ""
+│		│	├─── name:string = "qpassword"
+│		│	├─── type
+│		│	│	╰─── root_type
+│		│	│		╰─── string_type:bool = true
+│		│	╰─── cardinality
+│		│		├─── min:int = 1
+│		│		╰─── max:int = 1
+│		╰─── sub_type[1]
+│			├─── documentation:string = ""
+│			├─── name:string = "qusername"
+│			├─── type
+│			│	╰─── root_type
+│			│		╰─── string_type:bool = true
+│			╰─── cardinality
+│				├─── min:int = 1
+│				╰─── max:int = 1
+├─── types[33]
+│	├─── documentation:string = ""
+│	├─── name:string = "loginUserResponse"
+│	╰─── type
+│		╰─── root_type
+│			╰─── string_type:bool = true
+├─── types[34]
+│	├─── documentation:string = ""
+│	├─── name:string = "logoutUserRequest"
+│	╰─── type
+│		╰─── root_type
+│			╰─── void_type:bool = true
+├─── types[35]
+│	├─── documentation:string = ""
+│	├─── name:string = "logoutUserResponse"
+│	╰─── type
+│		╰─── undefined:bool = true
+├─── types[36]
+│	├─── documentation:string = ""
+│	├─── name:string = "placeOrderRequest"
+│	╰─── type
+│		├─── root_type
+│		│	╰─── void_type:bool = true
+│		╰─── sub_type
+│			├─── documentation:string = ""
+│			├─── name:string = "body"
+│			├─── type
+│			│	╰─── link_name:string = "Order"
+│			╰─── cardinality
+│				├─── min:int = 1
+│				╰─── max:int = 1
+├─── types[37]
+│	├─── documentation:string = ""
+│	├─── name:string = "placeOrderResponse"
+│	╰─── type
+│		╰─── link_name:string = "Order"
+├─── types[38]
+│	├─── documentation:string = ""
+│	├─── name:string = "updatePetRequest"
+│	╰─── type
+│		├─── root_type
+│		│	╰─── void_type:bool = true
+│		╰─── sub_type
+│			├─── documentation:string = ""
+│			├─── name:string = "body"
+│			├─── type
+│			│	╰─── link_name:string = "Pet"
+│			╰─── cardinality
+│				├─── min:int = 1
+│				╰─── max:int = 1
+├─── types[39]
+│	├─── documentation:string = ""
+│	├─── name:string = "updatePetResponse"
+│	╰─── type
+│		╰─── undefined:bool = true
+├─── types[40]
+│	├─── documentation:string = ""
+│	├─── name:string = "updatePetWithFormRequest"
+│	╰─── type
+│		├─── root_type
+│		│	╰─── void_type:bool = true
+│		├─── sub_type[0]
+│		│	├─── documentation:string = ""
+│		│	├─── name:string = "ppetId"
+│		│	├─── type
+│		│	│	╰─── root_type
+│		│	│		╰─── long_type:bool = true
+│		│	╰─── cardinality
+│		│		├─── min:int = 1
+│		│		╰─── max:int = 1
+│		├─── sub_type[1]
+│		│	├─── documentation:string = ""
+│		│	├─── name:string = "name"
+│		│	├─── type
+│		│	│	╰─── root_type
+│		│	│		╰─── string_type:bool = true
+│		│	╰─── cardinality
+│		│		├─── min:int = 0
+│		│		╰─── max:int = 1
+│		╰─── sub_type[2]
+│			├─── documentation:string = ""
+│			├─── name:string = "status"
+│			├─── type
+│			│	╰─── root_type
+│			│		╰─── string_type:bool = true
+│			╰─── cardinality
+│				├─── min:int = 0
+│				╰─── max:int = 1
+├─── types[41]
+│	├─── documentation:string = ""
+│	├─── name:string = "updatePetWithFormResponse"
+│	╰─── type
+│		╰─── undefined:bool = true
+├─── types[42]
+│	├─── documentation:string = ""
+│	├─── name:string = "updateUserRequest"
+│	╰─── type
+│		├─── root_type
+│		│	╰─── void_type:bool = true
+│		├─── sub_type[0]
+│		│	├─── documentation:string = ""
+│		│	├─── name:string = "pusername"
+│		│	├─── type
+│		│	│	╰─── root_type
+│		│	│		╰─── string_type:bool = true
+│		│	╰─── cardinality
+│		│		├─── min:int = 1
+│		│		╰─── max:int = 1
+│		╰─── sub_type[1]
+│			├─── documentation:string = ""
+│			├─── name:string = "body"
+│			├─── type
+│			│	╰─── link_name:string = "User"
+│			╰─── cardinality
+│				├─── min:int = 1
+│				╰─── max:int = 1
+├─── types[43]
+│	├─── documentation:string = ""
+│	├─── name:string = "updateUserResponse"
+│	╰─── type
+│		╰─── undefined:bool = true
+├─── types[44]
+│	├─── documentation:string = ""
+│	├─── name:string = "uploadFileRequest"
+│	╰─── type
+│		├─── root_type
+│		│	╰─── void_type:bool = true
+│		├─── sub_type[0]
+│		│	├─── documentation:string = ""
+│		│	├─── name:string = "ppetId"
+│		│	├─── type
+│		│	│	╰─── root_type
+│		│	│		╰─── long_type:bool = true
+│		│	╰─── cardinality
+│		│		├─── min:int = 1
+│		│		╰─── max:int = 1
+│		├─── sub_type[1]
+│		│	├─── documentation:string = ""
+│		│	├─── name:string = "file"
+│		│	├─── type
+│		│	│	╰─── root_type
+│		│	│		╰─── raw_type:bool = true
+│		│	╰─── cardinality
+│		│		├─── min:int = 0
+│		│		╰─── max:int = 1
+│		╰─── sub_type[2]
+│			├─── documentation:string = ""
+│			├─── name:string = "additionalMetadata"
+│			├─── type
+│			│	╰─── root_type
+│			│		╰─── string_type:bool = true
+│			╰─── cardinality
+│				├─── min:int = 0
+│				╰─── max:int = 1
+├─── types[45]
+│	├─── documentation:string = ""
+│	├─── name:string = "uploadFileResponse"
+│	╰─── type
+│		╰─── link_name:string = "ApiResponse"
+├─── servers
+│	├─── basePath:string = "/v2"
+│	├─── host:string = "petstore.swagger.io"
+│	├─── schemes[0]:string = "http"
+│	╰─── schemes[1]:string = "https"
+├─── paths[0]:string = "/pet"
+│	├─── post
+│	│	├─── summary:string = "Add a new pet to the store"
+│	│	├─── produces[0]:string = "application/xml"
+│	│	├─── produces[1]:string = "application/json"
+│	│	├─── description:string = ""
+│	│	├─── operationId:string = "addPet"
+│	│	├─── responses[0]
+│	│	│	├─── description:string = "Ivalid Input"
+│	│	│	╰─── status:int = 400
+│	│	├─── responses[1]
+│	│	│	├─── description:string = "Validation Exception"
+│	│	│	╰─── status:int = 422
+│	│	├─── parameters
+│	│	│	├─── in
+│	│	│	│	╰─── body
+│	│	│	│		╰─── schema_ref:string = "Pet"
+│	│	│	├─── name:string = "body"
+│	│	│	├─── description:string = "Pet object that needs to be added to the store"
+│	│	│	╰─── required:bool = true
+│	│	├─── tags:string = "pet"
+│	│	├─── consumes[0]:string = "application/json"
+│	│	╰─── consumes[1]:string = "application/xml"
+│	╰─── put
+│		├─── summary:string = "Update an existing pet"
+│		├─── produces[0]:string = "application/xml"
+│		├─── produces[1]:string = "application/json"
+│		├─── description:string = ""
+│		├─── operationId:string = "updatePet"
+│		├─── responses[0]
+│		│	├─── description:string = "Ivalid ID supplied"
+│		│	╰─── status:int = 400
+│		├─── responses[1]
+│		│	├─── description:string = "Pet not found"
+│		│	╰─── status:int = 404
+│		├─── responses[2]
+│		│	├─── description:string = "Validation Exception"
+│		│	╰─── status:int = 422
+│		├─── parameters
+│		│	├─── in
+│		│	│	╰─── body
+│		│	│		╰─── schema_ref:string = "Pet"
+│		│	├─── name:string = "body"
+│		│	├─── description:string = "Pet object that needs to be added to the store"
+│		│	╰─── required:bool = true
+│		├─── tags:string = "pet"
+│		├─── consumes[0]:string = "application/json"
+│		╰─── consumes[1]:string = "application/xml"
+├─── paths[1]:string = "/pet/findByStatus"
+│	╰─── get
+│		├─── summary:string = "Finds Pets by status"
+│		├─── produces[0]:string = "application/xml"
+│		├─── produces[1]:string = "application/json"
+│		├─── description:string = "Multiple status values can be provided with comma separated strings"
+│		├─── operationId:string = "findPetsByStatus"
+│		├─── responses[0]
+│		│	├─── schema
+│		│	│	├─── root_type
+│		│	│	│	╰─── void_type:bool = true
+│		│	│	├─── sub_type[0]
+│		│	│	│	├─── documentation:string = ""
+│		│	│	│	├─── name:string = "photoUrls"
+│		│	│	│	├─── type
+│		│	│	│	│	╰─── root_type
+│		│	│	│	│		╰─── string_type:bool = true
+│		│	│	│	╰─── cardinality
+│		│	│	│		├─── min:int = 0
+│		│	│	│		╰─── infinite:int = 1
+│		│	│	├─── sub_type[1]
+│		│	│	│	├─── documentation:string = ""
+│		│	│	│	├─── name:string = "name"
+│		│	│	│	├─── type
+│		│	│	│	│	╰─── root_type
+│		│	│	│	│		╰─── string_type:bool = true
+│		│	│	│	╰─── cardinality
+│		│	│	│		├─── min:int = 1
+│		│	│	│		╰─── max:int = 1
+│		│	│	├─── sub_type[2]
+│		│	│	│	├─── documentation:string = ""
+│		│	│	│	├─── name:string = "id"
+│		│	│	│	├─── type
+│		│	│	│	│	╰─── root_type
+│		│	│	│	│		╰─── long_type:bool = true
+│		│	│	│	╰─── cardinality
+│		│	│	│		├─── min:int = 0
+│		│	│	│		╰─── max:int = 1
+│		│	│	├─── sub_type[3]
+│		│	│	│	├─── documentation:string = ""
+│		│	│	│	├─── name:string = "category"
+│		│	│	│	├─── type
+│		│	│	│	│	╰─── link_name:string = "Category"
+│		│	│	│	╰─── cardinality
+│		│	│	│		├─── min:int = 0
+│		│	│	│		╰─── max:int = 1
+│		│	│	├─── sub_type[4]
+│		│	│	│	├─── documentation:string = ""
+│		│	│	│	├─── name:string = "tags"
+│		│	│	│	├─── type
+│		│	│	│	│	╰─── link_name:string = "Tag"
+│		│	│	│	╰─── cardinality
+│		│	│	│		├─── min:int = 0
+│		│	│	│		╰─── infinite:int = 1
+│		│	│	╰─── sub_type[5]
+│		│	│		├─── documentation:string = ""
+│		│	│		├─── name:string = "status"
+│		│	│		├─── type
+│		│	│		│	╰─── root_type
+│		│	│		│		╰─── string_type:bool = true
+│		│	│		│			╰─── refined_type
+│		│	│		│				├─── enum[0]:string = "available"
+│		│	│		│				├─── enum[1]:string = "pending"
+│		│	│		│				╰─── enum[2]:string = "sold"
+│		│	│		╰─── cardinality
+│		│	│			├─── min:int = 0
+│		│	│			╰─── max:int = 1
+│		│	├─── description:string = "successful operation"
+│		│	╰─── status:int = 200
+│		├─── responses[1]
+│		│	├─── description:string = "Invalid status value"
+│		│	╰─── status:int = 400
+│		├─── parameters
+│		│	├─── in
+│		│	│	╰─── other:string = "query"
+│		│	│		╰─── nativeType
+│		│	│			╰─── string_type:bool = true
+│		│	├─── name:string = "status"
+│		│	├─── description:string = "Status values that need to be considered for filter"
+│		│	╰─── required:bool = true
+│		╰─── tags:string = "pet"
+├─── paths[2]:string = "/pet/{petId}"
+│	├─── post
+│	│	├─── summary:string = "Updates a pet in the store with form data"
+│	│	├─── produces[0]:string = "application/xml"
+│	│	├─── produces[1]:string = "application/json"
+│	│	├─── description:string = ""
+│	│	├─── operationId:string = "updatePetWithForm"
+│	│	├─── responses[0]
+│	│	│	├─── description:string = "Invalid input"
+│	│	│	╰─── status:int = 400
+│	│	├─── responses[1]
+│	│	│	├─── description:string = "Validation exception"
+│	│	│	╰─── status:int = 422
+│	│	├─── parameters[0]
+│	│	│	├─── in
+│	│	│	│	╰─── other:string = "path"
+│	│	│	│		╰─── nativeType
+│	│	│	│			╰─── int_type:bool = true
+│	│	│	├─── name:string = "petId"
+│	│	│	├─── description:string = "ID of pet that needs to be updated"
+│	│	│	╰─── required:bool = true
+│	│	├─── parameters[1]
+│	│	│	├─── in
+│	│	│	│	╰─── other:string = "header"
+│	│	│	│		╰─── nativeType
+│	│	│	│			╰─── string_type:bool = true
+│	│	│	├─── name:string = "name"
+│	│	│	├─── description:string = "Updated name of the pet"
+│	│	│	╰─── required:bool = false
+│	│	├─── parameters[2]
+│	│	│	├─── in
+│	│	│	│	╰─── other:string = "header"
+│	│	│	│		╰─── nativeType
+│	│	│	│			╰─── string_type:bool = true
+│	│	│	├─── name:string = "status"
+│	│	│	├─── description:string = "Updated status of the pet"
+│	│	│	╰─── required:bool = false
+│	│	├─── tags:string = "pet"
+│	│	╰─── consumes:string = "application/x-www-form-urlencoded"
+│	├─── get
+│	│	├─── summary:string = "Find pet by ID"
+│	│	├─── produces[0]:string = "application/xml"
+│	│	├─── produces[1]:string = "application/json"
+│	│	├─── description:string = "Returns a single pet"
+│	│	├─── operationId:string = "getPetById"
+│	│	├─── responses[0]
+│	│	│	├─── schema
+│	│	│	│	├─── root_type
+│	│	│	│	│	╰─── void_type:bool = true
+│	│	│	│	├─── sub_type[0]
+│	│	│	│	│	├─── documentation:string = ""
+│	│	│	│	│	├─── name:string = "photoUrls"
+│	│	│	│	│	├─── type
+│	│	│	│	│	│	╰─── root_type
+│	│	│	│	│	│		╰─── string_type:bool = true
+│	│	│	│	│	╰─── cardinality
+│	│	│	│	│		├─── min:int = 0
+│	│	│	│	│		╰─── infinite:int = 1
+│	│	│	│	├─── sub_type[1]
+│	│	│	│	│	├─── documentation:string = ""
+│	│	│	│	│	├─── name:string = "name"
+│	│	│	│	│	├─── type
+│	│	│	│	│	│	╰─── root_type
+│	│	│	│	│	│		╰─── string_type:bool = true
+│	│	│	│	│	╰─── cardinality
+│	│	│	│	│		├─── min:int = 1
+│	│	│	│	│		╰─── max:int = 1
+│	│	│	│	├─── sub_type[2]
+│	│	│	│	│	├─── documentation:string = ""
+│	│	│	│	│	├─── name:string = "id"
+│	│	│	│	│	├─── type
+│	│	│	│	│	│	╰─── root_type
+│	│	│	│	│	│		╰─── long_type:bool = true
+│	│	│	│	│	╰─── cardinality
+│	│	│	│	│		├─── min:int = 0
+│	│	│	│	│		╰─── max:int = 1
+│	│	│	│	├─── sub_type[3]
+│	│	│	│	│	├─── documentation:string = ""
+│	│	│	│	│	├─── name:string = "category"
+│	│	│	│	│	├─── type
+│	│	│	│	│	│	╰─── link_name:string = "Category"
+│	│	│	│	│	╰─── cardinality
+│	│	│	│	│		├─── min:int = 0
+│	│	│	│	│		╰─── max:int = 1
+│	│	│	│	├─── sub_type[4]
+│	│	│	│	│	├─── documentation:string = ""
+│	│	│	│	│	├─── name:string = "tags"
+│	│	│	│	│	├─── type
+│	│	│	│	│	│	╰─── link_name:string = "Tag"
+│	│	│	│	│	╰─── cardinality
+│	│	│	│	│		├─── min:int = 0
+│	│	│	│	│		╰─── infinite:int = 1
+│	│	│	│	╰─── sub_type[5]
+│	│	│	│		├─── documentation:string = ""
+│	│	│	│		├─── name:string = "status"
+│	│	│	│		├─── type
+│	│	│	│		│	╰─── root_type
+│	│	│	│		│		╰─── string_type:bool = true
+│	│	│	│		│			╰─── refined_type
+│	│	│	│		│				├─── enum[0]:string = "available"
+│	│	│	│		│				├─── enum[1]:string = "pending"
+│	│	│	│		│				╰─── enum[2]:string = "sold"
+│	│	│	│		╰─── cardinality
+│	│	│	│			├─── min:int = 0
+│	│	│	│			╰─── max:int = 1
+│	│	│	├─── description:string = "successful operation"
+│	│	│	╰─── status:int = 200
+│	│	├─── responses[1]
+│	│	│	├─── description:string = "Invalid ID supplied"
+│	│	│	╰─── status:int = 400
+│	│	├─── responses[2]
+│	│	│	├─── description:string = "Pet not found"
+│	│	│	╰─── status:int = 404
+│	│	├─── parameters
+│	│	│	├─── in
+│	│	│	│	╰─── other:string = "path"
+│	│	│	│		╰─── nativeType
+│	│	│	│			╰─── int_type:bool = true
+│	│	│	├─── name:string = "petId"
+│	│	│	├─── description:string = "ID of pet to return"
+│	│	│	╰─── required:bool = true
+│	│	╰─── tags:string = "pet"
+│	╰─── delete
+│		├─── summary:string = "Deletes a pet"
+│		├─── produces[0]:string = "application/xml"
+│		├─── produces[1]:string = "application/json"
+│		├─── description:string = ""
+│		├─── operationId:string = "deletePet"
+│		├─── responses[0]
+│		│	├─── description:string = "Invalid input"
+│		│	╰─── status:int = 400
+│		├─── responses[1]
+│		│	├─── description:string = "Pet not found"
+│		│	╰─── status:int = 404
+│		├─── parameters[0]
+│		│	├─── in
+│		│	│	╰─── other:string = "header"
+│		│	│		╰─── nativeType
+│		│	│			╰─── string_type:bool = true
+│		│	├─── name:string = "api_key"
+│		│	╰─── required:bool = false
+│		├─── parameters[1]
+│		│	├─── in
+│		│	│	╰─── other:string = "path"
+│		│	│		╰─── nativeType
+│		│	│			╰─── long_type:bool = true
+│		│	│				╰─── refined_type
+│		│	│					╰─── ranges
+│		│	│						├─── min:int = 10
+│		│	│						╰─── max:int = 100
+│		│	├─── name:string = "petId"
+│		│	├─── description:string = "Pet id to delete"
+│		│	╰─── required:bool = true
+│		╰─── tags:string = "pet"
+├─── version:string = "2.0"
+├─── info
+│	├─── license
+│	│	├─── name:string = "Apache 2.0"
+│	│	╰─── url:string = "http://www.apache.org/licenses/LICENSE-2.0.html"
+│	├─── contact
+│	│	╰─── email:string = "apiteam@swagger.io"
+│	├─── description:string = "This is a sample server Petstore server.  You can find out more about..."
+│	├─── termsOfService:string = "http://swagger.io/terms/"
+│	├─── title:string = "Swagger Petstore 2.0"
+│	╰─── version:string = "1.0.0"
+├─── tags[0]
+│	├─── name:string = "pet"
+│	├─── description:string = "Everything about your Pets"
+│	╰─── externalDocs
+│		├─── description:string = "Find out more"
+│		╰─── url:string = "http://swagger.io"
+├─── tags[1]
+│	├─── name:string = "store"
+│	╰─── description:string = "Access to Petstore orders"
+╰─── tags[2]
+	├─── name:string = "user"
+	├─── description:string = "Operations about user"
+	╰─── externalDocs
+		├─── description:string = "Find out more about our store"
+		╰─── url:string = "http://swagger.io"
+
+❌ failed (TestFailed). schema:
+root
+├─── validationMessage[0]
+│	├─── code:string = "1022"
+│	├─── message:string = "/paths/~1pet~1findByStatus/get/responses/400: deve essere valido per uno e un solo schema, ma 0 sono validi"
+│	├─── error:string = "deve essere valido per uno e un solo schema, ma 0 sono validi"
+│	╰─── type:string = "oneOf"
+├─── validationMessage[1]
+│	├─── code:string = "1028"
+│	├─── message:string = "/paths/~1pet~1findByStatus/get/responses/400: proprietà richiesta 'description' non trovata"
+│	├─── error:string = "proprietà richiesta 'description' non trovata"
+│	╰─── type:string = "required"
+├─── validationMessage[2]
+│	├─── code:string = "1028"
+│	├─── message:string = "/paths/~1pet~1findByStatus/get/responses/400: proprietà richiesta '$ref' non trovata"
+│	├─── error:string = "proprietà richiesta '$ref' non trovata"
+│	╰─── type:string = "required"
+├─── validationMessage[3]
+│	├─── code:string = "1022"
+│	├─── message:string = "/paths/~1pet/put/responses/422: deve essere valido per uno e un solo schema, ma 0 sono validi"
+│	├─── error:string = "deve essere valido per uno e un solo schema, ma 0 sono validi"
+│	╰─── type:string = "oneOf"
+├─── validationMessage[4]
+│	├─── code:string = "1028"
+│	├─── message:string = "/paths/~1pet/put/responses/422: proprietà richiesta 'description' non trovata"
+│	├─── error:string = "proprietà richiesta 'description' non trovata"
+│	╰─── type:string = "required"
+├─── validationMessage[5]
+│	├─── code:string = "1028"
+│	├─── message:string = "/paths/~1pet/put/responses/422: proprietà richiesta '$ref' non trovata"
+│	├─── error:string = "proprietà richiesta '$ref' non trovata"
+│	╰─── type:string = "required"
+├─── validationMessage[6]
+│	├─── code:string = "1022"
+│	├─── message:string = "/paths/~1pet/post/responses/422: deve essere valido per uno e un solo schema, ma 0 sono validi"
+│	├─── error:string = "deve essere valido per uno e un solo schema, ma 0 sono validi"
+│	╰─── type:string = "oneOf"
+├─── validationMessage[7]
+│	├─── code:string = "1028"
+│	├─── message:string = "/paths/~1pet/post/responses/422: proprietà richiesta 'description' non trovata"
+│	├─── error:string = "proprietà richiesta 'description' non trovata"
+│	╰─── type:string = "required"
+├─── validationMessage[8]
+│	├─── code:string = "1028"
+│	├─── message:string = "/paths/~1pet/post/responses/422: proprietà richiesta '$ref' non trovata"
+│	├─── error:string = "proprietà richiesta '$ref' non trovata"
+│	╰─── type:string = "required"
+├─── validationMessage[9]
+│	├─── code:string = "1022"
+│	├─── message:string = "/paths/~1pet~1{petId}/get/responses/404: deve essere valido per uno e un solo schema, ma 0 sono validi"
+│	├─── error:string = "deve essere valido per uno e un solo schema, ma 0 sono validi"
+│	╰─── type:string = "oneOf"
+├─── validationMessage[10]
+│	├─── code:string = "1028"
+│	├─── message:string = "/paths/~1pet~1{petId}/get/responses/404: proprietà richiesta 'description' non trovata"
+│	├─── error:string = "proprietà richiesta 'description' non trovata"
+│	╰─── type:string = "required"
+├─── validationMessage[11]
+│	├─── code:string = "1028"
+│	├─── message:string = "/paths/~1pet~1{petId}/get/responses/404: proprietà richiesta '$ref' non trovata"
+│	├─── error:string = "proprietà richiesta '$ref' non trovata"
+│	╰─── type:string = "required"
+├─── validationMessage[12]
+│	├─── code:string = "1022"
+│	├─── message:string = "/paths/~1pet~1{petId}/post/responses/422: deve essere valido per uno e un solo schema, ma 0 sono validi"
+│	├─── error:string = "deve essere valido per uno e un solo schema, ma 0 sono validi"
+│	╰─── type:string = "oneOf"
+├─── validationMessage[13]
+│	├─── code:string = "1028"
+│	├─── message:string = "/paths/~1pet~1{petId}/post/responses/422: proprietà richiesta 'description' non trovata"
+│	├─── error:string = "proprietà richiesta 'description' non trovata"
+│	╰─── type:string = "required"
+├─── validationMessage[14]
+│	├─── code:string = "1028"
+│	├─── message:string = "/paths/~1pet~1{petId}/post/responses/422: proprietà richiesta '$ref' non trovata"
+│	├─── error:string = "proprietà richiesta '$ref' non trovata"
+│	╰─── type:string = "required"
+├─── validationMessage[15]
+│	├─── code:string = "1022"
+│	├─── message:string = "/paths/~1pet~1{petId}/delete/responses/404: deve essere valido per uno e un solo schema, ma 0 sono validi"
+│	├─── error:string = "deve essere valido per uno e un solo schema, ma 0 sono validi"
+│	╰─── type:string = "oneOf"
+├─── validationMessage[16]
+│	├─── code:string = "1028"
+│	├─── message:string = "/paths/~1pet~1{petId}/delete/responses/404: proprietà richiesta 'description' non trovata"
+│	├─── error:string = "proprietà richiesta 'description' non trovata"
+│	╰─── type:string = "required"
+╰─── validationMessage[17]
+	├─── code:string = "1028"
+	├─── message:string = "/paths/~1pet~1{petId}/delete/responses/404: proprietà richiesta '$ref' non trovata"
+	├─── error:string = "proprietà richiesta '$ref' non trovata"
+	╰─── type:string = "required"
+
+jolie2openapi.ol...  passed ✅

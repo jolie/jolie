@@ -437,6 +437,7 @@ service Main {
             }     
             
             getOpenApiFromJolieMetaData@OpenApi( openapi_request )( openapijson )
+            
             getJsonValue@JsonUtils( openapijson )( openapi_json_value )
             if ( !is_defined( openapi_json_value.paths.("/orders" ).get.responses.("200").schema ) ) {
                 throw( TestFailed, "openapi from meta jolie version 2.0 failed: schema not found in response get of /orders" )
@@ -455,8 +456,29 @@ service Main {
                 throw( TestFailed, "openapi from meta jolie version 2.0 failed:" + schema_string + "\n" + errors )
             }
 
+            // full verification
+            readFile@File( { filename = "./library/private/openapi2-test-service2.json" })( openapi_test_service2_json )
+            if ( openapi_test_service2_json != openapijson ) {
+                throw( TestFailed, "openapi from meta jolie version 2.0 failed: openapi json is different from the expected one" )
+            }
+
             openapi_request.openApiVersion = "3.0"
             getOpenApiFromJolieMetaData@OpenApi( openapi_request )( openapijson )
+            getJsonValue@JsonUtils( openapijson )( openapi_json_value )
+            if ( !is_defined( openapi_json_value.paths.("/orders" ).get.responses.("200").content.("application/json").schema ) ) {
+                throw( TestFailed, "openapi from meta jolie version 3.0 failed: schema not found in response get of /orders" )
+            }
+            if ( openapi_json_value.paths.("/orders" ).get.responses.("200").content.("application/json").schema.("$ref") != "#/components/schemas/GetOrdersResponse" ) {
+                throw( TestFailed, "openapi from meta jolie version 3.0 failed: wrong response schema, expected GetOrdersResponse, found:" 
+                + openapi_json_value.paths.("/orders" ).get.responses.("200").content.("application/json").schema.("$ref") )
+            }
+
+            
+            if ( openapi_json_value.paths.("/orders" ).get.responses.("200").description != "Success" )  {
+                throw( TestFailed, "openapi from meta jolie version 3.0 failed: description is different from 'Success', found: " 
+                    + openapi_json_value.paths.("/orders" ).get.responses.("200").description )
+            }
+            
             validateJson@JsonUtils({
                 json = openapijson
                 schema = openapi_schema3
@@ -466,6 +488,13 @@ service Main {
                 valueToPrettyString@StringUtils( validation )( errors )
                 throw( TestFailed, "openapi from meta jolie version 3.0 failed:" + schema_string + "\n" + errors )
             }
+
+            // full verification
+            readFile@File( { filename = "./library/private/openapi3-test-service2.json" })( openapi_test_service2_json )
+            if ( openapi_test_service2_json != openapijson ) {
+                throw( TestFailed, "openapi from meta jolie version 3.0 failed: openapi json is different from the expected one" )
+            }
+            
 
             
 
