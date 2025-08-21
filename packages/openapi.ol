@@ -452,6 +452,7 @@ private service OpenApi3 {
                 info << request.info
             }
 
+            //println@Console( "OpenAPI 3.0 definition:" + valueToPrettyString@StringUtils( request ) )() 
             
             // servers
             for( server = 0, server < #request.servers, server++ ) {
@@ -551,6 +552,7 @@ private service OpenApi3 {
                             // creatin hashmpa from status, more responses could have the same status
                             status_hashmap.( res.status ).item[ #status_hashmap.( res.status ).item ] << res 
                         }
+                        
                         foreach( status : status_hashmap ) {
                             // for each status generate the response
                             if ( #status_hashmap.( status ).item > 1 ) {
@@ -568,20 +570,20 @@ private service OpenApi3 {
                                     openapi.paths.( path ).( method ).responses.( status ).description += i.description + " "
                                 }
                             } else {
-                                openapi.paths.( path ).( method ).responses.( res.status ).description = res.description
+                                openapi.paths.( path ).( method ).responses.( status ).description = status_hashmap.( status ).item.description
                                 for( p in path.( method ).produces ) {
-                                    if ( res.schema instanceof Type ) {
-                                        openapi.paths.( path ).( method ).responses.( res.status ).content.( p ).schema << getType@JsonSchema( {
-                                            type << res.schema 
+                                    if ( status_hashmap.( status ).item.schema instanceof Type ) {
+                                        openapi.paths.( path ).( method ).responses.( status ).content.( p ).schema << getType@JsonSchema( {
+                                            type << status_hashmap.( status ).item.schema 
                                             schemaVersion = request.version 
                                         })
-                                    } else if ( res.schema instanceof NativeType ) {
-                                        openapi.paths.( path ).( method ).responses.( res.status ).content.( p ).schema << getNativeType@JsonSchema( {
-                                            nativeType << res.schema 
+                                    } else if ( status_hashmap.( status ).item.schema instanceof NativeType ) {
+                                        openapi.paths.( path ).( method ).responses.( status ).content.( p ).schema << getNativeType@JsonSchema( {
+                                            nativeType << status_hashmap.( status ).item.schema 
                                             schemaVersion = request.version 
                                         })
                                     } else {
-                                        openapi.paths.( path ).( method ).responses.( res.status ).content.( p ).schema << getNativeType@JsonSchema( {
+                                        openapi.paths.( path ).( method ).responses.( status ).content.( p ).schema << getNativeType@JsonSchema( {
                                             nativeType.void_type = true
                                             schemaVersion = request.version 
                                         })
