@@ -28,7 +28,7 @@ service Jolie2OpenApi {
     main {
         // default values
         scheme = "http"
-        wkdir = "."
+        output = "./output.json"
         level0 = false
         template_file = RESTTEMPLATE
         openApiVersion = "3.0"
@@ -59,7 +59,7 @@ service Jolie2OpenApi {
                 argsMap[ 3 ] << { 
                     name = "output", 
                     optional = true,
-                    description = "Output folder where storing the resulting json file. Default is the current folder",
+                    description = "Output file where storing the resulting json file. Default is output.json",
                     isFlag = false
                 }
                 argsMap[ 4 ] << { 
@@ -105,7 +105,7 @@ service Jolie2OpenApi {
             router_host = arg_hashmap.("router").value
             
             if ( is_defined( arg_hashmap.("output") ) ) {
-                wkdir = arg_hashmap.("output").value
+                output = arg_hashmap.("output").value
             }
             if ( is_defined( arg_hashmap.scheme ) ) {
                 scheme = arg_hashmap.scheme.value
@@ -166,9 +166,7 @@ service Jolie2OpenApi {
             }
 
             openapi << {
-                //filename = service_filename
                 host = router_host
-                //inputPort = service_input_port
                 level0 = level0
                 port << port
                 scheme  = scheme
@@ -185,7 +183,7 @@ service Jolie2OpenApi {
             println@Console("Creating openapi file... " )()
             getOpenApiFromJolieMetaData@OpenApi( openapi )( f.content );
             writeFile@File( {
-                filename = wkdir + "/" + input_port + ".json"
+                filename = output
                 format = "text"
                 content << f.content
             } )()

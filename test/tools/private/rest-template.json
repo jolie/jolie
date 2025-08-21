@@ -1,0 +1,24 @@
+{ "operations":[
+    {
+        "operation": "getAddress",
+        "path": "/addresses?surname={surname}&name={name}",
+        "method": "get",
+        "faultsMapping": [
+            {
+                "jolieFault": "PersonNotFound",
+                "httpCode": 404
+            }
+        ]
+    },
+    {
+        "operation": "getPersonList",
+        "path": "/people?full={full}",
+        "method": "get"
+    },
+    {
+        "operation": "check",
+        "path": "/check",
+        "method": "get"
+    }
+]}
+
