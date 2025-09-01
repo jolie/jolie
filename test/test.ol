@@ -38,6 +38,7 @@ service Main {
 		dirs[1] = "library"
 		dirs[2] = "extensions"
 		dirs[3] = "services"
+		dirs[4] = "tools"
 	}
 
 	define calcMaxLength {

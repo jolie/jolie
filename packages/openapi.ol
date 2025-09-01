@@ -59,7 +59,7 @@ type InOther {
 
 type Responses {
     status: int 
-    schema?: Type
+    schema?: Type | NativeType
     description: string
 }
 
@@ -135,7 +135,19 @@ type GetOpenApiDefinitionRequest {
 
 interface OpenApiInterface {
     RequestResponse:
-        getOpenApiDefinition( GetOpenApiDefinitionRequest )( string )
+        getOpenApiDefinition( GetOpenApiDefinitionRequest )( string ) throws DefinitionError( string )
+}
+
+type RestApiTemplate {
+    operations* {
+        operation: string 
+        path?: string
+        method: string( enum(["get","post","put","delete","patch"]))
+        faultsMapping* {
+            jolieFault: string
+            httpCode: int    
+        }
+    }
 }
 
 type GetOpenApiFromJolieMetaDataRequest {
@@ -144,17 +156,7 @@ type GetOpenApiFromJolieMetaDataRequest {
     scheme: string( enum(["http","https"]))
     level0?: bool
     version: string   // version of the document
-    template {
-        operations* {
-            operation: string 
-            path?: string
-            method: string( enum(["get","post","put","delete","patch"]))
-            faultsMapping* {
-                jolieFault: string
-                httpCode: int    
-            }
-        }
-    }
+    template?: RestApiTemplate
     openApiVersion: string( enum(["2.0","3.0"]))    // version of the openapi
 }
 
@@ -193,6 +195,51 @@ interface OpenApiGenerationInterfacePrivate {
         getActualCurrentType( GetActualCurrentTypeRequest )( string )
 }
 
+type UtilsGetChoiceTypeRequest: void {
+    item*: Type | NativeType
+}
+
+interface OpenApiUtilsInterface {
+    RequestResponse:
+        getChoiceType( UtilsGetChoiceTypeRequest )( Type ) 
+}
+
+private service OpenApiUtils {
+
+    execution: concurrent 
+
+    outputPort MySelf {
+        location: "local://OpenApiUtilsPackage"
+        interfaces: OpenApiUtilsInterface
+    }
+
+    inputPort OpenApiUtils {
+        location: "local://OpenApiUtilsPackage"
+        interfaces: OpenApiUtilsInterface
+    }
+
+    main {
+        getChoiceType( request )( response ) {
+            if ( #request.item == 1 ) {
+                 if ( request.item[ 0 ] instanceof NativeType ) {
+                    response.root_type << request.item[ 0 ]
+                } else{
+                    response << request.item[ 0 ]
+                }
+            } else {
+                if ( request.item[ 0 ] instanceof NativeType ) {
+                    response.choice.left_type.root_type << request.item[ 0 ]
+                } else{
+                    response.choice.left_type << request.item[ 0 ]
+                }
+                undef( request.item[ 0 ])
+                response.choice.right_type << getChoiceType@MySelf( request )
+            }
+            
+        }
+    }
+}
+
 private service OpenApi2 {
 
     execution: concurrent 
@@ -210,7 +257,6 @@ private service OpenApi2 {
 
     main {
         [  getOpenApiDefinition( request )( response ) {
-
             // 2.0
             openapi << {
                 swagger = "2.0"
@@ -290,14 +336,25 @@ private service OpenApi2 {
                     // responses
                     if ( is_defined(  path.( method ).responses ) ) {
                         for( res  in path.( method ).responses ) {
-                            openapi.paths.( path ).( method ).responses.( res.status ).description = res.description
-                            if ( is_defined( res.schema ) ) {
-                                if ( res.schema instanceof SchemaType ) {
-                                    openapi.paths.( path ).( method ).responses.( res.status ).schema << getType@JsonSchema( {
-                                        type << res.schema 
-                                        schemaVersion = request.version 
-                                    })
+                            if ( !is_defined( openapi.paths.( path ).( method ).responses.( res.status ) ) ) {
+                                openapi.paths.( path ).( method ).responses.( res.status ).description = res.description
+                                // only one response for each status is permitted
+                                if ( is_defined( res.schema ) ) {
+                                    if ( res.schema instanceof Type ) {
+                                        openapi.paths.( path ).( method ).responses.( res.status ).schema << getType@JsonSchema( {
+                                            type << res.schema 
+                                            schemaVersion = request.version 
+                                        })
+                                    }
+                                    if ( res.schema instanceof NativeType ) {
+                                        openapi.paths.( path ).( method ).responses.( res.status ).schema << getNativeType@JsonSchema( {
+                                            nativeType << res.schema 
+                                            schemaVersion = request.version 
+                                        })
+                                    }
                                 }
+                            } else {
+                                throw( DefinitionError, "Response with status " + res.status + " already defined for operation " + path.( method ).operationId )
                             }
                         }
                     }
@@ -373,6 +430,12 @@ private service OpenApi3 {
     embed StringUtils as StringUtils
     embed JsonUtils as JsonUtils
     embed JsonSchema as JsonSchema
+    embed OpenApiUtils 
+
+    outputPort OpenApiUtils {
+        location: "local://OpenApiUtilsPackage"
+        interfaces: OpenApiUtilsInterface
+    }
 
     inputPort OpenApi3 {
         location: "local"
@@ -389,6 +452,7 @@ private service OpenApi3 {
                 info << request.info
             }
 
+            //println@Console( "OpenAPI 3.0 definition:" + valueToPrettyString@StringUtils( request ) )() 
             
             // servers
             for( server = 0, server < #request.servers, server++ ) {
@@ -483,18 +547,50 @@ private service OpenApi3 {
 
                     // responses
                     if ( is_defined(  path.( method ).responses ) ) {
+                        undef( status_hashmap )
                         for( res  in path.( method ).responses ) {
-                            openapi.paths.( path ).( method ).responses.( res.status ).description = res.description
-                            if ( is_defined( res.schema ) ) {
+                            // creatin hashmpa from status, more responses could have the same status
+                            status_hashmap.( res.status ).item[ #status_hashmap.( res.status ).item ] << res 
+                        }
+                        
+                        foreach( status : status_hashmap ) {
+                            // for each status generate the response
+                            if ( #status_hashmap.( status ).item > 1 ) {
                                 for( p in path.( method ).produces ) {
-                                    if ( res.schema instanceof SchemaType ) {
-                                        openapi.paths.( path ).( method ).responses.( res.status ).content.( p ).schema << getType@JsonSchema( {
-                                            type << res.schema 
+                                    for( i in status_hashmap.( status ).item ) {
+                                        req_choiceType.item[ #req_choiceType.item ] << i.schema
+                                    }
+                                    choiceType << getChoiceType@OpenApiUtils( req_choiceType )
+                                    openapi.paths.( path ).( method ).responses.( status ).content.( p ).schema << getTypeChoice@JsonSchema( {
+                                        typeChoice << choiceType 
+                                        schemaVersion = request.version 
+                                    })
+                                }
+                                for ( i in status_hashmap.( status ).item ) {
+                                    openapi.paths.( path ).( method ).responses.( status ).description += i.description + " "
+                                }
+                            } else {
+                                openapi.paths.( path ).( method ).responses.( status ).description = status_hashmap.( status ).item.description
+                                for( p in path.( method ).produces ) {
+                                    if ( status_hashmap.( status ).item.schema instanceof Type ) {
+                                        openapi.paths.( path ).( method ).responses.( status ).content.( p ).schema << getType@JsonSchema( {
+                                            type << status_hashmap.( status ).item.schema 
                                             schemaVersion = request.version 
                                         })
-                                    }
+                                    } else if ( status_hashmap.( status ).item.schema instanceof NativeType ) {
+                                        openapi.paths.( path ).( method ).responses.( status ).content.( p ).schema << getNativeType@JsonSchema( {
+                                            nativeType << status_hashmap.( status ).item.schema 
+                                            schemaVersion = request.version 
+                                        })
+                                    } else {
+                                        openapi.paths.( path ).( method ).responses.( status ).content.( p ).schema << getNativeType@JsonSchema( {
+                                            nativeType.void_type = true
+                                            schemaVersion = request.version 
+                                        })
+                                    }   
                                 }
                             }
+
                         }
                     }
 
@@ -714,7 +810,7 @@ service OpenApi {
                     // 500 added by default, it covers all the not mapped faults
                     openapi.paths[ path_counter ].( method ).responses[ 1 ] << {
                         status = 500
-                        description = "resource not found"
+                        description = "internal server error"
                         schema.link_name = ERROR_TYPE_NAME
                     }
 
@@ -728,7 +824,9 @@ service OpenApi {
                         openapi.paths[ path_counter ].( method ).responses[ responses_index ]<< {
                             status = fm.httpCode
                             description = fm.jolieFault
-                            schema << faultsMap.( c_op.operation_name ).( fm.jolieFault ).type
+                        }
+                        if ( !is_defined( faultsMap.( c_op.operation_name ).( fm.jolieFault ).type.void_type ) ) {
+                            openapi.paths[ path_counter ].( method ).responses[ responses_index ].schema << faultsMap.( c_op.operation_name ).( fm.jolieFault ).type
                         }
                     } 
                 
