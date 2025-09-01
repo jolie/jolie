@@ -21,7 +21,7 @@ service Jolie2OpenApi {
     init {
         install( Error => nullProcess )
         install( Help => nullProcess )
-        install( ParametersError => nullProcess )
+        install( ParsingErros => nullProcess )
         install( DefinitionError => println@Console( main.DefinitionError )() )
     }
 
@@ -36,7 +36,7 @@ service Jolie2OpenApi {
 
         scope( get_args ) {
             install( Help => nullProcess )
-            getParsedArgs@Args({
+            parseArgs@Args({
                 args << args
                 argsMap[ 0 ] << { 
                     name = "filename"
