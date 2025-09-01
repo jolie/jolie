@@ -14,7 +14,7 @@ service Main {
     main {
         test()() {
 
-            getParsedArgs@Args({
+            parseArgs@Args({
                 args[ 0 ] = "--arg1=value1"
                 args[ 1 ] = "--arg2=value2"
                 args[ 2 ] = "--arg3=value3 ja ja "
@@ -60,10 +60,10 @@ service Main {
 
             // Test for missing required argumen
             scope( check_error ) {
-                install( ParametersError => 
+                install( ParsingError =>
                     nullProcess
                 )
-                getParsedArgs@Args({
+                parseArgs@Args({
                     args[ 0 ] = "--arg1=value1"
                     args[ 1 ] = "--arg2=value2"
                     args[ 2 ] = "--arg3=value3 ja ja "
@@ -94,15 +94,15 @@ service Main {
 
                 })( result )
 
-                throw TestFailed( "Expected ParametersError for missing required argument, but got no error" ) 
+                throw TestFailed( "Expected ParsingError for missing required argument, but got no error" ) 
             }
 
             // Test for missing required argumen
             scope( check_error ) {
-                install( ParametersError => 
+                install( ParsingError => 
                      throw TestFailed( "No fault expected" ) 
                 )
-                getParsedArgs@Args({
+                parseArgs@Args({
                     args[ 0 ] = "--arg1=value1"
                     args[ 1 ] = "--arg2"
                     args[ 2 ] = "--arg3=value3 ja ja "
@@ -139,10 +139,10 @@ service Main {
 
             // Test for missing required argumen
             scope( check_error ) {
-                install( ParametersError => 
+                install( ParsingError => 
                      nullProcess
                 )
-                getParsedArgs@Args({
+                parseArgs@Args({
                     args[ 0 ] = "--arg1=value1"
                     args[ 1 ] = "--arg2"
                     args[ 2 ] = "--arg3=value3 ja ja "

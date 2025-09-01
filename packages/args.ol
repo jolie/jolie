@@ -2,18 +2,18 @@ from string-utils import StringUtils
 from console import Console
 
 
-type GetParsedArgsRequest {
+type ParseArgsRequest {
     args*: string 
-    argsMap*: void {
-        name: string        // name of the expected argument
-        optional: bool      // specifies if the argument is optional
-        description: string // describes the argument
-        isFlag: bool       // if true, the argument is a flag (e.g. --verbose)
+    argsMap* {
+        name: string        //< name of the expected argument
+        optional: bool      //< specifies if the argument is optional
+        description: string //< describes the argument
+        isFlag: bool        //< if true, the argument is a flag (e.g. --verbose)
     }
 
 }
 
-type GetParsedResponse {
+type ParseArgsResponse {
     parsedArgs* {
         name: string 
         value: string | void
@@ -22,7 +22,7 @@ type GetParsedResponse {
 
 interface ArgsInterface {
     RequestResponse:
-        getParsedArgs( GetParsedArgsRequest )( GetParsedResponse ) throws ParametersError( string ) Help
+        parseArgs( ParseArgsRequest )( ParseArgsResponse ) throws ParsingError( string ) Help
 
 }
 
@@ -58,12 +58,12 @@ service Args {
 
 
     init {
-        install( ParametersError => nullProcess )
+        install( ParsingError => nullProcess )
         install( Help => nullProcess )
     }
 
     main {
-        getParsedArgs( request )( response ) {
+        parseArgs( request )( response ) {
             // compose all the args into a single string, this allows for having strings as arguments
             args_string = ""
             for( a in request.args ) {
@@ -95,17 +95,17 @@ service Args {
                     if ( !arg.optional && !is_defined( parsedArgsHashMap.( arg.name ) ) ) {
                         println@Console( "❌ Error: Missing required argument: " + arg.name )()
                         print_help
-                        throw ParametersError( "Missing required argument: " + arg.name )
+                        throw ParsingError( "Missing required argument: " + arg.name )
                     }
                     if ( is_defined( parsedArgsHashMap.( arg.name ) ) && arg.isFlag && !(parsedArgsHashMap.( arg.name ).value instanceof void ) ) {
                         println@Console( "❌ Error: Argument " + arg.name + " is a flag and cannot have a value\n" ) ()
                         print_help
-                        throw ParametersError( "Argument " + arg.name + " is a flag and cannot have a value" )
+                        throw ParsingError( "Argument " + arg.name + " is a flag and cannot have a value" )
                     }
                     if ( is_defined( parsedArgsHashMap.( arg.name ) ) && !arg.isFlag && (parsedArgsHashMap.( arg.name ).value instanceof void ) ) {
                         println@Console( "❌ Error: Argument " + arg.name + " must have a value.\n" )()
                         print_help
-                        throw ParametersError( "Argument " + arg.name + " must have a value" )
+                        throw ParsingError( "Argument " + arg.name + " must have a value" )
                     }
                 }
             }
