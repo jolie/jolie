@@ -100,6 +100,7 @@ public class Jolie {
 			}
 			exitCode = 3;
 		} catch( Exception e ) {
+			System.err.println("Unexpected error, run with --stackTraces and report on github:");
 			printErr( e, printStackTraces );
 			exitCode = 4;
 		}
