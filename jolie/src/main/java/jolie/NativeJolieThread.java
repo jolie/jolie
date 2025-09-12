@@ -76,8 +76,6 @@ public class NativeJolieThread extends Thread implements InterpreterThread {
 	 * Clear interpreter reference
 	 */
 	public void clearInterpreter() {
-		if( !interpreter.isEnqueued() ) {
-			interpreter.clear();
-		}
+		interpreter.clear();
 	}
 }
