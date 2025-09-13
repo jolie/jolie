@@ -558,14 +558,14 @@ public class CommandLineParser implements AutoCloseable {
 			}
 			if( path.endsWith( ".jar" ) || path.endsWith( ".jap" ) ) {
 				if( path.startsWith( "jap:" ) ) {
-					urls.add( new URL( path + "!/" ) );
+					urls.add( URI.create( path + "!/" ).toURL() );
 				} else if( path.startsWith( "file:" ) ) {
-					urls.add( new URL( "jap:" + path + "!/" ) );
+					urls.add( URI.create( "jap:" + path + "!/" ).toURL() );
 				} else {
-					urls.add( new URL( "jap:file:" + path + "!/" ) );
+					urls.add( URI.create( "jap:file:" + path + "!/" ).toURL() );
 				}
 			} else if( new File( path ).isDirectory() ) {
-				urls.add( new URL( "file:" + path + "/" ) );
+				urls.add( URI.create( "file:" + path + "/" ).toURL() );
 			} else if( path.endsWith( "/*" ) ) {
 				final String pp = path;
 				String dirStr = Helpers.ifWindowsOrElse( () -> {
@@ -589,18 +589,18 @@ public class CommandLineParser implements AutoCloseable {
 						.filter( p -> p.endsWith( ".jar" ) || p.endsWith( ".jap" ) ).collect( Collectors.toList() );
 					for( String archive : archives ) {
 						String scheme = archive.substring( archive.length() - 3 ); // "jap" or "jar"
-						urls.add( new URL( scheme + ":" + Paths.get( archive ).toUri().toString() + "!/" ) );
+						urls.add( URI.create( scheme + ":" + Paths.get( archive ).toUri().toString() + "!/" ).toURL() );
 					}
 				}
 			} else if( path.contains( ":" ) ) { // Try to avoid unnecessary MalformedURLExceptions, filling up the stack
 												// trace eats time.
 				try {
-					urls.add( new URL( path ) );
+					urls.add( URI.create( path ).toURL() );
 				} catch( MalformedURLException e ) {
 				}
 			}
 		}
-		urls.add( new URL( "file:/" ) );
+		urls.add( URI.create( "file:/" ).toURL() );
 		libURLs = urls.toArray( new URL[ 0 ] );
 		jolieClassLoader = new JolieClassLoader( libURLs, parentClassLoader );
 
