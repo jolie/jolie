@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.net.URI;
+import java.net.URISyntaxException;
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -181,7 +182,7 @@ public class XmlUtils extends JavaService {
 						request.getFirstChild( "options" ).hasChildren( "schemaLanguage" )
 							? request.getFirstChild( "options" ).getFirstChild( "schemaLanguage" ).strValue()
 							: XMLConstants.W3C_XML_SCHEMA_NS_URI );
-					Schema schema = schemaFactory.newSchema( URI.create(
+					Schema schema = schemaFactory.newSchema( new URI(
 						request.getFirstChild( "options" ).getFirstChild( "schemaUrl" ).strValue() ).toURL() );
 					documentBuilderFactory.setSchema( schema ); // set schema
 				}
@@ -218,7 +219,7 @@ public class XmlUtils extends JavaService {
 				jolie.xml.XmlUtils.storageDocumentToValue( doc, result );
 			}
 			return result;
-		} catch( ParserConfigurationException | IOException | SAXException e ) {
+		} catch( ParserConfigurationException | IOException | SAXException | URISyntaxException e ) {
 			e.printStackTrace();
 			throw new FaultException( e );
 		} finally {
