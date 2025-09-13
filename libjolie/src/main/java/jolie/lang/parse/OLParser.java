@@ -1115,11 +1115,7 @@ public class OLParser extends AbstractParser {
 					}
 
 					String tmpUrl = build( tmpPath, tmpFilename );
-					try {
-						return new URL( tmpUrl.substring( 0, 4 ) + tmpUrl.substring( 4 ) );
-					} catch( Exception exn ) {
-						return null;
-					}
+					return new URI( tmpUrl ).toURL();
 				} else if( filename.startsWith( "./" ) ) {
 					String tmpPath = path;
 					String tmpFilename = filename;
@@ -1131,16 +1127,16 @@ public class OLParser extends AbstractParser {
 						tmpPath = tmpPath.substring( 0, tmpPath.length() - 1 );
 					}
 					String tmpUrl = build( tmpPath, tmpFilename );
-					return new URL( tmpUrl.substring( 0, 4 ) + tmpUrl.substring( 4 ) );
+					return new URI( tmpUrl ).toURL();
 				} else {
 					/*
 					 * We need the embedded URL path, otherwise URI.normalize is going to do nothing.
 					 */
-					return new URL(
-						urlStr.substring( 0, 4 ) + new URI( urlStr.substring( 4 ) ).normalize().toString() );
+					return new URI(
+						urlStr.substring( 0, 4 ) + new URI( urlStr.substring( 4 ) ).normalize().toString() ).toURL();
 				}
 			} else {
-				return new URL( new URI( urlStr ).normalize().toString() );
+				return Path.of( urlStr ).toUri().toURL();
 			}
 		} catch( MalformedURLException | URISyntaxException e ) {
 			return null;
