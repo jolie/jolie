@@ -141,7 +141,7 @@ public class FileService extends JavaService {
 			if( Files.exists( Paths.get( url ) ) ) {
 				fileTypeMap = new MimetypesFileTypeMap( url );
 			} else {
-				try( InputStream mimeIS = URI.create( url ).toURL().openStream() ) {
+				try( InputStream mimeIS = new URI( url ).toURL().openStream() ) {
 					fileTypeMap = new MimetypesFileTypeMap( mimeIS );
 				}
 			}
@@ -902,8 +902,8 @@ public class FileService extends JavaService {
 			parent = Paths.get( fileName ).getParent();
 		} catch( InvalidPathException e ) {
 			try {
-				parent = Paths.get( URI.create( fileName ) ).getParent();
-			} catch( IllegalArgumentException invalidPathException ) {
+				parent = Paths.get( new URI( fileName ) ).getParent();
+			} catch( URISyntaxException invalidPathException ) {
 				throw new FaultException( invalidPathException );
 			}
 		}
