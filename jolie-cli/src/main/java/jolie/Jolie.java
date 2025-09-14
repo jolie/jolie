@@ -100,7 +100,11 @@ public class Jolie {
 			}
 			exitCode = 3;
 		} catch( Exception e ) {
-			System.err.println("Unexpected error, run with --stackTraces and report on github:");
+			System.err.println(
+				"An unexpected error occurred. This is probably a bug. You can report it on GitHub at https://github.com/jolie/jolie/issues" );
+			if( !printStackTraces ) {
+				System.err.println( "You can run Jolie with --stackTraces for more information." );
+			}
 			printErr( e, printStackTraces );
 			exitCode = 4;
 		}
