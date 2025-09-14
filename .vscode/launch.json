@@ -16,6 +16,9 @@
 				"-p",
 				"${workspaceFolder}/packages",
 				"${input:trace}",
+				"--traceLevel",
+				"${input:traceLevel}",
+				"${input:stackTraces}",
 				"--responseTimeout",
 				"300000",
 				"${input:programName}"
@@ -29,6 +32,9 @@
 					"-p",
 					"${workspaceFolder}\\packages",
 					"${input:trace}",
+					"--traceLevel",
+					"${input:traceLevel}",
+					"${input:stackTraces}",
 					"--responseTimeout",
 					"300000",
 					"${input:programName}"
@@ -151,6 +157,27 @@
 				"--trace",
 			],
 			"default": ""
+		},
+		{
+			"type": "pickString",
+			"id": "stackTraces",
+			"description": "Run with --stackTraces?",
+			"options": [
+				"",
+				"--stackTraces"
+			],
+			"default": ""
+		},
+		{
+			"type": "pickString",
+			"id": "traceLevel",
+			"description": "select trace level",
+			"options": [
+				"all",
+				"comm",
+				"comp"
+			],
+			"default": "all"
 		}
 	]
 }
