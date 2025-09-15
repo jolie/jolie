@@ -728,9 +728,12 @@ public class CommandLineParser implements AutoCloseable {
 			result.stream = new FileInputStream( f );
 			result.source = f.toURI().toString();
 		} else if( olFilepath.startsWith( "jap" ) ) {
-			olURL = new URL( olFilepath );
-			result.stream = olURL.openStream();
-			result.source = olURL.toString();
+			try {
+				olURL = new URI( UriUtils.normalizeJolieUri( olFilepath ) ).toURL();
+				result.stream = olURL.openStream();
+				result.source = olURL.toString();
+			} catch( URISyntaxException | IOException e ) {
+			}
 		} else {
 			for( String includePath : includePaths ) {
 				if( includePath.startsWith( "jap:" ) ) {
