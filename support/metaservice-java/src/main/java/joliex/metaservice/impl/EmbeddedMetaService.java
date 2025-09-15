@@ -102,9 +102,8 @@ public class EmbeddedMetaService extends MetaService {
 	 */
 	public EmbeddedMetaService( String jolieHome, String metaserviceFilepath )
 		throws IOException, ExecutionException {
-		try {
-			CommandLineParser commandLineParser = new CommandLineParser(
-				buildInterpreterArguments( jolieHome, metaserviceFilepath ), this.getClass().getClassLoader(), false );
+		try( CommandLineParser commandLineParser = new CommandLineParser(
+			buildInterpreterArguments( jolieHome, metaserviceFilepath ), this.getClass().getClassLoader(), false ) ) {
 			interpreter =
 				new Interpreter( commandLineParser.getInterpreterConfiguration(), Optional.empty(),
 					Optional.empty() );
