@@ -49,14 +49,14 @@ jobs:
         gpg-passphrase: MAVEN_GPG_PASSPHRASE # env variable for GPG private key passphrase
 
     - name: Build prerequisites
-      run: mvn -f jolie-git/pom.xml -DskipTests install -pl build-tools
+      run: mvn -q -f jolie-git/pom.xml -DskipTests install -pl build-tools
 
     - name: Compile Jolie
-      run: mvn -f jolie-git/pom.xml -DskipTests install -Dmaven.test.skip
+      run: mvn -q -f jolie-git/pom.xml -DskipTests install -Dmaven.test.skip
 
     - name: Compile Jolie installer
       run: |
-        mvn -f jolie-git/release-tools/installer/pom.xml install
+        mvn -q -f jolie-git/release-tools/installer/pom.xml install
     
 #    - name: Install zip (for the installer)
 #      run: sudo apt-get install zip
@@ -86,7 +86,7 @@ jobs:
         MAVEN_PASSWORD: ${{ secrets.CENTRAL_TOKEN_PASSWORD }}
         MAVEN_GPG_PASSPHRASE: ${{ secrets.OSSRH_GPG_SECRET_KEY_PASSWORD }}
       run: |
-        mvn -f jolie-git/pom.xml \
+        mvn -q -f jolie-git/pom.xml \
         --no-transfer-progress --batch-mode \
         deploy \
         -pl libjolie,jolie,lib/jolie-js,jolie-cli \

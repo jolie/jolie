@@ -39,12 +39,12 @@ jobs:
           java-version: 21
           cache: 'maven'
       - name: Build with Maven
-        run: mvn install --file pom.xml
+        run: mvn -q install --file pom.xml
         timeout-minutes: 20
       - name: Build JavaDoc
-        run: mvn javadoc:javadoc --file pom.xml -pl libjolie,jolie,lib/jolie-js,jolie-cli
+        run: mvn -q javadoc:javadoc --file pom.xml -pl libjolie,jolie,lib/jolie-js,jolie-cli
         timeout-minutes: 20
       - name: Build the Jolie installer
         working-directory: ./release-tools/installer
-        run: mvn install --file pom.xml
+        run: mvn -q install --file pom.xml
 
