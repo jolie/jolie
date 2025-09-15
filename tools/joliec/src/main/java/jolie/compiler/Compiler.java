@@ -48,8 +48,9 @@ public class Compiler {
 
 	public Compiler( String[] args )
 		throws CommandLineException, IOException {
-		cmdConfig = new CommandLineParser( args, Compiler.class.getClassLoader() )
-			.getInterpreterConfiguration();
+		try( CommandLineParser parser = new CommandLineParser( args, Compiler.class.getClassLoader() ) ) {
+			cmdConfig = parser.getInterpreterConfiguration();
+		}
 	}
 
 	public void compile( OutputStream ostream )
@@ -73,7 +74,7 @@ public class Compiler {
 	public void compile()
 		throws IOException, ParserException, CodeCheckException, CommandLineException, ModuleException {
 		try( OutputStream os =
-			new FileOutputStream( cmdConfig.source().uri() + "c" ) ) {
+			new FileOutputStream( cmdConfig.source().uri().getPath() + "c" ) ) {
 			compile( os );
 		}
 	}
