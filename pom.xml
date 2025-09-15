@@ -10,7 +10,7 @@
 		<maven.compiler.release>11</maven.compiler.release>
 		<jolie.installation.directory>dist/jolie</jolie.installation.directory>
 		<jolie.installation.directory.executable>dist/launchers</jolie.installation.directory.executable>
-		<jolie.version>1.12.7</jolie.version>
+		<jolie.version>1.12.8</jolie.version>
 		<jolie.url>https://www.jolie-lang.org/</jolie.url>
 		<jolie.developer>The Jolie Developers</jolie.developer>
 		<jolie.email>webmaster@jolie-lang.org</jolie.email>
