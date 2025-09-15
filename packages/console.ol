@@ -46,6 +46,8 @@ type InRequest:string {
 	token?: string
 }
 
+type EscapeControlCharsRequest: bool
+
 interface ConsoleIface {
 RequestResponse:
 	print( undefined )( void ), 
@@ -57,6 +59,12 @@ RequestResponse:
 	*	Parameter format allows to specifiy the timestamp output format. Bad Format will be printed out if format value is not allowed.
 	*/
 	enableTimestamp( EnableTimestampRequest )( void ),
+	
+	/**!
+	 * Escapes control characters in printing for each console output operation call: print, println
+	 * Default: false
+	 */
+	escapeControlChars( EscapeControlCharsRequest )( void ),
 
 	/**!
 	* Read a line from the console using a synchronous call
