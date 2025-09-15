@@ -82,8 +82,8 @@ jobs:
 
     - name: Publish on Maven Central
       env:
-        MAVEN_USERNAME: ${{ secrets.CENTRAL_TOKEN_USERNAME }}
-        MAVEN_PASSWORD: ${{ secrets.CENTRAL_TOKEN_PASSWORD }}
+        MAVEN_USERNAME: ${{ secrets.MVN_CENTRAL_USERNAME }}
+        MAVEN_PASSWORD: ${{ secrets.MVN_CENTRAL_PASSWORD }}
         MAVEN_GPG_PASSPHRASE: ${{ secrets.OSSRH_GPG_SECRET_KEY_PASSWORD }}
       run: |
         mvn -q -f jolie-git/pom.xml \
