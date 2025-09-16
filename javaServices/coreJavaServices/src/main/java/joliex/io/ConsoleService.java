@@ -31,18 +31,18 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-
 import jolie.runtime.JavaService;
 import jolie.runtime.Value;
 import jolie.runtime.embedding.RequestResponse;
+import jolie.runtime.typing.TypeCastingException;
 import jolie.util.Helpers;
 
 public class ConsoleService extends JavaService {
 	private Map< String, String > sessionTokens;
 	private boolean sessionListeners = false;
 	private boolean enableTimestamp = false;
-	private boolean escapeControlChars = false;
 	private static final String TIMESTAMP_DEFAULT_FORMAT = "dd/MM/yyyy HH:mm:ss";
+	private static final String ESCAPE_CONTROL_CHARS_FIELD = "escapeControlChars";
 	private String timestampFormat = TIMESTAMP_DEFAULT_FORMAT;
 
 	private class ConsoleInputThread extends Thread {
@@ -100,40 +100,62 @@ public class ConsoleService extends JavaService {
 	}
 
 	@RequestResponse
-	public void print( String s ) {
-		if( escapeControlChars ) {
-			s = Helpers.escapeControlChars( s );
+	public void print( Value s ) {
+
+		boolean escapeControlChars = false;
+		if( s.hasChildren( ESCAPE_CONTROL_CHARS_FIELD ) && s.getFirstChild( ESCAPE_CONTROL_CHARS_FIELD ).boolValue() ) {
+			escapeControlChars = true;
 		}
+
+		String str;
+		try {
+			str = escapeControlChars ? Helpers.escapeControlChars( s.strValueStrict() ) : s.strValueStrict();
+		} catch( TypeCastingException e ) {
+			System.out.println( "Unable to convert Value to string" );
+			return;
+		}
+
 		if( enableTimestamp ) {
 			try {
 				SimpleDateFormat sdf = new SimpleDateFormat( timestampFormat );
 				final Date now = new Date();
 				String ts = sdf.format( now );
-				System.out.print( ts + " " + s );
+				System.out.print( ts + " " + str );
 			} catch( Exception e ) {
-				System.out.print( "Bad Format " + s );
+				System.out.print( "Bad Format " + str );
 			}
 		} else {
-			System.out.print( s );
+			System.out.print( str );
 		}
 	}
 
 	@RequestResponse
-	public void println( String s ) {
-		if( escapeControlChars ) {
-			s = Helpers.escapeControlChars( s );
+	public void println( Value s ) {
+
+		boolean escapeControlChars = false;
+		if( s.hasChildren( ESCAPE_CONTROL_CHARS_FIELD ) && s.getFirstChild( ESCAPE_CONTROL_CHARS_FIELD ).boolValue() ) {
+			escapeControlChars = true;
 		}
+
+		String str;
+		try {
+			str = escapeControlChars ? Helpers.escapeControlChars( s.strValueStrict() ) : s.strValueStrict();
+		} catch( TypeCastingException e ) {
+			System.out.println( "Unable to convert Value to string" );
+			return;
+		}
+
 		if( enableTimestamp ) {
 			try {
 				SimpleDateFormat sdf = new SimpleDateFormat( timestampFormat );
 				final Date now = new Date();
 				String ts = sdf.format( now );
-				System.out.println( ts + " " + s );
+				System.out.println( ts + " " + str );
 			} catch( Exception e ) {
-				System.out.println( "Bad Format " + s );
+				System.out.println( "Bad Format " + str );
 			}
 		} else {
-			System.out.println( s );
+			System.out.println( str );
 		}
 	}
 
@@ -151,11 +173,6 @@ public class ConsoleService extends JavaService {
 			enableTimestamp = false;
 			timestampFormat = TIMESTAMP_DEFAULT_FORMAT;
 		}
-	}
-
-	@RequestResponse
-	public void escapeControlChars( Value request ) {
-		escapeControlChars = request.boolValue();
 	}
 
 	@RequestResponse
