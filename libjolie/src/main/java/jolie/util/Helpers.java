@@ -210,4 +210,27 @@ public class Helpers {
 		}
 		return ret;
 	}
+
+	/**
+	 * Escapes ISO control characters in a string by prefixing them with a backslash.
+	 *
+	 * @param str The input string to be processed. Can be null.
+	 * @return A new string with all ISO control characters escaped with a backslash, or null if the
+	 *         input string is null.
+	 */
+	public static String escapeControlChars( String str ) {
+		if( str == null ) {
+			return null;
+		}
+		StringBuilder sb = new StringBuilder();
+		for( char c : str.toCharArray() ) {
+			if( Character.isISOControl( (int) c ) && !Character.isWhitespace( (int) c ) ) {
+				// Use unicode escape sequence for other control characters
+				sb.append( String.format( "\\u%04x", (int) c ) );
+			} else {
+				sb.append( c );
+			}
+		}
+		return sb.toString();
+	}
 }

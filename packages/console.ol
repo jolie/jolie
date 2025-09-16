@@ -48,8 +48,15 @@ type InRequest:string {
 
 interface ConsoleIface {
 RequestResponse:
+
+	/**!
+	*   If `escapeControlChars` subfield is present, special characters in the value will be escaped before being sent to the terminal.
+	*/
 	print( undefined )( void ), 
 
+	/**!
+	*   If `escapeControlChars` subfield is present, special characters in the value will be escaped before being sent to the terminal.
+	*/
 	println( undefined )( void ), 
 	
 	/**!
