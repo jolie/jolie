@@ -35,4 +35,4 @@ RUN cp /usr/lib/jni/libunix-java.so /usr/lib64/libmatthew-java
 
 WORKDIR /jocker
 
-CMD jolie --trace --responseTimeout 30000 dockerAPI.ol
+CMD ["jolie", "--trace", "--responseTimeout", "30000", "dockerAPI.ol"]
