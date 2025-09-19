@@ -30,10 +30,11 @@ public class JolieInstaller
 	public static void main( String[] args ) throws Exception
 	{
 		try {
-			new Installer().run(args);
-			System.exit(0); // installer keeps hanging around after the sub process has been stopped?
+			int code = new Installer().run(args);
+			System.exit(code); // installer keeps hanging around after the sub process has been stopped?
 		} catch( Exception e ) {
 			e.printStackTrace();
+			System.exit(1);
 		}
 	}
 }

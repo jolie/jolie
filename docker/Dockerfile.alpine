@@ -18,19 +18,19 @@
 # To use this dockerfile locally, launch the following command from the root directory of your local copy of this repository.
 # docker build -f docker/Dockerfile.alpine -t jolielang/jolie .
 
-FROM maven:3-eclipse-temurin-21 as JolieBuild
+FROM maven:3-eclipse-temurin-21 AS jolie-build
 
 # Compile and install Jolie. We need it for running the release tools.
 COPY . /jolie-git
 WORKDIR /jolie-git
-RUN mvn -T 1C -Dmaven.test.skip -DskipTests -Dpmd.skip=true -pl '!test' clean install
+RUN mvn -B -T 1C -Dmaven.test.skip -DskipTests -Dpmd.skip=true -pl '!test' clean install
 RUN cp -avr /jolie-git/dist/jolie/ /usr/lib/jolie/
 RUN cp -a /jolie-git/dist/launchers/unix/.  /usr/bin/
-ENV JOLIE_HOME /usr/lib/jolie
+ENV JOLIE_HOME="/usr/lib/jolie"
 
 # Compile the Jolie installer
 WORKDIR /jolie-git/release-tools/installer
-RUN mvn -T 1C -Dmaven.test.skip -DskipTests -Dpmd.skip=true clean install
+RUN mvn -B -T 1C -Dmaven.test.skip -DskipTests -Dpmd.skip=true clean install
 
 # Use the release tools to generate jolie-installer.jar
 RUN apt-get update && apt-get install -y zip
@@ -41,7 +41,7 @@ RUN jolie release.ol ..
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /
 COPY --from=JolieBuild /jolie-git/release-tools/release/jolie-installer.jar .
-RUN apk add --update zip \
-    && java -jar jolie-installer.jar -jh /usr/lib/jolie -jl /usr/bin \
+RUN apk add --update zip
+RUN java -jar jolie-installer.jar -jh /usr/lib/jolie -jl /usr/bin \
     && rm jolie-installer.jar && rm -rf /tmp/*
-ENV JOLIE_HOME /usr/lib/jolie
+ENV JOLIE_HOME="/usr/lib/jolie"

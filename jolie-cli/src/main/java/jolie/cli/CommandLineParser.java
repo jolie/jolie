@@ -565,7 +565,7 @@ public class CommandLineParser implements AutoCloseable {
 					urls.add( URI.create( "jap:file:" + path + "!/" ).toURL() );
 				}
 			} else if( new File( path ).isDirectory() ) {
-				urls.add( URI.create( "file:" + path + "/" ).toURL() );
+				urls.add( new File( path ).toURI().toURL() );
 			} else if( path.endsWith( "/*" ) ) {
 				final String pp = path;
 				String dirStr = Helpers.ifWindowsOrElse( () -> {

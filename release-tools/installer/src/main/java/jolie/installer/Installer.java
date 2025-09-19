@@ -179,7 +179,7 @@ public class Installer {
 		}
 	}
 	
-	private void runCmd( String cmd ) throws InterruptedException {
+	private int runCmd( String cmd ) throws InterruptedException {
 
 	try {
 		String line;
@@ -245,14 +245,15 @@ public class Installer {
 			}
 		});
 
-		process.waitFor();
+		int code = process.waitFor();
 		e1.shutdown();
 		e2.shutdown();
 		e3.shutdown();
 		process.destroy();
-
+		return code;
 	} catch (IOException err) {
 //		err.printStackTrace();
+		return 1;
 		}
 	}
 	
@@ -333,7 +334,7 @@ public class Installer {
 		}
 	}
 	
-	private void runJolie( String wdir, String jolieDir, String[] args ){
+	private int runJolie( String wdir, String jolieDir, String[] args ){
 //		String ext = "";
 //		String replaceVar;
 		
@@ -354,18 +355,20 @@ public class Installer {
 			} catch ( IllegalArgumentException iae ) {
 				System.err.println( "Error: Bad arguments: " + iae.getMessage() );
 				System.exit(1);
+				return 1;
 			}
 
 			cmd += " " + wdir + File.separator + "installer.ol " + os + " " + arguments;
 
-			runCmd( cmd );
+			return runCmd( cmd );
 			
 		} catch (InterruptedException ex) {
 			ex.printStackTrace();
+			return 2;
 		}
 	}
 		
-	public void run(String[] args)
+	public int run(String[] args)
 		throws IOException, InterruptedException,
 		ClassNotFoundException, NoSuchMethodException,
 		IllegalAccessException, InvocationTargetException, Exception
@@ -374,7 +377,7 @@ public class Installer {
 		String jolieDir = new File( tmp, "jolie" ).getAbsolutePath();
 		char fs = File.separatorChar;
 
-		runJolie( tmp.getParent(), jolieDir, args );
+		return runJolie( tmp.getParent(), jolieDir, args );
 
 //		URL[] urls = new URL[] { new URL( "file:" + jolieDir + fs + "jolie.jar" ), new URL( "file:" + jolieDir + fs + "lib" + fs + "libjolie.jar" ) };
 //		ClassLoader cl = new URLClassLoader( urls, Installer.class.getClassLoader() );
