@@ -43,12 +43,11 @@ public class JolieServiceNodeLoader extends ServiceNodeLoader {
 		Interpreter.Configuration configuration = Interpreter.Configuration.create(
 			super.interpreter().configuration(), source );
 
-		Interpreter interpreter;
 		try {
 			ProgramBuilder builder = new ProgramBuilder( serviceNode().context() );
 			builder.addChild( serviceNode() );
 
-			interpreter = new Interpreter(
+			Interpreter interpreter = new Interpreter(
 				configuration,
 				interpreter().symbolTables(),
 				builder.toProgram(),
