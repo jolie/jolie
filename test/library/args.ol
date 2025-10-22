@@ -58,7 +58,7 @@ service Main {
                 throw TestFailed( "Third argument is not parsed correctly: " + result.parsedArgs[2].name + "=" + result.parsedArgs[2].value )
             }  
 
-            // Test for missing required argumen
+            // Test for missing required argument
             scope( check_error ) {
                 install( ParsingError =>
                     nullProcess
@@ -88,7 +88,7 @@ service Main {
                     argsMap[ 3 ] << { 
                         name = "arg4", 
                         optional = false,
-                        description = "This is an optional argument",
+                        description = "This is the fourth argument",
                         isFlag = false
                     }
 
@@ -97,7 +97,7 @@ service Main {
                 throw TestFailed( "Expected ParsingError for missing required argument, but got no error" ) 
             }
 
-            // Test for missing required argumen
+            // Test for optional flag argument
             scope( check_error ) {
                 install( ParsingError => 
                      throw TestFailed( "No fault expected" ) 
@@ -128,7 +128,7 @@ service Main {
                     argsMap[ 3 ] << { 
                         name = "arg4", 
                         optional = true,
-                        description = "This is an optional argument",
+                        description = "This is an optional flag argument",
                         isFlag = true
                     }
 
@@ -137,7 +137,7 @@ service Main {
                
             }
 
-            // Test for missing required argumen
+            // Test for optional flag argument
             scope( check_error ) {
                 install( ParsingError => 
                      nullProcess
@@ -168,7 +168,7 @@ service Main {
                     argsMap[ 3 ] << { 
                         name = "arg4", 
                         optional = true,
-                        description = "This is an optional argument",
+                        description = "This is an optional flag argument",
                         isFlag = true
                     }
 
