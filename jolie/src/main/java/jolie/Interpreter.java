@@ -1115,11 +1115,14 @@ public class Interpreter {
 		inputOperations.clear();
 		locksMap.clear();
 		initExecutionThread = null;
+		mainSession = null;
+		waitingSessionThreads.clear();
 		sessionStarters = new HashMap<>();
 		outputPorts.clear();
 		correlationSets.clear();
 		globalValue.erase();
 		embeddedServiceLoaders.clear();
+		embeddingFactories.clear();
 		configuration.clear();
 		symbolTables.clear();
 		Modules.freeCache( configuration.programFilepath().toURI() );
