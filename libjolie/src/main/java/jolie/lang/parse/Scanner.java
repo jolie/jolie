@@ -79,6 +79,7 @@ public class Scanner implements AutoCloseable {
 		LINKIN,				///< linkIn
 		LINKOUT,			///< linkOut
 		INSTANCE_OF,		///< instanceof
+		HAS,				///< has
 		EQUAL,				///< ==
 		AND,				///< &&
 		OR,					///< ||
@@ -145,6 +146,8 @@ public class Scanner implements AutoCloseable {
 		FROM,				///< from
 		PRIVATE,			///< private
 		PUBLIC,				///< public
+		PATHS,				///< paths
+		VALUES,				///< values
 		NEWLINE,			///< a newline token
 		ERROR				///< Scanner error
 	}
@@ -190,12 +193,15 @@ public class Scanner implements AutoCloseable {
 		UNRESERVED_KEYWORDS.put( "is_long", TokenType.IS_LONG );
 		UNRESERVED_KEYWORDS.put( "is_double", TokenType.IS_DOUBLE );
 		UNRESERVED_KEYWORDS.put( "instanceof", TokenType.INSTANCE_OF );
+		UNRESERVED_KEYWORDS.put( "has", TokenType.HAS );
 		UNRESERVED_KEYWORDS.put( NativeType.INT.id(), TokenType.CAST_INT );
 		UNRESERVED_KEYWORDS.put( NativeType.STRING.id(), TokenType.CAST_STRING );
 		UNRESERVED_KEYWORDS.put( NativeType.BOOL.id(), TokenType.CAST_BOOL );
 		UNRESERVED_KEYWORDS.put( NativeType.DOUBLE.id(), TokenType.CAST_DOUBLE );
 		UNRESERVED_KEYWORDS.put( NativeType.LONG.id(), TokenType.CAST_LONG );
 		UNRESERVED_KEYWORDS.put( "throws", TokenType.THROWS );
+		UNRESERVED_KEYWORDS.put( "paths", TokenType.PATHS );
+		UNRESERVED_KEYWORDS.put( "values", TokenType.VALUES );
 		UNRESERVED_KEYWORDS.put( "cH", TokenType.CURRENT_HANDLER );
 		UNRESERVED_KEYWORDS.put( "init", TokenType.INIT );
 		UNRESERVED_KEYWORDS.put( "with", TokenType.WITH );
@@ -968,6 +974,8 @@ public class Scanner implements AutoCloseable {
 							retval = new Token( TokenType.CARET );
 						} else if ( ch == '?' ) {
 							retval = new Token( TokenType.QUESTION_MARK );
+						} else if ( ch == '$' ) {
+							retval = new Token( TokenType.DOLLAR );
 						} else if ( isNewLineChar( ch ) ) {
 							retval = new Token( TokenType.NEWLINE );
 						}

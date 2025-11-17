@@ -160,6 +160,12 @@ public interface OLVisitor< C, R > {
 
 	R visit( ConstantStringExpression n, C ctx );
 
+	R visit( CurrentValueNode n, C ctx );
+
+	R visit( PathsExpressionNode n, C ctx );
+
+	R visit( ValuesExpressionNode n, C ctx );
+
 	R visit( ProductExpressionNode n, C ctx );
 
 	R visit( SumExpressionNode n, C ctx );

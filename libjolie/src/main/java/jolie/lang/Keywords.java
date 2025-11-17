@@ -82,6 +82,8 @@ public class Keywords {
 	public static final String CH = "cH";
 	public static final String COMP = "comp";
 	public static final String NULL_PROCESS = "nullProcess";
+	public static final String PATHS = "paths";
+	public static final String VALUES = "values";
 
 	// Languages that can be embedded
 	public static final String JOLIE = "Jolie";
@@ -119,7 +121,8 @@ public class Keywords {
 
 	private static final List< String > MAIN_KEYWORDS =
 		List.of( "for", "while", "if", "else", "else if", "foreach", "with", "undef",
-			"synchronized", "scope", "install", "spawn", "over", "in", "throw", "cH", "comp", "nullProcess" );
+			"synchronized", "scope", "install", "spawn", "over", "in", "throw", "cH", "comp", "nullProcess",
+			"paths", "values" );
 
 	private static final List< String > INTERFACE_KEYWORDS = List.of( "oneWay", "requestResponse" );
 

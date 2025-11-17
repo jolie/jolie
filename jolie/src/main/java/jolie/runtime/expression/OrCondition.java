@@ -27,7 +27,7 @@ import jolie.process.TransformationReason;
 import jolie.runtime.Value;
 
 public class OrCondition implements Expression {
-	final private Expression[] children;
+	public final Expression[] children;
 
 	public OrCondition( Expression[] children ) {
 		this.children = children;

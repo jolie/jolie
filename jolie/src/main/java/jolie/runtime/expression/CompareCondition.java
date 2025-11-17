@@ -33,7 +33,7 @@ import jolie.runtime.Value;
  *
  */
 public class CompareCondition implements Expression {
-	private final Expression leftExpression, rightExpression;
+	public final Expression leftExpression, rightExpression;
 	private final BiPredicate< Value, Value > compareOperator;
 
 	public CompareCondition( Expression left, Expression right, BiPredicate< Value, Value > compareOperator ) {

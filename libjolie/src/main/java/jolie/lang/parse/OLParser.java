@@ -44,6 +44,9 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+
+import com.google.common.primitives.UnsignedInteger;
+
 //import jolie.lang.CodeCheckMessage;
 import jolie.lang.Constants;
 import jolie.lang.Constants.EmbeddedServiceType;
@@ -124,7 +127,11 @@ import jolie.lang.parse.ast.expression.ConstantDoubleExpression;
 import jolie.lang.parse.ast.expression.ConstantIntegerExpression;
 import jolie.lang.parse.ast.expression.ConstantLongExpression;
 import jolie.lang.parse.ast.expression.ConstantStringExpression;
+import jolie.lang.parse.ast.expression.CurrentValueNode;
 import jolie.lang.parse.ast.expression.FreshValueExpressionNode;
+import jolie.lang.parse.ast.expression.PathOperation;
+import jolie.lang.parse.ast.expression.PathsExpressionNode;
+import jolie.lang.parse.ast.expression.ValuesExpressionNode;
 import jolie.lang.parse.ast.expression.IfExpressionNode;
 import jolie.lang.parse.ast.expression.InlineTreeExpressionNode;
 import jolie.lang.parse.ast.expression.InstanceOfExpressionNode;
@@ -3335,7 +3342,8 @@ public class OLParser extends AbstractParser {
 		opType = token.type();
 		if( opType == Scanner.TokenType.EQUAL || opType == Scanner.TokenType.LANGLE ||
 			opType == Scanner.TokenType.RANGLE || opType == Scanner.TokenType.MAJOR_OR_EQUAL ||
-			opType == Scanner.TokenType.MINOR_OR_EQUAL || opType == Scanner.TokenType.NOT_EQUAL ) {
+			opType == Scanner.TokenType.MINOR_OR_EQUAL || opType == Scanner.TokenType.NOT_EQUAL ||
+			opType == Scanner.TokenType.HAS ) {
 			OLSyntaxNode expr2;
 			nextToken();
 			expr2 = parseBasicExpression();
@@ -3561,6 +3569,20 @@ public class OLParser extends AbstractParser {
 				retVal = new ValueVectorSizeExpressionNode(
 					getContext(),
 					parseVariablePath() );
+				break;
+			case DOLLAR:
+				nextToken();
+				List< PathOperation > dollarOps = new ArrayList<>();
+				parsePathOperationsSuffix( dollarOps );
+				retVal = new CurrentValueNode( getContext(), dollarOps );
+				break;
+			case PATHS:
+				nextToken();
+				retVal = new PathsExpressionNode( getContext(), parsePathOperations(), parseWhereClause() );
+				break;
+			case VALUES:
+				nextToken();
+				retVal = new ValuesExpressionNode( getContext(), parsePathOperations(), parseWhereClause() );
 				break;
 			case INCREMENT:
 				nextToken();
@@ -3870,6 +3892,97 @@ public class OLParser extends AbstractParser {
 
 		programBuilder.addChild( stmt );
 		return;
+	}
+
+	/**
+	 * Parses path operation suffixes: (dot_access | array_access)* Grammar: dot_access := '.' (field |
+	 * '*' | '.' (field | '*')) array_access := '[' (integer | '*') ']' constraint: array_access cannot
+	 * be followed by array_access
+	 */
+	private void parsePathOperationsSuffix( List< PathOperation > ops ) throws IOException, ParserException {
+		while( token.is( Scanner.TokenType.DOT ) || token.is( Scanner.TokenType.LSQUARE ) ) {
+			switch( token.type() ) {
+			case DOT:
+				nextToken();
+				switch( token.type() ) {
+				case DOT: // Recursive: ..field or ..*
+					nextToken();
+					switch( token.type() ) {
+					case ASTERISK:
+						ops.add( new PathOperation.RecursiveWildcard() );
+						nextToken();
+						break;
+					case ID:
+						ops.add( new PathOperation.RecursiveField( token.content() ) );
+						nextToken();
+						break;
+					default:
+						throwException( "Expected field name or * after .." );
+					}
+					break;
+				case ASTERISK: // Field wildcard: .*
+					ops.add( new PathOperation.FieldWildcard() );
+					nextToken();
+					break;
+				case ID: // Field access: .field
+					ops.add( new PathOperation.Field( token.content() ) );
+					nextToken();
+					break;
+				default:
+					throwException( "Expected field name or * after ." );
+				}
+				break;
+			case LSQUARE: // Array access: [n] or [*]
+				nextToken();
+				switch( token.type() ) {
+				case ASTERISK:
+					ops.add( new PathOperation.ArrayWildcard() );
+					nextToken();
+					break;
+				case INT:
+					long idx = Long.parseLong( token.content() );
+					if( idx < 0 )
+						throwException( "Array index must be non-negative" );
+					ops.add( new PathOperation.ArrayIndex( UnsignedInteger.valueOf( idx ) ) );
+					nextToken();
+					break;
+				default:
+					throwException( "Expected integer or * in array index" );
+				}
+				eat( Scanner.TokenType.RSQUARE, "]" );
+				// Enforce constraint: no consecutive array indices
+				if( token.is( Scanner.TokenType.LSQUARE ) )
+					throwException( "Consecutive array indices not allowed" );
+				break;
+			default:
+				throwException( "Expected . or [ in path expression" );
+			}
+		}
+	}
+
+	/**
+	 * Parses path operations for PATHS/VALUES expressions.
+	 *
+	 * Grammar: identifier (dot_access | array_access)* Examples: tree.items[0].name -> [Field("tree"),
+	 * Field("items"), ArrayIndex(0), Field("name")]
+	 */
+	private List< PathOperation > parsePathOperations() throws IOException, ParserException {
+		List< PathOperation > ops = new ArrayList<>();
+		assertIdentifier( "Expected identifier" );
+		ops.add( new PathOperation.Field( token.content() ) );
+		nextToken();
+		parsePathOperationsSuffix( ops );
+		return ops;
+	}
+
+	/**
+	 * Parses WHERE clause for PATHS/VALUES expressions. Grammar: 'where' expression
+	 */
+	private OLSyntaxNode parseWhereClause() throws IOException, ParserException {
+		if( !"where".equals( token.content() ) )
+			throwException( "Expected 'where' keyword" );
+		nextToken();
+		return parseExpression();
 	}
 
 	private static class IncludeFile {
