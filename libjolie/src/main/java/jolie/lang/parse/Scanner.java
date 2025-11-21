@@ -148,6 +148,7 @@ public class Scanner implements AutoCloseable {
 		PUBLIC,				///< public
 		PATHS,				///< paths
 		VALUES,				///< values
+		WHERE,				///< where
 		NEWLINE,			///< a newline token
 		ERROR				///< Scanner error
 	}
@@ -202,6 +203,7 @@ public class Scanner implements AutoCloseable {
 		UNRESERVED_KEYWORDS.put( "throws", TokenType.THROWS );
 		UNRESERVED_KEYWORDS.put( "paths", TokenType.PATHS );
 		UNRESERVED_KEYWORDS.put( "values", TokenType.VALUES );
+		UNRESERVED_KEYWORDS.put( "where", TokenType.WHERE );
 		UNRESERVED_KEYWORDS.put( "cH", TokenType.CURRENT_HANDLER );
 		UNRESERVED_KEYWORDS.put( "init", TokenType.INIT );
 		UNRESERVED_KEYWORDS.put( "with", TokenType.WITH );

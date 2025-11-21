@@ -185,6 +185,7 @@ public class OLParser extends AbstractParser {
 	private final Map< String, Scanner.Token > constantsMap =
 		new HashMap<>();
 	private boolean insideInstallFunction = false;
+	private boolean inWhereClause = false;
 	private String[] includePaths;
 	private boolean hasIncludeDirective = false;
 	private final Map< String, InterfaceExtenderDefinition > interfaceExtenders =
@@ -3571,6 +3572,8 @@ public class OLParser extends AbstractParser {
 					parseVariablePath() );
 				break;
 			case DOLLAR:
+				if( !inWhereClause )
+					throwException( "$ can only be used in WHERE clauses" );
 				nextToken();
 				List< PathOperation > dollarOps = new ArrayList<>();
 				parsePathOperationsSuffix( dollarOps );
@@ -3979,10 +3982,13 @@ public class OLParser extends AbstractParser {
 	 * Parses WHERE clause for PATHS/VALUES expressions. Grammar: 'where' expression
 	 */
 	private OLSyntaxNode parseWhereClause() throws IOException, ParserException {
-		if( !"where".equals( token.content() ) )
-			throwException( "Expected 'where' keyword" );
-		nextToken();
-		return parseExpression();
+		eat( TokenType.WHERE, "Expected WHERE keyword" );
+		inWhereClause = true;
+		try {
+			return parseExpression();
+		} finally {
+			inWhereClause = false; // If exception → flag would be stuck true without finally
+		}
 	}
 
 	private static class IncludeFile {
