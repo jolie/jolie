@@ -3,12 +3,13 @@ package jolie.runtime.expression;
 import jolie.lang.parse.ast.expression.PathOperation;
 import jolie.process.TransformationReason;
 import jolie.runtime.Value;
+import jolie.runtime.ValuePath;
 import jolie.runtime.VariablePath;
 import java.util.List;
 
 /**
- * PATHS expression: returns path strings matching pattern and WHERE filter. Example: paths data[*]
- * where $ > 5 → ["data[0]", "data[2]"]
+ * PATHS expression: returns path values matching pattern and WHERE filter. Example: paths data[*]
+ * where $ > 5 → path values for ["data[0]", "data[2]"]
  */
 public class PathsExpression implements Expression {
 	private final VariablePath path;
@@ -38,7 +39,7 @@ public class PathsExpression implements Expression {
 		for( Candidate c : ValueNavigator.navigate( path, ops ) ) {
 			if( WhereEvaluator.matches( where, c ) ) {
 				int index = result.getChildren( "results" ).size();
-				result.getChildren( "results" ).get( index ).setValue( c.path() );
+				result.getChildren( "results" ).get( index ).setValue( new ValuePath( c.path() ) );
 			}
 		}
 		return result;
