@@ -31,7 +31,6 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
-import jolie.Interpreter.StarterThread;
 import jolie.lang.Constants;
 import jolie.net.CommChannelHandler;
 import jolie.net.SessionMessage;
@@ -419,19 +418,6 @@ public abstract class ExecutionThread extends JolieThread {
 			return ((JolieExecutorThread) currThread).executionThread();
 		} else if( currThread instanceof CommChannelHandler ) {
 			return ((CommChannelHandler) currThread).executionThread();
-		}
-
-		return null;
-	}
-
-	public static State getState() {
-		Thread t = Thread.currentThread();
-		if( t instanceof StarterThread ) {
-			return ((StarterThread) t).initState();
-		} else if( t instanceof JolieExecutorThread ) {
-			return ((JolieExecutorThread) t).executionThread().state();
-		} else if( t instanceof CommChannelHandler ) {
-			return ((CommChannelHandler) t).executionThread().state();
 		}
 
 		return null;

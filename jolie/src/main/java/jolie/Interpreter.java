@@ -1080,7 +1080,6 @@ public class Interpreter {
 
 	public class StarterThread extends Thread {
 		private final CompletableFuture< Exception > future;
-		private final jolie.State initState = new jolie.State();
 
 		public StarterThread( CompletableFuture< Exception > future ) {
 			super( createStarterThreadName( configuration.programFilepath().getName() ) );
@@ -1091,7 +1090,7 @@ public class Interpreter {
 		@Override
 		public void run() {
 			try {
-				init( initState );
+				init( new jolie.State() );
 				future.complete( null );
 			} catch( IOException | InterpreterException e ) {
 				future.complete( e );
@@ -1099,10 +1098,6 @@ public class Interpreter {
 			runCode();
 			// commCore.shutdown();
 			exit();
-		}
-
-		public jolie.State initState() {
-			return initState;
 		}
 	}
 
