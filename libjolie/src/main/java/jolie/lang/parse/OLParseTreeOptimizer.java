@@ -106,6 +106,7 @@ import jolie.lang.parse.ast.expression.NotExpressionNode;
 import jolie.lang.parse.ast.expression.OrConditionNode;
 import jolie.lang.parse.ast.expression.PathsExpressionNode;
 import jolie.lang.parse.ast.expression.ProductExpressionNode;
+import jolie.lang.parse.ast.expression.PvalExpressionNode;
 import jolie.lang.parse.ast.expression.SolicitResponseExpressionNode;
 import jolie.lang.parse.ast.expression.SumExpressionNode;
 import jolie.lang.parse.ast.expression.ValuesExpressionNode;
@@ -669,6 +670,14 @@ public class OLParseTreeOptimizer {
 				n.context(),
 				n.operations(),
 				optimize( n.whereClause() ) );
+		}
+
+		@Override
+		public void visit( PvalExpressionNode n ) {
+			currNode = new PvalExpressionNode(
+				n.context(),
+				optimize( n.pathExpression() ),
+				n.pathOperations() );
 		}
 
 		@Override

@@ -131,6 +131,7 @@ import jolie.lang.parse.ast.expression.CurrentValueNode;
 import jolie.lang.parse.ast.expression.FreshValueExpressionNode;
 import jolie.lang.parse.ast.expression.PathOperation;
 import jolie.lang.parse.ast.expression.PathsExpressionNode;
+import jolie.lang.parse.ast.expression.PvalExpressionNode;
 import jolie.lang.parse.ast.expression.ValuesExpressionNode;
 import jolie.lang.parse.ast.expression.IfExpressionNode;
 import jolie.lang.parse.ast.expression.InlineTreeExpressionNode;
@@ -3586,6 +3587,15 @@ public class OLParser extends AbstractParser {
 			case VALUES:
 				nextToken();
 				retVal = new ValuesExpressionNode( getContext(), parsePathOperations(), parseWhereClause() );
+				break;
+			case PVAL:
+				nextToken();
+				eat( Scanner.TokenType.LPAREN, "expected (" );
+				OLSyntaxNode pvalPathExpr = parseBasicExpression();
+				eat( Scanner.TokenType.RPAREN, "expected )" );
+				List< PathOperation > pvalOps = new ArrayList<>();
+				parsePathOperationsSuffix( pvalOps );
+				retVal = new PvalExpressionNode( getContext(), pvalPathExpr, pvalOps );
 				break;
 			case INCREMENT:
 				nextToken();

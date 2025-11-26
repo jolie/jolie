@@ -129,6 +129,7 @@ import jolie.lang.parse.ast.expression.OrConditionNode;
 import jolie.lang.parse.ast.expression.PathOperation;
 import jolie.lang.parse.ast.expression.PathsExpressionNode;
 import jolie.lang.parse.ast.expression.ProductExpressionNode;
+import jolie.lang.parse.ast.expression.PvalExpressionNode;
 import jolie.lang.parse.ast.expression.SolicitResponseExpressionNode;
 import jolie.lang.parse.ast.expression.SumExpressionNode;
 import jolie.lang.parse.ast.expression.ValuesExpressionNode;
@@ -1479,6 +1480,12 @@ public class OOITBuilder implements UnitOLVisitor {
 	public void visit( ValuesExpressionNode n ) {
 		PathQueryComponents pqc = buildPathQuery( n.operations(), n.whereClause(), "VALUES" );
 		currExpression = new jolie.runtime.expression.ValuesExpression( pqc.varPath, pqc.remainingOps, pqc.whereExpr );
+	}
+
+	@Override
+	public void visit( PvalExpressionNode n ) {
+		n.pathExpression().accept( this );
+		currExpression = new jolie.runtime.expression.PvalExpression( currExpression, n.pathOperations(), n.context() );
 	}
 
 	@Override

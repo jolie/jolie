@@ -358,6 +358,14 @@ public interface UnitOLVisitor extends OLVisitor< Unit, Unit > {
 		return Unit.INSTANCE;
 	}
 
+	void visit( PvalExpressionNode n );
+
+	@Override
+	default Unit visit( PvalExpressionNode n, Unit ctx ) {
+		visit( n );
+		return Unit.INSTANCE;
+	}
+
 	void visit( ProductExpressionNode n );
 
 	@Override

@@ -123,6 +123,7 @@ import jolie.lang.parse.ast.expression.NotExpressionNode;
 import jolie.lang.parse.ast.expression.OrConditionNode;
 import jolie.lang.parse.ast.expression.PathsExpressionNode;
 import jolie.lang.parse.ast.expression.ProductExpressionNode;
+import jolie.lang.parse.ast.expression.PvalExpressionNode;
 import jolie.lang.parse.ast.expression.SolicitResponseExpressionNode;
 import jolie.lang.parse.ast.expression.SumExpressionNode;
 import jolie.lang.parse.ast.expression.ValuesExpressionNode;
@@ -1063,6 +1064,11 @@ public class SemanticVerifier implements UnitOLVisitor {
 	@Override
 	public void visit( ValuesExpressionNode n ) {
 		n.whereClause().accept( this );
+	}
+
+	@Override
+	public void visit( PvalExpressionNode n ) {
+		n.pathExpression().accept( this );
 	}
 
 	@Override

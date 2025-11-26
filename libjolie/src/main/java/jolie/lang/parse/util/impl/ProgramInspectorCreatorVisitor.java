@@ -334,6 +334,9 @@ public class ProgramInspectorCreatorVisitor implements UnitOLVisitor {
 	public void visit( ValuesExpressionNode n ) {}
 
 	@Override
+	public void visit( PvalExpressionNode n ) {}
+
+	@Override
 	public void visit( ProductExpressionNode n ) {}
 
 	@Override

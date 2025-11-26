@@ -122,6 +122,7 @@ import jolie.lang.parse.ast.expression.NotExpressionNode;
 import jolie.lang.parse.ast.expression.OrConditionNode;
 import jolie.lang.parse.ast.expression.PathsExpressionNode;
 import jolie.lang.parse.ast.expression.ProductExpressionNode;
+import jolie.lang.parse.ast.expression.PvalExpressionNode;
 import jolie.lang.parse.ast.expression.SolicitResponseExpressionNode;
 import jolie.lang.parse.ast.expression.SumExpressionNode;
 import jolie.lang.parse.ast.expression.ValuesExpressionNode;
@@ -374,6 +375,9 @@ public class SymbolReferenceResolver {
 
 		@Override
 		public void visit( ValuesExpressionNode n ) {}
+
+		@Override
+		public void visit( PvalExpressionNode n ) {}
 
 		@Override
 		public void visit( ProductExpressionNode n ) {

@@ -166,6 +166,8 @@ public interface OLVisitor< C, R > {
 
 	R visit( ValuesExpressionNode n, C ctx );
 
+	R visit( PvalExpressionNode n, C ctx );
+
 	R visit( ProductExpressionNode n, C ctx );
 
 	R visit( SumExpressionNode n, C ctx );
