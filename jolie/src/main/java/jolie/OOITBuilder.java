@@ -85,6 +85,7 @@ import jolie.lang.parse.ast.OperationDeclaration;
 import jolie.lang.parse.ast.OutputPortInfo;
 import jolie.lang.parse.ast.ParallelStatement;
 import jolie.lang.parse.ast.PointerStatement;
+import jolie.lang.parse.ast.PvalAssignStatement;
 import jolie.lang.parse.ast.PostDecrementStatement;
 import jolie.lang.parse.ast.PostIncrementStatement;
 import jolie.lang.parse.ast.PreDecrementStatement;
@@ -174,6 +175,7 @@ import jolie.process.PostDecrementProcess;
 import jolie.process.PostIncrementProcess;
 import jolie.process.PreDecrementProcess;
 import jolie.process.PreIncrementProcess;
+import jolie.process.PvalAssignmentProcess;
 import jolie.process.Process;
 import jolie.process.ProvideUntilProcess;
 import jolie.process.RequestResponseProcess;
@@ -1486,6 +1488,17 @@ public class OOITBuilder implements UnitOLVisitor {
 	public void visit( PvalExpressionNode n ) {
 		n.pathExpression().accept( this );
 		currExpression = new jolie.runtime.expression.PvalExpression( currExpression, n.pathOperations(), n.context() );
+	}
+
+	@Override
+	public void visit( PvalAssignStatement n ) {
+		n.pathExpression().accept( this );
+		Expression pathExpr = currExpression;
+		n.expression().accept( this );
+		Expression valueExpr = currExpression;
+		PvalAssignmentProcess p = new PvalAssignmentProcess( pathExpr, n.pathOperations(), valueExpr, n.context() );
+		currProcess = p;
+		currExpression = p;
 	}
 
 	@Override

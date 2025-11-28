@@ -59,6 +59,7 @@ import jolie.lang.parse.ast.OneWayOperationStatement;
 import jolie.lang.parse.ast.OutputPortInfo;
 import jolie.lang.parse.ast.ParallelStatement;
 import jolie.lang.parse.ast.PointerStatement;
+import jolie.lang.parse.ast.PvalAssignStatement;
 import jolie.lang.parse.ast.PostDecrementStatement;
 import jolie.lang.parse.ast.PostIncrementStatement;
 import jolie.lang.parse.ast.PreDecrementStatement;
@@ -362,6 +363,14 @@ public interface UnitOLVisitor extends OLVisitor< Unit, Unit > {
 
 	@Override
 	default Unit visit( PvalExpressionNode n, Unit ctx ) {
+		visit( n );
+		return Unit.INSTANCE;
+	}
+
+	void visit( PvalAssignStatement n );
+
+	@Override
+	default Unit visit( PvalAssignStatement n, Unit ctx ) {
 		visit( n );
 		return Unit.INSTANCE;
 	}

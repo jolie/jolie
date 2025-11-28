@@ -61,6 +61,7 @@ import jolie.lang.parse.ast.OneWayOperationStatement;
 import jolie.lang.parse.ast.OutputPortInfo;
 import jolie.lang.parse.ast.ParallelStatement;
 import jolie.lang.parse.ast.PointerStatement;
+import jolie.lang.parse.ast.PvalAssignStatement;
 import jolie.lang.parse.ast.PostDecrementStatement;
 import jolie.lang.parse.ast.PostIncrementStatement;
 import jolie.lang.parse.ast.PreDecrementStatement;
@@ -391,4 +392,7 @@ public class InterfaceVisitor implements UnitOLVisitor {
 
 	@Override
 	public void visit( PvalExpressionNode n ) {}
+
+	@Override
+	public void visit( PvalAssignStatement n ) {}
 }
