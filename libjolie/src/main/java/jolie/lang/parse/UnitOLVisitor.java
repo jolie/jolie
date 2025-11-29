@@ -334,6 +334,30 @@ public interface UnitOLVisitor extends OLVisitor< Unit, Unit > {
 		return Unit.INSTANCE;
 	}
 
+	void visit( CurrentValueNode n );
+
+	@Override
+	default Unit visit( CurrentValueNode n, Unit ctx ) {
+		visit( n );
+		return Unit.INSTANCE;
+	}
+
+	void visit( PathsExpressionNode n );
+
+	@Override
+	default Unit visit( PathsExpressionNode n, Unit ctx ) {
+		visit( n );
+		return Unit.INSTANCE;
+	}
+
+	void visit( ValuesExpressionNode n );
+
+	@Override
+	default Unit visit( ValuesExpressionNode n, Unit ctx ) {
+		visit( n );
+		return Unit.INSTANCE;
+	}
+
 	void visit( ProductExpressionNode n );
 
 	@Override

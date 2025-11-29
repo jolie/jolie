@@ -111,6 +111,7 @@ import jolie.lang.parse.ast.expression.ConstantDoubleExpression;
 import jolie.lang.parse.ast.expression.ConstantIntegerExpression;
 import jolie.lang.parse.ast.expression.ConstantLongExpression;
 import jolie.lang.parse.ast.expression.ConstantStringExpression;
+import jolie.lang.parse.ast.expression.CurrentValueNode;
 import jolie.lang.parse.ast.expression.FreshValueExpressionNode;
 import jolie.lang.parse.ast.expression.IfExpressionNode;
 import jolie.lang.parse.ast.expression.InlineTreeExpressionNode;
@@ -119,9 +120,11 @@ import jolie.lang.parse.ast.expression.InstanceOfExpressionNode;
 import jolie.lang.parse.ast.expression.IsTypeExpressionNode;
 import jolie.lang.parse.ast.expression.NotExpressionNode;
 import jolie.lang.parse.ast.expression.OrConditionNode;
+import jolie.lang.parse.ast.expression.PathsExpressionNode;
 import jolie.lang.parse.ast.expression.ProductExpressionNode;
 import jolie.lang.parse.ast.expression.SolicitResponseExpressionNode;
 import jolie.lang.parse.ast.expression.SumExpressionNode;
+import jolie.lang.parse.ast.expression.ValuesExpressionNode;
 import jolie.lang.parse.ast.expression.VariableExpressionNode;
 import jolie.lang.parse.ast.expression.VoidExpressionNode;
 import jolie.lang.parse.ast.types.TypeChoiceDefinition;
@@ -362,6 +365,15 @@ public class SymbolReferenceResolver {
 
 		@Override
 		public void visit( ConstantStringExpression n ) {}
+
+		@Override
+		public void visit( CurrentValueNode n ) {}
+
+		@Override
+		public void visit( PathsExpressionNode n ) {}
+
+		@Override
+		public void visit( ValuesExpressionNode n ) {}
 
 		@Override
 		public void visit( ProductExpressionNode n ) {

@@ -325,6 +325,15 @@ public class ProgramInspectorCreatorVisitor implements UnitOLVisitor {
 	public void visit( ConstantStringExpression n ) {}
 
 	@Override
+	public void visit( CurrentValueNode n ) {}
+
+	@Override
+	public void visit( PathsExpressionNode n ) {}
+
+	@Override
+	public void visit( ValuesExpressionNode n ) {}
+
+	@Override
 	public void visit( ProductExpressionNode n ) {}
 
 	@Override

@@ -35,7 +35,7 @@ RequestResponse:
 service Assertions {
 	execution: concurrent
 
-	embed Values as values
+	embed Values as valuesService
 	embed StringUtils as stringUtils
 	
 	inputPort Input {

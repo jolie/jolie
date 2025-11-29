@@ -1,0 +1,102 @@
+package jolie.runtime.expression;
+
+import jolie.runtime.ValueVector;
+import java.util.List;
+
+/**
+ * Evaluates WHERE clauses with existential semantics for $ expressions. Handles composable path
+ * operations like $..field[*].* by trying all possible bindings.
+ */
+public class WhereEvaluator {
+	public static boolean matches( Expression where, Candidate candidate ) {
+		bind( where, candidate );
+		return eval( where );
+	}
+
+	private static void bind( Expression expr, Candidate candidate ) {
+		switch( expr ) {
+		// $
+		case CurrentValueExpression cve -> cve.setCurrentCandidate( candidate );
+		// ==, !=, <, >, <=, >=
+		case CompareCondition cmp -> {
+			bind( cmp.leftExpression, candidate );
+			bind( cmp.rightExpression, candidate );
+		}
+		// &&
+		case AndCondition and -> {
+			for( var c : and.children )
+				bind( c, candidate );
+		}
+		// ||
+		case OrCondition or -> {
+			for( var c : or.children )
+				bind( c, candidate );
+		}
+		default -> {
+		}
+		}
+	}
+
+	private static boolean eval( Expression expr ) {
+		return switch( expr ) {
+		// $
+		case CurrentValueExpression cve -> {
+			for( var c : ValueNavigator.navigateFromCandidate( cve.currentCandidate, cve.operations ) )
+				if( c.value().boolValue() )
+					yield true;
+			yield false;
+		}
+		// ==, !=, <, >, <=, >=
+		case CompareCondition cmp -> {
+			for( var l : candidates( cmp.leftExpression ) )
+				for( var r : candidates( cmp.rightExpression ) )
+					if( compare( cmp, l, r ) )
+						yield true;
+			yield false;
+		}
+		// &&
+		case AndCondition and -> {
+			for( var c : and.children )
+				if( !eval( c ) )
+					yield false;
+			yield true;
+		}
+		// ||
+		case OrCondition or -> {
+			for( var c : or.children )
+				if( eval( c ) )
+					yield true;
+			yield false;
+		}
+		default -> expr.evaluate().boolValue();
+		};
+	}
+
+	private static List< Candidate > candidates( Expression expr ) {
+		return switch( expr ) {
+		// $
+		case CurrentValueExpression cve -> ValueNavigator.navigateFromCandidate( cve.currentCandidate, cve.operations );
+		default -> {
+			ValueVector vec = ValueVector.create();
+			vec.add( expr.evaluate() );
+			yield List.of( new Candidate( vec, "$" ) );
+		}
+		};
+	}
+
+	private static boolean compare( CompareCondition cmp, Candidate left, Candidate right ) {
+		switch( cmp.leftExpression ) {
+		// $
+		case CurrentValueExpression cve -> cve.setCurrentCandidate( left );
+		default -> {
+		}
+		}
+		switch( cmp.rightExpression ) {
+		// $
+		case CurrentValueExpression cve -> cve.setCurrentCandidate( right );
+		default -> {
+		}
+		}
+		return cmp.evaluate().boolValue();
+	}
+}

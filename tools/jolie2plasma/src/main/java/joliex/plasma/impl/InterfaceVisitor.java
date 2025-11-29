@@ -379,4 +379,13 @@ public class InterfaceVisitor implements UnitOLVisitor {
 
 	@Override
 	public void visit( IfExpressionNode n ) {}
+
+	@Override
+	public void visit( CurrentValueNode n ) {}
+
+	@Override
+	public void visit( PathsExpressionNode n ) {}
+
+	@Override
+	public void visit( ValuesExpressionNode n ) {}
 }

@@ -118,6 +118,7 @@ import jolie.lang.parse.ast.expression.ConstantDoubleExpression;
 import jolie.lang.parse.ast.expression.ConstantIntegerExpression;
 import jolie.lang.parse.ast.expression.ConstantLongExpression;
 import jolie.lang.parse.ast.expression.ConstantStringExpression;
+import jolie.lang.parse.ast.expression.CurrentValueNode;
 import jolie.lang.parse.ast.expression.FreshValueExpressionNode;
 import jolie.lang.parse.ast.expression.IfExpressionNode;
 import jolie.lang.parse.ast.expression.InlineTreeExpressionNode;
@@ -125,9 +126,12 @@ import jolie.lang.parse.ast.expression.InstanceOfExpressionNode;
 import jolie.lang.parse.ast.expression.IsTypeExpressionNode;
 import jolie.lang.parse.ast.expression.NotExpressionNode;
 import jolie.lang.parse.ast.expression.OrConditionNode;
+import jolie.lang.parse.ast.expression.PathOperation;
+import jolie.lang.parse.ast.expression.PathsExpressionNode;
 import jolie.lang.parse.ast.expression.ProductExpressionNode;
 import jolie.lang.parse.ast.expression.SolicitResponseExpressionNode;
 import jolie.lang.parse.ast.expression.SumExpressionNode;
+import jolie.lang.parse.ast.expression.ValuesExpressionNode;
 import jolie.lang.parse.ast.expression.VariableExpressionNode;
 import jolie.lang.parse.ast.expression.VoidExpressionNode;
 import jolie.lang.parse.ast.types.TypeChoiceDefinition;
@@ -1393,7 +1397,8 @@ public class OOITBuilder implements UnitOLVisitor {
 						: opType == Scanner.TokenType.RANGLE ? CompareOperators.MAJOR
 							: opType == Scanner.TokenType.MINOR_OR_EQUAL ? CompareOperators.MINOR_OR_EQUAL
 								: opType == Scanner.TokenType.MAJOR_OR_EQUAL ? CompareOperators.MAJOR_OR_EQUAL
-									: null;
+									: opType == Scanner.TokenType.HAS ? CompareOperators.HAS
+										: null;
 		Objects.requireNonNull( operator );
 		currExpression = new CompareCondition( left, currExpression, operator );
 	}
@@ -1426,6 +1431,54 @@ public class OOITBuilder implements UnitOLVisitor {
 	@Override
 	public void visit( ConstantStringExpression n ) {
 		currExpression = Value.create( n.value() );
+	}
+
+	@Override
+	public void visit( CurrentValueNode n ) {
+		currExpression = new jolie.runtime.expression.CurrentValueExpression( n.operations() );
+	}
+
+	private record PathQueryComponents(VariablePath varPath, List< PathOperation > remainingOps, Expression whereExpr) {
+	}
+
+	private PathQueryComponents buildPathQuery( List< PathOperation > operations, OLSyntaxNode whereClause,
+		String exprType ) {
+		// Extract identifier from first operation (always Field)
+		if( operations.isEmpty() )
+			throw new IllegalStateException( exprType + " expression must have at least one operation" );
+
+		PathOperation first = operations.get( 0 );
+		if( !(first instanceof PathOperation.Field fieldOp) )
+			throw new IllegalStateException( "First operation must be Field, got: " + first.getClass() );
+
+		// Build VariablePath from identifier
+		// For a simple identifier like "data", the VariablePath is: [(key: "data", index: 0)]
+		@SuppressWarnings( "unchecked" )
+		Pair< Expression, Expression >[] pathArray = new Pair[] {
+			new Pair<>( Value.create( fieldOp.name() ), Value.create( 0 ) )
+		};
+		VariablePath varPath = new VariablePath( pathArray );
+
+		// Get remaining operations (skip first identifier)
+		List< PathOperation > remainingOps = operations.subList( 1, operations.size() );
+
+		// Convert WHERE clause to Expression
+		whereClause.accept( this );
+		Expression whereExpr = currExpression;
+
+		return new PathQueryComponents( varPath, remainingOps, whereExpr );
+	}
+
+	@Override
+	public void visit( PathsExpressionNode n ) {
+		PathQueryComponents pqc = buildPathQuery( n.operations(), n.whereClause(), "PATHS" );
+		currExpression = new jolie.runtime.expression.PathsExpression( pqc.varPath, pqc.remainingOps, pqc.whereExpr );
+	}
+
+	@Override
+	public void visit( ValuesExpressionNode n ) {
+		PathQueryComponents pqc = buildPathQuery( n.operations(), n.whereClause(), "VALUES" );
+		currExpression = new jolie.runtime.expression.ValuesExpression( pqc.varPath, pqc.remainingOps, pqc.whereExpr );
 	}
 
 	@Override
