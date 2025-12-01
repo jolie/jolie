@@ -58,6 +58,7 @@ import jolie.lang.parse.ast.OutputPortInfo;
 import jolie.lang.parse.ast.ParallelStatement;
 import jolie.lang.parse.ast.PointerStatement;
 import jolie.lang.parse.ast.PvalAssignStatement;
+import jolie.lang.parse.ast.PvalDeepCopyStatement;
 import jolie.lang.parse.ast.PostDecrementStatement;
 import jolie.lang.parse.ast.PostIncrementStatement;
 import jolie.lang.parse.ast.PreDecrementStatement;
@@ -170,6 +171,8 @@ public interface OLVisitor< C, R > {
 	R visit( PvalExpressionNode n, C ctx );
 
 	R visit( PvalAssignStatement n, C ctx );
+
+	R visit( PvalDeepCopyStatement n, C ctx );
 
 	R visit( ProductExpressionNode n, C ctx );
 

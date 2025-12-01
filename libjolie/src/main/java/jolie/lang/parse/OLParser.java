@@ -95,6 +95,7 @@ import jolie.lang.parse.ast.OutputPortInfo;
 import jolie.lang.parse.ast.ParallelStatement;
 import jolie.lang.parse.ast.PointerStatement;
 import jolie.lang.parse.ast.PvalAssignStatement;
+import jolie.lang.parse.ast.PvalDeepCopyStatement;
 import jolie.lang.parse.ast.PortInfo;
 import jolie.lang.parse.ast.PostDecrementStatement;
 import jolie.lang.parse.ast.PostIncrementStatement;
@@ -2957,9 +2958,18 @@ public class OLParser extends AbstractParser {
 		eat( Scanner.TokenType.RPAREN, "expected )" );
 		List< PathOperation > pathOps = new ArrayList<>();
 		parsePathOperationsSuffix( pathOps );
-		eat( Scanner.TokenType.ASSIGN, "expected = after pval" );
-		OLSyntaxNode expr = parseExpression();
-		return new PvalAssignStatement( ctx, pathExpr, pathOps, expr );
+		if( token.is( Scanner.TokenType.ASSIGN ) ) {
+			nextToken();
+			OLSyntaxNode expr = parseExpression();
+			return new PvalAssignStatement( ctx, pathExpr, pathOps, expr );
+		} else if( token.is( Scanner.TokenType.DEEP_COPY_LEFT ) ) {
+			nextToken();
+			OLSyntaxNode expr = parseExpression();
+			return new PvalDeepCopyStatement( ctx, pathExpr, pathOps, expr );
+		} else {
+			throwException( "expected = or << after pval" );
+			return null;
+		}
 	}
 
 	private VariablePathNode parseVariablePath()
