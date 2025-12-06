@@ -32,6 +32,8 @@ public class WhereEvaluator {
 			for( var c : or.children )
 				bind( c, candidate );
 		}
+		// !
+		case NotExpression not -> bind( not.expression, candidate );
 		default -> {
 		}
 		}
@@ -68,6 +70,8 @@ public class WhereEvaluator {
 					yield true;
 			yield false;
 		}
+		// !
+		case NotExpression not -> !eval( not.expression );
 		default -> expr.evaluate().boolValue();
 		};
 	}
