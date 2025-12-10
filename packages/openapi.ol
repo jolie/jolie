@@ -208,14 +208,19 @@ private service OpenApiUtils {
 
     execution: concurrent 
 
+    embed Runtime as Runtime
+
     outputPort MySelf {
-        location: "local://OpenApiUtilsPackage"
         interfaces: OpenApiUtilsInterface
     }
 
     inputPort OpenApiUtils {
-        location: "local://OpenApiUtilsPackage"
+        location: "local"
         interfaces: OpenApiUtilsInterface
+    }
+
+    init {
+        getLocalLocation@Runtime()( MySelf.location )
     }
 
     main {
@@ -430,12 +435,7 @@ private service OpenApi3 {
     embed StringUtils as StringUtils
     embed JsonUtils as JsonUtils
     embed JsonSchema as JsonSchema
-    embed OpenApiUtils 
-
-    outputPort OpenApiUtils {
-        location: "local://OpenApiUtilsPackage"
-        interfaces: OpenApiUtilsInterface
-    }
+    embed OpenApiUtils as OpenApiUtils
 
     inputPort OpenApi3 {
         location: "local"
