@@ -38,11 +38,7 @@ public class PvalAssignmentProcess implements Process, Expression {
 
 	@Override
 	public Expression cloneExpression( TransformationReason reason ) {
-		return new PvalAssignmentProcess(
-			pathExpression.cloneExpression( reason ),
-			pathOps,
-			expression.cloneExpression( reason ),
-			context );
+		return (Expression) copy( reason );
 	}
 
 	@Override

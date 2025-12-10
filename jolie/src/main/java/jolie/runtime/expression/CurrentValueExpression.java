@@ -18,6 +18,10 @@ public class CurrentValueExpression implements Expression {
 		this.operations = operations;
 	}
 
+	/**
+	 * Called by WhereEvaluator.bind() to set the current value that $ refers to during WHERE
+	 * evaluation. This is updated dynamically as different candidates are tested.
+	 */
 	public void setCurrentCandidate( Candidate candidate ) {
 		this.currentCandidate = Objects.requireNonNull( candidate, "$ cannot be null" );
 	}

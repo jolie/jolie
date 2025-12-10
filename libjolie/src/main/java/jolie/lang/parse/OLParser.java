@@ -2958,18 +2958,20 @@ public class OLParser extends AbstractParser {
 		eat( Scanner.TokenType.RPAREN, "expected )" );
 		List< PathOperation > pathOps = new ArrayList<>();
 		parsePathOperationsSuffix( pathOps );
-		if( token.is( Scanner.TokenType.ASSIGN ) ) {
+		return switch( token.type() ) {
+		case ASSIGN -> {
 			nextToken();
-			OLSyntaxNode expr = parseExpression();
-			return new PvalAssignStatement( ctx, pathExpr, pathOps, expr );
-		} else if( token.is( Scanner.TokenType.DEEP_COPY_LEFT ) ) {
-			nextToken();
-			OLSyntaxNode expr = parseExpression();
-			return new PvalDeepCopyStatement( ctx, pathExpr, pathOps, expr );
-		} else {
-			throwException( "expected = or << after pval" );
-			return null;
+			yield new PvalAssignStatement( ctx, pathExpr, pathOps, parseExpression() );
 		}
+		case DEEP_COPY_LEFT -> {
+			nextToken();
+			yield new PvalDeepCopyStatement( ctx, pathExpr, pathOps, parseExpression() );
+		}
+		default -> {
+			throwException( "expected = or << after pval" );
+			yield null;
+		}
+		};
 	}
 
 	private VariablePathNode parseVariablePath()

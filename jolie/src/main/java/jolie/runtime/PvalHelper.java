@@ -15,14 +15,14 @@ public final class PvalHelper {
 	 * Resolves a path value and optional path operations to a VariablePath. Throws TypeMismatch fault
 	 * if the value is not a path type.
 	 */
-	public static VariablePath resolveVariablePath( Value pathValue, List< PathOperation > pathOps,
+	public static VariablePath resolveVariablePath( Value value, List< PathOperation > pathOps,
 		ParsingContext context ) {
-		if( !pathValue.isPath() ) {
+		if( !value.isPath() ) {
 			throw new FaultException( "TypeMismatch",
-				"pval requires a path type value, got: " + pathValue.strValue(), context )
+				"pval requires a path type value, got: " + value.strValue(), context )
 				.toRuntimeFaultException();
 		}
-		String pathStr = pathValue.pathValue().getPath();
+		String pathStr = value.pathValue().getPath();
 		String fullPathStr = pathStr + pathOpsToString( pathOps );
 		return parsePathString( fullPathStr );
 	}

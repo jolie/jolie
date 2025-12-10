@@ -1446,15 +1446,10 @@ public class OOITBuilder implements UnitOLVisitor {
 	private record PathQueryComponents(VariablePath varPath, List< PathOperation > remainingOps, Expression whereExpr) {
 	}
 
-	private PathQueryComponents buildPathQuery( List< PathOperation > operations, OLSyntaxNode whereClause,
-		String exprType ) {
+	private PathQueryComponents buildPathQuery( List< PathOperation > operations, OLSyntaxNode whereClause ) {
 		// Extract identifier from first operation (always Field)
-		if( operations.isEmpty() )
-			throw new IllegalStateException( exprType + " expression must have at least one operation" );
-
-		PathOperation first = operations.get( 0 );
-		if( !(first instanceof PathOperation.Field fieldOp) )
-			throw new IllegalStateException( "First operation must be Field, got: " + first.getClass() );
+		// The parser (parsePathOperations) guarantees operations is non-empty and first is Field
+		PathOperation.Field fieldOp = (PathOperation.Field) operations.get( 0 );
 
 		// Build VariablePath from identifier
 		// For a simple identifier like "data", the VariablePath is: [(key: "data", index: 0)]
@@ -1476,13 +1471,13 @@ public class OOITBuilder implements UnitOLVisitor {
 
 	@Override
 	public void visit( PathsExpressionNode n ) {
-		PathQueryComponents pqc = buildPathQuery( n.operations(), n.whereClause(), "PATHS" );
+		PathQueryComponents pqc = buildPathQuery( n.operations(), n.whereClause() );
 		currExpression = new jolie.runtime.expression.PathsExpression( pqc.varPath, pqc.remainingOps, pqc.whereExpr );
 	}
 
 	@Override
 	public void visit( ValuesExpressionNode n ) {
-		PathQueryComponents pqc = buildPathQuery( n.operations(), n.whereClause(), "VALUES" );
+		PathQueryComponents pqc = buildPathQuery( n.operations(), n.whereClause() );
 		currExpression = new jolie.runtime.expression.ValuesExpression( pqc.varPath, pqc.remainingOps, pqc.whereExpr );
 	}
 

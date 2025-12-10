@@ -80,10 +80,12 @@ public class WhereEvaluator {
 		return switch( expr ) {
 		// $
 		case CurrentValueExpression cve -> ValueNavigator.navigateFromCandidate( cve.currentCandidate, cve.operations );
+		// Non-$ expressions: wrap value in Candidate for type uniformity (candidate is ignored by
+		// compare())
 		default -> {
 			ValueVector vec = ValueVector.create();
 			vec.add( expr.evaluate() );
-			yield List.of( new Candidate( vec, "$" ) );
+			yield List.of( new Candidate( vec, "42" ) );
 		}
 		};
 	}
