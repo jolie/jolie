@@ -41,6 +41,7 @@ import jolie.net.protocols.ConcurrentCommProtocol;
 import jolie.runtime.ByteArray;
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
+import jolie.runtime.ValuePath;
 import jolie.runtime.ValueVector;
 import jolie.runtime.VariablePath;
 
@@ -125,6 +126,9 @@ public class SodepProtocol extends ConcurrentCommProtocol {
 		} else if( valueObject instanceof String ) {
 			out.writeByte( DataTypeHeaderId.STRING );
 			writeString( out, (String) valueObject );
+		} else if( valueObject instanceof ValuePath ) {
+			out.writeByte( DataTypeHeaderId.STRING );
+			writeString( out, ((ValuePath) valueObject).getPath() );
 		} else if( valueObject instanceof Integer ) {
 			out.writeByte( DataTypeHeaderId.INT );
 			out.writeInt( (Integer) valueObject );

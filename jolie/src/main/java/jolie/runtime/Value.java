@@ -680,7 +680,7 @@ public abstract class Value implements Expression, Cloneable {
 		try {
 			return pathValueStrict();
 		} catch( TypeCastingException e ) {
-			return new ValuePath( "" );
+			return new ValuePath( "", false );
 		}
 	}
 
@@ -692,7 +692,12 @@ public abstract class Value implements Expression, Cloneable {
 		} else if( o instanceof ValuePath ) {
 			return (ValuePath) o;
 		} else if( o instanceof String ) {
-			return new ValuePath( (String) o );
+			try {
+				return new ValuePath( (String) o, true );
+			} catch( IllegalArgumentException e ) {
+				// ValuePath constructor validates path format; convert to expected exception type
+				throw new TypeCastingException();
+			}
 		}
 		throw new TypeCastingException();
 	}

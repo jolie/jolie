@@ -39,7 +39,7 @@ public class PathsExpression implements Expression {
 		for( Candidate c : ValueNavigator.navigate( path, ops ) ) {
 			if( WhereEvaluator.matches( where, c ) ) {
 				int index = result.getChildren( "results" ).size();
-				result.getChildren( "results" ).get( index ).setValue( new ValuePath( c.path() ) );
+				result.getChildren( "results" ).get( index ).setValue( new ValuePath( c.path(), false ) );
 			}
 		}
 		return result;

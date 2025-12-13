@@ -43,9 +43,10 @@ public final class PvalHelper {
 	}
 
 	/**
-	 * Parses a path string like "data[1].field[2].subfield" into a VariablePath.
+	 * Parses a path string like "data[1].field[2].subfield" into a VariablePath. Throws
+	 * IllegalArgumentException if the path format is invalid.
 	 */
-	private static VariablePath parsePathString( String pathStr ) {
+	public static VariablePath parsePathString( String pathStr ) {
 		VariablePathBuilder b = new VariablePathBuilder( false );
 		for( String s : pathStr.split( "\\." ) ) {
 			int i = s.indexOf( '[' );
