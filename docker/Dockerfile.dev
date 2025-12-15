@@ -40,9 +40,9 @@ RUN jolie release.ol ..
 # Start from scratch, copy the installer, install, remove the installer.
 FROM maven:3-eclipse-temurin-17
 WORKDIR /
-COPY --from=JolieBuild /jolie-git/release-tools/release/jolie-installer.jar .
-RUN apt-get update && apt-get install -y unzip \
-    && java -jar jolie-installer.jar -jh /usr/lib/jolie -jl /usr/bin \
+COPY --from=jolie-build /jolie-git/release-tools/release/jolie-installer.jar .
+RUN apt-get update && apt-get install -y unzip
+RUN java -jar jolie-installer.jar -jh /usr/lib/jolie -jl /usr/bin \
     && rm jolie-installer.jar && rm -rf /tmp/*
 ENV JOLIE_HOME /usr/lib/jolie
 
@@ -58,6 +58,19 @@ RUN apt-get install -y \
     npm
 RUN npm install n -g && \
     n lts
+
+# Fix Maven permissions for the jolie user
+RUN mkdir -p /home/jolie/.m2 && chown -R jolie:jolie /home/jolie/.m2
+# Set Maven to use user's home directory instead of root
+ENV M2_HOME=/usr/share/maven
+ENV MAVEN_CONFIG=/home/jolie/.m2
+ENV MAVEN_USER_HOME=/home/jolie/.m2
+
+# Fix JOLIE_HOME permissions for the jolie user
+RUN chown -R jolie:jolie /usr/lib/jolie
+
+# Clean up any root-owned Maven artifacts that might interfere
+RUN rm -rf /root/.m2 || true
 
 RUN npm install @jolie/jpm -g 
 

@@ -40,8 +40,8 @@ RUN jolie release.ol ..
 # Start from scratch, copy the installer, install, remove the installer.
 FROM eclipse-temurin:17-jre
 WORKDIR /
-COPY --from=JolieBuild /jolie-git/release-tools/release/jolie-installer.jar .
-RUN apt-get update && apt-get install -y unzip \
-    && java -jar jolie-installer.jar -jh /usr/lib/jolie -jl /usr/bin \
+COPY --from=jolie-build /jolie-git/release-tools/release/jolie-installer.jar .
+RUN apt-get update && apt-get install -y unzip
+RUN java -jar jolie-installer.jar -jh /usr/lib/jolie -jl /usr/bin \
     && rm jolie-installer.jar && rm -rf /tmp/*
 ENV JOLIE_HOME /usr/lib/jolie
