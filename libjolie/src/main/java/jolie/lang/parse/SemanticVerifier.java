@@ -1175,7 +1175,7 @@ public class SemanticVerifier implements UnitOLVisitor {
 
 	@Override
 	public void visit( ValueVectorSizeExpressionNode n ) {
-		n.variablePath().accept( this );
+		n.expression().accept( this );
 	}
 
 	@Override

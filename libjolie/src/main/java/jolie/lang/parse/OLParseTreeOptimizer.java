@@ -786,7 +786,7 @@ public class OLParseTreeOptimizer {
 		public void visit( ValueVectorSizeExpressionNode n ) {
 			currNode = new ValueVectorSizeExpressionNode(
 				n.context(),
-				optimizePath( n.variablePath() ) );
+				optimize( n.expression() ) );
 		}
 
 		@Override

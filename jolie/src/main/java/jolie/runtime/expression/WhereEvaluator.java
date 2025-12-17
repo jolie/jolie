@@ -13,10 +13,12 @@ public class WhereEvaluator {
 		return eval( where );
 	}
 
-	private static void bind( Expression expr, Candidate candidate ) {
+	static void bind( Expression expr, Candidate candidate ) {
 		switch( expr ) {
 		// $
 		case CurrentValueExpression cve -> cve.setCurrentCandidate( candidate );
+		// #
+		case ValueVectorSizeExpression vvse -> vvse.bind( candidate );
 		// ==, !=, <, >, <=, >=
 		case CompareCondition cmp -> {
 			bind( cmp.leftExpression, candidate );
@@ -34,6 +36,15 @@ public class WhereEvaluator {
 		}
 		// !
 		case NotExpression not -> bind( not.expression, candidate );
+		// Arithmetic: +, -, *, /, %
+		case SumExpression sum -> {
+			for( var operand : sum.children )
+				bind( operand.expression(), candidate );
+		}
+		case ProductExpression prod -> {
+			for( var operand : prod.children )
+				bind( operand.expression(), candidate );
+		}
 		default -> {
 		}
 		}

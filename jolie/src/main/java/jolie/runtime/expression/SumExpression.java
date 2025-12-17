@@ -28,7 +28,7 @@ import jolie.process.TransformationReason;
 import jolie.runtime.Value;
 
 public final class SumExpression implements Expression {
-	private final Operand[] children;
+	final Operand[] children;
 
 	public SumExpression( Operand[] children ) {
 		this.children = children;

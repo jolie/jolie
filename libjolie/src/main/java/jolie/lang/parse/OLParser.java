@@ -3337,10 +3337,10 @@ public class OLParser extends AbstractParser {
 	private OLSyntaxNode parseAndCondition()
 		throws IOException, ParserException {
 		AndConditionNode andCond = new AndConditionNode( getContext() );
-		andCond.addChild( parseBasicCondition() );
+		andCond.addChild( parseNotExpression() );
 		while( token.is( Scanner.TokenType.AND ) ) {
 			nextToken();
-			andCond.addChild( parseBasicCondition() );
+			andCond.addChild( parseNotExpression() );
 		}
 
 		return andCond;
@@ -3407,6 +3407,15 @@ public class OLParser extends AbstractParser {
 		}
 
 		return ret;
+	}
+
+	private OLSyntaxNode parseNotExpression()
+		throws IOException, ParserException {
+		if( token.is( Scanner.TokenType.NOT ) ) {
+			nextToken();
+			return new NotExpressionNode( getContext(), parseNotExpression() );
+		}
+		return parseBasicCondition();
 	}
 
 	/*
@@ -3598,9 +3607,17 @@ public class OLParser extends AbstractParser {
 				break;
 			case HASH:
 				nextToken();
-				retVal = new ValueVectorSizeExpressionNode(
-					getContext(),
-					parseVariablePath() );
+				// Parse either a variable path or $ expression for #
+				OLSyntaxNode expr;
+				if( token.is( Scanner.TokenType.DOLLAR ) ) {
+					nextToken();
+					List< PathOperation > dollarOps = new ArrayList<>();
+					parsePathOperationsSuffix( dollarOps );
+					expr = new CurrentValueNode( getContext(), dollarOps );
+				} else {
+					expr = parseVariablePath();
+				}
+				retVal = new ValueVectorSizeExpressionNode( getContext(), expr );
 				break;
 			case DOLLAR:
 				if( !inWhereClause )

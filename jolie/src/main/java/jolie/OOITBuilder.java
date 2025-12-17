@@ -214,6 +214,7 @@ import jolie.runtime.expression.CastDoubleExpression;
 import jolie.runtime.expression.CastIntExpression;
 import jolie.runtime.expression.CastLongExpression;
 import jolie.runtime.expression.CastStringExpression;
+import jolie.runtime.expression.CurrentValueExpression;
 import jolie.runtime.expression.CompareCondition;
 import jolie.runtime.expression.Expression;
 import jolie.runtime.expression.Expression.Operand;
@@ -1560,7 +1561,14 @@ public class OOITBuilder implements UnitOLVisitor {
 
 	@Override
 	public void visit( ValueVectorSizeExpressionNode n ) {
-		currExpression = new ValueVectorSizeExpression( buildVariablePath( n.variablePath() ) );
+		OLSyntaxNode exprNode = n.expression();
+		currExpression = switch( exprNode ) {
+		case VariablePathNode vpn -> new ValueVectorSizeExpression( buildVariablePath( vpn ) );
+		case CurrentValueNode cvn -> new ValueVectorSizeExpression(
+			(CurrentValueExpression) buildExpression( cvn ) );
+		default -> throw new IllegalStateException(
+			"Unexpected expression type in ValueVectorSizeExpressionNode: " + exprNode.getClass().getSimpleName() );
+		};
 	}
 
 	@Override

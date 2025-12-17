@@ -27,7 +27,7 @@ import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 
 public class ProductExpression implements Expression {
-	private final Operand[] children;
+	final Operand[] children;
 	private final ParsingContext context;
 
 	public ProductExpression( Operand[] children, ParsingContext context ) {
