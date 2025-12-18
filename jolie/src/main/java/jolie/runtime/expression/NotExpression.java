@@ -26,7 +26,7 @@ import jolie.process.TransformationReason;
 import jolie.runtime.Value;
 
 public class NotExpression implements Expression {
-	private final Expression expression;
+	public final Expression expression;
 
 	public NotExpression( Expression expression ) {
 		this.expression = expression;

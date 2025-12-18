@@ -20,25 +20,72 @@
 
 package jolie.runtime.expression;
 
+import java.util.List;
 import jolie.process.TransformationReason;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 import jolie.runtime.VariablePath;
 
 public class ValueVectorSizeExpression implements Expression {
-	private final VariablePath path;
+	// Union type for size target
+	private sealed interface SizeTarget
+		permits VariablePathTarget, ExpressionTarget {
+	}
 
+	private record VariablePathTarget(VariablePath path) implements SizeTarget {
+	}
+
+	private record ExpressionTarget(CurrentValueExpression expr) implements SizeTarget {
+	}
+
+	private final SizeTarget target;
+
+	// Constructor for #variablePath
 	public ValueVectorSizeExpression( VariablePath path ) {
-		this.path = path;
+		this.target = new VariablePathTarget( path );
+	}
+
+	// Constructor for #(expression)
+	public ValueVectorSizeExpression( CurrentValueExpression expression ) {
+		this.target = new ExpressionTarget( expression );
 	}
 
 	@Override
 	public Expression cloneExpression( TransformationReason reason ) {
-		return new ValueVectorSizeExpression( path );
+		return switch( target ) {
+		case VariablePathTarget(var path) -> new ValueVectorSizeExpression( path );
+		case ExpressionTarget(var cve) -> new ValueVectorSizeExpression(
+			(CurrentValueExpression) cve.cloneExpression( reason ) );
+		};
+	}
+
+	/**
+	 * Called by WhereEvaluator.bind() to propagate candidate binding to nested expressions.
+	 */
+	public void bind( Candidate candidate ) {
+		switch( target ) {
+		case VariablePathTarget(var path) -> {
+		} // No binding needed for VariablePath
+		case ExpressionTarget(var cve) -> WhereEvaluator.bind( cve, candidate );
+		}
 	}
 
 	@Override
 	public Value evaluate() {
+		return switch( target ) {
+		// Legacy: #variablePath - delegate to common logic
+		case VariablePathTarget(var path) -> evaluateVariablePath( path );
+
+		// New: #($.field) - navigate from current candidate
+		case ExpressionTarget(var cve) -> {
+			List< Candidate > results =
+				ValueNavigator.navigateFromCandidate( cve.currentCandidate, cve.operations );
+			yield Value.create( results.isEmpty() ? 0 : results.get( 0 ).vector().size() );
+		}
+		};
+	}
+
+	private Value evaluateVariablePath( VariablePath path ) {
 		ValueVector vector = path.getValueVectorOrNull();
 		return Value.create( (vector == null) ? 0 : vector.size() );
 	}

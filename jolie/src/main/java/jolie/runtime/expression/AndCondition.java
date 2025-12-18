@@ -35,7 +35,7 @@ import jolie.runtime.Value;
  * @see Condition
  */
 public class AndCondition implements Expression {
-	private final Expression[] children;
+	public final Expression[] children;
 
 	/** Constructor */
 	public AndCondition( Expression[] children ) {

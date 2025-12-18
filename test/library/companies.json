@@ -1,0 +1,680 @@
+{
+    "companies": [
+      {
+        "company": {
+          "name": "TechNova Solutions",
+          "founded": 2012,
+          "headquarters": {
+            "city": "Milano",
+            "country": "Italia",
+            "address": { "street": "Via Roma", "number": 45, "postal_code": "20121" }
+          },
+          "departments": [
+            {
+              "id": "D001",
+              "name": "Ricerca e Sviluppo",
+              "manager": { "name": "Laura Bianchi", "email": "laura.bianchi@technova.it" },
+              "teams": [
+                {
+                  "team_id": "T001",
+                  "team_name": "AI & Machine Learning",
+                  "projects": [
+                    {
+                      "project_id": "P001",
+                      "name": "VisionX",
+                      "status": "in_progress",
+                      "technologies": ["Python", "TensorFlow", "OpenCV"]
+                    },
+                    {
+                      "project_id": "P002",
+                      "name": "Predictify",
+                      "status": "planning",
+                      "technologies": ["Python", "scikit-learn", "Pandas"]
+                    }
+                  ]
+                },
+                {
+                  "team_id": "T002",
+                  "team_name": "Computer Vision",
+                  "projects": [
+                    {
+                      "project_id": "P003",
+                      "name": "EyeTrack",
+                      "status": "testing",
+                      "technologies": ["C++", "OpenCV", "PyTorch"]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "D002",
+              "name": "IT Operations",
+              "manager": { "name": "Giovanni Serra", "email": "giovanni.serra@technova.it" },
+              "teams": [
+                {
+                  "team_id": "T003",
+                  "team_name": "Cloud Infrastructure",
+                  "projects": [
+                    {
+                      "project_id": "P004",
+                      "name": "CloudShift",
+                      "status": "completed",
+                      "technologies": ["AWS", "Terraform", "Kubernetes"]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "company": {
+          "name": "GreenPulse Energy",
+          "founded": 2015,
+          "headquarters": {
+            "city": "Torino",
+            "country": "Italia",
+            "address": { "street": "Corso Vittorio Emanuele II", "number": 110, "postal_code": "10138" }
+          },
+          "departments": [
+            {
+              "id": "D010",
+              "name": "Ingegneria Energetica",
+              "manager": { "name": "Giulia Conti", "email": "giulia.conti@greenpulse.it" },
+              "teams": [
+                {
+                  "team_id": "T100",
+                  "team_name": "Solare e Fotovoltaico",
+                  "projects": [
+                    {
+                      "project_id": "P100",
+                      "name": "SolarEdge",
+                      "status": "completed",
+                      "technologies": ["MATLAB", "Python", "LabVIEW"]
+                    },
+                    {
+                      "project_id": "P101",
+                      "name": "SunFlow",
+                      "status": "in_progress",
+                      "technologies": ["Java", "Spring Boot", "PostgreSQL"]
+                    }
+                  ]
+                },
+                {
+                  "team_id": "T101",
+                  "team_name": "Eolico",
+                  "projects": [
+                    {
+                      "project_id": "P102",
+                      "name": "WindScope",
+                      "status": "planning",
+                      "technologies": ["C#", ".NET", "Azure"]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "D011",
+              "name": "Sostenibilità e Innovazione",
+              "manager": { "name": "Enrico Pellegrini", "email": "enrico.pellegrini@greenpulse.it" },
+              "teams": [
+                {
+                  "team_id": "T102",
+                  "team_name": "Green Analytics",
+                  "projects": [
+                    {
+                      "project_id": "P103",
+                      "name": "CarbonWatch",
+                      "status": "planning",
+                      "technologies": ["R", "Shiny", "Tableau"]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "company": {
+          "name": "MediArt Studio",
+          "founded": 2008,
+          "headquarters": {
+            "city": "Firenze",
+            "country": "Italia",
+            "address": { "street": "Via dei Bardi", "number": 9, "postal_code": "50125" }
+          },
+          "departments": [
+            {
+              "id": "D020",
+              "name": "Produzione Multimediale",
+              "manager": { "name": "Stefano Mancini", "email": "stefano.mancini@mediart.it" },
+              "teams": [
+                {
+                  "team_id": "T200",
+                  "team_name": "Video & Animazione",
+                  "projects": [
+                    {
+                      "project_id": "P200",
+                      "name": "Arte360",
+                      "status": "planning",
+                      "technologies": ["After Effects", "Blender", "Unity"]
+                    },
+                    {
+                      "project_id": "P201",
+                      "name": "CulturaXR",
+                      "status": "completed",
+                      "technologies": ["Unreal Engine", "Blender", "DaVinci Resolve"]
+                    }
+                  ]
+                },
+                {
+                  "team_id": "T201",
+                  "team_name": "Post-produzione",
+                  "projects": []
+                }
+              ]
+            },
+            {
+              "id": "D021",
+              "name": "Design",
+              "manager": { "name": "Martina Bellini", "email": "martina.bellini@mediart.it" },
+              "teams": [
+                {
+                  "team_id": "T202",
+                  "team_name": "Grafica 3D",
+                  "projects": [
+                    {
+                      "project_id": "P202",
+                      "name": "RenderFlow",
+                      "status": "in_progress",
+                      "technologies": ["Cinema 4D", "Substance 3D", "Python"]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "company": {
+          "name": "AquaPure Technologies",
+          "founded": 2010,
+          "headquarters": {
+            "city": "Genova",
+            "country": "Italia",
+            "address": { "street": "Via San Lorenzo", "number": 67, "postal_code": "16123" }
+          },
+          "departments": [
+            {
+              "id": "D030",
+              "name": "Ricerca Ambientale",
+              "manager": { "name": "Marta Greco", "email": "marta.greco@aquapure.it" },
+              "teams": [
+                {
+                  "team_id": "T300",
+                  "team_name": "Trattamento Acque",
+                  "projects": [
+                    {
+                      "project_id": "P300",
+                      "name": "BlueFilter",
+                      "status": "in_progress",
+                      "technologies": ["C++", "IoT", "AWS IoT Core"]
+                    },
+                    {
+                      "project_id": "P301",
+                      "name": "SmartFlow",
+                      "status": "planning",
+                      "technologies": ["Rust", "gRPC", "Kubernetes"]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "D031",
+              "name": "Ingegneria Chimica",
+              "manager": { "name": "Andrea Neri", "email": "andrea.neri@aquapure.it" },
+              "teams": [
+                {
+                  "team_id": "T301",
+                  "team_name": "Analisi Materiali",
+                  "projects": []
+                },
+                {
+                  "team_id": "T302",
+                  "team_name": "Sistemi di Controllo",
+                  "projects": [
+                    {
+                      "project_id": "P302",
+                      "name": "HydroMonitor",
+                      "status": "testing",
+                      "technologies": ["PLC", "OPC UA", "Python"]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "company": {
+          "name": "Skyline Drones",
+          "founded": 2016,
+          "headquarters": {
+            "city": "Bologna",
+            "country": "Italia",
+            "address": { "street": "Via Indipendenza", "number": 155, "postal_code": "40121" }
+          },
+          "departments": [
+            {
+              "id": "D040",
+              "name": "Sistemi Aerei",
+              "manager": { "name": "Federico Riva", "email": "federico.riva@skylinedrones.it" },
+              "teams": [
+                {
+                  "team_id": "T400",
+                  "team_name": "Controllo Volo",
+                  "projects": [
+                    {
+                      "project_id": "P400",
+                      "name": "DronePilot AI",
+                      "status": "testing",
+                      "technologies": ["ROS2", "C++", "PX4"]
+                    }
+                  ]
+                },
+                {
+                  "team_id": "T401",
+                  "team_name": "Sensori e Navigazione",
+                  "projects": [
+                    {
+                      "project_id": "P401",
+                      "name": "NavSense",
+                      "status": "planning",
+                      "technologies": ["Kalman Filter", "NumPy", "GNSS RTK"]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "D041",
+              "name": "Servizi Aerei",
+              "manager": { "name": "Elisa Gallo", "email": "elisa.gallo@skylinedrones.it" },
+              "teams": [
+                {
+                  "team_id": "T402",
+                  "team_name": "Ispezioni Industriali",
+                  "projects": []
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "company": {
+          "name": "DataWave Analytics",
+          "founded": 2013,
+          "headquarters": {
+            "city": "Roma",
+            "country": "Italia",
+            "address": { "street": "Via Appia Nuova", "number": 240, "postal_code": "00179" }
+          },
+          "departments": [
+            {
+              "id": "D050",
+              "name": "Analisi Dati",
+              "manager": { "name": "Chiara Leone", "email": "chiara.leone@datawave.it" },
+              "teams": [
+                {
+                  "team_id": "T500",
+                  "team_name": "Big Data",
+                  "projects": [
+                    {
+                      "project_id": "P500",
+                      "name": "StreamInsight",
+                      "status": "in_progress",
+                      "technologies": ["Scala", "Kafka", "Spark"]
+                    },
+                    {
+                      "project_id": "P501",
+                      "name": "RealMetrics",
+                      "status": "completed",
+                      "technologies": ["Go", "Flink", "ClickHouse"]
+                    }
+                  ]
+                },
+                {
+                  "team_id": "T501",
+                  "team_name": "Data Governance",
+                  "projects": []
+                }
+              ]
+            },
+            {
+              "id": "D051",
+              "name": "Data Platform",
+              "manager": { "name": "Simone Ferretti", "email": "simone.ferretti@datawave.it" },
+              "teams": [
+                {
+                  "team_id": "T502",
+                  "team_name": "MLOps",
+                  "projects": [
+                    {
+                      "project_id": "P502",
+                      "name": "ModelRail",
+                      "status": "planning",
+                      "technologies": ["MLflow", "Docker", "Argo Workflows"]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "company": {
+          "name": "AgriNext Systems",
+          "founded": 2011,
+          "headquarters": {
+            "city": "Parma",
+            "country": "Italia",
+            "address": { "street": "Via Garibaldi", "number": 32, "postal_code": "43121" }
+          },
+          "departments": [
+            {
+              "id": "D060",
+              "name": "Tecnologie Agricole",
+              "manager": { "name": "Paolo Vitale", "email": "paolo.vitale@agrinext.it" },
+              "teams": [
+                {
+                  "team_id": "T600",
+                  "team_name": "Smart Farming",
+                  "projects": [
+                    {
+                      "project_id": "P600",
+                      "name": "CropSense",
+                      "status": "in_progress",
+                      "technologies": ["Python", "IoT", "Django"]
+                    }
+                  ]
+                },
+                {
+                  "team_id": "T601",
+                  "team_name": "Droni Agricoli",
+                  "projects": [
+                    {
+                      "project_id": "P601",
+                      "name": "FieldScan",
+                      "status": "testing",
+                      "technologies": ["ROS", "OpenCV", "Edge TPU"]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "D061",
+              "name": "Supply Chain",
+              "manager": { "name": "Valentina Costa", "email": "valentina.costa@agrinext.it" },
+              "teams": [
+                {
+                  "team_id": "T602",
+                  "team_name": "Tracciabilità",
+                  "projects": [
+                    {
+                      "project_id": "P602",
+                      "name": "FarmTrace",
+                      "status": "planning",
+                      "technologies": ["Node.js", "Express", "MongoDB"]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "company": {
+          "name": "MedCare Robotics",
+          "founded": 2017,
+          "headquarters": {
+            "city": "Torino",
+            "country": "Italia",
+            "address": { "street": "Via Po", "number": 12, "postal_code": "10123" }
+          },
+          "departments": [
+            {
+              "id": "D070",
+              "name": "Robotica Medica",
+              "manager": { "name": "Serena D’Amato", "email": "serena.damato@medcare.it" },
+              "teams": [
+                {
+                  "team_id": "T700",
+                  "team_name": "Protesi Intelligenti",
+                  "projects": [
+                    {
+                      "project_id": "P700",
+                      "name": "HandMotion",
+                      "status": "testing",
+                      "technologies": ["C#", "Embedded C", "TensorFlow Lite"]
+                    },
+                    {
+                      "project_id": "P701",
+                      "name": "JointFlex",
+                      "status": "planning",
+                      "technologies": ["MATLAB", "Simulink", "CAN Bus"]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "D071",
+              "name": "Assistenza Robotica",
+              "manager": { "name": "Giorgio Lupi", "email": "giorgio.lupi@medcare.it" },
+              "teams": [
+                {
+                  "team_id": "T701",
+                  "team_name": "Interfacce Utente",
+                  "projects": [
+                    {
+                      "project_id": "P702",
+                      "name": "CareUI",
+                      "status": "in_progress",
+                      "technologies": ["React", "TypeScript", "GraphQL"]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "company": {
+          "name": "NextMove Mobility",
+          "founded": 2014,
+          "headquarters": {
+            "city": "Verona",
+            "country": "Italia",
+            "address": { "street": "Via Mazzini", "number": 77, "postal_code": "37121" }
+          },
+          "departments": [
+            {
+              "id": "D080",
+              "name": "Veicoli Elettrici",
+              "manager": { "name": "Luca Moretti", "email": "luca.moretti@nextmove.it" },
+              "teams": [
+                {
+                  "team_id": "T800",
+                  "team_name": "Motori e Batterie",
+                  "projects": [
+                    {
+                      "project_id": "P800",
+                      "name": "EcoDrive",
+                      "status": "completed",
+                      "technologies": ["C++", "MATLAB", "CAN Bus"]
+                    }
+                  ]
+                },
+                {
+                  "team_id": "T801",
+                  "team_name": "Sistemi di Guida",
+                  "projects": [
+                    {
+                      "project_id": "P801",
+                      "name": "AutoPilotX",
+                      "status": "in_progress",
+                      "technologies": ["Python", "ROS2", "CUDA"]
+                    },
+                    {
+                      "project_id": "P802",
+                      "name": "LaneGuard",
+                      "status": "planning",
+                      "technologies": ["OpenCV", "PyTorch", "ONNX"]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "D081",
+              "name": "Connettività",
+              "manager": { "name": "Irene Ferri", "email": "irene.ferri@nextmove.it" },
+              "teams": [
+                {
+                  "team_id": "T802",
+                  "team_name": "Telemetria",
+                  "projects": []
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "company": {
+          "name": "EduSphere Learning",
+          "founded": 2018,
+          "headquarters": {
+            "city": "Napoli",
+            "country": "Italia",
+            "address": { "street": "Via Toledo", "number": 101, "postal_code": "80134" }
+          },
+          "departments": [
+            {
+              "id": "D090",
+              "name": "Formazione Digitale",
+              "manager": { "name": "Francesca Romano", "email": "francesca.romano@edusphere.it" },
+              "teams": [
+                {
+                  "team_id": "T900",
+                  "team_name": "E-learning Platform",
+                  "projects": [
+                    {
+                      "project_id": "P900",
+                      "name": "Learnify",
+                      "status": "in_progress",
+                      "technologies": ["React", "Node.js", "PostgreSQL"]
+                    },
+                    {
+                      "project_id": "P901",
+                      "name": "QuizMaster",
+                      "status": "completed",
+                      "technologies": ["Go", "gRPC", "Redis"]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "D091",
+              "name": "Contenuti Educativi",
+              "manager": { "name": "Gabriele Neri", "email": "gabriele.neri@edusphere.it" },
+              "teams": [
+                {
+                  "team_id": "T901",
+                  "team_name": "Didattica Interattiva",
+                  "projects": []
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "company": {
+          "name": "CivicCity Services",
+          "founded": 2009,
+          "headquarters": {
+            "city": "Trieste",
+            "country": "Italia",
+            "address": { "street": "Piazza Unità d'Italia", "number": 4, "postal_code": "34121" }
+          },
+          "departments": [
+            {
+              "id": "D100",
+              "name": "Smart City",
+              "manager": { "name": "Alessio Pagani", "email": "alessio.pagani@civiccity.it" },
+              "teams": [
+                {
+                  "team_id": "T1000",
+                  "team_name": "Mobilità Urbana",
+                  "projects": [
+                    {
+                      "project_id": "P1000",
+                      "name": "ParkSmart",
+                      "status": "completed",
+                      "technologies": ["Kotlin", "Android", "Firebase"]
+                    }
+                  ]
+                },
+                {
+                  "team_id": "T1001",
+                  "team_name": "Illuminazione Intelligente",
+                  "projects": [
+                    {
+                      "project_id": "P1001",
+                      "name": "LightSense",
+                      "status": "in_progress",
+                      "technologies": ["LoRaWAN", "Node-RED", "InfluxDB"]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "D101",
+              "name": "Servizi al Cittadino",
+              "manager": { "name": "Rita Donadi", "email": "rita.donadi@civiccity.it" },
+              "teams": [
+                {
+                  "team_id": "T1002",
+                  "team_name": "Sportello Digitale",
+                  "projects": [
+                    {
+                      "project_id": "P1002",
+                      "name": "OpenDesk",
+                      "status": "planning",
+                      "technologies": ["Vue.js", "PHP", "MySQL"]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      }
+    ]
+  }
+  
