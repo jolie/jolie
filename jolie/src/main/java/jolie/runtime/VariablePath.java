@@ -126,7 +126,12 @@ public class VariablePath implements Expression {
 	}
 
 	protected Value getRootValue() {
-		return ExecutionThread.getState().root();
+		ExecutionThread executionThread = ExecutionThread.currentThread();
+		if( executionThread != null ) {
+			return executionThread.state().root();
+		}
+		// fallback value
+		return new State().root();
 	}
 
 	public final void undef() {
