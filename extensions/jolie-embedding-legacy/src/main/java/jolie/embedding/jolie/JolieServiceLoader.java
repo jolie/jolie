@@ -43,6 +43,18 @@ public class JolieServiceLoader extends EmbeddedServiceLoader {
 	private final static AtomicLong SERVICE_LOADER_COUNTER = new AtomicLong();
 	private final Interpreter interpreter;
 
+	/**
+	 * Creates a new instance of ServiceLoader by file path.
+	 *
+	 * @param channelDest the channel destination to use to communicate with the service loaded by this
+	 *        loader.
+	 * @param currInterpreter the Jolie interpreter to use to load the service.
+	 * @param servicePath the path to the service to load and the arguments to run it. This path can be
+	 *        a Jolie service file or a directory containing a Jolie service file. If it is a directory,
+	 *        the service file must be named "service.ol".
+	 * @throws IOException if an IO error occurs while loading the service.
+	 * @throws CommandLineException if a command line error occurs while loading the service.
+	 */
 	public JolieServiceLoader( Expression channelDest, Interpreter currInterpreter, String servicePath,
 		Optional< String > serviceName, Optional< Value > params )
 		throws IOException, CommandLineException {
