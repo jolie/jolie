@@ -29,7 +29,6 @@ import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.regex.Pattern;
 import jolie.Interpreter;
 import jolie.cli.CommandLineException;
 import jolie.cli.CommandLineParser;
@@ -41,7 +40,6 @@ import jolie.runtime.embedding.EmbeddedServiceLoadingException;
 import jolie.runtime.expression.Expression;
 
 public class JolieServiceLoader extends EmbeddedServiceLoader {
-	private final static Pattern SERVICE_PATH_SPLIT_PATTERN = Pattern.compile( " " );
 	private final static AtomicLong SERVICE_LOADER_COUNTER = new AtomicLong();
 	private final Interpreter interpreter;
 
@@ -61,7 +59,7 @@ public class JolieServiceLoader extends EmbeddedServiceLoader {
 		Optional< String > serviceName, Optional< Value > params )
 		throws IOException, CommandLineException {
 		super( channelDest );
-		final String[] ss = SERVICE_PATH_SPLIT_PATTERN.split( servicePath );
+		final String[] ss = new String[] { servicePath };
 		final String[] options = currInterpreter.optionArgs();
 		final String[] newArgs = new String[ 2 + options.length + ss.length ];
 		newArgs[ 0 ] = "-i";
