@@ -29,6 +29,7 @@ import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.regex.Pattern;
 import jolie.Interpreter;
 import jolie.cli.CommandLineException;
 import jolie.cli.CommandLineParser;
@@ -40,6 +41,7 @@ import jolie.runtime.embedding.EmbeddedServiceLoadingException;
 import jolie.runtime.expression.Expression;
 
 public class JolieServiceLoader extends EmbeddedServiceLoader {
+	private final static Pattern SERVICE_PATH_SPLIT_PATTERN = Pattern.compile( " " );
 	private final static AtomicLong SERVICE_LOADER_COUNTER = new AtomicLong();
 	private final Interpreter interpreter;
 
@@ -49,9 +51,9 @@ public class JolieServiceLoader extends EmbeddedServiceLoader {
 	 * @param channelDest the channel destination to use to communicate with the service loaded by this
 	 *        loader.
 	 * @param currInterpreter the Jolie interpreter to use to load the service.
-	 * @param servicePath the path to the service to load. This path can be a Jolie service file or a
-	 *        directory containing a Jolie service file. If it is a directory, the service file must be
-	 *        named "service.ol".
+	 * @param servicePath the path to the service to load and the arguments to run it. This path can be
+	 *        a Jolie service file or a directory containing a Jolie service file. If it is a directory,
+	 *        the service file must be named "service.ol".
 	 * @throws IOException if an IO error occurs while loading the service.
 	 * @throws CommandLineException if a command line error occurs while loading the service.
 	 */
@@ -59,7 +61,7 @@ public class JolieServiceLoader extends EmbeddedServiceLoader {
 		Optional< String > serviceName, Optional< Value > params )
 		throws IOException, CommandLineException {
 		super( channelDest );
-		final String[] ss = new String[] { servicePath };
+		final String[] ss = SERVICE_PATH_SPLIT_PATTERN.split( servicePath );
 		final String[] options = currInterpreter.optionArgs();
 		final String[] newArgs = new String[ 2 + options.length + ss.length ];
 		newArgs[ 0 ] = "-i";
