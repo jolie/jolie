@@ -760,7 +760,7 @@ public class CommandLineParser implements AutoCloseable {
 				try {
 					olURL = new URI( olFilepath ).toURL();
 					result.stream = olURL.openStream();
-					result.source = olFilepath;
+					result.source = olURL.toString();
 					if( result.stream == null ) {
 						throw new MalformedURLException();
 					}
