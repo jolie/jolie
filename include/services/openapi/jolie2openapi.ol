@@ -77,18 +77,18 @@ service Utils {
             response.name = request.fault.name
             with( response.fault )  {
                 .name = request.name;
-                with( .type ) {
-                    .root_type.void_type = true;
+                with( ..type ) {
+                    ..root_type.void_type = true;
                     with( .sub_type[0] ) {
-                        .name = "fault";
-                        .cardinality.min = 1;
-                        .cardinality.max = 1;
-                        .type.root_type.string_type = true    
+                        ..name = "fault";
+                        ..cardinality.min = 1;
+                        ..cardinality.max = 1;
+                        ..type.root_type.string_type = true    
                     }
-                    with( .sub_type[1] ) {
-                        .name = "content";
-                        .cardinality.min = 1;
-                        .cardinality.max = 1              
+                    with( ..sub_type[1] ) {
+                        ..name = "content";
+                        ..cardinality.min = 1;
+                        ..cardinality.max = 1              
                     }
                 }
             }
@@ -151,7 +151,7 @@ define __body {
             throw( Error )
         )
         with( request_meta ) {
-            .filename = service_filename
+            ..filename = service_filename
         }
         getInputPortMetaData@MetaJolie( request_meta )( metadata )
       }
@@ -178,22 +178,22 @@ define __body {
       /* creating openapi definition file */
       undef( openapi );
       with( openapi ) {
-        with( .info ) {
-            .title = service_input_port + " API";
-            .description = "";
-            .version = ""
+        with( ..info ) {
+            ..title = service_input_port + " API";
+            ..description = "";
+            ..version = ""
         };
-        .host = router_host;
+        ..host = router_host;
         
-        .basePath = "/"
+        ..basePath = "/"
        
         /* importing of all the types */
         for( itf = 0, itf < #metadata.input[ input_port_index ].interfaces, itf++ ) {
-            with( .tags[ itf ] ) {
-                .name = .description = metadata.input[ input_port_index ].interfaces[ itf ].name
+            with( ..tags[ itf ] ) {
+                ..name = ..description = metadata.input[ input_port_index ].interfaces[ itf ].name
             };
             for ( itftp = 0, itftp < #metadata.input[ input_port_index ].interfaces[ itf ].types, itftp++ ) {
-                .definitions[ itftp ] << metadata.input[ input_port_index ].interfaces[ itf ].types[ itftp ]
+                ..definitions[ itftp ] << metadata.input[ input_port_index ].interfaces[ itf ].types[ itftp ]
             }
         }
       };
@@ -242,18 +242,18 @@ define __body {
                         // start definition of specific path method
                         with( openapi.paths[ path_counter ].( __method ) ) {
                             // general data
-                            .tags = c_interface_name;
-                            .description = "";
-                            .operationId = oper.operation_name;
-                            .consumes[0] = "application/json";
-                            .produces = "application/json";
+                            ..tags = c_interface_name;
+                            ..description = "";
+                            ..operationId = oper.operation_name;
+                            ..consumes[0] = "application/json";
+                            ..produces = "application/json";
 
                             // standard responses
 
                             // 200
-                            with( .responses[ 0 ] ) {
-                                    .status = 200;
-                                    .description = "OK";
+                            with( ..responses[ 0 ] ) {
+                                    ..status = 200;
+                                    ..description = "OK";
                                     tp_resp_count = 0; tp_resp_found = false;
 
                                     // looking for response type in the list of the interface types
@@ -266,14 +266,14 @@ define __body {
                                     };
                                     if ( tp_resp_found ) {
                                         // if the response type has been found, the schema link to the definition is reported
-                                        .schema.link_name << c_interface.types[ tp_resp_count ].name
+                                        ..schema.link_name << c_interface.types[ tp_resp_count ].name
                                     }
                             }
 
                             // 404
-                            with( .responses[ 1 ] ) {
-                                .status = 404;
-                                .description = "resource not found"
+                            with( ..responses[ 1 ] ) {
+                                ..status = 404;
+                                ..description = "resource not found"
                             }
                             undef( fnames )
 
@@ -287,11 +287,11 @@ define __body {
                                         openapi.definitions[ #openapi.definitions ] << fault_definition
                                         jolieFaultTypeCounter++     
                                 }
-                                with( .responses[ 2 ] ) {
-                                    .status = 500;
+                                with( ..responses[ 2 ] ) {
+                                    ..status = 500;
                                     gsff.name -> fnames
                                     getSchemaForFaults@Utils( gsff )( .schema )
-                                    .description = "JolieFault"
+                                    ..description = "JolieFault"
                                 }
                             }
                         };
@@ -361,9 +361,9 @@ define __body {
                                                     openapi_params_count++;
                                                     with( current_openapi_path.parameters[ openapi_params_count ] ) {
                                                         /* if a parameter name corresponds with a node of the type, such a node must be declared as a simple native type node */
-                                                        .name = current_sbt.name;
+                                                        ..name = current_sbt.name;
                                                         if ( current_sbt.cardinality.min > 0 ) {
-                                                            .required = true
+                                                            ..required = true
                                                         };
                                                         
                                                         // a path or query parameter cannot be a structured type in jolie
@@ -385,8 +385,8 @@ define __body {
                                                                 }
                                                         }
 
-                                                        .in.other = __found;
-                                                        .in.other.type << current_sbt.type 
+                                                        ..in.other = __found;
+                                                        ..in.other.type << current_sbt.type 
                                                     }
                                                 } else {
                                                     // it is a body parameter
@@ -457,9 +457,9 @@ define __body {
 
                                             openapi_params_count++;
                                             with( current_openapi_path.parameters[ openapi_params_count ] ) {
-                                                .name = current_sbt.name;
+                                                ..name = current_sbt.name;
                                                 if ( current_sbt.cardinality.min > 0 ) {
-                                                    .required = true
+                                                    ..required = true
                                                 };
 
                                                 if ( current_sbt.type instanceof TypeInLine  ) {
@@ -467,8 +467,8 @@ define __body {
                                                                 error_msg = "Type " + current_type.name  + ": field " + current_sbt.name + " has a type with subnodes which is not permitted"
                                                                 throw( DefinitionError, error_msg )
                                                         };
-                                                        .in.other = "query";
-                                                        .in.other.type << current_sbt.type
+                                                        ..in.other = "query";
+                                                        ..in.other.type << current_sbt.type
 
                                                         if ( current_sbt.type instanceof TypeLink ) {
                                                                 error_msg = "Type " + current_type.name  + ": field " + current_sbt.name + " cannot reference to another type because it is a path parameter"
@@ -486,9 +486,9 @@ define __body {
                                 // methods POST, PUT, DELETE
                                     if ( tp_found ) {
                                         with( current_openapi_path.parameters ) {
-                                            .in.in_body.schema_ref = real_current_type.name;
-                                            .name = "body";
-                                            .required = true
+                                            ..in.in_body.schema_ref = real_current_type.name;
+                                            ..name = "body";
+                                            ..required = true
                                         }
 
                                     }

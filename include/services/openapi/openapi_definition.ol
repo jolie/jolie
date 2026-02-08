@@ -93,19 +93,19 @@ main {
 
   [  getOpenApiDefinition( request )( response ) {
           with( json ) {
-            .swagger = "2.0";
-            .info -> request.info;
-            .host = request.host;
-            .basePath = request.basePath;
-            .paths = undefined
+            ..swagger = "2.0";
+            ..info -> request.info;
+            ..host = request.host;
+            ..basePath = request.basePath;
+            ..paths = undefined
             if ( is_defined( request.schemes ) ) {
-                .schemes -> request.schemes
+                ..schemes -> request.schemes
             };
             if ( is_defined( request.consumes ) ) {
-                .consumes -> request.consumes
+                ..consumes -> request.consumes
             };
             if ( is_defined( request.produces ) ) {
-                .produces -> request.produces
+                ..produces -> request.produces
             };
             if ( is_defined( request.tags ) ) {
                   if ( #request.tags == 1 ) {
@@ -113,10 +113,10 @@ main {
                   } else {
                      __tags << request.tags
                   };
-                  .tags << __tags
+                  ..tags << __tags
             };
             if ( is_defined( request.externalDocs ) ) {
-                  .externalDocs -> request.externalDocs
+                  ..externalDocs -> request.externalDocs
             };
             for( d = 0, d < #request.definitions, d++ ) {
                 if ( request.definitions[ d ] instanceof TypeDefinition ) {
@@ -125,7 +125,7 @@ main {
                     getTypeDefinition@JSONSchemaGenerator( request.definitions[ d ].fault )( def )
                     def.( request.definitions[ d ].fault.name ).properties.fault.pattern = request.definitions[ d ].name 
                 }
-                .definitions << def
+                ..definitions << def
             };
             if ( LOG ) { println@Console("Checking paths...")() };
             for( p = 0, p <#request.paths, p++ ) {
@@ -142,18 +142,18 @@ main {
                        } else {
                           __tags -> request.paths[ p ].( op ).tags
                        };
-                       .paths.(__template ).( op ).tags << __tags;
+                       ..paths.(__template ).( op ).tags << __tags;
                        if ( is_defined( request.paths[ p ].( op ).summary ) ) {
-                          .paths.(__template ).( op ).summary = request.paths[ p ].( op ).summary
+                          ..paths.(__template ).( op ).summary = request.paths[ p ].( op ).summary
                        };
                        if ( is_defined( request.paths[ p ].( op ).description ) ) {
-                          .paths.(__template ).( op ).description = request.paths[ p ].( op ).description
+                          ..paths.(__template ).( op ).description = request.paths[ p ].( op ).description
                        };
                        if ( is_defined( request.paths[ p ].( op ).externalDocs ) ) {
-                          .paths.(__template ).( op ).externalDocs << request.paths[ p ].( op ).externalDocs
+                          ..paths.(__template ).( op ).externalDocs << request.paths[ p ].( op ).externalDocs
                        };
                        if ( is_defined( request.paths[ p ].( op ).operationId ) ) {
-                          .paths.(__template ).( op ).operationId = request.paths[ p ].( op ).operationId
+                          ..paths.(__template ).( op ).operationId = request.paths[ p ].( op ).operationId
                        };
 
                        // consumes
@@ -173,7 +173,7 @@ main {
                          } else {
                            __produces -> request.paths[ p ].( op ).produces
                          };
-                          .paths.(__template ).( op ).produces << __produces
+                          ..paths.(__template ).( op ).produces << __produces
                        };
 
                        // responses
@@ -181,7 +181,7 @@ main {
                          for( res = 0, res < #request.paths[ p ].( op ).responses, res++ ) {
                               current_response -> request.paths[ p ].( op ).responses[ res ];
                               status = string( current_response.status )
-                              .paths.(__template ).( op ).responses.( status ).description = current_response.description;
+                              ..paths.(__template ).( op ).responses.( status ).description = current_response.description;
                               if ( is_defined( current_response.schema ) ) {
                                    getType@JSONSchemaGenerator( current_response.schema )( .paths.(__template ).( op ).responses.( status ).schema ) 
                               }

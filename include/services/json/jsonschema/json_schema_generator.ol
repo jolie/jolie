@@ -83,7 +83,7 @@ main
        with( response ) {
           getNativeType@MySelf( request.root_type )( resp_root_type );
           if ( #request.sub_type > 0 ) {
-                .type = "object"
+                ..type = "object"
           } else {
                 response << resp_root_type
           }
@@ -92,7 +92,7 @@ main
           if ( #request.sub_type > 0 ) {
               for( st = 0, st < #request.sub_type, st++ ) {
                      getSubType@MySelf( request.sub_type[ st ] )( resp_sub_type );
-                     .properties.( request.sub_type[ st ].name ) << resp_sub_type
+                     ..properties.( request.sub_type[ st ].name ) << resp_sub_type
               }
           }
       }
@@ -121,11 +121,11 @@ main
         if ( request.cardinality.min  == 1 && request.cardinality.max == 1 ) {
             response << typedef
         } else {
-            .items << typedef;
-            .type = "array";
-            .minItems = request.cardinality.min;
+            ..items << typedef;
+            ..type = "array";
+            ..minItems = request.cardinality.min;
             if ( is_defined( request.cardinality.max ) ) {
-                .maxItems = request.cardinality.max
+                ..maxItems = request.cardinality.max
             }
         }
       }
