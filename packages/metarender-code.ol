@@ -287,7 +287,7 @@ outputPort {{name}} {
                     response = response + "RequestResponse:\n";
                     for ( x = 0, x < rr_count, x++ ) {
                         with ( rr[ x ] ) {
-                        response = response + _indentation_string + .operation_name + "( " + .input + " )( " + .output + " )";
+                        response = response + _indentation_string + ..operation_name + "( " + .input + " )( " + .output + " )";
                         for ( f = 0, f < #.fault, f++ ) {
                                 if ( f == 0 ) {
                                         response = response + " throws "

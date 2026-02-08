@@ -186,18 +186,18 @@ main {
     }
 
     with( jester ) {
-        .filename = service_filename;
-        .host = router_host;
-        .inputPort = service_input_port;
-        .easyInterface = easy_interface;
+        ..filename = service_filename;
+        ..host = router_host;
+        ..inputPort = service_input_port;
+        ..easyInterface = easy_interface;
         if ( !easy_interface ) {
-            .template -> template
+            ..template -> template
         }
     }
 
     println@Console("Getting outputPort definition...")();
     with( request_meta ) {
-        .filename = service_filename
+        ..filename = service_filename
     }
     getInputPortMetaData@MetaJolie( request_meta )( metadata )
     for( i = 0, i < #metadata.input, i++ ) {
@@ -211,7 +211,7 @@ main {
     if (headerHandler == true){
         println@Console("Getting HeaderHandler...")();
         with( request_meta ) {
-            .filename = "RestHandler.ol"
+            ..filename = "RestHandler.ol"
         }
         getInputPortMetaData@MetaJolie( request_meta )( metadata )
         for( i = 0, i < #metadata.input, i++ ) {

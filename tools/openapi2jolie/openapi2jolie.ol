@@ -168,8 +168,8 @@ main {
 
 
     with( get_code_from_openapi ) {
-        .port_name = service_name;
-        .openapi -> openapi
+        ..port_name = service_name;
+        ..openapi -> openapi
     }
     getJolieInterface@OpenApi2Jolie( get_code_from_openapi )( interface_file )
     file.filename = output_folder + "/" + service_name + "Interface.iol";

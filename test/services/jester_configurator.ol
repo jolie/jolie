@@ -41,12 +41,12 @@ define doTest {
     getJsonValue@JsonUtils( template_json )( template )
     
     with( jester ) {
-        .filename = service_filename;
-        .host = router_host;
-        .inputPort = service_input_port;
-        .easyInterface = easy_interface;
+        ..filename = service_filename;
+        ..host = router_host;
+        ..inputPort = service_input_port;
+        ..easyInterface = easy_interface;
         if ( !easy_interface ) {
-            .template -> template
+            ..template -> template
         }
     }
 

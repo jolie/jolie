@@ -20,7 +20,7 @@ constants {
 define doTest
 {
   with( rq ) {
-      .filename = "private/sample_service.ol"
+      ..filename = "private/sample_service.ol"
   };
   getInputPortMetaData@MetaJolie( rq )( meta_description )
   getSurfaceWithoutOutputPort@MetaRender( meta_description.input )( surface  )

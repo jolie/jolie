@@ -61,8 +61,8 @@ service Main{
 
             /** Executing a transaction using executeTransaction **/
             with (statements){
-                .statement[0] = "INSERT INTO testTable(id, testString) VALUES (42, 'transactionUser');"
-                .statement[1] = "DELETE FROM testTable WHERE id = 1337;"
+                ..statement[0] = "INSERT INTO testTable(id, testString) VALUES (42, 'transactionUser');"
+                ..statement[1] = "DELETE FROM testTable WHERE id = 1337;"
             }
             executeTransaction@Database(statements)()
             query@Database("SELECT * FROM testTable;")(queryResponse)

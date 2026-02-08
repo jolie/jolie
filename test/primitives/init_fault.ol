@@ -14,10 +14,10 @@ define doTest {
 	}
 
 	with(req) {
-		.args[0] = "init_fault2.ol"; 
-		.workingDirectory="./primitives/unhandled_faults/";
-		.stdOutConsoleEnable = false;
-		.waitFor = 1
+		..args[0] = "init_fault2.ol"; 
+		..workingDirectory="./primitives/unhandled_faults/";
+		..stdOutConsoleEnable = false;
+		..waitFor = 1
 	}
 	;
 	exec@Exec(req)(res)

@@ -42,9 +42,9 @@ Jolie:
 define doTest
 {
 	with( person ) {
-		.firstName = "John";
-		.lastName = "Smith";
-		.age = 30
+		..firstName = "John";
+		..lastName = "Smith";
+		..age = 30
 	};
 	scope( s ) {
 		install( TypeMismatch => throw( TestFailed, s.TypeMismatch ) );
