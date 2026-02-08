@@ -417,13 +417,13 @@ define doTest
    }
 
    with ( exp ) {
-        .errors[0] = "Type of fault Fault1 of interface TmpInterface4 is not less than type of fault Fault1 of interface TmpInterface3";
-        .errors[1] = "Fault fault3 of operation tmp2 is not present in the TmpInterface3";
-        .errors[2] = "Fault Fault5 of operation tmp3 is not present in the TmpInterface3";
-        .errors[3] = "Fault Fault7 of operation tmp3 is not present in the TmpInterface3";
-        .errors[4] = "Fault Faults6 of operation tmp3 is not present in the TmpInterface3";
-        .errors[5] = "Type undefined is not less than T9";
-        .result = false
+        ..errors[0] = "Type of fault Fault1 of interface TmpInterface4 is not less than type of fault Fault1 of interface TmpInterface3";
+        ..errors[1] = "Fault fault3 of operation tmp2 is not present in the TmpInterface3";
+        ..errors[2] = "Fault Fault5 of operation tmp3 is not present in the TmpInterface3";
+        ..errors[3] = "Fault Fault7 of operation tmp3 is not present in the TmpInterface3";
+        ..errors[4] = "Fault Faults6 of operation tmp3 is not present in the TmpInterface3";
+        ..errors[5] = "Type undefined is not less than T9";
+        ..result = false
    }
    scope( compare_values ) {
       install( ComparisonFailed => throw( TestFailed, compare_values.ComparisonFailed ) )

@@ -43,13 +43,13 @@ inputPort JSONSchemaGenerator {
 define __number_refinements
 {
   with ( __type ) {
-    if ( is_defined( .refined_type ) ) {
-      if ( is_defined( .refined_type.ranges ) ) {
-        if ( is_defined( .refined_type.ranges.min ) ) {
-          response.minimum = .refined_type.ranges.min
+    if ( is_defined( ..refined_type ) ) {
+      if ( is_defined( ..refined_type.ranges ) ) {
+        if ( is_defined( ..refined_type.ranges.min ) ) {
+          response.minimum = ..refined_type.ranges.min
         }
-        if ( is_defined( .refined_type.ranges.max ) ) {
-          response.maximum = .refined_type.ranges.max
+        if ( is_defined( ..refined_type.ranges.max ) ) {
+          response.maximum = ..refined_type.ranges.max
         }
       }
     }
@@ -137,21 +137,21 @@ main
        if ( is_defined( request.string_type ) ) {
          response.type = "string"
          with ( request.string_type ) {
-          if ( is_defined( .refined_type ) ) {
-            if ( is_defined( .refined_type.length ) ) {
-              response.minLength = .refined_type.length.min
-              response.maxLength = .refined_type.length.max
+          if ( is_defined( ..refined_type ) ) {
+            if ( is_defined( ..refined_type.length ) ) {
+              response.minLength = ..refined_type.length.min
+              response.maxLength = ..refined_type.length.max
             }
-            if ( is_defined( .refined_type.regex ) ) {
+            if ( is_defined( ..refined_type.regex ) ) {
               // OpenAPI needs REs embedded in ^...$ (choices need to put under parentheses)
-              if ( contains@StringUtils( .refined_type.regex { substring = "|" } ) ) {
-                response.pattern = "^(" + .refined_type.regex + ")$"
+              if ( contains@StringUtils( ..refined_type.regex { substring = "|" } ) ) {
+                response.pattern = "^(" + ..refined_type.regex + ")$"
               } else {
-                response.pattern = "^" + .refined_type.regex + "$"
+                response.pattern = "^" + ..refined_type.regex + "$"
               }
             }
-            if ( is_defined( .refined_type.enum ) ) {
-              response.enum << .refined_type.enum
+            if ( is_defined( ..refined_type.enum ) ) {
+              response.enum << ..refined_type.enum
             }
           }
          }

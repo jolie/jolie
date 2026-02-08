@@ -76,7 +76,7 @@ service Utils {
 
             response.name = request.fault.name
             with( response.fault )  {
-                .name = request.name;
+                ..name = request.name;
                 with( ..type ) {
                     ..root_type.void_type = true;
                     with( .sub_type[0] ) {

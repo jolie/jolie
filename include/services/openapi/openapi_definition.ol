@@ -163,7 +163,7 @@ main {
                           } else {
                             __consumes -> request.paths[ p ].( op ).consumes
                           };
-                          .paths.(__template ).( op ).consumes << __consumes
+                          ..paths.(__template ).( op ).consumes << __consumes
                        };
 
                        // produces
@@ -183,7 +183,7 @@ main {
                               status = string( current_response.status )
                               ..paths.(__template ).( op ).responses.( status ).description = current_response.description;
                               if ( is_defined( current_response.schema ) ) {
-                                   getType@JSONSchemaGenerator( current_response.schema )( .paths.(__template ).( op ).responses.( status ).schema ) 
+                                   getType@JSONSchemaGenerator( current_response.schema )( ..paths.(__template ).( op ).responses.( status ).schema ) 
                               }
                          }
                        };
