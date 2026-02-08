@@ -89,11 +89,11 @@ RequestResponse:
 	 *
 	 * Example with HSQLDB:
 	 * with ( connectionInfo ) {
-	 *     .username = "sa";
-	 *     .password = "";
-	 *     .host = "";
-	 *     .database = "file:weatherdb/weatherdb"; // "." for memory-only
-	 *     .driver = "hsqldb_embedded"
+	 *     ..username = "sa";
+	 *     ..password = "";
+	 *     ..host = "";
+	 *     ..database = "file:weatherdb/weatherdb"; // "." for memory-only
+	 *     ..driver = "hsqldb_embedded"
 	 * };
 	 * connect@Database( connectionInfo )( void );
 	 */
@@ -135,10 +135,10 @@ RequestResponse:
 	 *
 	 * In order to achieve this, we can use field _template as it follows:
 	 *   with( query_request._template ) {
-	 *     .mycol1 = "col1";
-	 *     .mycol1.mycol2 = "col2";
-	 *     .mycol1.mycol2.mycol3 = "col3";
-	 *     .mycol4 = "col4"
+	 *     ..mycol1 = "col1";
+	 *     ..mycol1.mycol2 = "col2";
+	 *     ..mycol1.mycol2.mycol3 = "col3";
+	 *     ..mycol4 = "col4"
 	 *   }
 	 * _template does not currently support vectors.
 	 * 

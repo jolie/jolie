@@ -80,20 +80,20 @@ define doTest {
         }"
     getJsonValue@JsonUtils( template_json )( template )
     with( openapi ) {
-        .filename = service_filename;
-        .host = router_host;
-        .inputPort = service_input_port;
-        .easyInterface = false;
+        ..filename = service_filename;
+        ..host = router_host;
+        ..inputPort = service_input_port;
+        ..easyInterface = false;
         if ( !easy_interface ) {
-            .template -> template
+            ..template -> template
         }
     }
 
     getOpenApi@Jolie2OpenApi( openapi )( openapi_definition )
     getJsonValue@JsonUtils( openapi_definition )( openapi )
     with( gji ) {
-        .port_name = service_input_port;
-        .openapi -> openapi
+        ..port_name = service_input_port;
+        ..openapi -> openapi
     };
     getJolieInterface@OpenApi2Jolie( gji )( client_interface )
     
@@ -104,8 +104,8 @@ define doTest {
     writeFile@File( f )(  )
     
     with( get_code_from_openapi ) {
-        .port_name = service_input_port;
-        .openapi -> openapi;
+        ..port_name = service_input_port;
+        ..openapi -> openapi;
         get_code_from_openapi.protocol = protocol
     }
     getJolieClient@OpenApi2Jolie( get_code_from_openapi )( client_file )
@@ -120,12 +120,12 @@ define doTest {
 
     // running jester
     with( jester ) {
-        .filename = service_filename;
-        .host = router_host;
-        .inputPort = service_input_port;
-        .easyInterface = false;
+        ..filename = service_filename;
+        ..host = router_host;
+        ..inputPort = service_input_port;
+        ..easyInterface = false;
         if ( !easy_interface ) {
-            .template -> template
+            ..template -> template
         }
     }
 
@@ -154,8 +154,8 @@ define doTest {
     scope( call ) {
         install( Fault404 =>  throw( TestFailed, "getOrders - Received 404 when 200 was expected" ) )
         with( rq ) {
-            ._puserId = "ciao";
-            ._qmaxItems = 10
+            .._puserId = "ciao";
+            .._qmaxItems = 10
         }
         getOrders@Test( rq )( rs )
     }
@@ -164,11 +164,11 @@ define doTest {
     scope( call ) {
         install( Fault404 =>  throw( TestFailed, "putOrder - Received 404 when 200 was expected" ) )
         with( rq.body ) {
-            .userId = "ciao"
-            with( .order ) {
-                .title = "title";
-                .id = 5;
-                .date = "04.04.2004"
+            ..userId = "ciao"
+            with( ..order ) {
+                ..title = "title";
+                ..id = 5;
+                ..date = "04.04.2004"
             }
         }
         putOrder@Test( rq )( rs )
@@ -178,7 +178,7 @@ define doTest {
     scope( call ) {
         install( Fault404 =>  throw( TestFailed, "deleteOrder - Received 404 when 200 was expected" ) )
         with( rq.body ) {
-            .orderId = 5
+            ..orderId = 5
         }
         deleteOrder@Test( rq )( rs )
     }
@@ -204,9 +204,9 @@ define doTest {
     scope( call ) {
         install( Fault404 =>  throw( TestFailed, "getOrderdsByItem (0) - Received 404 when 200 was expected" ) )
         with( rq.body ) {
-            .userId = "ciao";
-            .itemName= "ciao";
-            .quantity = 0
+            ..userId = "ciao";
+            ..itemName= "ciao";
+            ..quantity = 0
         }
         getOrdersByItem@Test( rq )( rs )
     }
@@ -215,8 +215,8 @@ define doTest {
     scope( call ) {
         install( Fault404 =>  throw( TestFailed, "getOrderdsByItem (1) - Received 404 when 200 was expected" ) )
         with( rq.body ) {
-            .userId = "ciao";
-            .itemName= "ciao"
+            ..userId = "ciao";
+            ..itemName= "ciao"
         }
         getOrdersByItem@Test( rq )( rs )
     }
@@ -225,7 +225,7 @@ define doTest {
     scope( call ) {
         install( Fault404 =>  throw( TestFailed, "getOrderdsByItem (2) - Received 404 when 200 was expected" ) )
         with( rq.body ) {
-            .userId = "ciao"
+            ..userId = "ciao"
         }
         getOrdersByItem@Test( rq )( rs )
     }
@@ -235,9 +235,9 @@ define doTest {
     scope( fault ) {
         install( FaultTest => nullProcess )
         with( rq.body ) {
-            .userId = "ciao";
-            .itemName= "ciao";
-            .quantity = 10
+            ..userId = "ciao";
+            ..itemName= "ciao";
+            ..quantity = 10
         }
         getOrdersByItem@Test( rq )()
     }

@@ -41,8 +41,8 @@ define doTest {
     getJsonValue@JsonUtils( openapi )( openapi_json )
 
     with( get_code_from_openapi ) {
-        .port_name = "SwaggerDemo";
-        .openapi -> openapi_json
+        ..port_name = "SwaggerDemo";
+        ..openapi -> openapi_json
     }
     getJolieInterface@OpenApi2Jolie( get_code_from_openapi )( interface_file )
     
@@ -56,7 +56,7 @@ define doTest {
     writeFile@File( f )( )
 
     with( request_meta ) {
-        .filename = TESTFILE
+        ..filename = TESTFILE
     }
     getInputPortMetaData@MetaJolie( request_meta )( metadata )
 
@@ -66,8 +66,8 @@ define doTest {
             throw(TestFailed, "Generated interface differs from what expected")
         )
         with( cmp ) {
-            .v1 -> metadata.input.interfaces[ 0 ];
-            .v2 -> metadata.input.interfaces[ 1 ]
+            ..v1 -> metadata.input.interfaces[ 0 ];
+            ..v2 -> metadata.input.interfaces[ 1 ]
         }
         undef( cmp.v1.name )
         undef( cmp.v2.name )
