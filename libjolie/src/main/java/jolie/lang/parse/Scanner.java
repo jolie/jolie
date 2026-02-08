@@ -47,6 +47,7 @@ public class Scanner implements AutoCloseable {
 		ID,					///< [a-zA-Z_][a-zA-Z0-9_]*
 		COMMA,				///< ,
 		DOT,				///< .
+		DOTDOT,				///< ..
 		INT,				///< [0-9]+
 		TRUE,				///< true
 		FALSE,				///< false
@@ -933,7 +934,7 @@ public class Scanner implements AutoCloseable {
 						state = State.DIVIDE_or_BEGIN_COMMENT_or_LINE_COMMENT;
 					} else if ( ch == '-' ) {
 						state = State.MINUS_or_NUMBER_or_POINTS_TO;
-					} else if ( ch == '.' ) { // DOT or REAL
+					} else if ( ch == '.' ) { // DOT, DOTDOT or REAL
 						state = State.DOT;
 					} else { // ONE CHARACTER TOKEN
 
@@ -1188,7 +1189,10 @@ public class Scanner implements AutoCloseable {
 					}
 					break;
 				case DOT: // DOT
-					if ( !Character.isDigit( ch ) ) {
+					if (ch == '.') {
+						retval = new Token( TokenType.DOTDOT );
+						readChar();
+					} else if ( !Character.isDigit( ch ) ) {
 						retval = new Token( TokenType.DOT );
 					} else {
 						state = State.REAL; // It's a REAL
