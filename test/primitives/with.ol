@@ -25,7 +25,6 @@ define doTest
 {
   b = "hello"
   with( root ) {
-    // .b = b;  it works, the semicolon solves
     ..b = b
     ..c = "yes"
     ..a.left << "Left" {
