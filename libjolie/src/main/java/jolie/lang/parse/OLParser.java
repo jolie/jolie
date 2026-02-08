@@ -866,8 +866,8 @@ public class OLParser extends AbstractParser {
 	private EmbedServiceNode parseEmbeddedServiceNode()
 		throws IOException, ParserException {
 		// define record of things needed for creating the EmbedServiceNode
-		record EmbedServiceNodeInternals(String serviceName, OutputPortInfo bindingPort, boolean hasNewKeyword,
-			OLSyntaxNode passingParam) {
+		record EmbedServiceNodeInternals( String serviceName, OutputPortInfo bindingPort, boolean hasNewKeyword,
+			OLSyntaxNode passingParam ) {
 		}
 		InternalParseResult< EmbedServiceNodeInternals > parseResult = parseInternals( () -> {
 			nextToken();
@@ -1611,7 +1611,7 @@ public class OLParser extends AbstractParser {
 	 * @param internals Holds the information gathered by the ParsingLambda.
 	 * @param context The ParsingContext of the part of code that was parsed.
 	 */
-	private record InternalParseResult< I >(I internals, ParsingContext context) {
+	private record InternalParseResult< I >( I internals, ParsingContext context ) {
 	}
 
 	/**
