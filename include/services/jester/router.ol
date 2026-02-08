@@ -227,8 +227,8 @@ define route
 	} else {
 		statusCode = 200;
 		with( invokeReq ) {
-			.operation = op;
-			.outputPort = outputPort
+			..operation = op;
+			..outputPort = outputPort
 		};
 	foreach( n : request.data ) {
 			invokeReq.data.(n) << request.data.(n)
@@ -311,8 +311,8 @@ define makeLink
 	for( i = 0, i < #routes && !found, i++ ) {
 		if ( routes[i].method == request.method && routes[i].operation == request.operation ) {
 			with( expand ) {
-				.template = routes[i].template;
-				.params -> request.params
+				..template = routes[i].template;
+				..params -> request.params
 			};
 			expand@UriTemplates( expand )( response );
 			response = "http://" + config.host + response

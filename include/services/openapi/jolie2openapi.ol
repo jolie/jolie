@@ -79,7 +79,7 @@ service Utils {
                 ..name = request.name;
                 with( ..type ) {
                     ..root_type.void_type = true;
-                    with( .sub_type[0] ) {
+                    with( ..sub_type[0] ) {
                         ..name = "fault";
                         ..cardinality.min = 1;
                         ..cardinality.max = 1;
@@ -290,7 +290,7 @@ define __body {
                                 with( ..responses[ 2 ] ) {
                                     ..status = 500;
                                     gsff.name -> fnames
-                                    getSchemaForFaults@Utils( gsff )( .schema )
+                                    getSchemaForFaults@Utils( gsff )( ..schema )
                                     ..description = "JolieFault"
                                 }
                             }

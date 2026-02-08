@@ -3021,8 +3021,9 @@ public class OLParser extends AbstractParser {
 			throwException( "Prefixed variable paths must be inside a with block" );
 		}
 
-		while( tokens.get( 0 ).is( Scanner.TokenType.DOT ) ) {
+		while( tokens.get( 0 ).is( Scanner.TokenType.DOTDOT ) ) {
 			i--;
+			tokens.set( 0, new Scanner.Token( Scanner.TokenType.DOT ) );
 			tokens.addAll( 0, inVariablePaths.get( i ) );
 		}
 
@@ -3463,7 +3464,7 @@ public class OLParser extends AbstractParser {
 				}
 			}
 			break;
-		case DOT:
+		case DOTDOT:
 			path = parseVariablePath();
 			break;
 		case CARET:

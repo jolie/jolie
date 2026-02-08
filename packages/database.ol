@@ -89,11 +89,11 @@ RequestResponse:
 	 *
 	 * Example with HSQLDB:
 	 * with ( connectionInfo ) {
-	 *     .username = "sa";
-	 *     .password = "";
-	 *     .host = "";
-	 *     .database = "file:weatherdb/weatherdb"; // "." for memory-only
-	 *     .driver = "hsqldb_embedded"
+	 *     ..username = "sa";
+	 *     ..password = "";
+	 *     ..host = "";
+	 *     ..database = "file:weatherdb/weatherdb"; // "." for memory-only
+	 *     ..driver = "hsqldb_embedded"
 	 * };
 	 * connect@Database( connectionInfo )( void );
 	 */
