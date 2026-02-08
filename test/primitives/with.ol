@@ -26,9 +26,9 @@ define doTest
   b = "hello"
   with( root ) {
     // .b = b;  it works, the semicolon solves
-    .b = b
-    .c = "yes"
-    .a.left << "Left" {
+    ..b = b
+    ..c = "yes"
+    ..a.left << "Left" {
       x = 1
       y = 2
       y.left = "y_l"
@@ -44,7 +44,7 @@ define doTest
   }
 
   with( otherRoot ) {
-    .alias -> root.a
+    ..alias -> root.a
   }
 
   if ( otherRoot.alias.left.y.right != root.a.left.y.right ) {
