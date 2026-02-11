@@ -1136,6 +1136,23 @@ public class OLParser extends AbstractParser {
 						urlStr.substring( 0, 4 ) + new URI( urlStr.substring( 4 ) ).normalize().toString() ).toURL();
 				}
 			} else {
+				// Check if there's a URI scheme embedded in the path (e.g., http://... or file://...)
+				int schemeIdx = urlStr.indexOf( "://" );
+				if( schemeIdx > 0 ) {
+					// Find the start of the scheme by looking backwards for a non-scheme character
+					int schemeStart = schemeIdx - 1;
+					while( schemeStart > 0 && (Character.isLetterOrDigit( urlStr.charAt( schemeStart - 1 ) ) || urlStr.charAt( schemeStart - 1 ) == '.') ) {
+						schemeStart--;
+					}
+					// Extract the URI (from scheme start to end)
+					String extractedUri = urlStr.substring( schemeStart );
+					try {
+						return new URI( extractedUri ).toURL();
+					} catch( Exception e ) {
+						// If extraction fails, continue to file path handling
+					}
+				}
+				// Handle as a regular file path
 				return Path.of( urlStr ).toUri().toURL();
 			}
 		} catch( MalformedURLException | URISyntaxException e ) {
