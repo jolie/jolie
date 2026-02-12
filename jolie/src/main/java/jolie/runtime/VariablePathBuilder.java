@@ -44,6 +44,11 @@ public final class VariablePathBuilder {
 		return this;
 	}
 
+	public VariablePathBuilder add( String id ) {
+		list.add( new Pair<>( Value.create( id ), null ) );
+		return this;
+	}
+
 	@SuppressWarnings( "unchecked" )
 	public VariablePath toVariablePath() {
 		if( global ) {

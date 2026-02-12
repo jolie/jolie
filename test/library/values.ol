@@ -25,7 +25,7 @@ from console import Console
 	A template for test units.
 */
 service Main {
-	embed Values as values
+	embed Values as valuesService
 	embed Console as console
 
 	inputPort TestUnitInput {
@@ -41,21 +41,21 @@ service Main {
 				interests[0] = "beer"
 				interests[1] = "hockey"
 			}
-			if( !equals@values( {
+			if( !equals@valuesService( {
 				fst << person
 				snd << person
 			} ) ) {
 				throw( TestFailed, "value equality does not match expected result" )
 			}
 
-			if( !equals@values( {
+			if( !equals@valuesService( {
 				fst -> person
 				snd << person
 			} ) ) {
 				throw( TestFailed, "value equality does not match expected result" )
 			}
 
-			if( equals@values( {
+			if( equals@valuesService( {
 				fst << person
 				snd << {
 					name = "Homer"
@@ -66,7 +66,7 @@ service Main {
 				throw( TestFailed, "value equality does not match expected result" )
 			}
 
-			if( equals@values( {
+			if( equals@valuesService( {
 				fst << person
 				snd << {
 					name = "Homer"
@@ -78,21 +78,21 @@ service Main {
 				throw( TestFailed, "value equality does not match expected result" )
 			}
 
-			if( hashCode@values( void ) != 0 ) {
+			if( hashCode@valuesService( void ) != 0 ) {
 			 	throw( TestFailed, "value hashCode does not match expected result" )
 			}
 
-			if( hashCode@values( person ) != hashCode@values( person ) ) {
+			if( hashCode@valuesService( person ) != hashCode@valuesService( person ) ) {
 			 	throw( TestFailed, "value hashCode does not match expected result" )
 			}
 
 			person2 -> person
-			if( hashCode@values( person ) != hashCode@values( person2 ) ) {
+			if( hashCode@valuesService( person ) != hashCode@valuesService( person2 ) ) {
 			 	throw( TestFailed, "value hashCode does not match expected result" )
 			}
 
 			person3 << person
-			if( hashCode@values( person ) != hashCode@values( person3 ) ) {
+			if( hashCode@valuesService( person ) != hashCode@valuesService( person3 ) ) {
 			 	throw( TestFailed, "value hashCode does not match expected result" )
 			}
 		}

@@ -59,6 +59,8 @@ import jolie.lang.parse.ast.OneWayOperationStatement;
 import jolie.lang.parse.ast.OutputPortInfo;
 import jolie.lang.parse.ast.ParallelStatement;
 import jolie.lang.parse.ast.PointerStatement;
+import jolie.lang.parse.ast.PvalAssignStatement;
+import jolie.lang.parse.ast.PvalDeepCopyStatement;
 import jolie.lang.parse.ast.PostDecrementStatement;
 import jolie.lang.parse.ast.PostIncrementStatement;
 import jolie.lang.parse.ast.PreDecrementStatement;
@@ -330,6 +332,54 @@ public interface UnitOLVisitor extends OLVisitor< Unit, Unit > {
 
 	@Override
 	default Unit visit( ConstantStringExpression n, Unit ctx ) {
+		visit( n );
+		return Unit.INSTANCE;
+	}
+
+	void visit( CurrentValueNode n );
+
+	@Override
+	default Unit visit( CurrentValueNode n, Unit ctx ) {
+		visit( n );
+		return Unit.INSTANCE;
+	}
+
+	void visit( PathsExpressionNode n );
+
+	@Override
+	default Unit visit( PathsExpressionNode n, Unit ctx ) {
+		visit( n );
+		return Unit.INSTANCE;
+	}
+
+	void visit( ValuesExpressionNode n );
+
+	@Override
+	default Unit visit( ValuesExpressionNode n, Unit ctx ) {
+		visit( n );
+		return Unit.INSTANCE;
+	}
+
+	void visit( PvalExpressionNode n );
+
+	@Override
+	default Unit visit( PvalExpressionNode n, Unit ctx ) {
+		visit( n );
+		return Unit.INSTANCE;
+	}
+
+	void visit( PvalAssignStatement n );
+
+	@Override
+	default Unit visit( PvalAssignStatement n, Unit ctx ) {
+		visit( n );
+		return Unit.INSTANCE;
+	}
+
+	void visit( PvalDeepCopyStatement n );
+
+	@Override
+	default Unit visit( PvalDeepCopyStatement n, Unit ctx ) {
 		visit( n );
 		return Unit.INSTANCE;
 	}

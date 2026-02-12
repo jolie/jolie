@@ -81,6 +81,8 @@ import jolie.lang.parse.ast.OperationDeclaration;
 import jolie.lang.parse.ast.OutputPortInfo;
 import jolie.lang.parse.ast.ParallelStatement;
 import jolie.lang.parse.ast.PointerStatement;
+import jolie.lang.parse.ast.PvalAssignStatement;
+import jolie.lang.parse.ast.PvalDeepCopyStatement;
 import jolie.lang.parse.ast.PostDecrementStatement;
 import jolie.lang.parse.ast.PostIncrementStatement;
 import jolie.lang.parse.ast.PreDecrementStatement;
@@ -113,6 +115,7 @@ import jolie.lang.parse.ast.expression.ConstantDoubleExpression;
 import jolie.lang.parse.ast.expression.ConstantIntegerExpression;
 import jolie.lang.parse.ast.expression.ConstantLongExpression;
 import jolie.lang.parse.ast.expression.ConstantStringExpression;
+import jolie.lang.parse.ast.expression.CurrentValueNode;
 import jolie.lang.parse.ast.expression.FreshValueExpressionNode;
 import jolie.lang.parse.ast.expression.IfExpressionNode;
 import jolie.lang.parse.ast.expression.InlineTreeExpressionNode;
@@ -120,9 +123,12 @@ import jolie.lang.parse.ast.expression.InstanceOfExpressionNode;
 import jolie.lang.parse.ast.expression.IsTypeExpressionNode;
 import jolie.lang.parse.ast.expression.NotExpressionNode;
 import jolie.lang.parse.ast.expression.OrConditionNode;
+import jolie.lang.parse.ast.expression.PathsExpressionNode;
 import jolie.lang.parse.ast.expression.ProductExpressionNode;
+import jolie.lang.parse.ast.expression.PvalExpressionNode;
 import jolie.lang.parse.ast.expression.SolicitResponseExpressionNode;
 import jolie.lang.parse.ast.expression.SumExpressionNode;
+import jolie.lang.parse.ast.expression.ValuesExpressionNode;
 import jolie.lang.parse.ast.expression.VariableExpressionNode;
 import jolie.lang.parse.ast.expression.VoidExpressionNode;
 import jolie.lang.parse.ast.types.TypeChoiceDefinition;
@@ -1050,6 +1056,30 @@ public class SemanticVerifier implements UnitOLVisitor {
 	public void visit( ConstantStringExpression n ) {}
 
 	@Override
+	public void visit( CurrentValueNode n ) {}
+
+	@Override
+	public void visit( PathsExpressionNode n ) {
+		n.whereClause().accept( this );
+	}
+
+	@Override
+	public void visit( ValuesExpressionNode n ) {
+		n.whereClause().accept( this );
+	}
+
+	@Override
+	public void visit( PvalExpressionNode n ) {
+		n.pathExpression().accept( this );
+	}
+
+	@Override
+	public void visit( PvalAssignStatement n ) {}
+
+	@Override
+	public void visit( PvalDeepCopyStatement n ) {}
+
+	@Override
 	public void visit( ConstantLongExpression n ) {}
 
 	@Override
@@ -1145,7 +1175,7 @@ public class SemanticVerifier implements UnitOLVisitor {
 
 	@Override
 	public void visit( ValueVectorSizeExpressionNode n ) {
-		n.variablePath().accept( this );
+		n.expression().accept( this );
 	}
 
 	@Override

@@ -27,7 +27,9 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import jolie.lang.NativeType;
 import jolie.lang.parse.ast.types.BasicTypeDefinition;
+import jolie.runtime.ByteArray;
 import jolie.runtime.Value;
+import jolie.runtime.ValuePath;
 import jolie.runtime.ValueVector;
 import jolie.util.Range;
 
@@ -139,6 +141,13 @@ class TypeImpl extends Type {
 	@Override
 	protected void check( Value value, StringBuilder pathBuilder )
 		throws TypeCheckingException {
+		// Attempt type conversion (includes fast path check)
+		if( !tryConvertValue( value, basicType.nativeType() ) ) {
+			throw new TypeCheckingException(
+				"Cannot cast node value to " + basicType.nativeType().id() + ": " + pathBuilder.toString() );
+		}
+
+		// Validate refinements (length, regex, ranges, etc.) after conversion
 		basicType.check( value, pathBuilder::toString );
 
 		if( subTypes != null ) {
@@ -182,75 +191,64 @@ class TypeImpl extends Type {
 		}
 	}
 
+	private boolean tryConvertValue( Value value, NativeType targetType ) {
+		Object o = value.valueObject();
+
+		// Fast path: Check if already correct type
+		boolean alreadyCorrect = switch( targetType ) {
+		case STRING -> o instanceof String;
+		case INT -> o instanceof Integer;
+		case DOUBLE -> o instanceof Double;
+		case LONG -> o instanceof Long;
+		case BOOL -> o instanceof Boolean;
+		case RAW -> o instanceof ByteArray;
+		case PATH -> o instanceof ValuePath;
+		case VOID -> o == null;
+		case ANY -> true;
+		};
+
+		if( alreadyCorrect ) {
+			return true;
+		}
+
+		// Attempt type conversion
+		try {
+			switch( targetType ) {
+			case DOUBLE:
+				value.setValue( value.doubleValueStrict() );
+				return true;
+			case INT:
+				value.setValue( value.intValueStrict() );
+				return true;
+			case LONG:
+				value.setValue( value.longValueStrict() );
+				return true;
+			case BOOL:
+				value.setValue( value.boolValueStrict() );
+				return true;
+			case STRING:
+				value.setValue( value.strValueStrict() );
+				return true;
+			case RAW:
+				value.setValue( value.byteArrayValueStrict() );
+				return true;
+			case PATH:
+				value.setValue( value.pathValueStrict() );
+				return true;
+			case VOID:
+				return o == null;
+			}
+		} catch( TypeCastingException e ) {
+			// Conversion failed
+		}
+		return false;
+	}
+
 	private void castNativeType( Value value, StringBuilder pathBuilder )
 		throws TypeCastingException {
-		try {
-			basicType.check( value, pathBuilder::toString );
-		} catch( TypeCheckingException ex ) {
-			// ANY is not handled, because checkNativeType returns true for it anyway
-			switch( basicType.nativeType() ) {
-			case DOUBLE:
-				try {
-					value.setValue( value.doubleValueStrict() );
-				} catch( TypeCastingException e ) {
-					throw new TypeCastingException(
-						"Cannot cast node value to " + basicType.nativeType().id() + ": " + pathBuilder.toString() );
-				}
-				break;
-			case INT:
-				try {
-					value.setValue( value.intValueStrict() );
-				} catch( TypeCastingException e ) {
-					throw new TypeCastingException(
-						"Cannot cast node value to " + basicType.nativeType().id() + ": " + pathBuilder.toString() );
-				}
-				break;
-			case LONG:
-				try {
-					value.setValue( value.longValueStrict() );
-				} catch( TypeCastingException e ) {
-					throw new TypeCastingException(
-						"Cannot cast node value to " + basicType.nativeType().id() + ": " + pathBuilder.toString() );
-				}
-				break;
-			case BOOL:
-				try {
-					value.setValue( value.boolValueStrict() );
-				} catch( TypeCastingException e ) {
-					throw new TypeCastingException(
-						"Cannot cast node value to " + basicType.nativeType().id() + ": " + pathBuilder.toString() );
-				}
-				break;
-			case STRING:
-				try {
-					value.setValue( value.strValueStrict() );
-				} catch( TypeCastingException e ) {
-					throw new TypeCastingException(
-						"Cannot cast node value to " + basicType.nativeType().id() + ": " + pathBuilder.toString() );
-				}
-				break;
-			case VOID:
-				if( value.valueObject() != null ) {
-					throw new TypeCastingException(
-						"Expected " + NativeType.VOID.id() + ", found " +
-							value.valueObject().getClass().getSimpleName() +
-							": " + pathBuilder.toString() );
-				}
-				break;
-			case RAW:
-				try {
-					value.setValue( value.byteArrayValueStrict() );
-				} catch( TypeCastingException e ) {
-					throw new TypeCastingException(
-						"Cannot cast node value to " + basicType.nativeType().id() + ": " + pathBuilder.toString() );
-				}
-				break;
-			default:
-				throw new TypeCastingException(
-					"Expected " + basicType.nativeType().id() + ", found " +
-						value.valueObject().getClass().getSimpleName() +
-						": " + pathBuilder.toString() );
-			}
+		if( !tryConvertValue( value, basicType.nativeType() ) ) {
+			throw new TypeCastingException(
+				"Cannot cast node value to " + basicType.nativeType().id() + ": " + pathBuilder.toString() );
 		}
 	}
 }
