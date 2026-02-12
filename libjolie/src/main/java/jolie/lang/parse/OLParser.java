@@ -866,8 +866,8 @@ public class OLParser extends AbstractParser {
 	private EmbedServiceNode parseEmbeddedServiceNode()
 		throws IOException, ParserException {
 		// define record of things needed for creating the EmbedServiceNode
-		record EmbedServiceNodeInternals(String serviceName, OutputPortInfo bindingPort, boolean hasNewKeyword,
-			OLSyntaxNode passingParam) {
+		record EmbedServiceNodeInternals( String serviceName, OutputPortInfo bindingPort, boolean hasNewKeyword,
+			OLSyntaxNode passingParam ) {
 		}
 		InternalParseResult< EmbedServiceNodeInternals > parseResult = parseInternals( () -> {
 			nextToken();
@@ -1611,7 +1611,7 @@ public class OLParser extends AbstractParser {
 	 * @param internals Holds the information gathered by the ParsingLambda.
 	 * @param context The ParsingContext of the part of code that was parsed.
 	 */
-	private record InternalParseResult< I >(I internals, ParsingContext context) {
+	private record InternalParseResult< I >( I internals, ParsingContext context ) {
 	}
 
 	/**
@@ -2769,7 +2769,7 @@ public class OLParser extends AbstractParser {
 
 			retVal = stm;
 			break;
-		case DOT:
+		case DOTDOT:
 			if( !inVariablePaths.isEmpty() ) {
 				retVal = parseAssignOrDeepCopyOrPointerStatement( parsePrefixedVariablePath() );
 			}
@@ -2937,7 +2937,7 @@ public class OLParser extends AbstractParser {
 
 	private VariablePathNode parseVariablePath()
 		throws ParserException, IOException {
-		if( token.is( Scanner.TokenType.DOT ) ) {
+		if( token.is( Scanner.TokenType.DOTDOT ) ) {
 			return parsePrefixedVariablePath();
 		}
 		assertIdentifier( "Expected variable path" );
@@ -3021,8 +3021,9 @@ public class OLParser extends AbstractParser {
 			throwException( "Prefixed variable paths must be inside a with block" );
 		}
 
-		while( tokens.get( 0 ).is( Scanner.TokenType.DOT ) ) {
+		while( tokens.get( 0 ).is( Scanner.TokenType.DOTDOT ) ) {
 			i--;
+			tokens.set( 0, new Scanner.Token( Scanner.TokenType.DOT ) );
 			tokens.addAll( 0, inVariablePaths.get( i ) );
 		}
 
@@ -3196,7 +3197,7 @@ public class OLParser extends AbstractParser {
 		eat( Scanner.TokenType.LPAREN, "expected (" );
 		if( token.is( Scanner.TokenType.ID ) ) {
 			ret = parseVariablePath();
-		} else if( token.is( Scanner.TokenType.DOT ) ) {
+		} else if( token.is( Scanner.TokenType.DOTDOT ) ) {
 			ret = parsePrefixedVariablePath();
 		}
 
@@ -3463,7 +3464,7 @@ public class OLParser extends AbstractParser {
 				}
 			}
 			break;
-		case DOT:
+		case DOTDOT:
 			path = parseVariablePath();
 			break;
 		case CARET:
@@ -3815,6 +3816,13 @@ public class OLParser extends AbstractParser {
 				nextToken();
 			} else if( token.is( Scanner.TokenType.DOT ) ) {
 				if( !importTargetIDStarted ) {
+					importTargets.add( token.content() );
+				}
+				nextToken();
+			} else if( token.is( Scanner.TokenType.DOTDOT ) ) {
+				if( !importTargetIDStarted ) {
+					// DOT and DOTDOT tokens have an empty string as contents
+					importTargets.add( token.content() );
 					importTargets.add( token.content() );
 				}
 				nextToken();

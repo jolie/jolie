@@ -43,13 +43,13 @@ inputPort JSONSchemaGenerator {
 define __number_refinements
 {
   with ( __type ) {
-    if ( is_defined( .refined_type ) ) {
-      if ( is_defined( .refined_type.ranges ) ) {
-        if ( is_defined( .refined_type.ranges.min ) ) {
-          response.minimum = .refined_type.ranges.min
+    if ( is_defined( ..refined_type ) ) {
+      if ( is_defined( ..refined_type.ranges ) ) {
+        if ( is_defined( ..refined_type.ranges.min ) ) {
+          response.minimum = ..refined_type.ranges.min
         }
-        if ( is_defined( .refined_type.ranges.max ) ) {
-          response.maximum = .refined_type.ranges.max
+        if ( is_defined( ..refined_type.ranges.max ) ) {
+          response.maximum = ..refined_type.ranges.max
         }
       }
     }
@@ -83,7 +83,7 @@ main
        with( response ) {
           getNativeType@MySelf( request.root_type )( resp_root_type );
           if ( #request.sub_type > 0 ) {
-                .type = "object"
+                ..type = "object"
           } else {
                 response << resp_root_type
           }
@@ -92,7 +92,7 @@ main
           if ( #request.sub_type > 0 ) {
               for( st = 0, st < #request.sub_type, st++ ) {
                      getSubType@MySelf( request.sub_type[ st ] )( resp_sub_type );
-                     .properties.( request.sub_type[ st ].name ) << resp_sub_type
+                     ..properties.( request.sub_type[ st ].name ) << resp_sub_type
               }
           }
       }
@@ -121,11 +121,11 @@ main
         if ( request.cardinality.min  == 1 && request.cardinality.max == 1 ) {
             response << typedef
         } else {
-            .items << typedef;
-            .type = "array";
-            .minItems = request.cardinality.min;
+            ..items << typedef;
+            ..type = "array";
+            ..minItems = request.cardinality.min;
             if ( is_defined( request.cardinality.max ) ) {
-                .maxItems = request.cardinality.max
+                ..maxItems = request.cardinality.max
             }
         }
       }
@@ -137,21 +137,21 @@ main
        if ( is_defined( request.string_type ) ) {
          response.type = "string"
          with ( request.string_type ) {
-          if ( is_defined( .refined_type ) ) {
-            if ( is_defined( .refined_type.length ) ) {
-              response.minLength = .refined_type.length.min
-              response.maxLength = .refined_type.length.max
+          if ( is_defined( ..refined_type ) ) {
+            if ( is_defined( ..refined_type.length ) ) {
+              response.minLength = ..refined_type.length.min
+              response.maxLength = ..refined_type.length.max
             }
-            if ( is_defined( .refined_type.regex ) ) {
+            if ( is_defined( ..refined_type.regex ) ) {
               // OpenAPI needs REs embedded in ^...$ (choices need to put under parentheses)
-              if ( contains@StringUtils( .refined_type.regex { substring = "|" } ) ) {
-                response.pattern = "^(" + .refined_type.regex + ")$"
+              if ( contains@StringUtils( ..refined_type.regex { substring = "|" } ) ) {
+                response.pattern = "^(" + ..refined_type.regex + ")$"
               } else {
-                response.pattern = "^" + .refined_type.regex + "$"
+                response.pattern = "^" + ..refined_type.regex + "$"
               }
             }
-            if ( is_defined( .refined_type.enum ) ) {
-              response.enum << .refined_type.enum
+            if ( is_defined( ..refined_type.enum ) ) {
+              response.enum << ..refined_type.enum
             }
           }
          }

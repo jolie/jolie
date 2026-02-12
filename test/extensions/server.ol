@@ -232,18 +232,18 @@ define shutdown
 define doTest
 {
 	with( person ) {
-		.id = 123456789123456789L;
-		.firstName = "John";
-		.lastName = "Döner";
-		.age = 30;
-		.size = 90.5;
-		.male = true;
-		.unknown = "Hey";
-		.unknown2 = void;
-		.array[0] = 0;
-		.array[1] = "Ho";
-		.array[2] = 3.14;
-		.object.data = 10L
+		..id = 123456789123456789L;
+		..firstName = "John";
+		..lastName = "Döner";
+		..age = 30;
+		..size = 90.5;
+		..male = true;
+		..unknown = "Hey";
+		..unknown2 = void;
+		..array[0] = 0;
+		..array[1] = "Ho";
+		..array[2] = 3.14;
+		..object.data = 10L
 	};
 	reqVal = "Döner";
 	scope( s ) {

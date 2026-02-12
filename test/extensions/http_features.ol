@@ -61,14 +61,14 @@ define checkResponse2
 define doTest
 {
 	with( person ) {
-		.id = 123456789123456789L;
-		.firstName = "John";
-		.lastName = "Döner";
-		.age = 30;
-		.size = 90.5;
-		.male = true;
-		.unknown = "Hey";
-		.unknown2 = void
+		..id = 123456789123456789L;
+		..firstName = "John";
+		..lastName = "Döner";
+		..age = 30;
+		..size = 90.5;
+		..male = true;
+		..unknown = "Hey";
+		..unknown2 = void
 	};
 	reqVal = "Döner";
 	statusCode = 0; // important: initialise statusCode, otherwise it does not get set

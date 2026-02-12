@@ -79,7 +79,7 @@ define __body {
       service_input_port = request.inputPort;
 
       with( request_meta ) {
-        .filename = service_filename
+        ..filename = service_filename
       };
       getInputPortMetaData@MetaJolie( request_meta )( metadata )
       /* creating a map name-types for managing type links */
@@ -105,9 +105,9 @@ define __body {
           if ( metadata.input[ i ].name == service_input_port ) {
               output_port_index = #render.output_port
               with( render.output_port[ output_port_index ] ) {
-                    .name = service_input_port;
-                    .location = metadata.input[ i ].location;
-                    .protocol = metadata.input[ i ].protocol
+                    ..name = service_input_port;
+                    ..location = metadata.input[ i ].location;
+                    ..protocol = metadata.input[ i ].protocol
               };
 
               // for each interface in the port
@@ -223,12 +223,12 @@ define __body {
 
 define __config_operation {
     with( response.routes[ __r_counter ] ) {
-        .method = __cur_op.method;
-        .template = __cur_op.template;
-        .operation = __cur_op;
-        .outputPort = service_input_port;
+        ..method = __cur_op.method;
+        ..template = __cur_op.template;
+        ..operation = __cur_op;
+        ..outputPort = service_input_port;
         foreach( cast_par : __cast ) {
-            .cast.( cast_par ) = __cast.( cast_par )
+            ..cast.( cast_par ) = __cast.( cast_par )
         }
     }
 }

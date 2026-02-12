@@ -474,8 +474,8 @@ service MetaJolie {
             if ( is_defined( __vsecond.( v ) ) || ( __vfirst.( v ) instanceof void && __vsecond.( v ) instanceof void ) ) {
                 for( x = 0, x <#__vfirst.( v ), x++ ) {
                     with( cmp_rq ) {
-                        .v1 -> __vfirst.( v )[ x ];
-                        .v2 -> __vsecond.( v )[ x ]
+                        ..v1 -> __vfirst.( v )[ x ];
+                        ..v2 -> __vsecond.( v )[ x ]
                     }
                     compareValuesStrict@MySelf( cmp_rq )( response )
                 }
@@ -492,10 +492,10 @@ service MetaJolie {
             if ( is_defined( __vsecond.( v ) ) || ( __vfirst.( v ) instanceof void && __vsecond.( v ) instanceof void ) ) {
                 for( x = 0, x <#__vfirst.( v ), x++ ) {
                     with( cmp_rq ) {
-                        .v1 -> __vfirst.( v )[ x ];
+                        ..v1 -> __vfirst.( v )[ x ];
                         found_item = false
                         for ( y = 0, y <#__vsecond.( v ), y++ ) {
-                            .v2 -> __vsecond.( v )[ y ]
+                            ..v2 -> __vsecond.( v )[ y ]
                             scope( cmp_item ) {
                                 install( ComparisonFailed => nullProcess )
                                 compareValuesVectorLight@MySelf( cmp_rq )( )
@@ -707,8 +707,8 @@ service MetaJolie {
                                             }
                                         } 
                                         with( rq ) {
-                                            .t1.types -> i2.types;
-                                            .t2.types -> i1.types
+                                            ..t1.types -> i2.types;
+                                            ..t2.types -> i1.types
                                         }
                                         typeLessThan@Utils( rq )( type_check )
                                         if ( !type_check ) {
