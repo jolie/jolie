@@ -51,9 +51,9 @@ public class JolieServiceLoader extends EmbeddedServiceLoader {
 	 * @param channelDest the channel destination to use to communicate with the service loaded by this
 	 *        loader.
 	 * @param currInterpreter the Jolie interpreter to use to load the service.
-	 * @param servicePath the path to the service to load. This path can be a Jolie service file or a
-	 *        directory containing a Jolie service file. If it is a directory, the service file must be
-	 *        named "service.ol".
+	 * @param servicePath the path to the service to load and the arguments to run it. This path can be
+	 *        a Jolie service file or a directory containing a Jolie service file. If it is a directory,
+	 *        the service file must be named "service.ol".
 	 * @throws IOException if an IO error occurs while loading the service.
 	 * @throws CommandLineException if a command line error occurs while loading the service.
 	 */
