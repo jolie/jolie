@@ -37,7 +37,7 @@ service HttpTemplateServer{
            .osc.getOrders.method = "GET"
            .osc.getOrders.inHeaders.Authorization = "token"
            .osc.getOrders.statusCodes.Unauthorized = 403
-           .osc.addOrder.template="/api/orders"
+           .osc.addOrder.template="/api/orders?amount={amount}"
            .osc.addOrder.method="POST"
            .osc.addOrder.inHeaders.Authorization = "token"
            .osc.addOrder.statusCodes = 201

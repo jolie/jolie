@@ -47,7 +47,7 @@ service Main {
            osc.getOrders.template="/api/orders"
            osc.getOrders.method="GET"
            osc.getOrders.outHeaders.("Authorization")= "token"
-           osc.addOrder.template="/api/orders"
+           osc.addOrder.template="/api/orders?amount={amount}"
            osc.addOrder.method="POST"
            osc.addOrder.outHeaders.("Authorization")= "token"
            osc.addOrder.responseHeaders = "headers"
