@@ -62,7 +62,8 @@ public final class Constants {
 
 	private static String readAsciiLogo() {
 		try( BufferedReader reader = new BufferedReader(
-			new InputStreamReader( Constants.class.getClassLoader().getResourceAsStream( "ascii-logo.txt" ) ) ) ) {
+			new InputStreamReader( Constants.class.getClassLoader().getResourceAsStream( "ascii-logo.txt" ),
+				"US-ASCII" ) ) ) {
 			return reader.lines().collect( Collectors.joining( "\n" ) );
 		} catch( IOException e ) {
 			return "ERROR: could not close ascii-logo.txt correctly.";
