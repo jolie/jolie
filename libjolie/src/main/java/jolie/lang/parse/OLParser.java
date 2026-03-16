@@ -145,10 +145,12 @@ import jolie.util.UriUtils;
  *
  */
 public class OLParser extends AbstractParser {
+	@FunctionalInterface
 	private interface ParsingRunnable {
 		void parse() throws IOException, ParserException;
 	}
 
+	@FunctionalInterface
 	private interface ParsingSupplier {
 		OLSyntaxNode parse() throws IOException, ParserException;
 	}

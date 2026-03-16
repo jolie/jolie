@@ -9,6 +9,7 @@ import jolie.lang.parse.module.exceptions.ModuleNotFoundException;
 /**
  * An interface description for the module finder of Jolie Module system
  */
+@FunctionalInterface
 public interface ModuleFinder {
 
 	/*
