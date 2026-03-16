@@ -41,7 +41,7 @@ public abstract class OLSyntaxNode implements Serializable {
 		return context;
 	}
 
-	abstract public < C, R > R accept( OLVisitor< C, R > v, C ctx );
+	public abstract < C, R > R accept( OLVisitor< C, R > v, C ctx );
 
 	public < R > R accept( OLVisitor< Unit, R > v ) {
 		return accept( v, Unit.INSTANCE );
