@@ -1141,7 +1141,8 @@ public class OLParser extends AbstractParser {
 				if( schemeIdx > 0 ) {
 					// Find the start of the scheme by looking backwards for a non-scheme character
 					int schemeStart = schemeIdx - 1;
-					while( schemeStart > 0 && (Character.isLetterOrDigit( urlStr.charAt( schemeStart - 1 ) ) || urlStr.charAt( schemeStart - 1 ) == '.') ) {
+					while( schemeStart > 0 && (Character.isLetterOrDigit( urlStr.charAt( schemeStart - 1 ) )
+						|| urlStr.charAt( schemeStart - 1 ) == '.') ) {
 						schemeStart--;
 					}
 					// Extract the URI (from scheme start to end)
