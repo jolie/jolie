@@ -1,6 +1,6 @@
 /***************************************************************************
  *   Copyright (C) 2006-2015 by Fabrizio Montesi <famontesi@gmail.com> 	   *
- *   Copyright (C) 2021-2022 Vicki Mixen <vicki@mixen.dk>			       *
+ *   Copyright (C) 2021-2022 Vicki Mixen <vicki@mixen.dk>                  *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -238,10 +238,8 @@ public abstract class AbstractParser {
 				scanner.codeLine().remove( scanner.codeLine().size() - 1 );
 				int column = scanner.codeLine().get( scanner.codeLine().size() - 1 ).length() - 1; // last index of
 																									// (new)last line
-				URIParsingContext newContext =
-					new URIParsingContext( scanner.source(), scanner.line() - 1, scanner.line() - 1,
-						column, column, scanner.codeLine() );
-				return newContext;
+				return new URIParsingContext( scanner.source(), scanner.line() - 1, scanner.line() - 1,
+					column, column, scanner.codeLine() );
 			} else if( scanner.errorColumn() == -1 && scanner.line() <= 0 ) { // nothing has been read yet
 				return new URIParsingContext( scanner.source(), scanner.line(), scanner.line(),
 					0, 0 + token.content().length(), scanner.codeLine() );
