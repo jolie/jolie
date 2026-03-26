@@ -27,6 +27,8 @@
 		<exclude name="ExhaustiveSwitchHasDefault" />
 		<exclude name="SystemPrintln" />
 		<exclude name="LiteralsFirstInComparisons" />
+		<exclude name="EnumComparison" />
+		<exclude name="RelianceOnDefaultCharset" />
 
 		<!-- Under evaluation -->
 		<exclude name="ConstantsInInterface" />
@@ -65,6 +67,8 @@
 		<exclude name="UseUnderscoresInNumericLiterals" />
 		<exclude name="UseShortArrayInitializer" />
 		<exclude name="CommentDefaultAccessModifier" />
+		<exclude name="TypeParameterNamingConventions" />
+		<exclude name="ModifierOrder" />
 
 		<!-- Under evaluation -->
 		<exclude name="UnnecessaryConstructor" />
@@ -106,6 +110,7 @@
 		<exclude name="SingularField" />
 		<exclude name="ClassWithOnlyPrivateConstructorsShouldBeFinal" />
 		<exclude name="AvoidCatchingGenericException" />
+		<exclude name="PublicMemberInNonPublicType" />
 
 		<!-- Under evaluation -->
 		<exclude name="ExcessiveParameterList" />
@@ -148,6 +153,9 @@
 		<exclude name="MissingSerialVersionUID" />
 		<exclude name="AvoidLiteralsInIfCondition" />
 		<exclude name="UseLocaleWithCaseConversions" />
+		<exclude name="AvoidCatchingGenericException" />
+		<exclude name="ReplaceJavaUtilCalendar" />
+		<exclude name="ReplaceJavaUtilDate" />
 
 		<!-- Under evaluation -->
 		<exclude name="DoNotThrowExceptionInFinally" />
