@@ -867,6 +867,7 @@ public class CommandLineParser implements AutoCloseable {
 	 *
 	 * @author Fabrizio Montesi
 	 */
+	@FunctionalInterface
 	public interface ArgumentHandler {
 		/**
 		 * Called when {@link CommandLineParser} cannot recognize a command line argument.

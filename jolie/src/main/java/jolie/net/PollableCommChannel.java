@@ -31,6 +31,7 @@ import java.io.IOException;
  * @see CommCore
  * @see CommChannel
  */
+@FunctionalInterface
 public interface PollableCommChannel {
 	/**
 	 * Returns <code>true</code> if this channel is ready for receiving an input message,
