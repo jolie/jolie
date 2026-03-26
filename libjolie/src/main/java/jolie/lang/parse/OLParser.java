@@ -1601,9 +1601,8 @@ public class OLParser extends AbstractParser {
 			serviceNodeProgramBuilder.addChild( main );
 		}
 
-		ServiceNode node = ServiceNode.create( ctx, serviceName, accessModifier, serviceNodeProgramBuilder.toProgram(),
+		return ServiceNode.create( ctx, serviceName, accessModifier, serviceNodeProgramBuilder.toProgram(),
 			parameter );
-		return node;
 	}
 
 	/**
@@ -3282,9 +3281,8 @@ public class OLParser extends AbstractParser {
 		String outputPortId = token.content();
 		nextToken();
 		OLSyntaxNode outputExpression = parseOperationExpressionParameter();
-		OLSyntaxNode expr = new SolicitResponseExpressionNode( context, id, outputPortId, outputExpression );
 
-		return expr;
+		return new SolicitResponseExpressionNode( context, id, outputPortId, outputExpression );
 	}
 
 	private OLSyntaxNode parseWhileStatement()

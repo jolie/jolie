@@ -109,10 +109,7 @@ public class UriUtils {
 
 	public static String normalizeWindowsPath( String path ) {
 		return Helpers.ifWindowsOrElse(
-			() -> {
-				String result = path.replace( "\\", "/" );
-				return result;
-			},
+			() -> path.replace( "\\", "/" ),
 			() -> path );
 	}
 }

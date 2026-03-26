@@ -177,8 +177,7 @@ public class ModuleFinderImpl implements ModuleFinder {
 		// 4. Try to resolve P from the list of packages directories.
 		for( Path packagePath : this.packagePaths ) {
 			try {
-				ModuleSource moduleFile = this.moduleLookup( packagePath, importPath );
-				return moduleFile;
+				return this.moduleLookup( packagePath, importPath );
 			} catch( FileNotFoundException e ) {
 				errPathList.add( packagePath );
 			}
