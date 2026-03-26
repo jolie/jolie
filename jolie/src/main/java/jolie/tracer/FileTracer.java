@@ -5,9 +5,9 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
-import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Base64;
-import java.util.Date;
 import java.util.function.Supplier;
 
 import jolie.Interpreter;
@@ -46,9 +46,9 @@ public class FileTracer implements Tracer {
 
 	private void createNewLogFile() {
 		String format = "ddMMyyyyHHmmssSSS";
-		SimpleDateFormat sdf = new SimpleDateFormat( format );
-		final Date now = new Date();
-		String filename = sdf.format( now );
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern( format );
+		final LocalDateTime now = LocalDateTime.now();
+		String filename = now.format( formatter );
 		File logFile = new File( filename + ".jolie.log.json" );
 		try {
 			fileWriter = new FileWriter( logFile, true );
@@ -74,9 +74,9 @@ public class FileTracer implements Tracer {
 
 	private String getCurrentTimeStamp() {
 		String format = "dd/MM/yyyy HH:mm:ss.SSS";
-		SimpleDateFormat sdf = new SimpleDateFormat( format );
-		final Date now = new Date();
-		return sdf.format( now );
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern( format );
+		final LocalDateTime now = LocalDateTime.now();
+		return now.format( formatter );
 	}
 
 	private void trace( EmbeddingTraceAction action ) {
