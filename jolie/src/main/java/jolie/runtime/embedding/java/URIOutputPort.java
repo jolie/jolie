@@ -35,8 +35,7 @@ public class URIOutputPort extends OutputPort {
 	@Override
 	public CommChannel commChannel() {
 		try {
-			CommChannel commChannel = super.targetInterpreter().commCore().createCommChannel( location, null );
-			return commChannel;
+			return super.targetInterpreter().commCore().createCommChannel( location, null );
 		} catch( IOException e ) {
 			// this should never happen, location is validated at service creation
 			e.printStackTrace();
