@@ -27,6 +27,7 @@ import java.util.function.Supplier;
  *
  * @author Fabrizio Montesi
  */
+@FunctionalInterface
 public interface Tracer {
 
 	void trace( Supplier< ? extends TraceAction > supplier );

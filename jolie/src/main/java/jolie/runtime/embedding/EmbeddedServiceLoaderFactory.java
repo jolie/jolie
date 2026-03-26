@@ -29,6 +29,7 @@ import jolie.runtime.expression.Expression;
  * 
  * @author Fabrizio Montesi
  */
+@FunctionalInterface
 public interface EmbeddedServiceLoaderFactory {
 	/**
 	 * Create an {@link EmbeddedServiceLoader}.

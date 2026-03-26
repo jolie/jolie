@@ -28,6 +28,7 @@ import java.rmi.RemoteException;
  *
  * @author Fabrizio Montesi
  */
+@FunctionalInterface
 public interface JolieRemote extends Remote {
 	RemoteBasicChannel createRemoteBasicChannel()
 		throws RemoteException;

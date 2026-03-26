@@ -30,6 +30,7 @@ import jolie.lang.parse.ast.types.TypeDefinition;
  *
  * @author Fabrizio Montesi
  */
+@FunctionalInterface
 public interface XsdToJolieConverter {
 	class ConversionException extends Exception {
 		private static final long serialVersionUID = Constants.serialVersionUID();
