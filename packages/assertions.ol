@@ -35,7 +35,7 @@ RequestResponse:
 service Assertions {
 	execution: concurrent
 
-	embed Values as values
+	embed Values as valuesService
 	embed StringUtils as stringUtils
 	
 	inputPort Input {
@@ -49,8 +49,8 @@ service Assertions {
 
 	main {
 		equals( request )() {
-			if( !equals@values( { fst -> request.expected, snd -> request.actual } ) ) {
-				throw( AssertionError, valueToPrettyString@stringUtils(request) ) //, diff@values( request ) )
+			if( !equals@valuesService( { fst -> request.expected, snd -> request.actual } ) ) {
+				throw( AssertionError, valueToPrettyString@stringUtils(request) ) //, diff@valuesService( request ) )
 			}
 		}
 	}

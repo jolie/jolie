@@ -42,6 +42,7 @@ public class BasicType< T > {
 	private static final Predicate< Value > BOOL_PREDICATE = Value::isBool;
 	private static final Predicate< Value > VOID_PREDICATE = v -> v.valueObject() == null;
 	private static final Predicate< Value > RAW_PREDICATE = Value::isByteArray;
+	private static final Predicate< Value > PATH_PREDICATE = Value::isPath;
 
 	static {
 		PURE_BASIC_TYPES.put( NativeType.ANY,
@@ -62,6 +63,8 @@ public class BasicType< T > {
 			new BasicType<>( NativeType.VOID, VOID_PREDICATE, Collections.emptyList(), v -> {
 				throw new IllegalStateException( "void values cannot be refined" );
 			} ) );
+		PURE_BASIC_TYPES.put( NativeType.PATH,
+			new BasicType<>( NativeType.PATH, PATH_PREDICATE, Collections.emptyList(), Value::pathValue ) );
 	}
 
 	private final NativeType nativeType;

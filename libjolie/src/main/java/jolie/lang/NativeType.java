@@ -30,7 +30,7 @@ import java.util.Map;
 public enum NativeType {
 	// UNDEFINED( "undefined" ),
 	STRING( "string" ), INT( "int" ), LONG( "long" ), BOOL( "bool" ), DOUBLE( "double" ), VOID( "void" ), RAW(
-		"raw" ), ANY( "any" );
+		"raw" ), ANY( "any" ), PATH( "path" );
 
 	private final static Map< String, NativeType > ID_MAP;
 

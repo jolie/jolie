@@ -64,6 +64,8 @@ import jolie.lang.parse.ast.OneWayOperationStatement;
 import jolie.lang.parse.ast.OutputPortInfo;
 import jolie.lang.parse.ast.ParallelStatement;
 import jolie.lang.parse.ast.PointerStatement;
+import jolie.lang.parse.ast.PvalAssignStatement;
+import jolie.lang.parse.ast.PvalDeepCopyStatement;
 import jolie.lang.parse.ast.PostDecrementStatement;
 import jolie.lang.parse.ast.PostIncrementStatement;
 import jolie.lang.parse.ast.PreDecrementStatement;
@@ -96,6 +98,7 @@ import jolie.lang.parse.ast.expression.ConstantDoubleExpression;
 import jolie.lang.parse.ast.expression.ConstantIntegerExpression;
 import jolie.lang.parse.ast.expression.ConstantLongExpression;
 import jolie.lang.parse.ast.expression.ConstantStringExpression;
+import jolie.lang.parse.ast.expression.CurrentValueNode;
 import jolie.lang.parse.ast.expression.FreshValueExpressionNode;
 import jolie.lang.parse.ast.expression.IfExpressionNode;
 import jolie.lang.parse.ast.expression.InlineTreeExpressionNode;
@@ -103,9 +106,12 @@ import jolie.lang.parse.ast.expression.InstanceOfExpressionNode;
 import jolie.lang.parse.ast.expression.IsTypeExpressionNode;
 import jolie.lang.parse.ast.expression.NotExpressionNode;
 import jolie.lang.parse.ast.expression.OrConditionNode;
+import jolie.lang.parse.ast.expression.PathsExpressionNode;
 import jolie.lang.parse.ast.expression.ProductExpressionNode;
+import jolie.lang.parse.ast.expression.PvalExpressionNode;
 import jolie.lang.parse.ast.expression.SolicitResponseExpressionNode;
 import jolie.lang.parse.ast.expression.SumExpressionNode;
+import jolie.lang.parse.ast.expression.ValuesExpressionNode;
 import jolie.lang.parse.ast.expression.VariableExpressionNode;
 import jolie.lang.parse.ast.expression.VoidExpressionNode;
 import jolie.lang.parse.ast.types.TypeChoiceDefinition;
@@ -648,6 +654,53 @@ public class OLParseTreeOptimizer {
 		}
 
 		@Override
+		public void visit( CurrentValueNode n ) {
+			currNode = n;
+		}
+
+		@Override
+		public void visit( PathsExpressionNode n ) {
+			currNode = new PathsExpressionNode(
+				n.context(),
+				n.operations(),
+				optimize( n.whereClause() ) );
+		}
+
+		@Override
+		public void visit( ValuesExpressionNode n ) {
+			currNode = new ValuesExpressionNode(
+				n.context(),
+				n.operations(),
+				optimize( n.whereClause() ) );
+		}
+
+		@Override
+		public void visit( PvalExpressionNode n ) {
+			currNode = new PvalExpressionNode(
+				n.context(),
+				optimize( n.pathExpression() ),
+				n.pathOperations() );
+		}
+
+		@Override
+		public void visit( PvalAssignStatement n ) {
+			currNode = new PvalAssignStatement(
+				n.context(),
+				optimize( n.pathExpression() ),
+				n.pathOperations(),
+				optimize( n.expression() ) );
+		}
+
+		@Override
+		public void visit( PvalDeepCopyStatement n ) {
+			currNode = new PvalDeepCopyStatement(
+				n.context(),
+				optimize( n.pathExpression() ),
+				n.pathOperations(),
+				optimize( n.rightExpression() ) );
+		}
+
+		@Override
 		public void visit( ProductExpressionNode n ) {
 			if( n.operands().size() > 1 ) {
 				ProductExpressionNode ret = new ProductExpressionNode( n.context() );
@@ -733,7 +786,7 @@ public class OLParseTreeOptimizer {
 		public void visit( ValueVectorSizeExpressionNode n ) {
 			currNode = new ValueVectorSizeExpressionNode(
 				n.context(),
-				optimizePath( n.variablePath() ) );
+				optimize( n.expression() ) );
 		}
 
 		@Override

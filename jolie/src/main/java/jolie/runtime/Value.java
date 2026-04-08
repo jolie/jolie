@@ -387,6 +387,10 @@ public abstract class Value implements Expression, Cloneable {
 		return new ValueImpl( b );
 	}
 
+	public static Value create( ValuePath p ) {
+		return new ValueImpl( p );
+	}
+
 	public static Value create( Value value ) {
 		return new ValueImpl( value );
 	}
@@ -505,6 +509,10 @@ public abstract class Value implements Expression, Cloneable {
 		setValueObject( object );
 	}
 
+	public final void setValue( ValuePath object ) {
+		setValueObject( object );
+	}
+
 	@Override
 	public final synchronized boolean equals( Object obj ) {
 		if( !(obj instanceof Value) )
@@ -515,6 +523,8 @@ public abstract class Value implements Expression, Cloneable {
 		if( val.isDefined() ) {
 			if( isByteArray() || val.isByteArray() ) {
 				r = byteArrayValue().equals( val.byteArrayValue() );
+			} else if( isPath() || val.isPath() ) {
+				r = pathValue().equals( val.pathValue() );
 			} else if( isString() || val.isString() ) {
 				r = strValue().equals( val.strValue() );
 			} else if( isDouble() || val.isDouble() ) {
@@ -563,6 +573,10 @@ public abstract class Value implements Expression, Cloneable {
 
 	public final boolean isString() {
 		return (valueObject() instanceof String);
+	}
+
+	public final boolean isPath() {
+		return (valueObject() instanceof ValuePath);
 	}
 
 	public final boolean isChannel() {
@@ -660,6 +674,32 @@ public abstract class Value implements Expression, Cloneable {
 			}
 		}
 		return r;
+	}
+
+	public ValuePath pathValue() {
+		try {
+			return pathValueStrict();
+		} catch( TypeCastingException e ) {
+			return new ValuePath( "", false );
+		}
+	}
+
+	public final ValuePath pathValueStrict()
+		throws TypeCastingException {
+		Object o = valueObject();
+		if( o == null ) {
+			throw new TypeCastingException();
+		} else if( o instanceof ValuePath ) {
+			return (ValuePath) o;
+		} else if( o instanceof String ) {
+			try {
+				return new ValuePath( (String) o, true );
+			} catch( IllegalArgumentException e ) {
+				// ValuePath constructor validates path format; convert to expected exception type
+				throw new TypeCastingException();
+			}
+		}
+		throw new TypeCastingException();
 	}
 
 	public int intValue() {

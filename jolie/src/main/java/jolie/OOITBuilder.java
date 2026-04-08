@@ -85,6 +85,8 @@ import jolie.lang.parse.ast.OperationDeclaration;
 import jolie.lang.parse.ast.OutputPortInfo;
 import jolie.lang.parse.ast.ParallelStatement;
 import jolie.lang.parse.ast.PointerStatement;
+import jolie.lang.parse.ast.PvalAssignStatement;
+import jolie.lang.parse.ast.PvalDeepCopyStatement;
 import jolie.lang.parse.ast.PostDecrementStatement;
 import jolie.lang.parse.ast.PostIncrementStatement;
 import jolie.lang.parse.ast.PreDecrementStatement;
@@ -118,6 +120,7 @@ import jolie.lang.parse.ast.expression.ConstantDoubleExpression;
 import jolie.lang.parse.ast.expression.ConstantIntegerExpression;
 import jolie.lang.parse.ast.expression.ConstantLongExpression;
 import jolie.lang.parse.ast.expression.ConstantStringExpression;
+import jolie.lang.parse.ast.expression.CurrentValueNode;
 import jolie.lang.parse.ast.expression.FreshValueExpressionNode;
 import jolie.lang.parse.ast.expression.IfExpressionNode;
 import jolie.lang.parse.ast.expression.InlineTreeExpressionNode;
@@ -125,9 +128,13 @@ import jolie.lang.parse.ast.expression.InstanceOfExpressionNode;
 import jolie.lang.parse.ast.expression.IsTypeExpressionNode;
 import jolie.lang.parse.ast.expression.NotExpressionNode;
 import jolie.lang.parse.ast.expression.OrConditionNode;
+import jolie.lang.parse.ast.expression.PathOperation;
+import jolie.lang.parse.ast.expression.PathsExpressionNode;
 import jolie.lang.parse.ast.expression.ProductExpressionNode;
+import jolie.lang.parse.ast.expression.PvalExpressionNode;
 import jolie.lang.parse.ast.expression.SolicitResponseExpressionNode;
 import jolie.lang.parse.ast.expression.SumExpressionNode;
+import jolie.lang.parse.ast.expression.ValuesExpressionNode;
 import jolie.lang.parse.ast.expression.VariableExpressionNode;
 import jolie.lang.parse.ast.expression.VoidExpressionNode;
 import jolie.lang.parse.ast.types.TypeChoiceDefinition;
@@ -169,6 +176,8 @@ import jolie.process.PostDecrementProcess;
 import jolie.process.PostIncrementProcess;
 import jolie.process.PreDecrementProcess;
 import jolie.process.PreIncrementProcess;
+import jolie.process.PvalAssignmentProcess;
+import jolie.process.PvalDeepCopyProcess;
 import jolie.process.Process;
 import jolie.process.ProvideUntilProcess;
 import jolie.process.RequestResponseProcess;
@@ -205,6 +214,7 @@ import jolie.runtime.expression.CastDoubleExpression;
 import jolie.runtime.expression.CastIntExpression;
 import jolie.runtime.expression.CastLongExpression;
 import jolie.runtime.expression.CastStringExpression;
+import jolie.runtime.expression.CurrentValueExpression;
 import jolie.runtime.expression.CompareCondition;
 import jolie.runtime.expression.Expression;
 import jolie.runtime.expression.Expression.Operand;
@@ -1393,7 +1403,8 @@ public class OOITBuilder implements UnitOLVisitor {
 						: opType == Scanner.TokenType.RANGLE ? CompareOperators.MAJOR
 							: opType == Scanner.TokenType.MINOR_OR_EQUAL ? CompareOperators.MINOR_OR_EQUAL
 								: opType == Scanner.TokenType.MAJOR_OR_EQUAL ? CompareOperators.MAJOR_OR_EQUAL
-									: null;
+									: opType == Scanner.TokenType.HAS ? CompareOperators.HAS
+										: null;
 		Objects.requireNonNull( operator );
 		currExpression = new CompareCondition( left, currExpression, operator );
 	}
@@ -1426,6 +1437,75 @@ public class OOITBuilder implements UnitOLVisitor {
 	@Override
 	public void visit( ConstantStringExpression n ) {
 		currExpression = Value.create( n.value() );
+	}
+
+	@Override
+	public void visit( CurrentValueNode n ) {
+		currExpression = new jolie.runtime.expression.CurrentValueExpression( n.operations() );
+	}
+
+	private record PathQueryComponents(VariablePath varPath, List< PathOperation > remainingOps, Expression whereExpr) {
+	}
+
+	private PathQueryComponents buildPathQuery( List< PathOperation > operations, OLSyntaxNode whereClause ) {
+		// Extract identifier from first operation (always Field)
+		// The parser (parsePathOperations) guarantees operations is non-empty and first is Field
+		PathOperation.Field fieldOp = (PathOperation.Field) operations.get( 0 );
+
+		// Build VariablePath from identifier
+		// For a simple identifier like "data", the VariablePath is: [(key: "data", index: 0)]
+		@SuppressWarnings( "unchecked" )
+		Pair< Expression, Expression >[] pathArray = new Pair[] {
+			new Pair<>( Value.create( fieldOp.name() ), Value.create( 0 ) )
+		};
+		VariablePath varPath = new VariablePath( pathArray );
+
+		// Get remaining operations (skip first identifier)
+		List< PathOperation > remainingOps = operations.subList( 1, operations.size() );
+
+		// Convert WHERE clause to Expression
+		whereClause.accept( this );
+		Expression whereExpr = currExpression;
+
+		return new PathQueryComponents( varPath, remainingOps, whereExpr );
+	}
+
+	@Override
+	public void visit( PathsExpressionNode n ) {
+		PathQueryComponents pqc = buildPathQuery( n.operations(), n.whereClause() );
+		currExpression = new jolie.runtime.expression.PathsExpression( pqc.varPath, pqc.remainingOps, pqc.whereExpr );
+	}
+
+	@Override
+	public void visit( ValuesExpressionNode n ) {
+		PathQueryComponents pqc = buildPathQuery( n.operations(), n.whereClause() );
+		currExpression = new jolie.runtime.expression.ValuesExpression( pqc.varPath, pqc.remainingOps, pqc.whereExpr );
+	}
+
+	@Override
+	public void visit( PvalExpressionNode n ) {
+		n.pathExpression().accept( this );
+		currExpression = new jolie.runtime.expression.PvalExpression( currExpression, n.pathOperations(), n.context() );
+	}
+
+	@Override
+	public void visit( PvalAssignStatement n ) {
+		n.pathExpression().accept( this );
+		Expression pathExpr = currExpression;
+		n.expression().accept( this );
+		Expression valueExpr = currExpression;
+		PvalAssignmentProcess p = new PvalAssignmentProcess( pathExpr, n.pathOperations(), valueExpr, n.context() );
+		currProcess = p;
+		currExpression = p;
+	}
+
+	@Override
+	public void visit( PvalDeepCopyStatement n ) {
+		n.pathExpression().accept( this );
+		Expression pathExpr = currExpression;
+		n.rightExpression().accept( this );
+		Expression rightExpr = currExpression;
+		currProcess = new PvalDeepCopyProcess( pathExpr, n.pathOperations(), rightExpr, n.context() );
 	}
 
 	@Override
@@ -1481,7 +1561,14 @@ public class OOITBuilder implements UnitOLVisitor {
 
 	@Override
 	public void visit( ValueVectorSizeExpressionNode n ) {
-		currExpression = new ValueVectorSizeExpression( buildVariablePath( n.variablePath() ) );
+		OLSyntaxNode exprNode = n.expression();
+		currExpression = switch( exprNode ) {
+		case VariablePathNode vpn -> new ValueVectorSizeExpression( buildVariablePath( vpn ) );
+		case CurrentValueNode cvn -> new ValueVectorSizeExpression(
+			(CurrentValueExpression) buildExpression( cvn ) );
+		default -> throw new IllegalStateException(
+			"Unexpected expression type in ValueVectorSizeExpressionNode: " + exprNode.getClass().getSimpleName() );
+		};
 	}
 
 	@Override

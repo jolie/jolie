@@ -77,4 +77,6 @@ public final class CompareOperators {
 				return (left.intValue() >= right.intValue());
 			}
 		};
+	public final static BiPredicate< Value, Value > HAS =
+		( left, right ) -> left.hasChildren( right.strValue() );
 }
