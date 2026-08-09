@@ -258,8 +258,8 @@ main {
                 sbst = outputPort.location
                 length@StringUtils( outputPort.location )( location_length )
                 with ( sbst ) {
-                    .begin = 0;
-                    .end = location_length - 1
+                    ..begin = 0;
+                    ..end = location_length - 1
                 }
                 substring@StringUtils( sbst )( outputPort.location )
             }
@@ -310,8 +310,8 @@ main {
                 sbst = outputPort.interface.operation[ o ].path
                 length@StringUtils( outputPort.interface.operation[ o ].path )( path_length )
                 with ( sbst ) {
-                    .begin = 1;
-                    .end = path_length
+                    ..begin = 1;
+                    ..end = path_length
                 }
                 substring@StringUtils( sbst )( alias_path )
             }  else {

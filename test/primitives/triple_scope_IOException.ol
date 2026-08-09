@@ -14,10 +14,10 @@ define doTest {
 	}
 
 	with(req) {
-		.args[0] = "triple_scope_IOException2.ol"; 
-		.workingDirectory="./primitives/unhandled_faults/";
-		.stdOutConsoleEnable = true;
-		.waitFor = 1
+		..args[0] = "triple_scope_IOException2.ol"; 
+		..workingDirectory="./primitives/unhandled_faults/";
+		..stdOutConsoleEnable = true;
+		..waitFor = 1
 	}
 	;
 	exec@Exec(req)(res)

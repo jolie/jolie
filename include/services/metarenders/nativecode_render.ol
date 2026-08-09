@@ -215,16 +215,16 @@ main
 		response = response + "RequestResponse:\n";
 		for ( x = 0, x < rr_count, x++ ) {
 			with ( rr[ x ] ) {
-			response = response + _indentation_string + .operation_name + "( " + .input + " )( " + .output + " )";
-			for ( f = 0, f < #.fault, f++ ) {
+			response = response + _indentation_string + ..operation_name + "( " + ..input + " )( " + ..output + " )";
+			for ( f = 0, f < #..fault, f++ ) {
 					if ( f == 0 ) {
 							response = response + " throws "
 					};
-					response = response + .fault[ f ].name;
-					if ( .fault[ f ].type instanceof TypeLink ) {
-							response = response + "( " + .fault[ f ].type.link_name + " ) "
-					} else if ( .fault[ f ].type instanceof NativeType ) {
-							getNativeType@MySelf(.fault[ f ].type  )( ntype )
+					response = response + ..fault[ f ].name;
+					if ( ..fault[ f ].type instanceof TypeLink ) {
+							response = response + "( " + ..fault[ f ].type.link_name + " ) "
+					} else if ( ..fault[ f ].type instanceof NativeType ) {
+							getNativeType@MySelf(..fault[ f ].type  )( ntype )
 							response = response + "( " + ntype + " ) "
 					}
 					response = response + " "
@@ -242,7 +242,7 @@ main
 		response = response + "OneWay:";
 		for ( x = 0, x < ow_count, x++ ) {
 			with ( ow[ x ] ) {
-			response = response + _indentation_string + .operation_name + "( " + .input + " )";
+			response = response + _indentation_string + ..operation_name + "( " + ..input + " )";
 			if ( x < ( ow_count - 1 ) ) {
 			response = response + ",\n"
 			} else {

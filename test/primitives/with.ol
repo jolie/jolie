@@ -18,11 +18,16 @@
  */
 
 include "../AbstractTestUnit.iol"
+include "console.iol"
+include "string_utils.iol"
 
 define doTest
 {
+  b = "hello"
   with( root ) {
-    .a.left << "Left" {
+    ..b = b
+    ..c = "yes"
+    ..a.left << "Left" {
       x = 1
       y = 2
       y.left = "y_l"
@@ -30,12 +35,15 @@ define doTest
     }
   }
 
+  if ( root.b != "hello")  {
+    throw( TestFailed, "root.b does not match expected content" )
+  }
   if ( root.a.left.y.right != "y_r" ) {
     throw( TestFailed, "root.a.left.y.right does not match expected content" )
   }
 
   with( otherRoot ) {
-    .alias -> root.a
+    ..alias -> root.a
   }
 
   if ( otherRoot.alias.left.y.right != root.a.left.y.right ) {

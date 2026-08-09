@@ -15,13 +15,13 @@ init {
 	install( Err =>
 		scope( pippo ) {
 			with( request ) {
-				.afield = "ciao";
-				.bfield = 10;
-				.cfield = 10.0;
-				.efield = "ciao";
-				.ffield = true;
-				.gfield = "ciao";
-				.hfield = 10L
+				..afield = "ciao";
+				..bfield = 10;
+				..cfield = 10.0;
+				..efield = "ciao";
+				..ffield = true;
+				..gfield = "ciao";
+				..hfield = 10L
 				}
 				request = "ciao";
 				testFlatStructure@Test( request )( response )
