@@ -868,8 +868,8 @@ public class OLParser extends AbstractParser {
 	private EmbedServiceNode parseEmbeddedServiceNode()
 		throws IOException, ParserException {
 		// define record of things needed for creating the EmbedServiceNode
-		record EmbedServiceNodeInternals(String serviceName, OutputPortInfo bindingPort, boolean hasNewKeyword,
-			OLSyntaxNode passingParam) {
+		record EmbedServiceNodeInternals( String serviceName, OutputPortInfo bindingPort, boolean hasNewKeyword,
+			OLSyntaxNode passingParam ) {
 		}
 		InternalParseResult< EmbedServiceNodeInternals > parseResult = parseInternals( () -> {
 			nextToken();
@@ -1630,7 +1630,7 @@ public class OLParser extends AbstractParser {
 	 * @param internals Holds the information gathered by the ParsingLambda.
 	 * @param context The ParsingContext of the part of code that was parsed.
 	 */
-	private record InternalParseResult< I >(I internals, ParsingContext context) {
+	private record InternalParseResult< I >( I internals, ParsingContext context ) {
 	}
 
 	/**
@@ -3040,8 +3040,9 @@ public class OLParser extends AbstractParser {
 			throwException( "Prefixed variable paths must be inside a with block" );
 		}
 
-		while( tokens.get( 0 ).is( Scanner.TokenType.DOT ) ) {
+		while( tokens.get( 0 ).is( Scanner.TokenType.DOTDOT ) ) {
 			i--;
+			tokens.set( 0, new Scanner.Token( Scanner.TokenType.DOT ) );
 			tokens.addAll( 0, inVariablePaths.get( i ) );
 		}
 
@@ -3481,7 +3482,7 @@ public class OLParser extends AbstractParser {
 				}
 			}
 			break;
-		case DOT:
+		case DOTDOT:
 			path = parseVariablePath();
 			break;
 		case CARET:
