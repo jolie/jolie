@@ -2789,6 +2789,7 @@ public class OLParser extends AbstractParser {
 			retVal = stm;
 			break;
 		case DOTDOT:
+		case DOT: // TODO this case line to be depricated see #652
 			if( !inVariablePaths.isEmpty() ) {
 				retVal = parseAssignOrDeepCopyOrPointerStatement( parsePrefixedVariablePath() );
 			}
@@ -2956,7 +2957,8 @@ public class OLParser extends AbstractParser {
 
 	private VariablePathNode parseVariablePath()
 		throws ParserException, IOException {
-		if( token.is( Scanner.TokenType.DOTDOT ) ) {
+		// TODO in if statement token.is( Scanner.TokenType.DOT ) to be depricated see #652
+		if( token.is( Scanner.TokenType.DOTDOT ) || token.is( Scanner.TokenType.DOT ) ) {
 			return parsePrefixedVariablePath();
 		}
 		assertIdentifier( "Expected variable path" );
@@ -3039,8 +3041,9 @@ public class OLParser extends AbstractParser {
 		} catch( IndexOutOfBoundsException e ) {
 			throwException( "Prefixed variable paths must be inside a with block" );
 		}
-
-		while( tokens.get( 0 ).is( Scanner.TokenType.DOTDOT ) ) {
+		// TODO in while statement tokens.get( 0 ).is( Scanner.TokenType.DOT ) to be depricated see #652
+		while( tokens.get( 0 ).is( Scanner.TokenType.DOTDOT ) || tokens.get( 0 ).is( Scanner.TokenType.DOT ) ) {
+			// TODO give depricate message
 			i--;
 			tokens.set( 0, new Scanner.Token( Scanner.TokenType.DOT ) );
 			tokens.addAll( 0, inVariablePaths.get( i ) );
@@ -3216,7 +3219,8 @@ public class OLParser extends AbstractParser {
 		eat( Scanner.TokenType.LPAREN, "expected (" );
 		if( token.is( Scanner.TokenType.ID ) ) {
 			ret = parseVariablePath();
-		} else if( token.is( Scanner.TokenType.DOTDOT ) ) {
+		} else if( token.is( Scanner.TokenType.DOTDOT ) || token.is( Scanner.TokenType.DOT ) ) {
+			// TODO in if statement token.is( Scanner.TokenType.DOT ) to be depricated see #652
 			ret = parsePrefixedVariablePath();
 		}
 
@@ -3483,6 +3487,7 @@ public class OLParser extends AbstractParser {
 			}
 			break;
 		case DOTDOT:
+		case DOT: // TODO this case line to be depricated see #652
 			path = parseVariablePath();
 			break;
 		case CARET:
