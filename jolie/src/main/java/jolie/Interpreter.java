@@ -25,10 +25,12 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.PrintStream;
 import java.io.StringWriter;
+import java.io.UnsupportedEncodingException;
 import java.lang.ref.Cleaner;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -851,6 +853,23 @@ public class Interpreter {
 		}
 
 		LOGGER.setLevel( configuration.logLevel() );
+
+		try {
+			if( LOGGER.getUseParentHandlers() ) {
+				Logger rootLogger = Logger.getLogger( "" );
+
+				for( java.util.logging.Handler handler : rootLogger.getHandlers() ) {
+					handler.setEncoding( StandardCharsets.UTF_8.name() );
+				}
+			} else {
+				for( java.util.logging.Handler handler : LOGGER.getHandlers() ) {
+					handler.setEncoding( StandardCharsets.UTF_8.name() );
+				}
+			}
+		} catch( UnsupportedEncodingException e ) {
+			// UTF-8 is guaranteed by the JVM, so this should never happen
+			throw new IOException( e );
+		}
 
 		exitingLock = new ReentrantLock();
 		exitingCondition = exitingLock.newCondition();
