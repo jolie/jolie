@@ -79,6 +79,7 @@ import jolie.runtime.typing.RequestResponseTypeDescription;
 import jolie.runtime.typing.Type;
 import jolie.runtime.typing.TypeCastingException;
 import jolie.tracer.ProtocolTraceAction;
+import jolie.tracer.TracerUtils;
 import jolie.uri.UriUtils;
 import jolie.util.LocationParser;
 import jolie.util.metadata.MetadataKey;
@@ -867,8 +868,11 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.Protocol {
 				&& encodedContent.content != null ) {
 				showContent = true;
 			}
-			Interpreter.getInstance()
-				.logInfo( HttpUtils.prepareSendDebugString( header, encodedContent, charset, showContent ) );
+			String debugMessage = HttpUtils.prepareSendDebugString( header, encodedContent, charset,
+				showContent );
+
+			Interpreter.getInstance().logInfo( TracerUtils.sanitizeForConsole( debugMessage ) );
+
 		}
 	}
 
@@ -1349,7 +1353,8 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.Protocol {
 				&& message.size() > 0 ) {
 				showContent = true;
 			}
-			Interpreter.getInstance().logInfo( HttpUtils.getDebugMessage( message, charset, showContent ) );
+			Interpreter.getInstance().logInfo(
+				TracerUtils.sanitizeForConsole( HttpUtils.getDebugMessage( message, charset, showContent ) ) );
 		}
 
 		// tracer

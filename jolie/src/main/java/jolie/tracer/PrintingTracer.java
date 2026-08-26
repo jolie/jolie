@@ -30,6 +30,9 @@ import java.util.function.Supplier;
 import jolie.Interpreter;
 import jolie.runtime.Value;
 import jolie.runtime.ValuePrettyPrinter;
+import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
+
 
 /**
  *
@@ -39,6 +42,8 @@ public class PrintingTracer implements Tracer {
 	private int actionCounter = 0;
 	private final Interpreter interpreter;
 	private final TracerUtils.TracerLevels tracerLevels;
+	private static final PrintStream TRACE_OUT =
+		new PrintStream( System.out, true, StandardCharsets.UTF_8 );
 
 	public PrintingTracer( Interpreter interpreter, TracerUtils.TracerLevels tLevel ) {
 		this.interpreter = interpreter;
@@ -60,6 +65,8 @@ public class PrintingTracer implements Tracer {
 		}
 	}
 
+
+
 	private void trace( EmbeddingTraceAction action ) {
 		if( tracerLevels.equals( TracerUtils.TracerLevels.ALL ) ) {
 
@@ -77,7 +84,8 @@ public class PrintingTracer implements Tracer {
 			stBuilder
 				.append( "\t" ).append( action.name() )
 				.append( "\t\t\t" ).append( action.description() );
-			System.out.println( stBuilder.toString() );
+			TRACE_OUT.println(
+				TracerUtils.sanitizeForConsole( stBuilder.toString() ) );
 		}
 	}
 
@@ -138,7 +146,8 @@ public class PrintingTracer implements Tracer {
 				} // Should never happen
 				stBuilder.append( writer.toString() );
 			}
-			System.out.println( stBuilder.toString() );
+			TRACE_OUT.println(
+				TracerUtils.sanitizeForConsole( stBuilder.toString() ) );
 		}
 	}
 
@@ -186,7 +195,8 @@ public class PrintingTracer implements Tracer {
 				} // Should never happen
 				stBuilder.append( writer.toString() );
 			}
-			System.out.println( stBuilder.toString() );
+			TRACE_OUT.println(
+				TracerUtils.sanitizeForConsole( stBuilder.toString() ) );
 		}
 	}
 
@@ -218,7 +228,8 @@ public class PrintingTracer implements Tracer {
 			if( action.message() != null ) {
 				stBuilder.append( action.message() );
 			}
-			System.out.println( stBuilder.toString() );
+			TRACE_OUT.println(
+				TracerUtils.sanitizeForConsole( stBuilder.toString() ) );
 		}
 	}
 }
