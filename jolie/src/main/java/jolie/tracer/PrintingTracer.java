@@ -40,6 +40,35 @@ public class PrintingTracer implements Tracer {
 	private final Interpreter interpreter;
 	private final TracerUtils.TracerLevels tracerLevels;
 
+	/**
+	 * Keeps terminal control characters and unpaired surrogates out of console output. A traced payload
+	 * can contain arbitrary bytes from a remote peer; writing them raw lets an escape sequence or a
+	 * carriage return overwrite the rest of the trace.
+	 *
+	 * @param text the text to sanitize
+	 * @return the text without control characters (except newline and tab)
+	 */
+	static String sanitizeForConsole( String text ) {
+		StringBuilder sanitized = new StringBuilder( text.length() );
+		for( int i = 0; i < text.length(); i++ ) {
+			final char c = text.charAt( i );
+			if( Character.isHighSurrogate( c ) ) {
+				if( i + 1 < text.length() && Character.isLowSurrogate( text.charAt( i + 1 ) ) ) {
+					sanitized.append( c ).append( text.charAt( ++i ) );
+				} else {
+					sanitized.append( '\uFFFD' );
+				}
+			} else if( Character.isLowSurrogate( c ) ) {
+				sanitized.append( '\uFFFD' );
+			} else if( c == '\n' || c == '\t' ) {
+				sanitized.append( c );
+			} else if( !Character.isISOControl( c ) ) {
+				sanitized.append( c );
+			}
+		}
+		return sanitized.toString();
+	}
+
 	public PrintingTracer( Interpreter interpreter, TracerUtils.TracerLevels tLevel ) {
 		this.interpreter = interpreter;
 		this.tracerLevels = tLevel;
@@ -77,7 +106,7 @@ public class PrintingTracer implements Tracer {
 			stBuilder
 				.append( "\t" ).append( action.name() )
 				.append( "\t\t\t" ).append( action.description() );
-			System.out.println( stBuilder.toString() );
+			System.out.println( sanitizeForConsole( stBuilder.toString() ) );
 		}
 	}
 
@@ -138,7 +167,7 @@ public class PrintingTracer implements Tracer {
 				} // Should never happen
 				stBuilder.append( writer.toString() );
 			}
-			System.out.println( stBuilder.toString() );
+			System.out.println( sanitizeForConsole( stBuilder.toString() ) );
 		}
 	}
 
@@ -186,7 +215,7 @@ public class PrintingTracer implements Tracer {
 				} // Should never happen
 				stBuilder.append( writer.toString() );
 			}
-			System.out.println( stBuilder.toString() );
+			System.out.println( sanitizeForConsole( stBuilder.toString() ) );
 		}
 	}
 
@@ -218,7 +247,7 @@ public class PrintingTracer implements Tracer {
 			if( action.message() != null ) {
 				stBuilder.append( action.message() );
 			}
-			System.out.println( stBuilder.toString() );
+			System.out.println( sanitizeForConsole( stBuilder.toString() ) );
 		}
 	}
 }
